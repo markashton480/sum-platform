@@ -24,8 +24,8 @@ format: ## Format code with Black and isort
 	black .
 	isort .
 
-run: ## Placeholder for local dev (will be wired to Docker later)
-	@echo "Run target - to be implemented in Docker ticket"
+run: ## Initial for local dev (may be wired to Docker later)
+	python manage.py runserver
 
 clean: ## Clean up generated files
 	find . -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true
