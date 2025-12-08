@@ -1,0 +1,23 @@
+{% load branding_tags wagtailcore_tags wagtailimages_tags %}
+{% get_site_settings as site_settings %}
+{% wagtail_site as current_site %}
+{% firstof site_settings.company_name current_site.site_name WAGTAIL_SITE_NAME as site_name %}
+<header class="layout__header site-header">
+  <div class="container site-header__inner">
+    <a href="/" class="site-header__brand">
+      {% if site_settings.header_logo %}
+        {% image site_settings.header_logo height-40 as header_logo %}
+        <img
+          src="{{ header_logo.url }}"
+          alt="{{ site_name }}"
+          class="site-header__logo"
+        >
+      {% else %}
+        <span class="site-header__title">
+          {{ site_name }}
+        </span>
+      {% endif %}
+    </a>
+    {% block primary_nav %}{% endblock %}
+  </div>
+</header>

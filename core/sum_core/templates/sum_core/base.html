@@ -1,11 +1,38 @@
+{% load static wagtailcore_tags branding_tags wagtailimages_tags %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>sum_core</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% get_site_settings as site_settings %}
+    {% wagtail_site as current_site %}
+    {% firstof site_settings.company_name current_site.site_name WAGTAIL_SITE_NAME as site_name %}
+    <title>
+      {% block title %}
+        {% if page %}
+          {% firstof page.seo_title page.title %}
+        {% else %}
+          {{ site_name }}
+        {% endif %}
+      {% endblock %}
+    </title>
+    {% if site_settings.favicon %}
+      {% image site_settings.favicon fill-32x32 as favicon_rendition %}
+      <link rel="icon" href="{{ favicon_rendition.url }}">
+    {% endif %}
+    <link rel="stylesheet" href="{% static 'sum_core/css/main.css' %}">
+    {% branding_fonts %}
+    {% branding_css %}
+    {% block extra_head %}{% endblock %}
   </head>
-  <body>
-    {% block content %}{% endblock %}
+  <body class="layout">
+    <div class="layout__inner">
+      {% include "sum_core/includes/header.html" %}
+      <main class="layout__main">
+        {% block content %}{% endblock %}
+      </main>
+      {% include "sum_core/includes/footer.html" %}
+    </div>
+    {% block extra_body %}{% endblock %}
   </body>
 </html>

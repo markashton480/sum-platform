@@ -1,0 +1,35 @@
+{% load branding_tags wagtailcore_tags %}
+{% get_site_settings as site_settings %}
+{% wagtail_site as current_site %}
+{% firstof site_settings.company_name current_site.site_name WAGTAIL_SITE_NAME as site_name %}
+<footer class="layout__footer site-footer">
+  <div class="container site-footer__inner">
+    <div class="site-footer__brand">
+      <div class="site-footer__title">
+        {{ site_name }}
+      </div>
+      {% if site_settings.tagline %}
+        <div class="site-footer__tagline">
+          {{ site_settings.tagline }}
+        </div>
+      {% endif %}
+    </div>
+    <div class="site-footer__meta">
+      {% if site_settings.phone_number %}
+        <div class="site-footer__item">
+          {{ site_settings.phone_number }}
+        </div>
+      {% endif %}
+      {% if site_settings.email %}
+        <div class="site-footer__item">
+          {{ site_settings.email }}
+        </div>
+      {% endif %}
+      {% if site_settings.address %}
+        <div class="site-footer__item site-footer__address">
+          {{ site_settings.address|linebreaksbr }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</footer>
