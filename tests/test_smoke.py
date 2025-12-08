@@ -26,5 +26,3 @@ def test_import_standard_library() -> None:
 def test_basic_assertion() -> None:
     """Test that basic assertions work."""
     assert True
-
-

@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tradesite"
+name = "Straight Up Marketing Platform"
 version = "0.1.0"
 description = "Monorepo for trade website platform"
 requires-python = ">=3.12"
@@ -126,4 +126,3 @@ ignore_missing_imports = true
 exclude = [
     "/(build|dist|\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|venv|_build|buck-out)/",
 ]
-

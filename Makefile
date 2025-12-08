@@ -33,4 +33,3 @@ clean: ## Clean up generated files
 	find . -type d -name ".mypy_cache" -exec rm -r {} + 2>/dev/null || true
 	find . -type d -name "htmlcov" -exec rm -r {} + 2>/dev/null || true
 	rm -f .coverage .coverage.*
-

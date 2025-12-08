@@ -5,4 +5,3 @@ Purpose: Test package initialization
 Family: pytest test discovery
 Dependencies: pytest
 """
-

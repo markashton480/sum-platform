@@ -4,23 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SolarCraft Premium - Architectural Energy Solutions</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <style>
         /* ===================================
            DESIGN TOKENS - V4 (HSL SYSTEM)
            Optimized for Wagtail Theming
            =================================== */
-        
+
         :root {
             /* Base HSL Values */
             --p-hue: 30;    /* Brown/Gold */
             --p-sat: 40%;
             --p-lig: 35%;
-            
+
             --s-hue: 40;    /* Cream/Sand */
             --s-sat: 30%;
             --s-lig: 96%;
@@ -28,16 +28,16 @@
             --primary: var(--p-hue), var(--p-sat), var(--p-lig);
             --primary-dark: var(--p-hue), var(--p-sat), 20%;
             --accent: 38, 45%, 55%;
-            
+
             --surface: var(--s-hue), var(--s-sat), var(--s-lig);
             --surface-pure: 0, 0%, 100%;
             --text-main: 30, 10%, 15%;
             --text-muted: 30, 5%, 45%;
-            
+
             /* Typography */
             --font-display: 'Fraunces', serif;
             --font-body: 'Manrope', sans-serif;
-            
+
             /* Fluid Type Scale */
             --text-xs: 0.75rem;
             --text-sm: 0.875rem;
@@ -48,15 +48,15 @@
             --text-3xl: clamp(1.75rem, 3vw, 2.5rem);
             --text-4xl: clamp(2.25rem, 5vw, 3.5rem);
             --text-display: clamp(3rem, 8vw, 5.5rem); /* Huge Editorial Headings */
-            
+
             /* Spacing */
             --container-padding: clamp(1.5rem, 5vw, 4rem);
             --section-gap: clamp(4rem, 10vw, 8rem);
-            
+
             /* Animation Easings */
             --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
             --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-            
+
             /* Borders & Radius */
             --radius-sm: 4px;
             --radius-md: 12px;
@@ -68,11 +68,11 @@
             --p-hue: 210;   /* Deep Blue */
             --p-sat: 80%;
             --p-lig: 25%;
-            
+
             --s-hue: 210;
             --s-sat: 20%;
             --s-lig: 98%;
-            
+
             --accent: 200, 90%, 40%;
             --font-display: 'Manrope', sans-serif; /* Cleaner look for technical */
         }
@@ -81,9 +81,9 @@
            RESET & CORE UTILITIES
            =================================== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         html { scroll-behavior: smooth; }
-        
+
         body {
             font-family: var(--font-body);
             color: hsla(var(--text-main), 1);
@@ -130,14 +130,14 @@
         /* ===================================
            ANIMATION UTILITIES (The "Wow" Factor)
            =================================== */
-        
+
         /* Text Reveal */
         .reveal-text {
             opacity: 0;
             transform: translateY(30px);
             transition: all 1s var(--ease-out-expo);
         }
-        
+
         .is-in-view .reveal-text {
             opacity: 1;
             transform: translateY(0);
@@ -149,13 +149,13 @@
             overflow: hidden;
             background-color: hsla(var(--primary), 0.1);
         }
-        
+
         .reveal-img-wrapper img {
             transform: scale(1.15);
             transition: transform 1.5s var(--ease-out-expo);
             will-change: transform;
         }
-        
+
         .reveal-img-wrapper::after {
             content: '';
             position: absolute;
@@ -166,11 +166,11 @@
             transition: transform 1.2s var(--ease-out-expo);
             z-index: 2;
         }
-        
+
         .is-in-view .reveal-img-wrapper img {
             transform: scale(1);
         }
-        
+
         .is-in-view .reveal-img-wrapper::after {
             transform: scaleY(0);
         }
@@ -179,14 +179,14 @@
         .delay-100 { transition-delay: 0.1s; }
         .delay-200 { transition-delay: 0.2s; }
         .delay-300 { transition-delay: 0.3s; }
-        
+
         /* General Fade Group */
         .reveal-group {
             opacity: 0;
             transform: translateY(20px);
             transition: opacity 0.8s ease, transform 0.8s ease;
         }
-        
+
         .is-in-view.reveal-group, .is-in-view .reveal-group {
             opacity: 1;
             transform: translateY(0);
@@ -204,7 +204,7 @@
             padding: 1.5rem 0;
             transition: all 0.4s ease;
         }
-        
+
         .header.scrolled {
             padding: 1rem 0;
             background: hsla(var(--surface-pure), 0.85);
@@ -478,13 +478,13 @@
             padding-bottom: 2rem;
             scroll-snap-type: x mandatory;
             /* Hide Scrollbar */
-            scrollbar-width: none; 
+            scrollbar-width: none;
             -ms-overflow-style: none;
             /* Negative margin hack for full bleed on mobile */
             margin: 0 calc(var(--container-padding) * -1);
             padding: 0 var(--container-padding) 2rem;
         }
-        
+
         .features-container::-webkit-scrollbar { display: none; }
 
         @media(min-width: 1024px) {
@@ -604,7 +604,7 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 4rem;
             }
-            
+
             /* Offset effect for editorial look */
             .portfolio-item:nth-child(even) {
                 transform: translateY(60px);
@@ -686,7 +686,7 @@
     <header class="header">
         <div class="container nav-inner">
             <a href="#" class="logo">SolarCraft.</a>
-            
+
             <nav class="nav-links">
                 <a href="#projects" class="nav-item">Projects</a>
                 <a href="#services" class="nav-item">Expertise</a>
@@ -722,7 +722,7 @@
 
             <div class="hero-visual reveal-group">
                 <div class="reveal-img-wrapper">
-                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop" 
+                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop"
                          alt="Luxury Modern Home with Solar" class="hero-main-img">
                 </div>
                 <div class="float-card">
@@ -793,12 +793,12 @@
                         Standard installers leave exposed conduit and messy finishes. We treat your roof like a canvas. Slide to see the SolarCraft standard.
                     </p>
                 </div>
-                
+
                 <div class="slider-container reveal-img-wrapper" id="compare-slider">
                     <div class="img-background" style="background-image: url('https://images.unsplash.com/photo-1592833159057-65a2845730bd?q=80&w=1000&auto=format&fit=crop'); filter: grayscale(100%);"></div>
-                    
+
                     <div class="img-foreground" style="background-image: url('https://images.unsplash.com/photo-1592833159057-65a2845730bd?q=80&w=1000&auto=format&fit=crop'); width: 50%;"></div>
-                    
+
                     <input type="range" min="0" max="100" value="50" class="slider-range" aria-label="Comparison slider">
                     <div class="slider-handle" style="left: 50%">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 12H6M6 12L10 8M6 12L10 16M18 12L14 8M18 12L14 16"/></svg>
@@ -811,7 +811,7 @@
     <section class="section" id="projects">
         <div class="container">
             <h2 style="margin-bottom: 4rem;">Selected Works</h2>
-            
+
             <div class="portfolio-grid">
                 <div class="portfolio-item reveal-group">
                     <div class="reveal-img-wrapper">
@@ -903,10 +903,10 @@
         // 3. Header Scroll Effect & Mobile FAB
         const header = document.querySelector('.header');
         const fab = document.getElementById('mobileFab');
-        
+
         window.addEventListener('scroll', () => {
             const scrollY = window.scrollY;
-            
+
             // Header Glassmorphism
             if (scrollY > 50) {
                 header.classList.add('scrolled');
