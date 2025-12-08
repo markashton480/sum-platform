@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.env
+.venv
+venv/
+.envrc
+
+# Django/Wagtail
+staticfiles/
+media/
+db.sqlite3
+
+# Pytest
+.cache/
+
+# Coverage
+htmlcov/
+.coverage*
+
+# Editor/IDE
+.vscode/
+.idea/
+
+# Node (we’ll add tooling later)
+node_modules/
+dist/
+
+# Development Docs
+docs/dev/
