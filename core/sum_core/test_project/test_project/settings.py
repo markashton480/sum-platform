@@ -33,6 +33,7 @@ INSTALLED_APPS: list[str] = [
     "wagtail.sites",
     "wagtail.search",
     "wagtail.contrib.forms",
+    "wagtail.contrib.settings",
     "wagtail.contrib.redirects",
     # Wagtail dependencies
     "modelcluster",
