@@ -7,9 +7,11 @@ help: ## Show this help message
 install: ## Install project dependencies
 	pip install -e .
 
-install-dev: ## Install development dependencies
-	pip install -e ".[dev]"
+install-dev:
+	pip install -U pip
+	pip install -e ./core[dev]
 	pre-commit install
+
 
 lint: ## Run linting (ruff + mypy)
 	ruff check .

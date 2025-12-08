@@ -8,8 +8,8 @@ version = "0.1.0"
 description = "Shared core package for SUM client websites"
 requires-python = ">=3.12"
 dependencies = [
-  "Django>=4.2,<5.0",
-  "wagtail>=6.0,<7.0",
+  "Django>=5.2,<5.3",
+  "wagtail>=7.0,<7.1",
 ]
 
 [project.optional-dependencies]
