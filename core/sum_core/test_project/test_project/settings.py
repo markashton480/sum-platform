@@ -1,0 +1,91 @@
+"""
+Name: Test Project Settings
+Path: core/sum_core/test_project/test_project/settings.py
+Purpose: Minimal Django/Wagtail settings for validating the sum_core package.
+Family: Used exclusively by the sum_core.test_project for local and CI validation.
+Dependencies: Django, Wagtail, sum_core
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+BASE_DIR: Path = Path(__file__).resolve().parent.parent
+
+SECRET_KEY: str = "dev-only-not-for-production"
+DEBUG: bool = True
+ALLOWED_HOSTS: list[str] = []
+
+INSTALLED_APPS: list[str] = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    # Wagtail core and contrib apps
+    "wagtail",
+    "wagtail.admin",
+    "wagtail.users",
+    "wagtail.images",
+    "wagtail.documents",
+    "wagtail.snippets",
+    "wagtail.sites",
+    "wagtail.search",
+    "wagtail.contrib.forms",
+    "wagtail.contrib.redirects",
+    # Wagtail dependencies
+    "modelcluster",
+    "taggit",
+    # Project apps
+    "sum_core",
+]
+
+MIDDLEWARE: list[str] = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "wagtail.contrib.redirects.middleware.RedirectMiddleware",
+]
+
+ROOT_URLCONF: str = "test_project.urls"
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION: str = "test_project.wsgi.application"
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+AUTH_PASSWORD_VALIDATORS: list[dict[str, str]] = []
+
+LANGUAGE_CODE: str = "en-gb"
+TIME_ZONE: str = "Europe/London"
+USE_I18N: bool = True
+USE_TZ: bool = True
+
+STATIC_URL: str = "/static/"
+
+DEFAULT_AUTO_FIELD: str = "django.db.models.BigAutoField"
