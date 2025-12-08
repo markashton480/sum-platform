@@ -38,9 +38,10 @@ def test_base_template_renders_with_branding_and_content() -> None:
 
     assert "<title>" in rendered
     assert "Custom SEO Title" in rendered
+    assert "Test Co" in rendered
+    assert "Hello" in rendered
     assert "sum_core/css/main.css" in rendered
     assert '<style id="branding-css">' in rendered
-    assert "Hello" in rendered
 
 
 def test_header_and_footer_render_site_settings() -> None:
