@@ -3,11 +3,14 @@ Name: Branding Site Settings
 Path: core/sum_core/branding/models.py
 Purpose: Provides Wagtail SiteSettings for branding and business configuration shared across client sites.
 Family: Used by template tags and frontend templates (branding_css, branding_fonts, base layouts).
-Dependencies: Django models, Wagtail settings framework, wagtailimages.
+Dependencies: Django models, Wagtail settings framework, wagtailimages, Django cache.
 """
 
 from __future__ import annotations
 
+from typing import Any
+
+from django.core.cache import cache
 from django.db import models
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
@@ -179,3 +182,17 @@ class SiteSettings(BaseSiteSetting):
 
     def __str__(self) -> str:  # pragma: no cover - admin display helper
         return self.company_name or "Site settings"
+
+    def _invalidate_branding_cache(self) -> None:
+        cache.delete(f"branding_css:{self.site_id}")
+        cache.delete(f"branding_fonts:{self.site_id}")
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        super().save(*args, **kwargs)
+        self._invalidate_branding_cache()
+
+    def delete(self, *args: Any, **kwargs: Any) -> None:
+        site_id = self.site_id
+        super().delete(*args, **kwargs)
+        cache.delete(f"branding_css:{site_id}")
+        cache.delete(f"branding_fonts:{site_id}")
