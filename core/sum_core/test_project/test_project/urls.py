@@ -1,7 +1,7 @@
 """
 Name: Test Project URL Configuration
 Path: core/sum_core/test_project/test_project/urls.py
-Purpose: Minimal URL configuration to expose Wagtail admin and root page.
+Purpose: Minimal URL configuration to expose Wagtail admin and the site root.
 Family: Used by test_project when running the development server or checks.
 Dependencies: Django, Wagtail
 """
@@ -11,8 +11,13 @@ from __future__ import annotations
 from django.contrib import admin
 from django.urls import include, path
 
+from wagtail import urls as wagtail_urls
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.documents import urls as wagtaildocs_urls
+
 urlpatterns = [
     path("django-admin/", admin.site.urls),
-    path("admin/", include("wagtail.admin.urls")),
-    path("documents/", include("wagtail.documents.urls")),
+    path("admin/", include(wagtailadmin_urls)),
+    path("documents/", include(wagtaildocs_urls)),
+    path("", include(wagtail_urls)),
 ]

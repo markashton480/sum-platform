@@ -10,6 +10,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+# Wagtail Settings
+WAGTAIL_SITE_NAME: str = "SUM Test Project"
+WAGTAIL_ENABLE_UPDATE_CHECK = "lts" 
+
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 
 SECRET_KEY: str = "dev-only-not-for-production"
