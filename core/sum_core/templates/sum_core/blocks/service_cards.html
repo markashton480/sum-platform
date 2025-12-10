@@ -1,0 +1,57 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+
+<section class="section section--inset services">
+    <div class="container">
+        <div class="services__header">
+            {% if self.eyebrow %}
+                <p class="text-muted services__eyebrow">{{ self.eyebrow }}</p>
+            {% endif %}
+            <h2 class="heading-lg services__heading">
+                {{ self.heading }}
+            </h2>
+            {% if self.intro %}
+                <p class="text-body text-muted services__intro">
+                    {{ self.intro }}
+                </p>
+            {% endif %}
+        </div>
+
+        {% if self.cards %}
+            <div class="services__grid">
+                {% for card in self.cards %}
+                    <article class="card services__card">
+                        <div class="card__body">
+                            {% if card.image %}
+                                <div class="services__icon services__icon--image">
+                                    {% image card.image fill-160x160 class="services__icon-image" %}
+                                </div>
+                            {% elif card.icon %}
+                                <div class="services__icon services__icon--emoji">
+                                    {{ card.icon }}
+                                </div>
+                            {% endif %}
+
+                            <h3 class="heading-md services__card-title">
+                                {{ card.title }}
+                            </h3>
+
+                            {% if card.description %}
+                                <div class="text-body services__card-description">
+                                    {{ card.description|richtext }}
+                                </div>
+                            {% endif %}
+
+                            {% if card.link_url %}
+                                <div class="services__card-link">
+                                    <a href="{{ card.link_url }}" class="btn btn--link">
+                                        {{ card.link_label|default:"Learn more" }}
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>

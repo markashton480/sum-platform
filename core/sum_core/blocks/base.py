@@ -17,6 +17,7 @@ from sum_core.blocks.content import (
     PortfolioBlock,
 )
 from sum_core.blocks.hero import HeroImageBlock, HeroGradientBlock
+from sum_core.blocks.services import ServiceCardsBlock
 
 
 class PageStreamBlock(StreamBlock):
@@ -30,6 +31,7 @@ class PageStreamBlock(StreamBlock):
 
     hero_image = HeroImageBlock(group="Hero")
     hero_gradient = HeroGradientBlock(group="Hero")
+    service_cards = ServiceCardsBlock(group="Services")
     hero = HeroBlock(group="Legacy Sections")  # Keeping specific hero type separate
     trust_strip = TrustStripBlock(group="Sections")
     features = FeaturesListBlock(group="Sections")
