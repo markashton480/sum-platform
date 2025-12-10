@@ -8,6 +8,7 @@ Dependencies: Django, Wagtail, sum_core
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 # Wagtail Settings
@@ -15,6 +16,32 @@ WAGTAIL_SITE_NAME: str = "SUM Test Project"
 WAGTAIL_ENABLE_UPDATE_CHECK = "lts" 
 
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
+
+ENV_FILE_PATH: Path | None = None
+
+
+def _load_env_file() -> Path | None:
+    """
+    Lightweight .env loader so the test project picks up DB settings without
+    requiring python-dotenv. Walks up the tree to find the first .env file.
+    """
+    for directory in [Path(__file__).resolve().parent, *Path(__file__).resolve().parents]:
+        candidate = directory / ".env"
+        if not candidate.exists():
+            continue
+        for raw_line in candidate.read_text().splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            os.environ.setdefault(key, value)
+        return candidate
+    return None
+
+
+ENV_FILE_PATH = _load_env_file()
 
 SECRET_KEY: str = "dev-only-not-for-production"
 DEBUG: bool = True
@@ -77,12 +104,48 @@ TEMPLATES = [
 
 WSGI_APPLICATION: str = "test_project.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+DB_NAME = os.getenv("DJANGO_DB_NAME")
+DB_USER = os.getenv("DJANGO_DB_USER")
+DB_PASSWORD = os.getenv("DJANGO_DB_PASSWORD")
+DB_HOST = os.getenv("DJANGO_DB_HOST")
+DB_PORT = os.getenv("DJANGO_DB_PORT", "5432")
+
+
+def _validate_db_env() -> None:
+    supplied_any = any([DB_NAME, DB_USER, DB_PASSWORD, DB_HOST])
+    required_present = DB_NAME and DB_HOST
+    if supplied_any and not required_present:
+        missing = []
+        if not DB_NAME:
+            missing.append("DJANGO_DB_NAME")
+        if not DB_HOST:
+            missing.append("DJANGO_DB_HOST")
+        raise ValueError(
+            "Partial Postgres configuration supplied. Missing required env vars: "
+            + ", ".join(missing)
+        )
+
+
+_validate_db_env()
+
+if DB_HOST and DB_NAME:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": DB_NAME,
+            "USER": DB_USER,
+            "PASSWORD": DB_PASSWORD,
+            "HOST": DB_HOST,
+            "PORT": DB_PORT,
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS: list[dict[str, str]] = []
 

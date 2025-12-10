@@ -1,4 +1,4 @@
-.PHONY: help lint test format run install install-dev clean
+.PHONY: help lint test format run install install-dev clean db-up db-down db-logs
 
 help: ## Show this help message
 	@echo "Available targets:"
@@ -35,3 +35,12 @@ clean: ## Clean up generated files
 	find . -type d -name ".mypy_cache" -exec rm -r {} + 2>/dev/null || true
 	find . -type d -name "htmlcov" -exec rm -r {} + 2>/dev/null || true
 	rm -f .coverage .coverage.*
+
+db-up: ## Start Postgres via Docker Compose
+	docker-compose up -d db
+
+db-down: ## Stop Postgres via Docker Compose
+	docker-compose down
+
+db-logs: ## Tail Postgres logs
+	docker-compose logs -f db

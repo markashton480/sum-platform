@@ -1,0 +1,17 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: sum_db
+      POSTGRES_USER: sum_user
+      POSTGRES_PASSWORD: sum_password
+    volumes:
+      - sum_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  sum_db_data:
+
