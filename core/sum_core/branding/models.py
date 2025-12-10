@@ -18,6 +18,7 @@ from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
 
 @register_setting
 class SiteSettings(BaseSiteSetting):
+    base_form_class = "sum_core.branding.forms.SiteSettingsAdminForm"
     primary_color = models.CharField(
         max_length=7,
         blank=True,
@@ -126,6 +127,20 @@ class SiteSettings(BaseSiteSetting):
     panels = [
         MultiFieldPanel(
             [
+                FieldPanel("header_logo"),
+                FieldPanel("footer_logo"),
+                FieldPanel("favicon"),
+            ],
+            heading="Logos & Favicon",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("theme_preset"),
+            ],
+            heading="Theme Preset",
+        ),
+        MultiFieldPanel(
+            [
                 FieldPanel("primary_color"),
                 FieldPanel("secondary_color"),
                 FieldPanel("accent_color"),
@@ -136,14 +151,6 @@ class SiteSettings(BaseSiteSetting):
                 FieldPanel("text_light_color"),
             ],
             heading="Brand Colours",
-        ),
-        MultiFieldPanel(
-            [
-                FieldPanel("header_logo"),
-                FieldPanel("footer_logo"),
-                FieldPanel("favicon"),
-            ],
-            heading="Logos & Favicon",
         ),
         MultiFieldPanel(
             [
