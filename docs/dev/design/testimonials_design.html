@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Testimonials Preview</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===================================
+           1. SHARED DESIGN TOKENS
+           =================================== */
+        :root {
+            --brand-h: 30; 
+            --brand-s: 40%;
+            --brand-l: 35%;
+
+            --primary: var(--brand-h), var(--brand-s), var(--brand-l);
+            --accent-pop: calc(var(--brand-h) + 30), 60%, 55%;
+
+            --surface-tint: var(--brand-h), 10%, 97%;
+            --surface-pure: 0, 0%, 100%;
+            --text-main: var(--brand-h), 15%, 15%;
+            --text-muted: var(--brand-h), 5%, 45%;
+
+            --font-display: 'Fraunces', serif;
+            --font-body: 'Manrope', sans-serif;
+
+            --container-padding: clamp(1.5rem, 5vw, 4rem);
+            --section-gap: clamp(4rem, 10vw, 8rem);
+            --radius-sm: 4px;
+            --radius-md: 12px;
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* ===================================
+           2. BASE STYLES
+           =================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background-color: hsla(var(--surface-tint), 1);
+            color: hsla(var(--text-main), 1);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+        }
+
+        .section { padding: var(--section-gap) 0; }
+
+        /* ===================================
+           3. TESTIMONIALS SECTION SPECIFIC
+           =================================== */
+        
+        /* Dark Theme Override for this section */
+        .section--dark {
+            background-color: hsla(var(--text-main), 1);
+            color: hsla(var(--surface-tint), 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Ambient Glow Effect */
+        .section--dark::before {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, hsla(var(--brand-h), var(--brand-s), 45%, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .testimonials__header {
+            margin-bottom: 4rem;
+            max-width: 720px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .testimonials__eyebrow {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 700;
+            color: hsla(var(--brand-h), 60%, 70%, 1); /* Lighter Gold for Dark Mode */
+            margin-bottom: 1.25rem;
+            display: inline-block;
+            border: 1px solid hsla(var(--surface-tint), 0.1);
+            padding: 0.35em 0.75em;
+            border-radius: 50px;
+            background: hsla(255, 255, 255, 0.05);
+            backdrop-filter: blur(4px);
+        }
+
+        .testimonials__heading {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            color: hsla(var(--surface-tint), 1);
+        }
+
+        .testimonials__heading span {
+            font-style: italic;
+            color: hsla(var(--brand-h), 60%, 70%, 1);
+        }
+
+        /* --- Scroll Grid (Matching Service Cards) --- */
+        .testimonials__grid {
+            display: flex;
+            gap: 2rem;
+            overflow-x: auto;
+            padding-bottom: 3rem;
+            scroll-snap-type: x mandatory;
+            
+            /* Full bleed mobile */
+            margin: 0 calc(var(--container-padding) * -1);
+            padding-left: var(--container-padding);
+            padding-right: var(--container-padding);
+            
+            scrollbar-width: none;
+            position: relative;
+            z-index: 1;
+        }
+        .testimonials__grid::-webkit-scrollbar { display: none; }
+
+        @media (min-width: 1024px) {
+            .testimonials__grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                margin: 0;
+                padding-left: 0;
+                padding-right: 0;
+                padding-bottom: 0;
+                overflow: visible;
+            }
+        }
+
+        /* --- The Testimonial Card --- */
+        .testimonial-card {
+            min-width: 85vw;
+            scroll-snap-align: center;
+            background: hsla(255, 255, 255, 0.03); /* Subtle Glass */
+            border: 1px solid hsla(255, 255, 255, 0.1);
+            border-radius: var(--radius-sm);
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.4s var(--ease-out-expo);
+            position: relative;
+        }
+
+        @media (min-width: 768px) { .testimonial-card { min-width: 45vw; } }
+        @media (min-width: 1024px) { 
+            .testimonial-card { min-width: auto; height: 100%; } 
+            .testimonial-card:hover {
+                background: hsla(255, 255, 255, 0.06);
+                transform: translateY(-8px);
+                border-color: hsla(var(--brand-h), 60%, 70%, 0.3);
+            }
+        }
+
+        /* Huge Quote Mark */
+        .testimonial-card::after {
+            content: '“';
+            position: absolute;
+            top: 0rem;
+            right: 1.5rem;
+            font-family: var(--font-display);
+            font-size: 8rem;
+            color: hsla(var(--brand-h), 60%, 70%, 0.1);
+            line-height: 1;
+            pointer-events: none;
+            font-style: italic;
+        }
+
+        .testimonial__stars {
+            color: hsla(var(--brand-h), 60%, 70%, 1);
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        .testimonial__quote {
+            font-family: var(--font-display); /* Editorial feel */
+            font-size: 1.25rem;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+            color: hsla(var(--surface-tint), 0.95);
+            font-style: italic; /* Makes it feel like a voice */
+            font-weight: 300;
+        }
+
+        .testimonial__author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: auto;
+            border-top: 1px solid hsla(255, 255, 255, 0.1);
+            padding-top: 1.5rem;
+        }
+
+        .author__avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: hsla(var(--surface-tint), 0.2);
+            object-fit: cover;
+        }
+
+        .author__info h4 {
+            font-family: var(--font-body); /* Clean sans for name */
+            font-size: 1rem;
+            font-weight: 700;
+            color: hsla(var(--surface-tint), 1);
+            margin-bottom: 0.2rem;
+        }
+
+        .author__info p {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: hsla(var(--surface-tint), 0.6);
+        }
+
+        /* Animation Classes */
+        .reveal-group {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 1s var(--ease-out-expo);
+        }
+        .reveal-group.is-in-view { opacity: 1; transform: translateY(0); }
+        .delay-100 { transition-delay: 0.1s; }
+        .delay-200 { transition-delay: 0.2s; }
+        .delay-300 { transition-delay: 0.3s; }
+
+    </style>
+</head>
+<body>
+
+    <section class="section section--dark testimonials">
+        <div class="container">
+            
+            <div class="testimonials__header reveal-group">
+                <span class="testimonials__eyebrow">Client Stories</span>
+                <h2 class="testimonials__heading">
+                    Trusted by London’s Most <br>
+                    <span class="italic-accent">Discerning</span> Homeowners.
+                </h2>
+            </div>
+
+            <div class="testimonials__grid">
+                
+                <!-- Review 1 -->
+                <article class="testimonial-card reveal-group delay-100">
+                    <div class="testimonial__stars">★★★★★</div>
+                    <blockquote class="testimonial__quote">
+                        "The team treated our Grade II listed property with absolute reverence. The solar array is virtually invisible from the street, yet our energy bills have vanished."
+                    </blockquote>
+                    <div class="testimonial__author">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&auto=format&fit=crop" alt="James" class="author__avatar">
+                        <div class="author__info">
+                            <h4>James Abernathy</h4>
+                            <p>Kensington, London</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Review 2 -->
+                <article class="testimonial-card reveal-group delay-200">
+                    <div class="testimonial__stars">★★★★★</div>
+                    <blockquote class="testimonial__quote">
+                        "I was skeptical that a battery system could look good. SolarCraft designed a bespoke enclosure that actually adds to the garage's aesthetic. Pure artistry."
+                    </blockquote>
+                    <div class="testimonial__author">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=100&auto=format&fit=crop" alt="Sarah" class="author__avatar">
+                        <div class="author__info">
+                            <h4>Sarah Jenning</h4>
+                            <p>Surrey Hills</p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Review 3 -->
+                <article class="testimonial-card reveal-group delay-300">
+                    <div class="testimonial__stars">★★★★★</div>
+                    <blockquote class="testimonial__quote">
+                        "Professionalism from start to finish. The installation was silent, clean, and on time. Finally, a trades team that respects a quiet household."
+                    </blockquote>
+                    <div class="testimonial__author">
+                        <div class="author__avatar" style="display:flex; align-items:center; justify-content:center; background:hsla(30, 40%, 35%, 1); color:white; font-size:0.9rem;">MW</div>
+                        <div class="author__info">
+                            <h4>Marcus Wright</h4>
+                            <p>Richmond</p>
+                        </div>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-in-view');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal-group').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

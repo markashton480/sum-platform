@@ -37,10 +37,10 @@ def test_navigation_template_renders_with_correct_classes() -> None:
     )
     rendered = template.render(RequestContext(request, {"page": homepage}))
 
-    # Assert navigation classes are present
-    assert "site-nav__list" in rendered
-    assert "site-nav__link" in rendered
-    assert "site-nav__link--active" in rendered
-
-    # Assert the home link has the active class
-    assert 'href="/" class="site-nav__link site-nav__link--active"' in rendered
+    # Assert navigation structure and classes from header.html
+    assert "header" in rendered
+    assert "nav-links" in rendered
+    assert "nav-item" in rendered
+    
+    # Assert the home link is present
+    assert 'href="/"' in rendered

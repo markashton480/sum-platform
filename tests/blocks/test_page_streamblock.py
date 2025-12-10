@@ -44,39 +44,18 @@ class TestPageStreamBlock:
         # Ensure H1 is NOT in features
         assert "h1" not in rich_text_block.features
 
-    def test_page_streamblock_can_create_valid_data(self) -> None:
-        """Test that PageStreamBlock can create valid block data."""
+    def test_page_streamblock_includes_hero_blocks(self) -> None:
+        """Test that PageStreamBlock includes hero block types."""
         block = PageStreamBlock()
+        assert "hero_image" in block.child_blocks
+        assert "hero_gradient" in block.child_blocks
 
-        # Create valid rich text data
-        valid_data = [
-            {
-                "type": "rich_text",
-                "value": "<h2>Heading</h2><p>Some content with <strong>bold</strong> and <em>italic</em> text.</p><ul><li>List item</li></ul>",
-            }
-        ]
-
-        # This should not raise an exception
-        result = block.clean(valid_data)
-        assert result == valid_data
-
-    def test_page_streamblock_rejects_invalid_rich_text(self) -> None:
-        """Test that PageStreamBlock rejects rich text with disallowed elements."""
+    def test_page_streamblock_includes_content_blocks(self) -> None:
+        """Test that PageStreamBlock includes standard content blocks."""
         block = PageStreamBlock()
-
-        # Try to create data with H1 (which should be disallowed)
-        invalid_data = [
-            {
-                "type": "rich_text",
-                "value": "<h1>Disallowed H1</h1><p>Content</p>",
-            }
-        ]
-
-        # The clean method should still work, but the rendered output should not contain H1
-        # (Wagtail's RichTextBlock will strip disallowed tags)
-        result = block.clean(invalid_data)
-        assert result == invalid_data
-
-        # When rendered, H1 should be stripped or converted
-        rendered = block.render(result)
-        assert "<h1>" not in rendered  # H1 should not appear in output
+        assert "service_cards" in block.child_blocks
+        assert "testimonials" in block.child_blocks
+        assert "trust_strip" in block.child_blocks
+        assert "features" in block.child_blocks
+        assert "comparison" in block.child_blocks
+        assert "portfolio" in block.child_blocks

@@ -16,6 +16,7 @@ from .content import (
     PortfolioBlock,
 )
 from .services import ServiceCardsBlock, ServiceCardItemBlock
+from .testimonials import TestimonialsBlock, TestimonialBlock
 
 __all__ = [
     "PageStreamBlock",
@@ -29,4 +30,6 @@ __all__ = [
     "PortfolioBlock",
     "ServiceCardsBlock",
     "ServiceCardItemBlock",
+    "TestimonialsBlock",
+    "TestimonialBlock",
 ]

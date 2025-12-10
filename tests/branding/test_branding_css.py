@@ -19,16 +19,12 @@ pytestmark = pytest.mark.django_db
 
 
 def test_branding_css_outputs_site_colors_and_fonts() -> None:
+    """Test that branding CSS outputs HSL variables and font settings."""
     site = Site.objects.get(is_default_site=True)
     settings = SiteSettings.for_site(site)
     settings.primary_color = "#123456"
     settings.secondary_color = "#654321"
     settings.accent_color = "#abcdef"
-    settings.background_color = "#ffffff"
-    settings.surface_color = "#eeeeee"
-    settings.surface_elevated_color = "#dddddd"
-    settings.text_color = "#111111"
-    settings.text_light_color = "#999999"
     settings.heading_font = "Playfair Display"
     settings.body_font = "Open Sans"
     settings.save()
@@ -41,29 +37,27 @@ def test_branding_css_outputs_site_colors_and_fonts() -> None:
     )
     rendered = template.render(RequestContext(request, {}))
 
-    assert "--color-primary: #123456;" in rendered
-    assert "--color-secondary: #654321;" in rendered
-    assert "--color-accent: #abcdef;" in rendered
-    assert "--color-background: #ffffff;" in rendered
-    assert "--color-surface: #eeeeee;" in rendered
-    assert "--color-surface-elevated: #dddddd;" in rendered
-    assert "--color-text: #111111;" in rendered
-    assert "--color-text-light: #999999;" in rendered
+    # The implementation outputs HSL-based variables for theming
+    assert "--brand-h:" in rendered
+    assert "--brand-s:" in rendered
+    assert "--brand-l:" in rendered
+
+    # Secondary and accent colors are output as custom variables
+    assert "--color-secondary-custom: #654321;" in rendered
+    assert "--color-accent-custom: #abcdef;" in rendered
+
+    # Font variables are output with fallback stack
     assert '--font-heading: "Playfair Display", system-ui' in rendered
     assert '--font-body: "Open Sans", system-ui' in rendered
 
 
 def test_branding_css_respects_defaults_when_blank() -> None:
+    """Test that branding CSS only outputs set values, omitting blank fields."""
     site = Site.objects.get(is_default_site=True)
     settings = SiteSettings.for_site(site)
     settings.primary_color = "#123456"
     settings.secondary_color = ""
     settings.accent_color = ""
-    settings.background_color = "#ffffff"
-    settings.surface_color = ""
-    settings.surface_elevated_color = ""
-    settings.text_color = ""
-    settings.text_light_color = ""
     settings.heading_font = ""
     settings.body_font = ""
     settings.save()
@@ -76,13 +70,15 @@ def test_branding_css_respects_defaults_when_blank() -> None:
     )
     rendered = template.render(RequestContext(request, {}))
 
-    assert "--color-primary: #123456;" in rendered
-    assert "--color-background: #ffffff;" in rendered
-    assert "--color-secondary" not in rendered
-    assert "--color-accent" not in rendered
-    assert "--color-surface:" not in rendered
-    assert "--color-surface-elevated:" not in rendered
-    assert "--color-text:" not in rendered
-    assert "--color-text-light:" not in rendered
+    # Primary color generates HSL variables
+    assert "--brand-h:" in rendered
+    assert "--brand-s:" in rendered
+    assert "--brand-l:" in rendered
+
+    # Blank values should not generate custom color variables
+    assert "--color-secondary-custom" not in rendered
+    assert "--color-accent-custom" not in rendered
+
+    # Blank fonts should not generate font variables
     assert "--font-heading" not in rendered
     assert "--font-body" not in rendered

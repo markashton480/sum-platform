@@ -3,36 +3,42 @@
 {% wagtail_site as current_site %}
 {% firstof site_settings.company_name current_site.site_name WAGTAIL_SITE_NAME as site_name %}
 
-<footer class="section" style="border-top: 1px solid hsla(var(--text-main), 0.1); background-color: hsla(var(--surface-tint), 1);">
+<footer class="section footer">
     <div class="container">
-        <div class="hero-grid" style="align-items: flex-start;">
+        <div class="footer__grid">
             <div>
-                <h2 style="margin-bottom: 1rem; font-size: var(--text-2xl);">{{ site_name }}</h2>
+                <h2 class="footer__brand-name">{{ site_name }}</h2>
                 {% if site_settings.tagline %}
-                    <p style="color: hsla(var(--text-muted), 1);">{{ site_settings.tagline }}</p>
+                    <p class="footer__tagline">{{ site_settings.tagline }}</p>
                 {% endif %}
             </div>
             
-            <div style="display: flex; gap: 4rem; flex-wrap: wrap;">
+            <div class="footer__links">
                 <div>
-                    <h4 style="font-size: 0.9rem; text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.1em;">Contact</h4>
+                    <h4 class="footer__section-title">Contact</h4>
                     {% if site_settings.email %}
-                        <p style="margin-bottom: 0.5rem;"><a href="mailto:{{ site_settings.email }}">{{ site_settings.email }}</a></p>
+                        <p class="footer__text footer__text--spaced">
+                            <a href="mailto:{{ site_settings.email }}" class="footer__link">{{ site_settings.email }}</a>
+                        </p>
                     {% endif %}
                     {% if site_settings.phone_number %}
-                        <p>{{ site_settings.phone_number }}</p>
+                        <p class="footer__text">{{ site_settings.phone_number }}</p>
                     {% endif %}
                     
                     {% if site_settings.address %}
-                         <p style="margin-top: 1rem; white-space: pre-line;">{{ site_settings.address }}</p>
+                         <p class="footer__text footer__text--address">{{ site_settings.address }}</p>
                     {% endif %}
                 </div>
                 
                 <div>
                      {# Social Links could go here if added to settings model #}
-                     <h4 style="font-size: 0.9rem; text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.1em;">Legal</h4>
-                     <p style="margin-bottom: 0.5rem;"><a href="#">Privacy Policy</a></p>
-                     <p><a href="#">Terms & Conditions</a></p>
+                     <h4 class="footer__section-title">Legal</h4>
+                     <p class="footer__text footer__text--spaced">
+                         <a href="#" class="footer__link">Privacy Policy</a>
+                     </p>
+                     <p class="footer__text">
+                         <a href="#" class="footer__link">Terms & Conditions</a>
+                     </p>
                 </div>
             </div>
         </div>

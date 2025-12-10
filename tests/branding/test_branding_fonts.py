@@ -19,6 +19,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_branding_fonts_outputs_google_fonts_link() -> None:
+    """Test that branding_fonts outputs Google Fonts links with correct weights."""
     site = Site.objects.get(is_default_site=True)
     settings = SiteSettings.for_site(site)
     settings.heading_font = "Playfair Display"
@@ -34,12 +35,14 @@ def test_branding_fonts_outputs_google_fonts_link() -> None:
     rendered = template.render(RequestContext(request, {}))
 
     assert "fonts.googleapis.com/css2" in rendered
-    assert "family=Playfair+Display:wght@400;500;700" in rendered
-    assert "family=Open+Sans:wght@400;500;700" in rendered
+    # Implementation uses full weight range 300-700
+    assert "family=Playfair+Display:wght@300;400;500;600;700" in rendered
+    assert "family=Open+Sans:wght@300;400;500;600;700" in rendered
     assert rendered.count("family=") == 2
 
 
 def test_branding_fonts_deduplicates_same_font() -> None:
+    """Test that duplicate fonts are only loaded once."""
     site = Site.objects.get(is_default_site=True)
     settings = SiteSettings.for_site(site)
     settings.heading_font = "Inter"
@@ -54,10 +57,12 @@ def test_branding_fonts_deduplicates_same_font() -> None:
     )
     rendered = template.render(RequestContext(request, {}))
 
-    assert rendered.count("family=Inter:wght@400;500;700") == 1
+    # Should only include Inter once (deduplicated)
+    assert rendered.count("family=Inter:wght@300;400;500;600;700") == 1
 
 
-def test_branding_fonts_empty_when_no_fonts() -> None:
+def test_branding_fonts_uses_defaults_when_no_fonts() -> None:
+    """Test that default design system fonts are loaded when none are configured."""
     site = Site.objects.get(is_default_site=True)
     settings = SiteSettings.for_site(site)
     settings.heading_font = ""
@@ -72,4 +77,7 @@ def test_branding_fonts_empty_when_no_fonts() -> None:
     )
     rendered = template.render(RequestContext(request, {}))
 
-    assert rendered.strip() == ""
+    # When no fonts are configured, the design system defaults are used
+    assert "fonts.googleapis.com/css2" in rendered
+    assert "family=Fraunces" in rendered
+    assert "family=Manrope" in rendered
