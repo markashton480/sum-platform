@@ -15,10 +15,11 @@ from django.db import models
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
 
+from sum_core.branding.panels import FormFieldPanel
+
 
 @register_setting
 class SiteSettings(BaseSiteSetting):
-    base_form_class = "sum_core.branding.forms.SiteSettingsAdminForm"
     primary_color = models.CharField(
         max_length=7,
         blank=True,
@@ -135,7 +136,10 @@ class SiteSettings(BaseSiteSetting):
         ),
         MultiFieldPanel(
             [
-                FieldPanel("theme_preset"),
+                # FormFieldPanel is used for form-only fields not backed by model fields.
+                # theme_preset is defined in SiteSettingsAdminForm and pre-populates
+                # colours and fonts when a preset is selected.
+                FormFieldPanel("theme_preset"),
             ],
             heading="Theme Preset",
         ),

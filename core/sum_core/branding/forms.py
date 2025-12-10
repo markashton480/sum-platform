@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any
 
 from django import forms
 from wagtail.admin.forms.models import WagtailAdminModelForm
+from wagtail.images.widgets import AdminImageChooser
 
 from sum_core.branding.theme_presets import THEME_PRESETS, get_theme_preset_choices
 
@@ -45,6 +46,12 @@ class SiteSettingsAdminForm(WagtailAdminModelForm):
         # with construct_instance; using exclude = [] ensures all model fields
         # are included and cleaned_data is applied correctly.
         exclude = []
+        # Explicitly set Wagtail's image chooser widgets for ForeignKey image fields
+        widgets = {
+            "header_logo": AdminImageChooser,
+            "footer_logo": AdminImageChooser,
+            "favicon": AdminImageChooser,
+        }
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)

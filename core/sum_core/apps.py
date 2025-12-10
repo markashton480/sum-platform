@@ -12,3 +12,10 @@ from django.apps import AppConfig
 class SumCoreConfig(AppConfig):
     default_auto_field: str = "django.db.models.BigAutoField"
     name: str = "sum_core"
+
+    def ready(self) -> None:
+        """Wire up custom admin forms after all models are loaded."""
+        from sum_core.branding.forms import SiteSettingsAdminForm
+        from sum_core.branding.models import SiteSettings
+
+        SiteSettings.base_form_class = SiteSettingsAdminForm
