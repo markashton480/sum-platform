@@ -14,6 +14,7 @@ from pathlib import Path
 # Wagtail Settings
 WAGTAIL_SITE_NAME: str = "SUM Test Project"
 WAGTAIL_ENABLE_UPDATE_CHECK = "lts"
+WAGTAILADMIN_BASE_URL: str = "http://localhost:8000"
 
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 
@@ -154,6 +155,16 @@ LANGUAGE_CODE: str = "en-gb"
 TIME_ZONE: str = "Europe/London"
 USE_I18N: bool = True
 USE_TZ: bool = True
+
+
+# Media 
+
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52_428_800 # 50MB
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52_428_800 # 50MB
+
+MEDIA_URL: str = "/images/"
+MEDIA_ROOT: str = BASE_DIR / "images"
 
 STATIC_URL: str = "/static/"
 

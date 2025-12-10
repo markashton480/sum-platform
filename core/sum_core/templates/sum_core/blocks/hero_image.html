@@ -1,0 +1,45 @@
+{% load wagtailimages_tags %}
+
+<section class="section hero">
+    <div class="container hero-grid">
+        <div class="hero-content reveal-group">
+            {% if self.status %}
+                <div class="hero-status reveal-text">
+                    <span class="status-dot"></span> {{ self.status }}
+                </div>
+            {% endif %}
+            
+            <h1 class="reveal-text delay-100">{{ self.headline|safe }}</h1>
+            
+            {% if self.subheadline %}
+                <div class="hero-desc reveal-text delay-200">{{ self.subheadline }}</div>
+            {% endif %}
+            
+            {% if self.ctas %}
+                <div class="hero-actions reveal-text delay-300">
+                    {% for cta in self.ctas %}
+                        <a href="{{ cta.url }}" 
+                           class="btn {% if cta.style == 'primary' %}btn-primary{% elif cta.style == 'secondary' %}btn-outline{% else %}btn-outline{% endif %}"
+                           {% if cta.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                            {{ cta.label }}
+                        </a>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="hero-visual reveal-group">
+            <div class="reveal-img-wrapper">
+                {% image self.image fill-800x1000 class="hero-main-img" %}
+                
+                {% if self.overlay_opacity == 'light' %}
+                    <div style="position: absolute; inset: 0; background-color: rgba(0,0,0,0.2); pointer-events: none;"></div>
+                {% elif self.overlay_opacity == 'medium' %}
+                    <div style="position: absolute; inset: 0; background-color: rgba(0,0,0,0.4); pointer-events: none;"></div>
+                {% elif self.overlay_opacity == 'strong' %}
+                    <div style="position: absolute; inset: 0; background-color: rgba(0,0,0,0.6); pointer-events: none;"></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>

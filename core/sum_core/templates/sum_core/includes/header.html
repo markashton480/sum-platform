@@ -2,30 +2,32 @@
 {% get_site_settings as site_settings %}
 {% wagtail_site as current_site %}
 {% firstof site_settings.company_name current_site.site_name WAGTAIL_SITE_NAME as site_name %}
-<header class="layout__header site-header">
-  <div class="container site-header__inner">
-    <a href="/" class="site-header__brand">
-      {% if site_settings.header_logo %}
-        {% image site_settings.header_logo height-40 as header_logo %}
-        <img
-          src="{{ header_logo.url }}"
-          alt="{{ site_name }}"
-          class="site-header__logo"
-        >
-      {% else %}
-        <span class="site-header__title">
-          {{ site_name }}
-        </span>
-      {% endif %}
-    </a>
-    {% block primary_nav %}
-    <nav class="site-header__nav site-nav">
-      <ul class="site-nav__list">
-        <li class="site-nav__item">
-          <a href="/" class="site-nav__link site-nav__link--active">Home</a>
-        </li>
-      </ul>
-    </nav>
-    {% endblock %}
-  </div>
+
+<header class="header">
+    <div class="container nav-inner">
+        <a href="/" class="logo">
+            {% if site_settings.header_logo %}
+                {% image site_settings.header_logo height-40 as header_logo %}
+                <img src="{{ header_logo.url }}" alt="{{ site_name }}" style="max-height: 40px;">
+            {% else %}
+                {{ site_name }}
+            {% endif %}
+        </a>
+
+        <nav class="nav-links">
+            {% block primary_nav %}
+                {# Default static links if no menu tag used yet, or replace with Wagtail menu tag later #}
+                {# For now, we will just put some placeholder links or the home link #}
+                <a href="/" class="nav-item">Home</a>
+                <a href="#" class="nav-item">Projects</a>
+                <a href="#" class="nav-item">Services</a>
+                <a href="#" class="btn btn-primary">Contact Us</a>
+            {% endblock %}
+        </nav>
+
+        <button class="menu-btn" aria-label="Menu" aria-expanded="false">
+            <span class="menu-line"></span>
+            <span class="menu-line" style="width: 18px; align-self: flex-end;"></span>
+        </button>
+    </div>
 </header>

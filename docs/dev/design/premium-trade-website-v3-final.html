@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SolarCraft Premium - Architectural Energy Solutions</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===================================
+           DESIGN TOKENS - V4 (HSL SYSTEM)
+           Optimized for Wagtail Theming
+           =================================== */
+
+        :root {
+            /* Base HSL Values */
+            --p-hue: 30;    /* Brown/Gold */
+            --p-sat: 40%;
+            --p-lig: 35%;
+
+            --s-hue: 40;    /* Cream/Sand */
+            --s-sat: 30%;
+            --s-lig: 96%;
+
+            --primary: var(--p-hue), var(--p-sat), var(--p-lig);
+            --primary-dark: var(--p-hue), var(--p-sat), 20%;
+            --accent: 38, 45%, 55%;
+
+            --surface: var(--s-hue), var(--s-sat), var(--s-lig);
+            --surface-pure: 0, 0%, 100%;
+            --text-main: 30, 10%, 15%;
+            --text-muted: 30, 5%, 45%;
+
+            /* Typography */
+            --font-display: 'Fraunces', serif;
+            --font-body: 'Manrope', sans-serif;
+
+            /* Fluid Type Scale */
+            --text-xs: 0.75rem;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.125rem;
+            --text-xl: 1.25rem;
+            --text-2xl: 1.5rem;
+            --text-3xl: clamp(1.75rem, 3vw, 2.5rem);
+            --text-4xl: clamp(2.25rem, 5vw, 3.5rem);
+            --text-display: clamp(3rem, 8vw, 5.5rem); /* Huge Editorial Headings */
+
+            /* Spacing */
+            --container-padding: clamp(1.5rem, 5vw, 4rem);
+            --section-gap: clamp(4rem, 10vw, 8rem);
+
+            /* Animation Easings */
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Borders & Radius */
+            --radius-sm: 4px;
+            --radius-md: 12px;
+            --radius-lg: 24px;
+        }
+
+        /* Technical Theme Override */
+        [data-theme="technical"] {
+            --p-hue: 210;   /* Deep Blue */
+            --p-sat: 80%;
+            --p-lig: 25%;
+
+            --s-hue: 210;
+            --s-sat: 20%;
+            --s-lig: 98%;
+
+            --accent: 200, 90%, 40%;
+            --font-display: 'Manrope', sans-serif; /* Cleaner look for technical */
+        }
+
+        /* ===================================
+           RESET & CORE UTILITIES
+           =================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            color: hsla(var(--text-main), 1);
+            background-color: hsla(var(--surface), 1);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: var(--font-display);
+            font-weight: 400; /* Editorial style uses lighter weights */
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            color: hsla(var(--text-main), 1);
+        }
+
+        /* Utility: Text Emphasis */
+        .italic-accent {
+            font-style: italic;
+            font-weight: 300;
+            color: hsla(var(--accent), 1);
+        }
+
+        /* Utility: Container */
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+        }
+
+        .section {
+            padding: var(--section-gap) 0;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        a { text-decoration: none; color: inherit; transition: color 0.3s ease; }
+
+        /* ===================================
+           ANIMATION UTILITIES (The "Wow" Factor)
+           =================================== */
+
+        /* Text Reveal */
+        .reveal-text {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s var(--ease-out-expo);
+        }
+
+        .is-in-view .reveal-text {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Image Curtain Reveal */
+        .reveal-img-wrapper {
+            position: relative;
+            overflow: hidden;
+            background-color: hsla(var(--primary), 0.1);
+        }
+
+        .reveal-img-wrapper img {
+            transform: scale(1.15);
+            transition: transform 1.5s var(--ease-out-expo);
+            will-change: transform;
+        }
+
+        .reveal-img-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: hsla(var(--surface), 1);
+            transform: scaleY(1);
+            transform-origin: bottom;
+            transition: transform 1.2s var(--ease-out-expo);
+            z-index: 2;
+        }
+
+        .is-in-view .reveal-img-wrapper img {
+            transform: scale(1);
+        }
+
+        .is-in-view .reveal-img-wrapper::after {
+            transform: scaleY(0);
+        }
+
+        /* Stagger Delays */
+        .delay-100 { transition-delay: 0.1s; }
+        .delay-200 { transition-delay: 0.2s; }
+        .delay-300 { transition-delay: 0.3s; }
+
+        /* General Fade Group */
+        .reveal-group {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .is-in-view.reveal-group, .is-in-view .reveal-group {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===================================
+           HEADER (Glassmorphism)
+           =================================== */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            padding: 1.5rem 0;
+            transition: all 0.4s ease;
+        }
+
+        .header.scrolled {
+            padding: 1rem 0;
+            background: hsla(var(--surface-pure), 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid hsla(var(--text-main), 0.05);
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: hsla(var(--primary), 1);
+        }
+
+        .nav-links {
+            display: none;
+            gap: 2.5rem;
+        }
+
+        @media(min-width: 1024px) {
+            .nav-links { display: flex; align-items: center; }
+        }
+
+        .nav-item {
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+        }
+
+        .nav-item::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: hsla(var(--accent), 1);
+            transition: width 0.3s ease;
+        }
+
+        .nav-item:hover::after { width: 100%; }
+
+        /* Mobile Menu Button */
+        .menu-btn {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 110;
+        }
+
+        @media(min-width: 1024px) { .menu-btn { display: none; } }
+
+        .menu-line {
+            width: 24px;
+            height: 2px;
+            background-color: hsla(var(--text-main), 1);
+            transition: 0.3s ease;
+        }
+
+        /* ===================================
+           BUTTONS
+           =================================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-sm); /* Architectural feel = sharper corners */
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-primary {
+            background-color: hsla(var(--primary), 1);
+            color: white;
+            border: 1px solid hsla(var(--primary), 1);
+        }
+
+        .btn-primary:hover {
+            background-color: hsla(var(--primary-dark), 1);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid hsla(var(--text-main), 0.2);
+            color: hsla(var(--text-main), 1);
+        }
+
+        .btn-outline:hover {
+            border-color: hsla(var(--primary), 1);
+            color: hsla(var(--primary), 1);
+        }
+
+        /* ===================================
+           HERO SECTION (Asymmetric/Editorial)
+           =================================== */
+        .hero {
+            padding-top: 180px;
+            padding-bottom: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        @media(min-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1.2fr 1fr;
+                gap: 6rem;
+            }
+        }
+
+        .hero-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+            color: hsla(var(--accent), 1);
+            margin-bottom: 1.5rem;
+            padding: 0.5rem 1rem;
+            background: hsla(var(--surface-pure), 0.5);
+            border: 1px solid hsla(var(--text-main), 0.1);
+            border-radius: 50px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10B981;
+            border-radius: 50%;
+            box-shadow: 0 0 0 2px hsla(var(--surface), 1);
+        }
+
+        .hero h1 {
+            font-size: var(--text-display);
+            margin-bottom: 2rem;
+        }
+
+        .hero-desc {
+            font-size: var(--text-lg);
+            color: hsla(var(--text-muted), 1);
+            max-width: 500px;
+            margin-bottom: 3rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        /* Hero Image Composition */
+        .hero-visual {
+            position: relative;
+        }
+
+        .hero-main-img {
+            border-radius: var(--radius-md); /* Reduced radius for elegance */
+            aspect-ratio: 4/5;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        /* Floating Element */
+        .float-card {
+            position: absolute;
+            bottom: 40px;
+            left: -40px;
+            background: hsla(var(--surface-pure), 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+            max-width: 200px;
+            border: 1px solid hsla(var(--text-main), 0.05);
+            display: none;
+        }
+
+        @media(min-width: 768px) { .float-card { display: block; } }
+
+        .float-label {
+            display: block;
+            font-size: var(--text-xs);
+            color: hsla(var(--text-muted), 1);
+            margin-bottom: 0.25rem;
+        }
+
+        .float-value {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: hsla(var(--primary), 1);
+        }
+
+        /* ===================================
+           INFINITE MARQUEE (Trust Strip)
+           =================================== */
+        .trust-strip {
+            border-top: 1px solid hsla(var(--text-main), 0.05);
+            border-bottom: 1px solid hsla(var(--text-main), 0.05);
+            padding: 2rem 0;
+            overflow: hidden;
+            background: hsla(var(--surface-pure), 0.5);
+        }
+
+        .marquee-wrapper {
+            display: flex;
+            width: 100%;
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+
+        .marquee-track {
+            display: flex;
+            gap: 4rem;
+            white-space: nowrap;
+            animation: scroll 30s linear infinite;
+            padding-left: 4rem; /* Initial Offset */
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .trust-item {
+            font-family: var(--font-body);
+            font-weight: 600;
+            color: hsla(var(--text-muted), 0.6);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* ===================================
+           FEATURES (Mobile Snap Scroll)
+           =================================== */
+        .features-header {
+            max-width: 700px;
+            margin-bottom: 4rem;
+        }
+
+        /* Mobile: Snap Scroll / Desktop: Grid */
+        .features-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 1.5rem;
+            padding-bottom: 2rem;
+            scroll-snap-type: x mandatory;
+            /* Hide Scrollbar */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            /* Negative margin hack for full bleed on mobile */
+            margin: 0 calc(var(--container-padding) * -1);
+            padding: 0 var(--container-padding) 2rem;
+        }
+
+        .features-container::-webkit-scrollbar { display: none; }
+
+        @media(min-width: 1024px) {
+            .features-container {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                margin: 0;
+                padding: 0;
+                overflow: visible;
+            }
+        }
+
+        .feature-card {
+            min-width: 85%; /* Shows part of next card on mobile */
+            scroll-snap-align: center;
+            background: hsla(var(--surface-pure), 1);
+            padding: 2rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid hsla(var(--text-main), 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        @media(min-width: 1024px) {
+            .feature-card { min-width: auto; }
+            .feature-card:hover { transform: translateY(-10px); }
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            color: hsla(var(--primary), 1);
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+
+        /* ===================================
+           BEFORE / AFTER SLIDER
+           =================================== */
+        .comparison-section {
+            background-color: hsla(var(--text-main), 1); /* Dark Theme for Contrast */
+            color: hsla(var(--surface), 1);
+        }
+
+        .comparison-section h2 { color: hsla(var(--surface), 1); }
+        .comparison-section p { color: hsla(var(--surface), 0.7); }
+
+        .slider-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            overflow: hidden;
+            border-radius: var(--radius-sm);
+            margin-top: 3rem;
+        }
+
+        .img-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .img-foreground {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50%; /* JS will update this */
+            height: 100%;
+            background-size: cover; /* Must assume same dimensions */
+            background-position: left; /* Anchors image */
+            border-right: 2px solid white;
+            overflow: hidden;
+        }
+
+        /* Range Input Overlay */
+        .slider-range {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: ew-resize;
+            z-index: 10;
+        }
+
+        .slider-handle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: black;
+            pointer-events: none; /* Let clicks pass to slider-range */
+            z-index: 11;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* ===================================
+           PORTFOLIO (Editorial Layout)
+           =================================== */
+        .portfolio-grid {
+            display: grid;
+            gap: 2rem;
+        }
+
+        @media(min-width: 768px) {
+            .portfolio-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4rem;
+            }
+
+            /* Offset effect for editorial look */
+            .portfolio-item:nth-child(even) {
+                transform: translateY(60px);
+            }
+        }
+
+        .portfolio-item {
+            /* Group identifier for semantic clarity */
+        }
+
+        .portfolio-img {
+            aspect-ratio: 4/5;
+            width: 100%;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1.5rem;
+        }
+
+        .portfolio-meta {
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: hsla(var(--primary), 1);
+            margin-bottom: 0.5rem;
+        }
+
+        .portfolio-title {
+            font-size: var(--text-xl);
+            margin-bottom: 0.5rem;
+        }
+
+        /* ===================================
+           MOBILE BOTTOM NAV (Floating)
+           =================================== */
+        .mobile-fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99;
+            background: hsla(var(--text-main), 1);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transform: translateY(150%);
+            transition: transform 0.4s ease;
+        }
+
+        .mobile-fab.visible {
+            transform: translateY(0);
+        }
+
+        @media(min-width: 768px) { .mobile-fab { display: none; } }
+
+        /* ===================================
+           THEME SWITCHER (For Demo)
+           =================================== */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: hsla(var(--surface-pure), 1);
+            border: 1px solid hsla(var(--text-main), 0.1);
+            padding: 0.5rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body id="body">
+
+    <header class="header">
+        <div class="container nav-inner">
+            <a href="#" class="logo">SolarCraft.</a>
+
+            <nav class="nav-links">
+                <a href="#projects" class="nav-item">Projects</a>
+                <a href="#services" class="nav-item">Expertise</a>
+                <a href="#process" class="nav-item">Process</a>
+                <a href="#quote" class="btn btn-primary">Book Consultation</a>
+            </nav>
+
+            <button class="menu-btn" aria-label="Menu">
+                <span class="menu-line"></span>
+                <span class="menu-line" style="width: 18px; align-self: flex-end;"></span>
+            </button>
+        </div>
+    </header>
+
+    <section class="section hero">
+        <div class="container hero-grid">
+            <div class="hero-content reveal-group">
+                <div class="hero-status reveal-text">
+                    <span class="status-dot"></span> Available for Q1 2025
+                </div>
+                <h1 class="reveal-text delay-100">
+                    We Craft <span class="italic-accent">Exquisite</span><br>
+                    Energy Solutions.
+                </h1>
+                <p class="hero-desc reveal-text delay-200">
+                    Award-winning solar integration for heritage and luxury properties in London & Surrey. Elevating sustainability to an art form.
+                </p>
+                <div class="hero-actions reveal-text delay-300">
+                    <a href="#quote" class="btn btn-primary">Start Your Project</a>
+                    <a href="#portfolio" class="btn btn-outline">View Gallery</a>
+                </div>
+            </div>
+
+            <div class="hero-visual reveal-group">
+                <div class="reveal-img-wrapper">
+                    <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2053&auto=format&fit=crop"
+                         alt="Luxury Modern Home with Solar" class="hero-main-img">
+                </div>
+                <div class="float-card">
+                    <span class="float-label">Est. Annual Savings</span>
+                    <span class="float-value">£2,450</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="trust-strip">
+        <div class="marquee-wrapper">
+            <div class="marquee-track">
+                <div class="trust-item">TESLA CERTIFIED</div>
+                <div class="trust-item">SOLAREDGE PREMIER</div>
+                <div class="trust-item">TRUSTPILOT 5★</div>
+                <div class="trust-item">NABCEP ACCREDITED</div>
+                <div class="trust-item">HIES MEMBER</div>
+                <div class="trust-item">TESLA CERTIFIED</div>
+                <div class="trust-item">SOLAREDGE PREMIER</div>
+                <div class="trust-item">TRUSTPILOT 5★</div>
+                <div class="trust-item">NABCEP ACCREDITED</div>
+                <div class="trust-item">HIES MEMBER</div>
+            </div>
+        </div>
+    </div>
+
+    <section class="section" id="services">
+        <div class="container">
+            <div class="features-header reveal-group">
+                <h2 class="reveal-text">More Than Just Panels.</h2>
+                <p class="reveal-text delay-100" style="color: hsla(var(--text-muted), 1);">Comprehensive energy architecture for the modern home.</p>
+            </div>
+
+            <div class="features-container">
+                <div class="feature-card reveal-group">
+                    <span class="feature-icon">✦</span>
+                    <h3>Aesthetic Integration</h3>
+                    <p style="color: hsla(var(--text-muted), 1); font-size: 0.9rem; margin-top: 1rem;">
+                        We specialize in "invisible" installations. All-black panels, hidden cabling, and in-roof systems that respect your property's lines.
+                    </p>
+                </div>
+                <div class="feature-card reveal-group">
+                    <span class="feature-icon">⚡</span>
+                    <h3>Energy Autonomy</h3>
+                    <p style="color: hsla(var(--text-muted), 1); font-size: 0.9rem; margin-top: 1rem;">
+                        Complete independence with Tesla Powerwall integration. Keep your lights on during grid outages and store cheap energy.
+                    </p>
+                </div>
+                <div class="feature-card reveal-group">
+                    <span class="feature-icon">🛡️</span>
+                    <h3>25-Year Peace of Mind</h3>
+                    <p style="color: hsla(var(--text-muted), 1); font-size: 0.9rem; margin-top: 1rem;">
+                        A true "fit and forget" service. Comprehensive workmanship warranty backed by premium manufacturer guarantees.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section comparison-section" id="process">
+        <div class="container">
+            <div class="hero-grid">
+                <div class="reveal-group">
+                    <span class="italic-accent">The Difference</span>
+                    <h2 class="reveal-text">Precision Installation.</h2>
+                    <p class="reveal-text delay-100" style="margin-top: 1rem;">
+                        Standard installers leave exposed conduit and messy finishes. We treat your roof like a canvas. Slide to see the SolarCraft standard.
+                    </p>
+                </div>
+
+                <div class="slider-container reveal-img-wrapper" id="compare-slider">
+                    <div class="img-background" style="background-image: url('https://images.unsplash.com/photo-1592833159057-65a2845730bd?q=80&w=1000&auto=format&fit=crop'); filter: grayscale(100%);"></div>
+
+                    <div class="img-foreground" style="background-image: url('https://images.unsplash.com/photo-1592833159057-65a2845730bd?q=80&w=1000&auto=format&fit=crop'); width: 50%;"></div>
+
+                    <input type="range" min="0" max="100" value="50" class="slider-range" aria-label="Comparison slider">
+                    <div class="slider-handle" style="left: 50%">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 12H6M6 12L10 8M6 12L10 16M18 12L14 8M18 12L14 16"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="projects">
+        <div class="container">
+            <h2 style="margin-bottom: 4rem;">Selected Works</h2>
+
+            <div class="portfolio-grid">
+                <div class="portfolio-item reveal-group">
+                    <div class="reveal-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=1000&auto=format&fit=crop" alt="Project 1" class="portfolio-img">
+                    </div>
+                    <div class="portfolio-content reveal-text delay-200">
+                        <p class="portfolio-meta">Kensington • 12kW System</p>
+                        <h3 class="portfolio-title">The Victorian Restoration</h3>
+                    </div>
+                </div>
+
+                <div class="portfolio-item reveal-group">
+                    <div class="reveal-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1000&auto=format&fit=crop" alt="Project 2" class="portfolio-img">
+                    </div>
+                    <div class="portfolio-content reveal-text delay-200">
+                        <p class="portfolio-meta">Surrey Hills • 24kW + Battery</p>
+                        <h3 class="portfolio-title">Modern Glasshouse Integration</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" style="border-top: 1px solid hsla(var(--text-main), 0.1);">
+        <div class="container">
+            <div class="hero-grid">
+                <div>
+                    <h2 style="margin-bottom: 1rem;">SolarCraft.</h2>
+                    <p style="color: hsla(var(--text-muted), 1);">Providing architectural energy solutions for discerning clients since 2010.</p>
+                </div>
+                <div style="display: flex; gap: 4rem; flex-wrap: wrap;">
+                    <div>
+                        <h4 style="font-size: 0.9rem; text-transform: uppercase; margin-bottom: 1rem;">Contact</h4>
+                        <p style="margin-bottom: 0.5rem;">hello@solarcraft.co.uk</p>
+                        <p>+44 (0) 20 1234 5678</p>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 0.9rem; text-transform: uppercase; margin-bottom: 1rem;">Legal</h4>
+                        <p style="margin-bottom: 0.5rem;"><a href="#">Privacy Policy</a></p>
+                        <p><a href="#">Terms & Conditions</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <a href="#quote" class="mobile-fab" id="mobileFab">
+        <span>Book Survey</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+
+    <button class="theme-toggle" onclick="toggleTheme()">Swap Theme</button>
+
+    <script>
+        // 1. Intersection Observer for Scroll Animations
+        // This adds the "wow" factor by revealing elements as they enter the viewport
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.15
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-in-view');
+                    observer.unobserve(entry.target); // Only animate once
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal-group').forEach(el => {
+            observer.observe(el);
+        });
+
+        // 2. Before/After Slider Logic
+        const sliderContainer = document.getElementById('compare-slider');
+        const sliderRange = sliderContainer.querySelector('.slider-range');
+        const foreground = sliderContainer.querySelector('.img-foreground');
+        const handle = sliderContainer.querySelector('.slider-handle');
+
+        sliderRange.addEventListener('input', (e) => {
+            const value = e.target.value + "%";
+            foreground.style.width = value;
+            handle.style.left = value;
+        });
+
+        // 3. Header Scroll Effect & Mobile FAB
+        const header = document.querySelector('.header');
+        const fab = document.getElementById('mobileFab');
+
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+
+            // Header Glassmorphism
+            if (scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+
+            // Mobile FAB Reveal
+            if (scrollY > 400) {
+                fab.classList.add('visible');
+            } else {
+                fab.classList.remove('visible');
+            }
+        });
+
+        // 4. Theme Switcher (For client demo purposes)
+        function toggleTheme() {
+            const html = document.documentElement;
+            if (html.getAttribute('data-theme') === 'technical') {
+                html.removeAttribute('data-theme');
+            } else {
+                html.setAttribute('data-theme', 'technical');
+            }
+        }
+    </script>
+</body>
+</html>

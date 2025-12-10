@@ -2,16 +2,24 @@
 {% load wagtailcore_tags %}
 
 {% block content %}
-  <section class="section section--hero">
-    <div class="container">
-      <h1 class="heading-xl">
-        {{ page.title }}
-      </h1>
-      {% if page.intro %}
-        <div class="text-body">
-          {{ page.intro|richtext }}
-        </div>
-      {% endif %}
-    </div>
-  </section>
+  {% if not page.has_hero_block %}
+    <section class="section section--hero">
+      <div class="container">
+        <h1 class="heading-xl">
+          {{ page.title }}
+        </h1>
+        {% if page.intro %}
+          <div class="text-body">
+            {{ page.intro|richtext }}
+          </div>
+        {% endif %}
+      </div>
+    </section>
+  {% endif %}
+
+  {% if page.body %}
+    {% for block in page.body %}
+      {% include_block block %}
+    {% endfor %}
+  {% endif %}
 {% endblock %}

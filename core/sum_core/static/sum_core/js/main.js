@@ -1,0 +1,95 @@
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Intersection Observer for Scroll Animations
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.15
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-in-view');
+                observer.unobserve(entry.target); // Only animate once
+            }
+        });
+    }, observerOptions);
+
+    // Observe groups and individual reveal elements if they are not children of a group (or just all of them)
+    // The CSS handles nested reveals if the parent has is-in-view
+    const revealElements = document.querySelectorAll('.reveal-group, .reveal-text, .reveal-img-wrapper');
+    revealElements.forEach(el => {
+        // Avoid double observation if an element has multiple reveal classes
+        observer.observe(el);
+    });
+
+
+    // 2. Before/After Slider Logic
+    const sliderContainer = document.getElementById('compare-slider');
+    if (sliderContainer) {
+        const sliderRange = sliderContainer.querySelector('.slider-range');
+        const foreground = sliderContainer.querySelector('.img-foreground');
+        const handle = sliderContainer.querySelector('.slider-handle');
+
+        if (sliderRange && foreground && handle) {
+            sliderRange.addEventListener('input', (e) => {
+                const value = e.target.value + "%";
+                foreground.style.width = value;
+                handle.style.left = value;
+            });
+        }
+    }
+
+
+    // 3. Header Scroll Effect & Mobile FAB
+    const header = document.querySelector('.header');
+    const fab = document.getElementById('mobileFab');
+
+    const handleScroll = () => {
+        const scrollY = window.scrollY;
+
+        // Header Glassmorphism
+        if (header) {
+            if (scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        }
+
+        // Mobile FAB Reveal
+        if (fab) {
+            if (scrollY > 400) {
+                fab.classList.add('visible');
+            } else {
+                fab.classList.remove('visible');
+            }
+        }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Mobile Menu Button Logic
+    const menuBtn = document.querySelector('.menu-btn');
+    const navLinks = document.querySelector('.nav-links');
+    
+    if (menuBtn && navLinks) {
+        menuBtn.addEventListener('click', () => {
+            const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
+            menuBtn.setAttribute('aria-expanded', !isExpanded);
+            
+            // Simple toggle for now, can be enhanced with animation classes
+            navLinks.style.display = isExpanded ? '' : 'flex';
+            navLinks.style.flexDirection = isExpanded ? '' : 'column';
+            navLinks.style.position = isExpanded ? '' : 'absolute';
+            navLinks.style.top = isExpanded ? '' : '100%';
+            navLinks.style.left = isExpanded ? '' : '0';
+            navLinks.style.width = isExpanded ? '' : '100%';
+            navLinks.style.background = isExpanded ? '' : 'var(--color-surface)'; // Fallback if var not ready, but should be ok
+            navLinks.style.backgroundColor = isExpanded ? '' : 'hsla(var(--surface-pure), 0.98)';
+            navLinks.style.padding = isExpanded ? '' : '2rem';
+            navLinks.style.boxShadow = isExpanded ? '' : '0 10px 30px rgba(0,0,0,0.1)';
+        });
+    }
+});
+

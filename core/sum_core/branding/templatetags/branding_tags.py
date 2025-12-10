@@ -8,6 +8,7 @@ Dependencies: Django template system, Wagtail Site and SiteSettings, Django cach
 
 from __future__ import annotations
 
+import colorsys
 from typing import Any, Callable
 from urllib.parse import quote_plus
 
@@ -60,24 +61,63 @@ def _format_font_value(font_name: str) -> str:
     return f'"{family}", {FONT_FALLBACK_STACK}'
 
 
-def _build_css_variables(site_settings: SiteSettings) -> list[str]:
-    color_fields = {
-        "primary_color": "--color-primary",
-        "secondary_color": "--color-secondary",
-        "accent_color": "--color-accent",
-        "background_color": "--color-background",
-        "surface_color": "--color-surface",
-        "surface_elevated_color": "--color-surface-elevated",
-        "text_color": "--color-text",
-        "text_light_color": "--color-text-light",
-    }
+def _hex_to_hsl(hex_value: str) -> tuple[int, int, int] | None:
+    """
+    Convert hex color to CSS HSL values (h=0-360, s=0-100, l=0-100).
+    """
+    hex_value = hex_value.lstrip("#")
+    if len(hex_value) not in (3, 6):
+        return None
 
+    if len(hex_value) == 3:
+        hex_value = "".join(c * 2 for c in hex_value)
+
+    try:
+        r, g, b = (int(hex_value[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
+        h, l, s = colorsys.rgb_to_hls(r, g, b)
+        return round(h * 360), round(s * 100), round(l * 100)
+    except (ValueError, IndexError):
+        return None
+
+
+def _build_css_variables(site_settings: SiteSettings) -> list[str]:
     variables: list[str] = []
 
-    for field_name, css_var in color_fields.items():
-        value = getattr(site_settings, field_name)
-        if value:
-            variables.append(f"    {css_var}: {value};")
+    # Inject HSL variables from Primary Color
+    if site_settings.primary_color:
+        hsl = _hex_to_hsl(site_settings.primary_color)
+        if hsl:
+            h, s, l = hsl
+            variables.extend([
+                f"    --brand-h: {h};",
+                f"    --brand-s: {s}%;",
+                f"    --brand-l: {l}%;",
+            ])
+        else:
+            # Fallback if invalid hex, let CSS defaults handle it
+            pass
+    
+    # If no primary color set, we do NOT inject defaults here.
+    # We rely on main.css :root variables to provide the default "Gold" theme.
+
+
+    # Also inject other specific colors if needed, but the system relies on HSL
+    # We can inject them as overrides if we want, or just stick to the design system logic.
+    # For now, let's inject the provided secondary/accent as simple hex variables
+    # in case we want to use them directly, but the main theme will drive off brand-h/s/l.
+    
+    if site_settings.secondary_color:
+        variables.append(f"    --color-secondary-custom: {site_settings.secondary_color};")
+    
+    if site_settings.accent_color:
+        variables.append(f"    --color-accent-custom: {site_settings.accent_color};")
+        # Also try to generate accent HSL if needed
+        accent_hsl = _hex_to_hsl(site_settings.accent_color)
+        if accent_hsl:
+             variables.append(f"    --accent-h: {accent_hsl[0]};")
+             variables.append(f"    --accent-s: {accent_hsl[1]}%;")
+             variables.append(f"    --accent-l: {accent_hsl[2]}%;")
+
 
     heading_font = _format_font_value(site_settings.heading_font)
     if heading_font:
@@ -130,6 +170,11 @@ def _unique_fonts(site_settings: SiteSettings) -> list[str]:
         cleaned = font.strip() if font else ""
         if cleaned and cleaned not in fonts:
             fonts.append(cleaned)
+    
+    # If no fonts configured, fallback to the design system defaults
+    if not fonts:
+        return ["Fraunces", "Manrope"]
+        
     return fonts
 
 
@@ -151,7 +196,7 @@ def branding_fonts(context: dict[str, Any]) -> SafeString:
             return ""
 
         families = "&".join(
-            f"family={quote_plus(font)}:wght@400;500;700" for font in fonts
+            f"family={quote_plus(font)}:wght@300;400;500;600;700" for font in fonts
         )
         href = f"https://fonts.googleapis.com/css2?{families}&display=swap"
 

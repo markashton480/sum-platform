@@ -20,19 +20,36 @@
       {% image site_settings.favicon fill-32x32 as favicon_rendition %}
       <link rel="icon" href="{{ favicon_rendition.url }}">
     {% endif %}
-    <link rel="stylesheet" href="{% static 'sum_core/css/main.css' %}">
+    
+    <!-- Branding Fonts -->
     {% branding_fonts %}
+    
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{% static 'sum_core/css/main.css' %}">
+
+    <!-- Branding Variables (Must load AFTER main.css to override defaults) -->
     {% branding_css %}
+
     {% block extra_head %}{% endblock %}
   </head>
-  <body class="layout">
-    <div class="layout__inner">
-      {% include "sum_core/includes/header.html" %}
-      <main class="layout__main">
+  <body id="body">
+    
+    {% include "sum_core/includes/header.html" %}
+    
+    <main>
         {% block content %}{% endblock %}
-      </main>
-      {% include "sum_core/includes/footer.html" %}
-    </div>
+    </main>
+      
+    {% include "sum_core/includes/footer.html" %}
+
+    <!-- Mobile FAB -->
+    <a href="#quote" class="mobile-fab" id="mobileFab">
+        <span>Book Survey</span>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+
+    <!-- Main JS -->
+    <script src="{% static 'sum_core/js/main.js' %}"></script>
     {% block extra_body %}{% endblock %}
   </body>
 </html>

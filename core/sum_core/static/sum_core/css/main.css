@@ -1,669 +1,695 @@
 /* ==========================================================================
-   1. Design Tokens
+   SolarCraft Premium - Design System 2.0 (Brand Agnostic)
+   Based on V3 Final Design & Design System Spec
    ========================================================================== */
+
+/* ===================================
+   1. DESIGN TOKENS (HSL SYSTEM)
+   =================================== */
 
 :root {
+  /* 
+     Base HSL Values are injected by Wagtail via branding_tags.py:
+     --brand-h, --brand-s, --brand-l
+     
+     If not present, fallback values are defined here.
+  */
+  --brand-h: 30;    /* Brown/Gold Default */
+  --brand-s: 40%;
+  --brand-l: 35%;
 
-  /* --------------------------------------------------------------------------
-     1.1 Colour Tokens
-     --------------------------------------------------------------------------
-     NOTE: These values are defaults/placeholders.
-     They will be OVERRIDDEN by dynamic CSS generated from SiteSettings
-     (via {% branding_css %} tag) in a later task.
-     -------------------------------------------------------------------------- */
+  /* Derived Palette */
+  --primary: var(--brand-h), var(--brand-s), var(--brand-l);
+  --primary-deep: var(--brand-h), var(--brand-s), calc(var(--brand-l) - 15%);
+  
+  /* Surface & Text - Derived for harmony */
+  --surface-tint: var(--brand-h), 10%, 97%;
+  --surface-pure: 0, 0%, 100%;
+  
+  --text-main: var(--brand-h), 15%, 15%;
+  --text-muted: var(--brand-h), 5%, 45%;
+  
+  /* Accent - Analogous calculation or custom injection */
+  --accent-pop: calc(var(--brand-h) + 30), 60%, 55%;
 
-  /* Brand Colours */
-  --color-primary: #0f172a;       /* Slate 900 - Deep Navy */
-  --color-secondary: #334155;     /* Slate 700 */
-  --color-accent: #f59e0b;        /* Amber 500 */
+  /* Typography */
+  --font-display: var(--font-heading, 'Fraunces', serif);
+  --font-body: var(--font-body, 'Manrope', sans-serif);
 
-  /* Backgrounds & Surfaces */
-  --color-background: #f8fafc;    /* Slate 50 */
-  --color-surface: #ffffff;
-  --color-surface-elevated: #ffffff;
+  /* Fluid Type Scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: clamp(1.75rem, 3vw, 2.5rem);
+  --text-4xl: clamp(2.25rem, 5vw, 3.5rem);
+  --text-display: clamp(3rem, 8vw, 5.5rem); /* Huge Editorial Headings */
 
-  /* Text Colours */
-  --color-text: #1e293b;          /* Slate 800 */
-  --color-text-light: #64748b;    /* Slate 500 */
-  --color-text-inverse: #ffffff;
+  /* Spacing */
+  --container-padding: clamp(1.5rem, 5vw, 4rem);
+  --section-gap: clamp(4rem, 10vw, 8rem);
 
-  /* Functional Colours */
-  --color-success: #10b981;       /* Emerald 500 */
-  --color-warning: #f59e0b;       /* Amber 500 */
-  --color-error: #ef4444;         /* Red 500 */
-  --color-info: #3b82f6;          /* Blue 500 */
+  /* Animation Easings */
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Borders */
-  --color-border: #e2e8f0;        /* Slate 200 */
-  --color-border-dark: #cbd5e1;   /* Slate 300 */
-
-
-  /* --------------------------------------------------------------------------
-     1.2 Typography Tokens
-     -------------------------------------------------------------------------- */
-
-  /* Font Families
-     NOTE: --font-heading and --font-body will also be dynamic later. */
-  --font-heading: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-
-  /* Font Sizes (Scale) */
-  --text-xs: 0.75rem;     /* 12px */
-  --text-sm: 0.875rem;    /* 14px */
-  --text-base: 1rem;      /* 16px */
-  --text-lg: 1.125rem;    /* 18px */
-  --text-xl: 1.25rem;     /* 20px */
-  --text-2xl: 1.5rem;     /* 24px */
-  --text-3xl: 1.875rem;   /* 30px */
-  --text-4xl: 2.25rem;    /* 36px */
-  --text-5xl: 3rem;       /* 48px */
-  --text-6xl: 3.75rem;    /* 60px */
-
-  /* Font Weights */
-  --font-normal: 400;
-  --font-medium: 500;
-  --font-semibold: 600;
-  --font-bold: 700;
-
-  /* Line Heights */
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.625;
-
-
-  /* --------------------------------------------------------------------------
-     1.3 Spacing Tokens (4px scale)
-     -------------------------------------------------------------------------- */
-  --space-0: 0;
-  --space-1: 0.25rem;    /* 4px */
-  --space-2: 0.5rem;     /* 8px */
-  --space-3: 0.75rem;    /* 12px */
-  --space-4: 1rem;       /* 16px */
-  --space-5: 1.25rem;    /* 20px */
-  --space-6: 1.5rem;     /* 24px */
-  --space-8: 2rem;       /* 32px */
-  --space-10: 2.5rem;    /* 40px */
-  --space-12: 3rem;      /* 48px */
-  --space-16: 4rem;      /* 64px */
-  --space-20: 5rem;      /* 80px */
-  --space-24: 6rem;      /* 96px */
-
-  /* Aliases for 'Breath' rule */
-  --space-section-y-mobile: var(--space-16);  /* 4rem / 64px */
-  --space-section-y-desktop: var(--space-24); /* 6rem / 96px (approx 8rem as per spec, adjusted for consistency) */
-
-
-  /* --------------------------------------------------------------------------
-     1.4 Radius Tokens
-     -------------------------------------------------------------------------- */
-  --radius-none: 0;
-  --radius-sm: 0.125rem;  /* 2px */
-  --radius-md: 0.375rem;  /* 6px */
-  --radius-lg: 0.5rem;    /* 8px */
-  --radius-full: 9999px;
-
-
-  /* --------------------------------------------------------------------------
-     1.5 Shadow Tokens
-     -------------------------------------------------------------------------- */
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  /* Borders & Radius */
+  --radius-sm: 4px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
 }
 
+/* Technical Theme Override */
+[data-theme="technical"] {
+    --brand-h: 210;   /* Deep Blue */
+    --brand-s: 80%;
+    --brand-l: 25%;
 
-/* ==========================================================================
-   2. Base / Reset
-   ========================================================================== */
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+    --surface-tint: 210, 20%, 98%;
+    
+    --accent-pop: 200, 90%, 40%;
+    --font-display: 'Manrope', sans-serif; /* Cleaner look for technical */
 }
+
+/* ===================================
+   2. RESET & CORE UTILITIES
+   =================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
 
 body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--color-background);
-  color: var(--color-text);
-  font-family: var(--font-body);
-  line-height: var(--leading-normal);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    font-family: var(--font-body);
+    color: hsla(var(--text-main), 1);
+    background-color: hsla(var(--surface-tint), 1);
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Minimal defaults for headings to respect scale if no class used, 
-   though utility classes are preferred. */
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
-  margin-top: 0;
-  margin-bottom: var(--space-4);
+h1, h2, h3, h4, h5 {
+    font-family: var(--font-display);
+    font-weight: 400; /* Editorial style uses lighter weights */
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: hsla(var(--text-main), 1);
 }
 
-p {
-  margin-top: 0;
-  margin-bottom: var(--space-4);
+img {
+    max-width: 100%;
+    display: block;
 }
 
+a { text-decoration: none; color: inherit; transition: color 0.3s ease; }
 
-/* ==========================================================================
-   3. Typography & Layout Utilities
-   ========================================================================== */
-
-/* Heading Utilities */
-.heading-xl {
-  font-family: var(--font-heading);
-  font-size: var(--text-4xl);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
+/* Utility: Text Emphasis */
+.italic-accent {
+    font-style: italic;
+    font-weight: 300;
+    color: hsla(var(--accent-pop), 1);
 }
 
-.heading-lg {
-  font-family: var(--font-heading);
-  font-size: var(--text-3xl);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
-}
-
-.heading-md {
-  font-family: var(--font-heading);
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
-}
-
-.heading-sm {
-  font-family: var(--font-heading);
-  font-size: var(--text-xl);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
-}
-
-/* Body Text Utilities */
-.text-body {
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
-}
-
-.text-sm {
-  font-size: var(--text-sm);
-}
-
-.text-muted {
-  color: var(--color-text-light);
-}
-
-.text-inverse {
-  color: var(--color-text-inverse);
-}
-
-
-/* ==========================================================================
-   4. Containers & Sections
-   ========================================================================== */
-
-/* Container
-   - Centered
-   - Max-width constraint
-   - Horizontal padding
-*/
+/* Utility: Container */
 .container {
-  width: 100%;
-  max-width: 1280px; /* As per spec/Tailwind xl default */
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: var(--space-4);
-  padding-right: var(--space-4);
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--container-padding);
 }
 
-@media (min-width: 640px) {
-  .container {
-    padding-left: var(--space-6);
-    padding-right: var(--space-6);
-  }
-}
-
-/* Section
-   - Vertical spacing via "Breath" rule
-*/
 .section {
-  padding-top: var(--space-section-y-mobile);
-  padding-bottom: var(--space-section-y-mobile);
+    padding: var(--section-gap) 0;
 }
 
-@media (min-width: 1024px) {
-  .section {
-    padding-top: var(--space-section-y-desktop);
-    padding-bottom: var(--space-section-y-desktop);
-  }
+/* ===================================
+   3. ANIMATION UTILITIES (The "Wow" Factor)
+   =================================== */
+
+/* Text Reveal */
+.reveal-text {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 1s var(--ease-out-expo);
 }
 
-/* Section Modifiers */
-.section--tight {
-  padding-top: var(--space-6);
-  padding-bottom: var(--space-6);
+.is-in-view .reveal-text,
+.is-in-view.reveal-text {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-@media (min-width: 1024px) {
-  .section--tight {
-    padding-top: var(--space-8);
-    padding-bottom: var(--space-8);
-  }
+/* Image Curtain Reveal */
+.reveal-img-wrapper {
+    position: relative;
+    overflow: hidden;
+    background-color: hsla(var(--primary), 0.1);
 }
 
-.section--muted {
-  background-color: var(--color-surface);
+.reveal-img-wrapper img {
+    transform: scale(1.15);
+    transition: transform 1.5s var(--ease-out-expo);
+    will-change: transform;
 }
 
-.section--inset {
-  padding-left: var(--space-6);
-  padding-right: var(--space-6);
+.reveal-img-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: hsla(var(--surface-tint), 1); /* Matches bg */
+    transform: scaleY(1);
+    transform-origin: bottom;
+    transition: transform 1.2s var(--ease-out-expo);
+    z-index: 2;
 }
 
-@media (min-width: 640px) {
-  .section--inset {
-    padding-left: var(--space-8);
-    padding-right: var(--space-8);
-  }
+.is-in-view .reveal-img-wrapper img,
+.is-in-view.reveal-img-wrapper img {
+    transform: scale(1);
 }
 
-@media (min-width: 1024px) {
-  .section--inset {
-    padding-left: var(--space-12);
-    padding-right: var(--space-12);
-  }
+.is-in-view .reveal-img-wrapper::after,
+.is-in-view.reveal-img-wrapper::after {
+    transform: scaleY(0);
 }
 
-/* Section Parts (BEM) */
-.section__header {
-  margin-bottom: var(--space-8);
-  text-align: center; /* Common default, can be overridden */
+/* Stagger Delays */
+.delay-100 { transition-delay: 0.1s; }
+.delay-200 { transition-delay: 0.2s; }
+.delay-300 { transition-delay: 0.3s; }
+
+/* General Fade Group */
+.reveal-group {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
-@media (min-width: 1024px) {
-  .section__header {
-    margin-bottom: var(--space-12);
-  }
-}
-
-.section__title {
-  /* Maps to a heading utility style, but strictly scoped */
-  font-family: var(--font-heading);
-  font-size: var(--text-3xl);
-  font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
-  color: var(--color-text);
-  margin-bottom: var(--space-3);
-}
-
-@media (min-width: 768px) {
-  .section__title {
-    font-size: var(--text-4xl);
-  }
-}
-
-.section__subtitle {
-  font-family: var(--font-body);
-  font-size: var(--text-lg);
-  color: var(--color-text-light);
-  max-width: 65ch; /* Readable line length */
-  margin-left: auto;
-  margin-right: auto;
+.is-in-view.reveal-group, .is-in-view .reveal-group {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 
-/* ==========================================================================
-   5. Layout Shell
-   ========================================================================== */
+/* ===================================
+   4. HEADER (Glassmorphism)
+   =================================== */
 
-.layout {
-  min-height: 100vh;
-  background-color: var(--color-background);
-  color: var(--color-text);
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    padding: 1.5rem 0;
+    transition: all 0.4s ease;
 }
 
-.layout__inner {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+.header.scrolled {
+    padding: 1rem 0;
+    background: hsla(var(--surface-pure), 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid hsla(var(--text-main), 0.05);
 }
 
-.layout__header {
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.layout__main {
-  flex: 1 0 auto;
-}
-
-.layout__footer {
-  background-color: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-}
-
-
-/* ==========================================================================
-   6. Header
-   ========================================================================== */
-
-.site-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding-top: var(--space-4);
-  padding-bottom: var(--space-4);
-}
-
-.site-header__brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-  color: var(--color-text);
-  text-decoration: none;
-  font-family: var(--font-heading);
-  font-weight: var(--font-semibold);
-  font-size: var(--text-lg);
-}
-
-.site-header__logo {
-  display: block;
-  max-height: 2.5rem; /* 40px to match rendition */
-}
-
-.site-header__title {
-  font-size: var(--text-xl);
-  font-weight: var(--font-bold);
-}
-
-
-/* ==========================================================================
-   7. Footer
-   ========================================================================== */
-
-.site-footer__inner {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding-top: var(--space-6);
-  padding-bottom: var(--space-6);
-}
-
-.site-footer__brand {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.site-footer__title {
-  font-family: var(--font-heading);
-  font-size: var(--text-lg);
-  font-weight: var(--font-bold);
-}
-
-.site-footer__tagline {
-  color: var(--color-text-light);
-}
-
-.site-footer__meta {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  color: var(--color-text-light);
-}
-
-.site-footer__item {
-  font-size: var(--text-sm);
-}
-
-.site-footer__address {
-  white-space: pre-line;
-}
-
-@media (min-width: 768px) {
-  .site-footer__inner {
-    flex-direction: row;
-    align-items: flex-start;
+.nav-inner {
+    display: flex;
     justify-content: space-between;
-  }
+    align-items: center;
+}
+
+.logo {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: hsla(var(--primary), 1);
+}
+
+.nav-links {
+    display: none;
+    gap: 2.5rem;
+}
+
+@media(min-width: 1024px) {
+    .nav-links { display: flex; align-items: center; }
+}
+
+.nav-item {
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    position: relative;
+}
+
+.nav-item::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: hsla(var(--accent-pop), 1);
+    transition: width 0.3s ease;
+}
+
+.nav-item:hover::after { width: 100%; }
+
+/* Mobile Menu Button */
+.menu-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    z-index: 110;
+}
+
+@media(min-width: 1024px) { .menu-btn { display: none; } }
+
+.menu-line {
+    width: 24px;
+    height: 2px;
+    background-color: hsla(var(--text-main), 1);
+    transition: 0.3s ease;
 }
 
 
-/* ==========================================================================
-   8. Buttons
-   ========================================================================== */
+/* ===================================
+   5. BUTTONS
+   =================================== */
 
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-5);
-  border-radius: var(--radius-md);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  font-weight: 600;
-  line-height: var(--leading-tight);
-  text-decoration: none;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border-radius: var(--radius-sm); /* Architectural feel = sharper corners */
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
 }
 
-.btn:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+.btn-primary {
+    background-color: hsla(var(--primary), 1);
+    color: white; /* Needs check for contrast, but white on dark primary is standard */
+    border: 1px solid hsla(var(--primary), 1);
 }
 
-/* Button Variants */
-.btn--primary {
-  background-color: var(--color-primary);
-  color: var(--color-text-inverse);
-  border-color: var(--color-primary);
+.btn-primary:hover {
+    background-color: hsla(var(--primary-deep), 1);
+    transform: translateY(-2px);
 }
 
-.btn--primary:hover {
-  background-color: var(--color-primary);
-  filter: brightness(0.9);
+.btn-outline {
+    background: transparent;
+    border: 1px solid hsla(var(--text-main), 0.2);
+    color: hsla(var(--text-main), 1);
 }
 
-.btn--secondary {
-  background-color: var(--color-surface);
-  color: var(--color-text);
-  border-color: var(--color-border);
-}
-
-.btn--secondary:hover {
-  background-color: var(--color-surface-elevated);
-  border-color: var(--color-border-dark);
-}
-
-.btn--ghost {
-  background-color: transparent;
-  color: var(--color-text);
-  border-color: transparent;
-}
-
-.btn--ghost:hover {
-  background-color: var(--color-surface);
-}
-
-.btn--link {
-  background-color: transparent;
-  color: var(--color-text);
-  border-color: transparent;
-  padding: var(--space-1) var(--space-2);
-  font-weight: var(--font-normal);
-}
-
-.btn--link:hover {
-  color: var(--color-primary);
-  text-decoration: underline;
-}
-
-/* Button Sizes */
-.btn--sm {
-  padding: var(--space-2) var(--space-4);
-  font-size: var(--text-sm);
-}
-
-.btn--lg {
-  padding: var(--space-4) var(--space-6);
-  font-size: var(--text-lg);
+.btn-outline:hover {
+    border-color: hsla(var(--primary), 1);
+    color: hsla(var(--primary), 1);
 }
 
 
-/* ==========================================================================
-   9. Navigation
-   ========================================================================== */
+/* ===================================
+   6. HERO SECTION
+   =================================== */
 
-.site-nav {
-  display: flex;
+.hero {
+    padding-top: 180px;
+    padding-bottom: 100px;
+    position: relative;
+    overflow: hidden;
 }
 
-.site-nav__list {
-  display: flex;
-  flex-direction: row;
-  gap: var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 3rem;
+    align-items: center;
 }
 
-.site-nav__item {
-  /* No specific styles needed, just a semantic container */
+@media(min-width: 1024px) {
+    .hero-grid {
+        grid-template-columns: 1.2fr 1fr;
+        gap: 6rem;
+    }
 }
 
-.site-nav__link {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-text);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  font-weight: var(--font-medium);
-  text-decoration: none;
-  border-radius: var(--radius-md);
-  transition: all 0.2s ease-in-out;
+.hero-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: hsla(var(--accent-pop), 1);
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 1rem;
+    background: hsla(var(--surface-pure), 0.5);
+    border: 1px solid hsla(var(--text-main), 0.1);
+    border-radius: 50px;
 }
 
-.site-nav__link:hover {
-  color: var(--color-accent);
-  background-color: var(--color-surface);
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #10B981;
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px hsla(var(--surface-tint), 1);
 }
 
-.site-nav__link:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+.hero h1 {
+    font-size: var(--text-display);
+    margin-bottom: 2rem;
 }
 
-.site-nav__link--active {
-  color: var(--color-primary);
-  background-color: var(--color-surface);
-  font-weight: var(--font-semibold);
+.hero-desc {
+    font-size: var(--text-lg);
+    color: hsla(var(--text-muted), 1);
+    max-width: 500px;
+    margin-bottom: 3rem;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Hero Image Composition */
+.hero-visual {
+    position: relative;
+}
+
+.hero-main-img {
+    border-radius: var(--radius-md);
+    aspect-ratio: 4/5;
+    object-fit: cover;
+    width: 100%;
+}
+
+/* Floating Element */
+.float-card {
+    position: absolute;
+    bottom: 40px;
+    left: -40px;
+    background: hsla(var(--surface-pure), 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);
+    max-width: 200px;
+    border: 1px solid hsla(var(--text-main), 0.05);
+    display: none;
+}
+
+@media(min-width: 768px) { .float-card { display: block; } }
+
+.float-label {
+    display: block;
+    font-size: var(--text-xs);
+    color: hsla(var(--text-muted), 1);
+    margin-bottom: 0.25rem;
+}
+
+.float-value {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: hsla(var(--primary), 1);
 }
 
 
-/* ==========================================================================
-   10. Cards
-   ========================================================================== */
+/* ===================================
+   7. TRUST STRIP (Marquee)
+   =================================== */
 
-.card {
-  background-color: var(--color-surface);
-  border-radius: var(--radius-lg);
-  padding: var(--space-5);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-border);
-  transition: box-shadow 0.2s ease-in-out;
+.trust-strip {
+    border-top: 1px solid hsla(var(--text-main), 0.05);
+    border-bottom: 1px solid hsla(var(--text-main), 0.05);
+    padding: 2rem 0;
+    overflow: hidden;
+    background: hsla(var(--surface-pure), 0.5);
 }
 
-.card:hover {
-  box-shadow: var(--shadow-md);
+.marquee-wrapper {
+    display: flex;
+    width: 100%;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
 }
 
-.card__header {
-  margin-bottom: var(--space-4);
+.marquee-track {
+    display: flex;
+    gap: 4rem;
+    white-space: nowrap;
+    animation: scroll 30s linear infinite;
+    padding-left: 4rem;
 }
 
-.card__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
+@keyframes scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
 }
 
-.card__footer {
-  margin-top: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
+.trust-item {
+    font-family: var(--font-body);
+    font-weight: 600;
+    color: hsla(var(--text-muted), 0.6);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 
-/* ==========================================================================
-   11. Forms
-   ========================================================================== */
+/* ===================================
+   8. FEATURES
+   =================================== */
 
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
+.features-header {
+    max-width: 700px;
+    margin-bottom: 4rem;
 }
 
-.form__row {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+.features-container {
+    display: flex;
+    overflow-x: auto;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    margin: 0 calc(var(--container-padding) * -1);
+    padding: 0 var(--container-padding) 2rem;
 }
 
-.form__field {
-  /* Semantic container for label + control + error/hint */
+.features-container::-webkit-scrollbar { display: none; }
+
+@media(min-width: 1024px) {
+    .features-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+    }
 }
 
-.form__label {
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  font-weight: var(--font-medium);
-  color: var(--color-text);
-  margin-bottom: var(--space-1);
-  display: block;
+.feature-card {
+    min-width: 85%;
+    scroll-snap-align: center;
+    background: hsla(var(--surface-pure), 1);
+    padding: 2rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid hsla(var(--text-main), 0.05);
+    transition: transform 0.3s ease;
 }
 
-.form__control {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
-  color: var(--color-text);
-  background-color: var(--color-surface);
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+@media(min-width: 1024px) {
+    .feature-card { min-width: auto; }
+    .feature-card:hover { transform: translateY(-10px); }
 }
 
-.form__control:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgb(from var(--color-primary) r g b / 0.1);
+.feature-icon {
+    font-size: 2rem;
+    color: hsla(var(--primary), 1);
+    margin-bottom: 1.5rem;
+    display: inline-block;
 }
 
-.form__control::placeholder {
-  color: var(--color-text-light);
+
+/* ===================================
+   9. COMPARISON SLIDER
+   =================================== */
+
+.comparison-section {
+    background-color: hsla(var(--text-main), 1);
+    color: hsla(var(--surface-tint), 1);
 }
 
-.form__error {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  color: var(--color-error);
-  margin-top: var(--space-1);
+.comparison-section h2 { color: hsla(var(--surface-tint), 1); }
+.comparison-section p { color: hsla(var(--surface-tint), 0.7); }
+
+.slider-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    margin-top: 3rem;
 }
 
-.form__hint {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  color: var(--color-text-light);
-  margin-top: var(--space-1);
+.img-background, .img-foreground {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-size: cover;
+    background-position: center;
+}
+
+.img-foreground {
+    width: 50%;
+    border-right: 2px solid white;
+    background-position: left;
+    overflow: hidden;
+}
+
+.slider-range {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0;
+    cursor: ew-resize;
+    z-index: 10;
+}
+
+.slider-handle {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px; height: 40px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    pointer-events: none;
+    z-index: 11;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+
+/* ===================================
+   10. PORTFOLIO
+   =================================== */
+
+.portfolio-grid {
+    display: grid;
+    gap: 2rem;
+}
+
+@media(min-width: 768px) {
+    .portfolio-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4rem;
+    }
+
+    /* Offset effect for editorial look */
+    .portfolio-item:nth-child(even) {
+        transform: translateY(60px);
+    }
+}
+
+.portfolio-img {
+    aspect-ratio: 4/5;
+    width: 100%;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1.5rem;
+}
+
+.portfolio-meta {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: hsla(var(--primary), 1);
+    margin-bottom: 0.5rem;
+}
+
+.portfolio-title {
+    font-size: var(--text-xl);
+    margin-bottom: 0.5rem;
+}
+
+
+/* ===================================
+   11. MOBILE FAB
+   =================================== */
+
+.mobile-fab {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 99;
+    background: hsla(var(--text-main), 1);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 50px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transform: translateY(150%);
+    transition: transform 0.4s ease;
+}
+
+.mobile-fab.visible {
+    transform: translateY(0);
+}
+
+@media(min-width: 768px) { .mobile-fab { display: none; } }
+
+/* Hero Gradient Variants */
+.hero--gradient .hero-grid {
+    grid-template-columns: 1fr;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.hero--gradient .hero-actions {
+    justify-content: center;
+}
+
+.hero--gradient .hero-desc {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero--gradient-primary {
+    background: radial-gradient(circle at top right, hsla(var(--primary), 0.15), transparent 60%),
+                radial-gradient(circle at bottom left, hsla(var(--primary), 0.1), transparent 60%);
+}
+
+.hero--gradient-secondary {
+    background: radial-gradient(circle at top right, hsla(var(--text-muted), 0.1), transparent 60%),
+                linear-gradient(to bottom, hsla(var(--surface-tint), 1), hsla(var(--surface-pure), 1));
+}
+
+.hero--gradient-accent {
+    background: radial-gradient(circle at top right, hsla(var(--accent-pop), 0.15), transparent 60%),
+                radial-gradient(circle at bottom left, hsla(var(--primary), 0.05), transparent 60%);
 }
