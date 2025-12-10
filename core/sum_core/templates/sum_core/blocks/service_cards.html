@@ -1,53 +1,68 @@
 {% load wagtailcore_tags wagtailimages_tags %}
 
-<section class="section section--inset services">
+<section class="section services">
     <div class="container">
-        <div class="services__header">
+        <!-- Header Group -->
+        <div class="services__header reveal-group">
             {% if self.eyebrow %}
-                <p class="text-muted services__eyebrow">{{ self.eyebrow }}</p>
+                <p class="services__eyebrow">{{ self.eyebrow }}</p>
             {% endif %}
-            <h2 class="heading-lg services__heading">
-                {{ self.heading }}
-            </h2>
+            
+            <div class="services__heading">
+                {{ self.heading|richtext }}
+            </div>
+            
             {% if self.intro %}
-                <p class="text-body text-muted services__intro">
-                    {{ self.intro }}
-                </p>
+                <div class="services__intro text-body">
+                    {{ self.intro|richtext }}
+                </div>
             {% endif %}
         </div>
 
         {% if self.cards %}
+            <!-- Grid Container: Supports horizontal scroll on mobile, grid on desktop -->
             <div class="services__grid">
                 {% for card in self.cards %}
-                    <article class="card services__card">
+                    <!-- Card with staggered delay animation -->
+                    <article class="services__card reveal-group delay-{{ forloop.counter0|add:1 }}00">
                         <div class="card__body">
-                            {% if card.image %}
-                                <div class="services__icon services__icon--image">
-                                    {% image card.image fill-160x160 class="services__icon-image" %}
-                                </div>
-                            {% elif card.icon %}
-                                <div class="services__icon services__icon--emoji">
-                                    {{ card.icon }}
-                                </div>
-                            {% endif %}
+                            
+                            <!-- Icon + Index Number Header -->
+                            <div class="services__icon-wrapper">
+                                {% if card.image %}
+                                    <div class="services__icon services__icon--image">
+                                        {% image card.image fill-160x160 class="services__icon-image" %}
+                                    </div>
+                                {% elif card.icon %}
+                                    <div class="services__icon services__icon--emoji">
+                                        {{ card.icon }}
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Decorative Index: Formats 1 to 01, 2 to 02, etc. -->
+                                <span class="services__index">
+                                    {% if forloop.counter < 10 %}0{% endif %}{{ forloop.counter }}
+                                </span>
+                            </div>
 
-                            <h3 class="heading-md services__card-title">
+                            <h3 class="services__card-title">
                                 {{ card.title }}
                             </h3>
 
                             {% if card.description %}
-                                <div class="text-body services__card-description">
+                                <div class="services__card-description text-body">
                                     {{ card.description|richtext }}
                                 </div>
                             {% endif %}
 
-                            {% if card.link_url %}
-                                <div class="services__card-link">
-                                    <a href="{{ card.link_url }}" class="btn btn--link">
+                            <div class="services__card-link">
+                                {% if card.link_url %}
+                                    <a href="{{ card.link_url }}" class="btn--link">
                                         {{ card.link_label|default:"Learn more" }}
+                                        <span>→</span>
                                     </a>
-                                </div>
-                            {% endif %}
+                                {% endif %}
+                            </div>
                         </div>
                     </article>
                 {% endfor %}

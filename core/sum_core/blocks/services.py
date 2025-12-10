@@ -54,9 +54,10 @@ class ServiceCardsBlock(blocks.StructBlock):
         max_length=120, 
         help_text="Short label above the heading (optional)."
     )
-    heading = blocks.CharBlock(
+    heading = blocks.RichTextBlock(
         required=True, 
-        max_length=150
+        features=['italic', 'bold'],
+        help_text="Section heading. Use Italic for accent color."
     )
     intro = blocks.TextBlock(
         required=False, 

@@ -840,99 +840,213 @@ a {
    12. SERVICES BLOCK
    =================================== */
 
-.services__grid {
-  display: grid;
-  gap: 2rem; /* fallback for space-xl */
-  grid-template-columns: 1fr;
-}
+/* ===================================
+   12. SERVICES BLOCK
+   =================================== */
 
-@media (min-width: 768px) {
-  .services__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+/* Reduce top padding to close gap with Hero */
+.services {
+    padding-top: 2rem;
 }
 
 @media (min-width: 1024px) {
-  .services__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+    .services {
+        padding-top: 4rem;
+    }
 }
 
-.services__card {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: hsla(var(--surface-pure), 1);
-  border: 1px solid hsla(var(--text-main), 0.05);
-  border-radius: var(--radius-sm);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  overflow: hidden; /* Ensure content stays within radius */
+/* Header Block */
+.services__header {
+    max-width: 900px; /* Increased width to prevent forced wrapping */
+    margin: 0 auto 4rem; /* Center aligned */
+    text-align: center;
 }
 
-.services__card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
-}
-
-.services__card .card__body {
-    padding: 2rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.services__icon {
-  margin-bottom: 1.5rem;
-}
-
-.services__icon--emoji {
-  font-size: var(--text-3xl);
-  line-height: 1;
-}
-
+/* New Pill-style Eyebrow */
 .services__eyebrow {
-    font-size: var(--text-sm);
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     font-weight: 700;
-    margin-bottom: 0.5rem;
+    color: hsla(var(--accent-pop), 1);
+    margin-bottom: 1.25rem;
+    display: inline-block;
+    border: 1px solid hsla(var(--text-main), 0.1);
+    padding: 0.6em 1.25em;
+    border-radius: 50px;
+    background: hsla(var(--surface-pure), 0.5);
 }
 
 .services__heading {
-    margin-bottom: 1rem;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.02em;
+}
+
+.services__heading span,
+.services__heading em,
+.services__heading i {
+    font-style: italic;
+    color: hsla(var(--accent-pop), 1);
 }
 
 .services__intro {
+    font-size: 1.125rem;
+    color: hsla(var(--text-muted), 1);
     max-width: 600px;
-    margin-bottom: 3rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* The Grid / Slider Container */
+.services__grid {
+    /* Mobile: Snap Scroll Behavior */
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    padding-bottom: 3rem; /* Space for shadow/hover */
+    scroll-snap-type: x mandatory;
+    
+    /* Hide Scrollbar */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    
+    /* Full bleed on mobile hack */
+    margin: 0 calc(var(--container-padding) * -1);
+    padding-left: var(--container-padding);
+    padding-right: var(--container-padding);
+}
+
+.services__grid::-webkit-scrollbar { display: none; }
+
+@media (min-width: 1024px) {
+    .services__grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        margin: 0;
+        padding-left: 0;
+        padding-right: 0;
+        padding-bottom: 0;
+        overflow: visible;
+        gap: 2rem;
+    }
+}
+
+/* The Card */
+.services__card {
+    position: relative;
+    min-width: 85vw; /* Mobile width */
+    scroll-snap-align: center;
+    
+    background-color: hsla(var(--surface-pure), 1);
+    border: 1px solid hsla(var(--text-main), 0.06);
+    border-radius: var(--radius-sm); /* Sharp architectural feel */
+    
+    display: flex;
+    flex-direction: column;
+    transition: all 0.4s var(--ease-out-expo);
+}
+
+@media (min-width: 768px) {
+    .services__card { min-width: 45vw; }
+}
+
+@media (min-width: 1024px) {
+    .services__card { min-width: auto; height: 100%; }
+}
+
+/* Hover Effect (Desktop) */
+@media (hover: hover) {
+    .services__card:hover {
+        transform: translateY(-8px);
+        border-color: hsla(var(--primary), 0.3);
+        box-shadow: 0 20px 40px -10px hsla(var(--brand-h), var(--brand-s), 20%, 0.1);
+    }
+}
+
+.card__body {
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Icon Wrapper */
+.services__icon-wrapper {
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.services__icon {
+    font-size: 2rem;
+    color: hsla(var(--primary), 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    background: hsla(var(--surface-tint), 1);
+    border-radius: var(--radius-md);
+}
+
+.services__icon img {
+    width: 60%;
+    height: 60%;
+    object-fit: contain;
+}
+
+/* Decorative Index Number */
+.services__index {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    line-height: 1;
+    color: hsla(var(--text-main), 0.05);
+    font-style: italic;
+    user-select: none;
 }
 
 .services__card-title {
+    font-size: 1.5rem;
     margin-bottom: 1rem;
 }
 
 .services__card-description {
-    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    color: hsla(var(--text-muted), 1);
+    margin-bottom: 2.5rem;
     flex-grow: 1;
 }
 
-/* Button Link Style - Minimal text link */
+.services__card-description p { margin-bottom: 1em; }
+.services__card-description p:last-child { margin-bottom: 0; }
+
+/* Link Button */
 .btn--link {
-    padding: 0;
-    background: none;
-    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: hsla(var(--primary), 1);
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    font-size: var(--text-base);
-    justify-content: flex-start;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    margin-top: auto;
 }
 
-.btn--link:hover {
-    color: hsla(var(--primary-deep), 1);
-    transform: none;
-    background: none;
-}
+.btn--link span { transition: transform 0.3s ease; display: inline-block; }
+
+.services__card:hover .btn--link { color: hsla(var(--accent-pop), 1); }
+.services__card:hover .btn--link span { transform: translateX(6px); }
+
+/* Animation Stagger Classes */
+.delay-100 { transition-delay: 0.1s; }
+.delay-200 { transition-delay: 0.2s; }
+.delay-300 { transition-delay: 0.3s; }
+.delay-400 { transition-delay: 0.4s; }
 
 /* Responsive adjustments for Hero Image on Mobile */
 @media (max-width: 1023px) {
