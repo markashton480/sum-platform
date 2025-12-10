@@ -28,6 +28,10 @@ def test_hero_image_block_structure():
     assert block.child_blocks["image"].required
     assert block.child_blocks["image_alt"].required
     
+    # Check new fields
+    assert "floating_card_label" in block.child_blocks
+    assert "floating_card_value" in block.child_blocks
+    
     assert block.child_blocks["image_alt"].required
 
 def test_hero_gradient_block_structure():
