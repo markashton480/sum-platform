@@ -24,9 +24,13 @@ from django.test.utils import (
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 CORE_DIR = ROOT_DIR / "core"
+TEST_PROJECT_DIR = CORE_DIR / "sum_core" / "test_project"
 
 if str(CORE_DIR) not in sys.path:
     sys.path.insert(0, str(CORE_DIR))
+
+if str(TEST_PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(TEST_PROJECT_DIR))
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "sum_core.test_project.test_project.settings")
 django.setup()

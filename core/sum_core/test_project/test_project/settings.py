@@ -13,7 +13,7 @@ from pathlib import Path
 
 # Wagtail Settings
 WAGTAIL_SITE_NAME: str = "SUM Test Project"
-WAGTAIL_ENABLE_UPDATE_CHECK = "lts" 
+WAGTAIL_ENABLE_UPDATE_CHECK = "lts"
 
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 
@@ -71,6 +71,7 @@ INSTALLED_APPS: list[str] = [
     "taggit",
     # Project apps
     "sum_core",
+    "home",
 ]
 
 MIDDLEWARE: list[str] = [
