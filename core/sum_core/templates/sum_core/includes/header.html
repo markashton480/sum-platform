@@ -18,6 +18,14 @@
         </span>
       {% endif %}
     </a>
-    {% block primary_nav %}{% endblock %}
+    {% block primary_nav %}
+    <nav class="site-header__nav site-nav">
+      <ul class="site-nav__list">
+        <li class="site-nav__item">
+          <a href="/" class="site-nav__link site-nav__link--active">Home</a>
+        </li>
+      </ul>
+    </nav>
+    {% endblock %}
   </div>
 </header>
