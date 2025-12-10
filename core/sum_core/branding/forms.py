@@ -20,7 +20,15 @@ if TYPE_CHECKING:
 
 
 class SiteSettingsAdminForm(WagtailAdminModelForm):
-    """Custom admin form for SiteSettings with theme preset support."""
+    """
+    Custom admin form for SiteSettings with theme preset support.
+
+    The ``theme_preset`` field is:
+      - An admin-only trigger field (not saved to the model).
+      - Used to pre-populate: primary_color, secondary_color, accent_color,
+        heading_font, and body_font when a preset is selected.
+      - After application, all fields remain freely editable.
+    """
 
     theme_preset = forms.ChoiceField(
         required=False,
@@ -33,10 +41,9 @@ class SiteSettingsAdminForm(WagtailAdminModelForm):
         from sum_core.branding.models import SiteSettings
 
         model = SiteSettings
-        # Use exclude=[] instead of fields='__all__' to work around a quirk
-        # where WagtailAdminModelForm doesn't resolve '__all__' properly for
-        # construct_instance, causing form data to not be applied to the instance.
-        # With exclude=[], _meta.fields becomes None which is handled correctly.
+        # NOTE: WagtailAdminModelForm + fields="__all__" does not play nicely
+        # with construct_instance; using exclude = [] ensures all model fields
+        # are included and cleaned_data is applied correctly.
         exclude = []
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
