@@ -57,6 +57,8 @@ class TestPageStreamBlock:
         assert "testimonials" in block.child_blocks
         assert "gallery" in block.child_blocks
         assert "trust_strip" in block.child_blocks
+        assert "trust_strip_logos" in block.child_blocks
+        assert "stats" in block.child_blocks
         assert "features" in block.child_blocks
         assert "comparison" in block.child_blocks
         assert "portfolio" in block.child_blocks

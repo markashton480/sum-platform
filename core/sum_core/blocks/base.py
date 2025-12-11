@@ -20,6 +20,10 @@ from sum_core.blocks.hero import HeroImageBlock, HeroGradientBlock
 from sum_core.blocks.services import ServiceCardsBlock
 from sum_core.blocks.testimonials import TestimonialsBlock
 from sum_core.blocks.gallery import GalleryBlock
+from sum_core.blocks.trust import (
+    TrustStripBlock as TrustStripLogosBlock,
+    StatsBlock,
+)
 
 
 class PageStreamBlock(StreamBlock):
@@ -38,6 +42,8 @@ class PageStreamBlock(StreamBlock):
     gallery = GalleryBlock(group="Sections")
     hero = HeroBlock(group="Legacy Sections")  # Keeping specific hero type separate
     trust_strip = TrustStripBlock(group="Sections")
+    trust_strip_logos = TrustStripLogosBlock(group="Sections")
+    stats = StatsBlock(group="Sections")
     features = FeaturesListBlock(group="Sections")
     comparison = ComparisonBlock(group="Sections")
     portfolio = PortfolioBlock(group="Sections")
@@ -60,3 +66,4 @@ class PageStreamBlock(StreamBlock):
         label = "Content Block"
         label_format = "Content: {label}"
         template = "sum_core/blocks/rich_text.html"  # Default template for rendering
+

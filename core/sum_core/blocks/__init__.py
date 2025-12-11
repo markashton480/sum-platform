@@ -18,6 +18,12 @@ from .content import (
 from .services import ServiceCardsBlock, ServiceCardItemBlock
 from .testimonials import TestimonialsBlock, TestimonialBlock
 from .gallery import GalleryBlock, GalleryImageBlock
+from .trust import (
+    TrustStripItemBlock,
+    TrustStripBlock as TrustStripLogosBlock,
+    StatItemBlock,
+    StatsBlock,
+)
 
 __all__ = [
     "PageStreamBlock",
@@ -26,6 +32,8 @@ __all__ = [
     "HeroCTABlock",
     "HeroBlock",
     "TrustStripBlock",
+    "TrustStripLogosBlock",
+    "TrustStripItemBlock",
     "FeaturesListBlock",
     "ComparisonBlock",
     "PortfolioBlock",
@@ -35,4 +43,6 @@ __all__ = [
     "TestimonialBlock",
     "GalleryBlock",
     "GalleryImageBlock",
+    "StatItemBlock",
+    "StatsBlock",
 ]

@@ -47,6 +47,7 @@
 /* Page Sections */
 @import "components.hero.css";
 @import "components.trust-strip.css";
+@import "components.stats.css";
 @import "components.features.css";
 @import "components.comparison.css";
 @import "components.portfolio.css";
