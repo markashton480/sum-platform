@@ -1,245 +1,427 @@
-## SUM CSS & Design System Guide
+# SUM Platform – CSS & Design System Guide
 
-### 1. Goals
-
-- **Single source of truth for design values** (tokens).
-- **Consistent implementation** across all blocks (typography, spacing, layout).
-- **Modular CSS** that's easy to navigate and extend.
-- **Branding-controlled**: changing fonts/colours in Wagtail SiteSettings updates the whole site.
+> **Purpose:**
+> One place to understand **how CSS is structured** in `sum_core` and **how to use design tokens** when implementing or updating blocks. This is for both humans and AI agents.
 
 ---
 
-### 2. CSS Architecture
+## 1. Goals
+
+- **Single source of truth for design values** (tokens).
+- **Consistent implementation** across all blocks (hero, services, testimonials, etc.).
+- **Brand-driven**: colours and typography are controlled by Wagtail `SiteSettings` via `branding_css` and `branding_fonts`.
+- **Modular CSS** that’s easy to navigate and extend.
+
+---
+
+## 2. CSS Architecture
 
 All CSS lives under:
 
 `core/sum_core/static/sum_core/css/`
 
-#### 2.1 File Structure
+Target structure (names can be adjusted as long as the roles stay clear):
 
 ```text
 css/
-  main.css                    # Public entrypoint (ONLY file referenced in templates)
+  tokens.css        # Design tokens: colours, type scale, spacing, shadows, easings
+  base.css          # Reset, html/body, base typography, links
+  layout.css        # Layout shell, .section, .container, grids
+  utilities.css     # Small helpers (.visually-hidden, text utilities, etc.)
+  animations.css    # Reveal animations & transitions
 
-  # Foundation Layer
-  tokens.css                  # Design tokens: colours, type scale, spacing, shadows
-  reset.css                   # Normalize/reset + html/body basics
-  layout.css                  # Layout shell, .section, .container, grid helpers
-  utilities.css               # Reveal animations, transitions, helper classes
+  components/
+    buttons.css
+    forms.css
+    cards.css
+    header.css
+    footer.css
+    hero.css
+    services.css
+    testimonials.css
+    # future: trust-strip.css, cta.css, faq.css, portfolio.css, etc.
 
-  # Component Layer
-  components.buttons.css      # Button variants (primary, outline, link)
-  components.header.css       # Site header and navigation
-  components.hero.css         # Hero sections and variants
-  components.trust-strip.css  # Marquee/trust badges
-  components.features.css     # Feature cards grid
-  components.comparison.css   # Before/after slider
-  components.portfolio.css    # Portfolio grid
-  components.mobile-fab.css   # Mobile floating action button
-  components.cards.css        # Base card patterns
-  components.services.css     # Service cards block
-  components.testimonials.css # Testimonials block
-  components.forms.css        # Form elements
-  components.footer.css       # Site footer
+  main.css          # Single entrypoint loaded by templates
 ```
 
-#### 2.2 Import Order (in main.css)
+**Key rules**
 
-The cascade order is critical for CSS specificity:
+- Templates **only ever reference** `main.css`.
+  `base.html` must continue to link to `sum_core/css/main.css` as the single stylesheet.
+- `main.css` is responsible for importing/aggregating the partials in the correct order (tokens → base → layout → utilities → animations → components).
+- Component files **do not** declare new tokens; they only **consume** tokens.
 
-1. **Tokens** (`tokens.css`) – CSS custom properties
-2. **Reset** (`reset.css`) – Browser normalization
-3. **Layout** (`layout.css`) – Structural helpers
-4. **Utilities** (`utilities.css`) – Animation and helper classes
-5. **Components** – All component files
-
-**Important:**
-
-- Templates and HTML must **only** link to `main.css`.
-- `main.css` is responsible for `@import`-ing everything else.
-- No build step is required – uses native CSS `@import`.
-
----
-
-### 3. Tokens: Single Source of Truth
-
-`tokens.css` is the **only place** where raw design values live:
-
-- Type scale: `--text-xs`, `--text-sm`, …, `--text-display`
-- Spacing: `--space-1`, `--space-2`, …, `--space-24`
-- Colours: `--primary`, `--surface-tint`, `--text-main`, etc. (derived from branding HSL tokens)
-- Font families: `--font-heading`, `--font-body`, `--font-display`
-- Font weights: `--font-light`, `--font-normal`, `--font-medium`, `--font-semibold`, `--font-bold`
-- Shadows, radii, borders, animation easings
-
-All other CSS files **must only refer to tokens**, e.g.:
+`main.css` (conceptually) looks like:
 
 ```css
-padding: var(--space-8);
-background-color: hsla(var(--surface-pure), 1);
-box-shadow: var(--shadow-lg);
-font-family: var(--font-body);
+/* ==========================================================================
+   SUM Platform Design System – CSS entrypoint
+   ========================================================================== */
+
+@import "tokens.css";
+@import "base.css";
+@import "layout.css";
+@import "utilities.css";
+@import "animations.css";
+
+/* Components */
+@import "components/buttons.css";
+@import "components/forms.css";
+@import "components/cards.css";
+@import "components/header.css";
+@import "components/hero.css";
+@import "components/services.css";
+@import "components/testimonials.css";
+@import "components/footer.css";
 ```
 
-**No new colours, font sizes, line-heights, or magic numbers in component/layout CSS.**
+(Exact filenames may differ; keep the intent.)
 
 ---
 
-### 4. Typography Roles → Classes
+## 3. Tokens – Single Source of Truth
 
-We don't design per-block typography; we use **roles** mapped to fixed classes.
+`tokens.css` is the **only file** that defines raw design values:
 
-**Roles and mappings:**
+- **Typography scale** (`--text-xs`, `--text-sm`, …, `--text-display`), often using `clamp()` for fluid headings.
+- **Spacing scale** (`--space-1` … `--space-24`) based on the 8px grid.
+- **Colour tokens** (`--color-primary`, `--color-surface`, etc.), usually derived from branding HSL variables generated by `branding_css`.
+- **Radius, shadows, animation easings**, etc.
 
-- **Hero H1** → Uses `--text-display` token
-- **Section heading (big)** → `clamp(2rem, 5vw, 3.5rem)` via component heading
-- **Card / block heading (minor)** → Uses `--text-xl` token
-- **Eyebrow / kicker** → Uses `--text-xs` with uppercase styling
-- **Section intro / lead** → Uses `--text-lg` with muted colour
-- **Body copy** → Uses `--text-base` token
-- **Tiny meta / caption** → Uses `--text-xs` with muted colour
-
-Rules:
-
-- Every piece of text in a new block must use tokens for sizing.
-- Do **not** set `font-family`, `font-size`, `line-height`, or `letter-spacing` with hardcoded values.
-- Fonts come from **branding** (SiteSettings + `branding_fonts` tag) and the tokens in `tokens.css`.
-
----
-
-### 5. Layout & Components
-
-#### 5.1 Sections & containers
-
-- Every major content block is:
-
-  ```html
-  <section class="section [section--dark]">
-    <div class="container">…</div>
-  </section>
-  ```
-
-- Use `.section--dark` for dark background sections (like testimonials).
-
-#### 5.2 Grids
-
-We follow a consistent grid pattern for cards:
-
-- Mobile: Horizontal scroll with snap
-- Tablet: 2 columns or 45vw cards
-- Desktop: 3 columns
-
-Example pattern in services/testimonials:
+All other CSS files must **only use tokens** via `var(--...)`:
 
 ```css
-.services__grid {
-  display: flex;
+padding: var(--space-4);
+background-color: var(--color-surface);
+color: var(--color-text);
+box-shadow: var(--shadow-sm);
+```
+
+**Absolutely no:**
+
+- New hex colours (`#123456`) in component/layout CSS.
+- New font sizes (`18px`, `2.25rem`, etc.) outside the token scale.
+- New ad-hoc shadows or radii.
+
+If you need a new value, add a token to `tokens.css` and then reference it.
+
+---
+
+## 4. Typography Roles → Classes
+
+We don’t design “per block”. We design **roles** and reuse them everywhere.
+
+### 4.1 Roles and mappings
+
+These are the canonical roles and their classes:
+
+- **Hero H1 / main page title**
+  → `.heading-xl` (or `.heading-display` if that exists in the CSS)
+
+- **Section heading (major)**
+  → `.heading-lg`
+  e.g. “Our Services”, “Testimonials”, “Why Choose Us”
+
+- **Card / block heading (minor)**
+  → `.heading-md`
+  e.g. titles within service cards, testimonial author names if emphasised
+
+- **Eyebrow / kicker label**
+  → `.text-sm .text-muted`
+  e.g. “Why choose us”, “Happy customers”, short label above a heading
+
+- **Section intro / lead paragraph**
+  → `.text-body .text-muted`
+  e.g. the one or two lines of copy under a section heading
+
+- **Body copy**
+  → `.text-body`
+
+- **Small meta / caption**
+  → `.text-xs .text-muted`
+
+### 4.2 Typography rules
+
+- Every text element in a new block must be assigned one of these roles and use the mapped class(es).
+- Component CSS **must not** set:
+
+  - `font-family`
+  - `font-size`
+  - `line-height`
+  - `letter-spacing`
+
+Fonts and sizes come from:
+
+- `branding_fonts` and `branding_css` (which configure `--font-heading`, `--font-body` and Google Fonts links from SiteSettings).
+- The type scale tokens defined in `tokens.css`.
+
+Changing fonts in Wagtail SiteSettings should update typography everywhere without touching component CSS.
+
+---
+
+## 5. Layout & Grid Patterns
+
+### 5.1 Sections & containers
+
+Every major block (hero, services, testimonials, trust strip, etc.) should follow:
+
+```html
+<section class="section [section--muted|section--inset]">
+  <div class="container">…</div>
+</section>
+```
+
+- `.section` controls vertical rhythm.
+- `.section--muted` for subtle background emphasis (e.g. grey or tinted band).
+- `.section--inset` for reduced vertical padding.
+- `.container` constrains width and centres content.
+
+### 5.2 Section Header Pattern (Shared)
+
+All section blocks share a common header structure defined in `layout.css`. This ensures **consistent styling** for eyebrow labels, headings, and intro text across all sections.
+
+**Classes:**
+
+| Class               | Purpose                                                |
+| ------------------- | ------------------------------------------------------ |
+| `.section__header`  | Container for the header group (max-width, margin)     |
+| `.section__eyebrow` | Pill-style label above heading (e.g. "Selected Works") |
+| `.section__heading` | Main section heading with rich text support            |
+| `.section__intro`   | Lead paragraph below heading                           |
+
+**Usage in templates:**
+
+```html
+<section class="section gallery">
+  <div class="container">
+    <header class="section__header reveal-group">
+      <span class="section__eyebrow">{{ self.eyebrow }}</span>
+      <div class="section__heading">{{ self.heading|richtext }}</div>
+      <p class="section__intro">{{ self.intro }}</p>
+    </header>
+    <!-- ... grid content ... -->
+  </div>
+</section>
+```
+
+**Dark theme support:**
+
+For dark sections (e.g. testimonials), add `.section--dark` to the `<section>` element. The header styles automatically adapt:
+
+```html
+<section class="section section--dark testimonials">
+  <!-- .section__eyebrow, .section__heading, etc. will use inverted colours -->
+</section>
+```
+
+**Italic accent for emphasis:**
+
+The `.section__heading` supports rich text with italic emphasis. Use `<em>` or `<i>` to highlight key words:
+
+```html
+<div class="section__heading">
+  <p>A Showcase of <em>Precision</em> & Detail.</p>
+</div>
+```
+
+Italicized words receive the accent colour (`--accent-pop`), creating visual hierarchy.
+
+### 5.3 Grids for card-like blocks
+
+We reuse a standard 1/2/3 grid pattern like the services and testimonials sections:
+
+- **Mobile (< 768px):** 1 column
+- **Tablet (≥ 768px):** 2 columns
+- **Desktop (≥ 1024px):** 3 columns
+
+Example (used by services/testimonials):
+
+```css
+.services__grid,
+.testimonials__grid {
+  display: grid;
   gap: var(--space-6);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .services__grid,
+  .testimonials__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (min-width: 1024px) {
-  .services__grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    overflow: visible;
+  .services__grid,
+  .testimonials__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 ```
 
-New grids should copy this pattern with their own namespaced class.
+New grids should **copy this pattern** with a namespaced class (e.g. `.trust-strip__grid`, `.faq__grid`).
 
-#### 5.3 Cards & components
+### 5.4 Cards & components
 
-- Service cards → `components.services.css`
-- Testimonial cards → `components.testimonials.css`
-- Generic cards → `components.cards.css`
-
-Component-specific styles go into `components.<name>.css` files.
+- Use `.card` as the base for any card-like UI (service card, testimonial card, feature card, etc.).
+- Card-specific tweaks (e.g. avatar positioning, rating stars) belong in the **component file** (`components/testimonials.css`), extending `.card` rather than replacing it.
 
 ---
 
-### 6. Adding New Components
+## 6. Component CSS Rules
 
-When implementing a new block or component:
+### 6.1 Where to put styles
 
-1. **Create the CSS file**
+- All block-specific CSS goes in `components/<block>.css`:
 
-   - Create `components.<block-name>.css` in the css directory.
-   - Add a header comment following the project pattern:
+  - Hero → `components/hero.css`
+  - Service cards → `components/services.css`
+  - Testimonials → `components/testimonials.css`
+  - Future: trust strip, CTA, FAQ, portfolio, etc.
 
-   ```css
-   /* ==========================================================================
-      Name: [Component Name]
-      Path: core/sum_core/static/sum_core/css/components.<name>.css
-      Purpose: [Brief description]
-      Family: SUM Platform Design System – Component: [Name]
-      Dependencies: [e.g. tokens.css, layout.css]
-      ========================================================================== */
-   ```
+- Add a corresponding `@import` entry in `main.css` if there isn’t one already.
 
-2. **Register in main.css**
+### 6.2 What you’re allowed to write
 
-   - Add `@import "components.<block-name>.css";` to `main.css` in the appropriate section.
+✅ **Allowed in component CSS**
 
-3. **Use only tokens**
+- Layout properties using tokens:
 
-   - ✅ Use tokens via `var(--...)` for colours, spacing, shadows.
-   - ✅ Use font tokens: `--font-heading`, `--font-body`, `--font-display`.
-   - ✅ Use size tokens: `--text-xs` through `--text-display`.
-   - ❌ No inline `style="..."` in templates.
-   - ❌ No new hardcoded `font-family`, `font-size`, `line-height`, `letter-spacing`.
-   - ❌ No raw hex or RGB colours.
+  ```css
+  margin-bottom: var(--space-4);
+  padding: var(--space-5);
+  gap: var(--space-3);
+  ```
 
-4. **Follow layout patterns**
+- Colours via tokens:
 
-   - Wrap the block in `.section` + `.container`.
-   - Use the mobile-scroll → desktop-grid pattern for card grids.
-   - Use spacing tokens (`--space-*`) for margins/gaps/paddings.
+  ```css
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-light);
+  border-color: var(--color-border-subtle);
+  ```
 
----
+- Typography _structure_, not values:
 
-### 7. Token Compliance Checklist
+  ```css
+  .testimonial-card__quote p {
+    /* It's okay to set weight/style here if needed */
+    font-weight: var(--font-semibold);
+  }
+  ```
 
-Before merging any design/block change:
+- Positioning, flex/grid, transforms, transitions, etc.
 
-- [ ] No `style="..."` in templates.
-- [ ] No hardcoded `font-family`, `font-size`, `line-height`, or `letter-spacing` (use tokens).
-- [ ] No raw hex or RGB values in new CSS (outside `tokens.css`).
-- [ ] All new spacing uses `var(--space-*)`.
-- [ ] All new colours use HSL token patterns.
-- [ ] New sections use `.section` + `.container`.
-- [ ] New grids follow the mobile-scroll/desktop-grid pattern.
-- [ ] New component file has proper header comment.
-- [ ] Component is imported in `main.css`.
-- [ ] `make test` passes and existing tests weren't just deleted to make it green.
+❌ **Not allowed in component CSS**
 
----
+- `font-family: "Some Font";` (fonts come from branding).
+- `font-size: 32px;` or `1.75rem;` (sizes come from the type scale; use `.heading-*` / `.text-*` classes).
+- Raw colour literals: `#123456`, `rgb(…)`, `hsl(…)` (outside `tokens.css`).
+- Inline styles in templates (`style="..."`).
+- `!important` unless absolutely unavoidable and documented.
 
-### 8. File Header Template
-
-Every CSS partial should include this header:
-
-```css
-/* ==========================================================================
-   Name: [File Name / Purpose]
-   Path: core/sum_core/static/sum_core/css/[file]
-   Purpose: [Brief description]
-   Family: SUM Platform Design System – [Tokens/Layout/Component: X]
-   Dependencies: [e.g. requires tokens.css, layout.css, etc.]
-   ========================================================================== */
-```
+If you discover an old rule that breaks these guidelines, prefer to **refactor** it towards tokens during normal work, or at least add a `TODO` comment.
 
 ---
 
-### 9. TODO Comments
+## 7. Agent Workflow for Implementing a Block
 
-If you must leave any hardcoded value in place (because no suitable token exists yet), add a **`TODO`** comment explaining why:
+When an agent (human or AI) implements or updates a block:
 
-```css
-/* TODO: Introduce token for status indicator color (green for "available") */
-background-color: #10b981;
-```
+### Step 1 – Understand the block
 
-These TODOs signal future token work without blocking current development.
+- Look at the design (reference HTML / Figma / premium trade example).
+- Identify:
+
+  - Section heading
+  - Any eyebrow/label
+  - Intro/lead text
+  - Cards or items (titles, body text, meta)
+  - Buttons/links
+
+### Step 2 – Assign typography roles
+
+For each text element:
+
+- Assign a **role** (section heading, card heading, body, etc.).
+- Apply the **mapped class** from the roles table:
+
+  - Section heading → `.heading-lg`
+  - Card heading → `.heading-md`
+  - Eyebrow → `.text-sm .text-muted`
+  - Body → `.text-body`
+
+Do **not** choose a custom font size; choose the correct role.
+
+### Step 3 – Structure the HTML
+
+- Wrap the block in:
+
+  ```html
+  <section class="section [section--muted|section--inset]">
+    <div class="container">…</div>
+  </section>
+  ```
+
+- Use `.card` for card-like elements.
+
+- For multiple cards, use a grid class like `.services__grid` or `.testimonials__grid` as a template and rename appropriately.
+
+### Step 4 – Add/adjust component CSS
+
+- Open `components/<block>.css` (or create it).
+- Add styles using **only** tokens and utilities, extending existing patterns:
+
+  - Use `var(--space-*)` for spacing.
+  - Use `var(--color-*)` and HSL-derived branding variables for colour.
+  - Use `var(--shadow-*)` for shadows.
+
+- Don’t change fonts/colours directly; rely on tokens and classes.
+
+### Step 5 – Run the Token Compliance Checklist
+
+Before you consider the block “done”, run through the checklist below.
+
+---
+
+## 8. Token Compliance Checklist
+
+Use this list when reviewing PRs or finishing a task.
+
+**Templates**
+
+- [ ] No inline `style="..."` attributes.
+- [ ] Section layouts follow `.section` + `.container`.
+- [ ] Headings use `.heading-*` classes from the roles table.
+- [ ] Body text uses `.text-body` / `.text-body .text-muted`.
+
+**CSS**
+
+- [ ] New styles live in the correct partial (`components/<block>.css`, `layout.css`, etc.).
+- [ ] No new raw hex/RGB colours outside `tokens.css`.
+- [ ] No `font-family`, `font-size`, `line-height`, or `letter-spacing` in component CSS.
+- [ ] All new spacing uses `var(--space-*)` tokens.
+- [ ] All new colours use `var(--color-*)` or branding-derived variables from `branding_css`.
+- [ ] Grids follow the 1/2/3 column pattern unless there’s a deliberate documented exception.
+
+**Branding behaviour**
+
+- [ ] Changing fonts/colours in `SiteSettings` still updates the new block (no hard-coded design values blocking it).
+
+---
+
+## 9. Notes for Client Projects & Overrides (Future-facing)
+
+For downstream projects using `sum_core`:
+
+- Prefer to override design by:
+
+  - Adjusting `SiteSettings` colours/fonts.
+  - Extending tokens in `tokens.css` via extra CSS loaded after `main.css`.
+  - Adding project-specific component CSS files.
+
+- Avoid editing `sum_core` directly; treat this package as a stable core.
+
+(A more detailed “override patterns” doc can build on this in a later milestone.)
+
+---

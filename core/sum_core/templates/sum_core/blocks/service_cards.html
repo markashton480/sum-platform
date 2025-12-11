@@ -3,21 +3,21 @@
 <section class="section services">
     <div class="container">
         <!-- Header Group -->
-        <div class="services__header reveal-group">
+        <header class="section__header reveal-group">
             {% if self.eyebrow %}
-                <p class="services__eyebrow">{{ self.eyebrow }}</p>
+                <span class="section__eyebrow">{{ self.eyebrow }}</span>
             {% endif %}
-            
-            <div class="services__heading">
+
+            <div class="section__heading">
                 {{ self.heading|richtext }}
             </div>
-            
+
             {% if self.intro %}
-                <div class="services__intro text-body">
-                    {{ self.intro|richtext }}
-                </div>
+                <p class="section__intro">
+                    {{ self.intro|striptags }}
+                </p>
             {% endif %}
-        </div>
+        </header>
 
         {% if self.cards %}
             <!-- Grid Container: Supports horizontal scroll on mobile, grid on desktop -->

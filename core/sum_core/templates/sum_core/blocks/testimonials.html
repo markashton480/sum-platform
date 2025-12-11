@@ -4,16 +4,16 @@
 <section class="section section--dark testimonials">
   <div class="container">
     
-    <div class="testimonials__header reveal-group">
+    <header class="section__header reveal-group">
       {% if self.eyebrow %}
-      <span class="testimonials__eyebrow">{{ self.eyebrow }}</span>
+      <span class="section__eyebrow">{{ self.eyebrow }}</span>
       {% endif %}
       {% if self.heading %}
-      <div class="testimonials__heading">
+      <div class="section__heading">
         {{ self.heading|richtext }}
       </div>
       {% endif %}
-    </div>
+    </header>
 
     <div class="testimonials__grid">
       {% for item in self.testimonials %}

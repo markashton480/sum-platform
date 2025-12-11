@@ -2,11 +2,14 @@
    Name: Services Block Component
    Path: core/sum_core/static/sum_core/css/components.services.css
    Purpose: Service cards section with horizontal scroll on mobile and
-            3-column grid on desktop. Includes header, eyebrow, cards,
-            and hover effects.
+            3-column grid on desktop. Includes cards and hover effects.
    Family: SUM Platform Design System – Component: Services
-   Dependencies: tokens.css, layout.css, components.buttons.css
+   Dependencies: tokens.css, layout.css (provides section header styles),
+                 components.buttons.css
    ========================================================================== */
+
+/* NOTE: Header styles (.section__header, .section__eyebrow, .section__heading,
+   .section__intro) are inherited from layout.css */
 
 /* Reduce top padding to close gap with Hero */
 .services {
@@ -17,58 +20,6 @@
   .services {
     padding-top: var(--space-16, 4rem);
   }
-}
-
-/* Header Block - matches testimonials__header alignment */
-.services__header {
-  margin-bottom: var(--space-16, 4rem);
-  max-width: 720px;
-}
-
-/* New Pill-style Eyebrow */
-.services__eyebrow {
-  font-family: var(--font-body);
-  font-size: var(--text-xs);
-  font-weight: var(--font-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: hsla(var(--accent-pop), 1);
-  margin-bottom: var(--space-5, 1.25rem);
-  display: inline-block;
-  border: 1px solid hsla(var(--text-main), 0.1);
-  padding: 0.35em 0.75em;
-  border-radius: var(--radius-full);
-  background: hsla(var(--surface-pure), 0.5);
-  backdrop-filter: blur(4px);
-}
-
-.services__heading {
-  margin-bottom: var(--space-6, 1.5rem);
-}
-
-.services__heading > * {
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  line-height: var(--leading-tight);
-  margin: 0;
-  color: hsla(var(--text-main), 1);
-}
-
-.services__heading span,
-.services__heading em,
-.services__heading i {
-  font-style: italic;
-  color: hsla(var(--accent-pop), 1);
-}
-
-.services__intro {
-  font-family: var(--font-body);
-  font-size: var(--text-lg);
-  font-weight: var(--font-normal);
-  line-height: var(--leading-relaxed);
-  color: hsla(var(--text-muted), 1);
-  max-width: 600px;
-  margin-right: auto;
 }
 
 /* The Grid / Slider Container */

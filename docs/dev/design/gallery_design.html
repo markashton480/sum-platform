@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Gallery Preview</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===================================
+           1. SHARED DESIGN TOKENS
+           =================================== */
+        :root {
+            --brand-h: 30; 
+            --brand-s: 40%;
+            --brand-l: 35%;
+
+            --primary: var(--brand-h), var(--brand-s), var(--brand-l);
+            --accent-pop: calc(var(--brand-h) + 30), 60%, 55%;
+
+            --surface-tint: var(--brand-h), 10%, 97%;
+            --surface-pure: 0, 0%, 100%;
+            --text-main: var(--brand-h), 15%, 15%;
+            --text-muted: var(--brand-h), 5%, 45%;
+
+            --font-display: 'Fraunces', serif;
+            --font-body: 'Manrope', sans-serif;
+
+            --container-padding: clamp(1.5rem, 5vw, 4rem);
+            --section-gap: clamp(4rem, 10vw, 8rem);
+            --radius-sm: 4px;
+            --radius-md: 12px;
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* ===================================
+           2. BASE STYLES
+           =================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background-color: hsla(var(--surface-tint), 1);
+            color: hsla(var(--text-main), 1);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+        }
+
+        .section { padding: var(--section-gap) 0; }
+
+        /* ===================================
+           3. GALLERY SPECIFIC STYLES
+           =================================== */
+
+        .gallery__header {
+            max-width: 720px;
+            margin-bottom: 4rem;
+        }
+
+        .gallery__eyebrow {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 700;
+            color: hsla(var(--accent-pop), 1);
+            margin-bottom: 1.25rem;
+            display: inline-block;
+            border: 1px solid hsla(var(--text-main), 0.1);
+            padding: 0.35em 0.75em;
+            border-radius: 50px;
+            background: hsla(var(--surface-pure), 0.5);
+        }
+
+        .gallery__heading {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            color: hsla(var(--text-main), 1);
+        }
+
+        .gallery__intro {
+            font-size: 1.125rem;
+            color: hsla(var(--text-muted), 1);
+            max-width: 540px;
+        }
+
+        /* --- The Gallery Grid --- */
+        .gallery__grid {
+            /* Mobile: Snap Scroll (Consistent with other blocks) */
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 2rem;
+            scroll-snap-type: x mandatory;
+            
+            /* Full bleed mobile */
+            margin: 0 calc(var(--container-padding) * -1);
+            padding-left: var(--container-padding);
+            padding-right: var(--container-padding);
+            scrollbar-width: none;
+        }
+        .gallery__grid::-webkit-scrollbar { display: none; }
+
+        @media (min-width: 768px) {
+            .gallery__grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2rem;
+                margin: 0;
+                padding: 0;
+                overflow: visible;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .gallery__grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 3rem;
+                align-items: start; /* Essential for offset to work */
+            }
+            
+            /* The Editorial Stagger
+               Pushes the 2nd column down to create a rhythm 
+            */
+            .gallery__item:nth-child(3n + 2) {
+                margin-top: 5rem;
+            }
+            /* Subtle lift on the 3rd to break the line */
+            .gallery__item:nth-child(3n + 3) {
+                margin-top: 2rem;
+            }
+        }
+
+        /* --- Gallery Item --- */
+        .gallery__item {
+            min-width: 85vw; /* Mobile width */
+            scroll-snap-align: center;
+            position: relative;
+            group-hover: cursor-pointer;
+        }
+        
+        @media (min-width: 768px) { .gallery__item { min-width: auto; } }
+
+        /* Image Wrapper with Curtain Reveal Support */
+        .gallery__image-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-sm);
+            background-color: hsla(var(--brand-h), var(--brand-s), 90%, 1);
+            aspect-ratio: 4/5; /* Portrait standard */
+            margin-bottom: 1rem;
+        }
+
+        .gallery__image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s var(--ease-out-expo);
+            will-change: transform;
+        }
+
+        /* Hover Effect: Scale Image */
+        @media (hover: hover) {
+            .gallery__item:hover .gallery__image {
+                transform: scale(1.05);
+            }
+        }
+
+        /* Curtain Reveal Effect classes (reused logic) */
+        .gallery__image-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: hsla(var(--surface-tint), 1);
+            transform: scaleY(1);
+            transform-origin: bottom;
+            transition: transform 1.2s var(--ease-out-expo);
+            z-index: 2;
+        }
+
+        .gallery__item.is-in-view .gallery__image-wrapper::after {
+            transform: scaleY(0);
+        }
+
+        /* Caption Styling */
+        .gallery__caption {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .caption__title {
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 1rem;
+            color: hsla(var(--text-main), 1);
+            line-height: 1.4;
+        }
+
+        .caption__meta {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: hsla(var(--text-muted), 1);
+            white-space: nowrap;
+        }
+
+        /* Animation Trigger */
+        .gallery__item {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .gallery__item.is-in-view {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    </style>
+</head>
+<body>
+
+    <section class="section gallery">
+        <div class="container">
+            
+            <div class="gallery__header reveal-group">
+                <span class="gallery__eyebrow">Selected Works</span>
+                <h2 class="gallery__heading">
+                    A Showcase of <br><em>Precision</em> & Detail.
+                </h2>
+                <p class="gallery__intro">
+                    Explore our recent installations across London and the Home Counties, where technical excellence meets architectural beauty.
+                </p>
+            </div>
+
+            <div class="gallery__grid">
+                
+                <!-- Item 1 -->
+                <article class="gallery__item">
+                    <div class="gallery__image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=1000&auto=format&fit=crop" alt="Project 1" class="gallery__image">
+                    </div>
+                    <div class="gallery__caption">
+                        <span class="caption__title">Kensington Townhouse</span>
+                        <span class="caption__meta">12kW Array</span>
+                    </div>
+                </article>
+
+                <!-- Item 2 (Will be offset down) -->
+                <article class="gallery__item" style="transition-delay: 0.1s;">
+                    <div class="gallery__image-wrapper" style="aspect-ratio: 1/1;"> <!-- Square aspect override -->
+                        <img src="https://images.unsplash.com/photo-1598433437294-43d9382224d5?q=80&w=1000&auto=format&fit=crop" alt="Project 2" class="gallery__image">
+                    </div>
+                    <div class="gallery__caption">
+                        <span class="caption__title">In-Roof Slate System</span>
+                        <span class="caption__meta">Detail</span>
+                    </div>
+                </article>
+
+                <!-- Item 3 -->
+                <article class="gallery__item" style="transition-delay: 0.2s;">
+                    <div class="gallery__image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=1000&auto=format&fit=crop" alt="Project 3" class="gallery__image">
+                    </div>
+                    <div class="gallery__caption">
+                        <span class="caption__title">Surrey Hills Estate</span>
+                        <span class="caption__meta">Battery Storage</span>
+                    </div>
+                </article>
+
+                <!-- Item 4 -->
+                <article class="gallery__item" style="transition-delay: 0.1s;">
+                    <div class="gallery__image-wrapper" style="aspect-ratio: 16/9;"> <!-- Landscape override -->
+                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1000&auto=format&fit=crop" alt="Project 4" class="gallery__image">
+                    </div>
+                    <div class="gallery__caption">
+                        <span class="caption__title">Modern Commercial</span>
+                        <span class="caption__meta">100kW+</span>
+                    </div>
+                </article>
+
+                <!-- Item 5 (Offset) -->
+                <article class="gallery__item" style="transition-delay: 0.2s;">
+                    <div class="gallery__image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1000&auto=format&fit=crop" alt="Project 5" class="gallery__image">
+                    </div>
+                    <div class="gallery__caption">
+                        <span class="caption__title">Glasshouse Integration</span>
+                        <span class="caption__meta">Residential</span>
+                    </div>
+                </article>
+
+                 <!-- Item 6 -->
+                 <article class="gallery__item" style="transition-delay: 0.3s;">
+                    <div class="gallery__image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?q=80&w=1000&auto=format&fit=crop" alt="Project 6" class="gallery__image">
+                    </div>
+                    <div class="gallery__caption">
+                        <span class="caption__title">Tesla Powerwall 2</span>
+                        <span class="caption__meta">Installation</span>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Simple Intersection Observer to trigger reveal animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-in-view');
+                    // We don't unobserve here immediately for gallery items 
+                    // if we want them to re-trigger, but usually unobserve is better for performance.
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
+
+        document.querySelectorAll('.reveal-group, .gallery__item').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

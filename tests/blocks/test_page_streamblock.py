@@ -55,6 +55,7 @@ class TestPageStreamBlock:
         block = PageStreamBlock()
         assert "service_cards" in block.child_blocks
         assert "testimonials" in block.child_blocks
+        assert "gallery" in block.child_blocks
         assert "trust_strip" in block.child_blocks
         assert "features" in block.child_blocks
         assert "comparison" in block.child_blocks

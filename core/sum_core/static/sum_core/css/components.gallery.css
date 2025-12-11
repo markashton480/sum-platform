@@ -1,0 +1,127 @@
+/* ==========================================================================
+   Name: Gallery Component Styles
+   Path: core/sum_core/static/sum_core/css/components.gallery.css
+   Purpose: Responsive image gallery grid with premium editorial styling.
+   Family: SUM Platform Design System – Components
+   Dependencies: tokens.css, utilities.css
+   ========================================================================== */
+
+/* ==========================================================================
+   Section Container
+   ========================================================================== */
+
+.gallery {
+  background-color: hsla(var(--surface-tint), 1);
+}
+
+/* ==========================================================================
+   Grid Layout – Mobile First
+   ========================================================================== */
+
+.gallery__grid {
+  /* Mobile: Horizontal scroll carousel */
+  display: flex;
+  gap: var(--space-6);
+  overflow-x: auto;
+  padding-bottom: var(--space-8);
+  scroll-snap-type: x mandatory;
+  
+  /* Full bleed mobile */
+  margin: 0 calc(var(--container-padding) * -1);
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+  scrollbar-width: none;
+}
+
+.gallery__grid::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tablet: 2-column grid */
+@media (min-width: 768px) {
+  .gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-8);
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+  }
+}
+
+/* Desktop: 3-column grid with editorial stagger */
+@media (min-width: 1024px) {
+  .gallery__grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-10);
+    align-items: start;
+  }
+  
+  /* Editorial stagger: offset 2nd column down */
+  .gallery__item:nth-child(3n + 2) {
+    margin-top: var(--space-16);
+  }
+  
+  /* Subtle lift on 3rd to break the line */
+  .gallery__item:nth-child(3n + 3) {
+    margin-top: var(--space-8);
+  }
+}
+
+/* ==========================================================================
+   Gallery Item
+   ========================================================================== */
+
+.gallery__item {
+  min-width: 85vw; /* Mobile carousel width */
+  scroll-snap-align: center;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .gallery__item {
+    min-width: auto;
+  }
+}
+
+/* ==========================================================================
+   Image Wrapper
+   ========================================================================== */
+
+.gallery__image-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background-color: hsla(var(--brand-h), var(--brand-s), 90%, 1);
+  aspect-ratio: 3/2;
+  margin-bottom: var(--space-4);
+}
+
+.gallery__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.7s var(--ease-out-expo);
+  will-change: transform;
+}
+
+/* Hover Effect: Subtle scale on desktop */
+@media (hover: hover) {
+  .gallery__item:hover .gallery__image {
+    transform: scale(1.05);
+  }
+}
+
+/* ==========================================================================
+   Caption
+   ========================================================================== */
+
+.gallery__caption {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: hsla(var(--text-muted), 1);
+  line-height: var(--leading-normal);
+  margin: 0;
+  padding: 0;
+}
