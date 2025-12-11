@@ -72,6 +72,7 @@ INSTALLED_APPS: list[str] = [
     "taggit",
     # Project apps
     "sum_core",
+    "sum_core.pages",
     "home",
 ]
 

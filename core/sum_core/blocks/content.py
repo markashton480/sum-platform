@@ -87,23 +87,33 @@ class ComparisonBlock(blocks.StructBlock):
         label = "Comparison Slider"
 
 
-class ProjectBlock(blocks.StructBlock):
+class PortfolioItemBlock(blocks.StructBlock):
     image = ImageChooserBlock(required=True)
-    meta = blocks.CharBlock(required=True, help_text="e.g. Kensington • 12kW System")
+    alt_text = blocks.CharBlock(required=True, help_text="Alt text for accessibility.")
     title = blocks.CharBlock(required=True)
+    location = blocks.CharBlock(required=False, help_text="e.g. Kensington, London")
+    services = blocks.CharBlock(required=False, help_text="e.g. Solar • Battery")
+    link_url = blocks.URLBlock(required=False, help_text="Link to full project case study")
 
     class Meta:
         icon = "image"
+        label = "Project Item"
 
 
 class PortfolioBlock(blocks.StructBlock):
-    heading = blocks.CharBlock(required=True)
-    projects = blocks.ListBlock(ProjectBlock())
+    eyebrow = blocks.CharBlock(required=False, help_text="Small label above heading")
+    heading = blocks.RichTextBlock(
+        required=True,
+        features=["bold", "italic"],
+        help_text="Main heading. Use italics for accent styling."
+    )
+    intro = blocks.TextBlock(required=False, help_text="Short lead text")
+    items = blocks.ListBlock(PortfolioItemBlock(), min_num=1, max_num=12)
 
     class Meta:
         template = "sum_core/blocks/portfolio.html"
         icon = "grip"
-        label = "Portfolio Grid"
+        label = "Portfolio Gallery"
 
 
 # --- M2-008 New Content Blocks ---
@@ -142,15 +152,15 @@ class EditorialHeaderBlock(blocks.StructBlock):
         ('left', 'Left'),
         ('center', 'Center'),
     ], default='center', required=False)
-    
+
     eyebrow = blocks.CharBlock(required=False, help_text="e.g. Case Study")
-    
+
     heading = blocks.RichTextBlock(
-        required=True, 
+        required=True,
         features=['italic', 'bold'],
         help_text="Main title. Use italics for accent styling."
     )
-    
+
     class Meta:
         icon = "title"
         label = "Editorial Header"

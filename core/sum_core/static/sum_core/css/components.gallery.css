@@ -1,127 +1,87 @@
 /* ==========================================================================
-   Name: Gallery Component Styles
+   Name: Gallery / Portfolio Section
    Path: core/sum_core/static/sum_core/css/components.gallery.css
-   Purpose: Responsive image gallery grid with premium editorial styling.
+   Purpose: Styles for the project gallery / portfolio grid block.
    Family: SUM Platform Design System – Components
-   Dependencies: tokens.css, utilities.css
-   ========================================================================== */
-
-/* ==========================================================================
-   Section Container
+   Dependencies: tokens.css, typography.css, layout.css
    ========================================================================== */
 
 .gallery {
-  background-color: hsla(var(--surface-tint), 1);
+  /* Inherits .section structural styles */
 }
 
-/* ==========================================================================
-   Grid Layout – Mobile First
-   ========================================================================== */
-
+/* Grid Layout */
 .gallery__grid {
-  /* Mobile: Horizontal scroll carousel */
-  display: flex;
+  display: grid;
   gap: var(--space-6);
-  overflow-x: auto;
-  padding-bottom: var(--space-8);
-  scroll-snap-type: x mandatory;
-  
-  /* Full bleed mobile */
-  margin: 0 calc(var(--container-padding) * -1);
-  padding-left: var(--container-padding);
-  padding-right: var(--container-padding);
-  scrollbar-width: none;
+  margin-top: var(--space-8);
 }
 
-.gallery__grid::-webkit-scrollbar {
-  display: none;
-}
-
-/* Tablet: 2-column grid */
-@media (min-width: 768px) {
+@media (min-width: 48rem) {
   .gallery__grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-8);
-    margin: 0;
-    padding: 0;
-    overflow: visible;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-/* Desktop: 3-column grid with editorial stagger */
-@media (min-width: 1024px) {
+@media (min-width: 64rem) {
   .gallery__grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-10);
-    align-items: start;
-  }
-  
-  /* Editorial stagger: offset 2nd column down */
-  .gallery__item:nth-child(3n + 2) {
-    margin-top: var(--space-16);
-  }
-  
-  /* Subtle lift on 3rd to break the line */
-  .gallery__item:nth-child(3n + 3) {
-    margin-top: var(--space-8);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-/* ==========================================================================
-   Gallery Item
-   ========================================================================== */
-
+/* Item Card */
 .gallery__item {
-  min-width: 85vw; /* Mobile carousel width */
-  scroll-snap-align: center;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  position: relative; /* Context for any potential overlays */
 }
 
-@media (min-width: 768px) {
-  .gallery__item {
-    min-width: auto;
-  }
-}
-
-/* ==========================================================================
-   Image Wrapper
-   ========================================================================== */
-
+/* Image Wrapper & Hover Interactions */
 .gallery__image-wrapper {
   position: relative;
   overflow: hidden;
-  border-radius: var(--radius-sm);
-  background-color: hsla(var(--brand-h), var(--brand-s), 90%, 1);
-  aspect-ratio: 3/2;
-  margin-bottom: var(--space-4);
+  border-radius: var(--radius-md);
+  /* 4:3 Aspect Ratio equivalent if image doesn't force it, 
+     but wagtail fill-800x600 does 4:3. 
+     We can safeguard layout with aspect-ratio. */
+  aspect-ratio: 4 / 3;
+  background-color: hsla(var(--surface-sunken), 1);
 }
 
 .gallery__image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-  transition: transform 0.7s var(--ease-out-expo);
-  will-change: transform;
+  transition: transform var(--duration-default) var(--ease-out-expo);
 }
 
-/* Hover Effect: Subtle scale on desktop */
-@media (hover: hover) {
-  .gallery__item:hover .gallery__image {
-    transform: scale(1.05);
-  }
+.gallery__item:hover .gallery__image {
+  transform: scale(1.05);
 }
 
-/* ==========================================================================
-   Caption
-   ========================================================================== */
+/* Content */
+.gallery__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
 
-.gallery__caption {
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  color: hsla(var(--text-muted), 1);
-  line-height: var(--leading-normal);
+.gallery__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  /* Typography handled by .text-sm .text-muted in template */
+}
+
+.gallery__title {
   margin: 0;
-  padding: 0;
+  /* Use heading color if not inherited */
+  color: hsla(var(--text-main), 1);
+}
+
+.gallery__link {
+  align-self: flex-start;
+  margin-top: var(--space-2);
+  /* Button styles inherit from .btn .btn-secondary */
 }

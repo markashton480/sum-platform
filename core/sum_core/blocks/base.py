@@ -59,13 +59,13 @@ class PageStreamBlock(StreamBlock):
     portfolio = PortfolioBlock(group="Sections")
 
     # Content Blocks
-    editorial_header = EditorialHeaderBlock(group="Content")
-    content = RichTextContentBlock(group="Content")
-    quote = QuoteBlock(group="Content")
-    image_block = ImageBlock(group="Content")
-    buttons = ButtonGroupBlock(group="Content")
-    spacer = SpacerBlock(group="Content")
-    divider = DividerBlock(group="Content")
+    editorial_header = EditorialHeaderBlock(group="Page Content")
+    content = RichTextContentBlock(group="Page Content")
+    quote = QuoteBlock(group="Page Content")
+    image_block = ImageBlock(group="Page Content")
+    buttons = ButtonGroupBlock(group="Page Content")
+    spacer = SpacerBlock(group="Page Content")
+    divider = DividerBlock(group="Page Content")
 
     rich_text = blocks.RichTextBlock(
         label="Rich Text",
