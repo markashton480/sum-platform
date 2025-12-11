@@ -105,3 +105,163 @@ class PortfolioBlock(blocks.StructBlock):
         icon = "grip"
         label = "Portfolio Grid"
 
+
+# --- M2-008 New Content Blocks ---
+
+class RichTextContentBlock(blocks.StructBlock):
+    """
+    A flexible block for general content sections.
+    """
+    align = blocks.ChoiceBlock(choices=[
+        ('left', 'Left'),
+        ('center', 'Center'),
+    ], default='left', required=False)
+
+    body = blocks.RichTextBlock(
+        features=[
+            "h2", "h3", "h4",
+            "bold", "italic",
+            "link",
+            "ol", "ul",
+            "hr"
+        ],
+        required=True
+    )
+
+    class Meta:
+        icon = "doc-full"
+        label = "Content (Rich Text)"
+        template = "sum_core/blocks/content_richtext.html"
+
+
+class EditorialHeaderBlock(blocks.StructBlock):
+    """
+    A text-heavy header for editorial pages/blog posts.
+    """
+    align = blocks.ChoiceBlock(choices=[
+        ('left', 'Left'),
+        ('center', 'Center'),
+    ], default='center', required=False)
+    
+    eyebrow = blocks.CharBlock(required=False, help_text="e.g. Case Study")
+    
+    heading = blocks.RichTextBlock(
+        required=True, 
+        features=['italic', 'bold'],
+        help_text="Main title. Use italics for accent styling."
+    )
+    
+    class Meta:
+        icon = "title"
+        label = "Editorial Header"
+        template = "sum_core/blocks/content_editorial_header.html"
+
+
+class QuoteBlock(blocks.StructBlock):
+    """
+    Editorial quote / pull-quote block.
+    """
+    quote = blocks.TextBlock(
+        label="Quote Text",
+        help_text="Short editorial quote (1-3 sentences)."
+    )
+    author = blocks.CharBlock(required=False)
+    role = blocks.CharBlock(
+        required=False,
+        help_text="Role/description, e.g. Property Owner"
+    )
+
+    class Meta:
+        icon = "openquote"
+        label = "Editorial Quote"
+        template = "sum_core/blocks/content_quote.html"
+
+
+class ImageBlock(blocks.StructBlock):
+    """
+    Cinematic image block with caption.
+    """
+    image = ImageChooserBlock(required=True)
+    alt_text = blocks.CharBlock(required=True, max_length=255)
+    caption = blocks.CharBlock(
+        required=False,
+        help_text="Short caption under the image."
+    )
+    full_width = blocks.BooleanBlock(
+        required=False,
+        default=False,
+        help_text="Stretch to full-width container."
+    )
+
+    class Meta:
+        icon = "image"
+        label = "Image"
+        template = "sum_core/blocks/content_image.html"
+
+
+class ContentButtonBlock(blocks.StructBlock):
+    """
+    Single button definition for use in ButtonGroupBlock.
+    """
+    label = blocks.CharBlock()
+    url = blocks.URLBlock()
+    style = blocks.ChoiceBlock(choices=[
+        ('primary', 'Primary'),
+        ('secondary', 'Secondary'),
+    ], default='primary')
+
+    class Meta:
+        icon = "link"
+        label = "Button"
+
+
+class ButtonGroupBlock(blocks.StructBlock):
+    """
+    Group of buttons (CTAs).
+    """
+    alignment = blocks.ChoiceBlock(choices=[
+        ('left', 'Left'),
+        ('center', 'Center'),
+        ('right', 'Right'),
+    ], default='left')
+
+    buttons = blocks.ListBlock(ContentButtonBlock(), min_num=1, max_num=3)
+
+    class Meta:
+        icon = "snippet"
+        label = "Button Group"
+        template = "sum_core/blocks/content_buttons.html"
+
+
+class SpacerBlock(blocks.StructBlock):
+    """
+    Vertical spacer for rhythm.
+    """
+    size = blocks.ChoiceBlock(choices=[
+        ('small', 'Small (24px)'),
+        ('medium', 'Medium (40px)'),
+        ('large', 'Large (64px)'),
+        ('xlarge', 'X-Large (96px)'),
+    ], default='medium')
+
+    class Meta:
+        icon = "horizontalrule"
+        label = "Spacer"
+        template = "sum_core/blocks/content_spacer.html"
+
+
+class DividerBlock(blocks.StructBlock):
+    """
+    Horizontal divider line.
+    """
+    style = blocks.ChoiceBlock(choices=[
+        ('muted', 'Muted'),
+        ('strong', 'Strong'),
+        ('accent', 'Accent'),
+    ], default='muted')
+
+    class Meta:
+        icon = "horizontalrule"
+        label = "Divider"
+        template = "sum_core/blocks/content_divider.html"
+

@@ -14,6 +14,13 @@ from .content import (
     FeaturesListBlock,
     ComparisonBlock,
     PortfolioBlock,
+    RichTextContentBlock,
+    EditorialHeaderBlock,
+    QuoteBlock,
+    ImageBlock,
+    ButtonGroupBlock,
+    SpacerBlock,
+    DividerBlock,
 )
 from .services import ServiceCardsBlock, ServiceCardItemBlock
 from .testimonials import TestimonialsBlock, TestimonialBlock
@@ -48,4 +55,11 @@ __all__ = [
     "StatsBlock",
     "ProcessStepsBlock",
     "FAQBlock",
+    "RichTextContentBlock",
+    "EditorialHeaderBlock",
+    "QuoteBlock",
+    "ImageBlock",
+    "ButtonGroupBlock",
+    "SpacerBlock",
+    "DividerBlock",
 ]

@@ -15,6 +15,13 @@ from sum_core.blocks.content import (
     FeaturesListBlock,
     ComparisonBlock,
     PortfolioBlock,
+    RichTextContentBlock,
+    EditorialHeaderBlock,
+    QuoteBlock,
+    ImageBlock,
+    ButtonGroupBlock,
+    SpacerBlock,
+    DividerBlock,
 )
 from sum_core.blocks.hero import HeroImageBlock, HeroGradientBlock
 from sum_core.blocks.services import ServiceCardsBlock
@@ -50,6 +57,15 @@ class PageStreamBlock(StreamBlock):
     features = FeaturesListBlock(group="Sections")
     comparison = ComparisonBlock(group="Sections")
     portfolio = PortfolioBlock(group="Sections")
+
+    # Content Blocks
+    editorial_header = EditorialHeaderBlock(group="Content")
+    content = RichTextContentBlock(group="Content")
+    quote = QuoteBlock(group="Content")
+    image_block = ImageBlock(group="Content")
+    buttons = ButtonGroupBlock(group="Content")
+    spacer = SpacerBlock(group="Content")
+    divider = DividerBlock(group="Content")
 
     rich_text = blocks.RichTextBlock(
         label="Rich Text",

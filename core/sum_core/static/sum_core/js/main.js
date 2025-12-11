@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Observe groups and individual reveal elements if they are not children of a group (or just all of them)
     // The CSS handles nested reveals if the parent has is-in-view
-    const revealElements = document.querySelectorAll('.reveal-group, .reveal-text, .reveal-img-wrapper');
+    const revealElements = document.querySelectorAll('.reveal-group, .reveal-text, .reveal-img-wrapper, .observe-me');
     revealElements.forEach(el => {
         // Avoid double observation if an element has multiple reveal classes
         observer.observe(el);

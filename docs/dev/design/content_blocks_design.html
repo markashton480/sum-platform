@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Interactive Content Blocks</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===================================
+           1. SHARED TOKENS
+           =================================== */
+        :root {
+            --brand-h: 30; --brand-s: 40%; --brand-l: 35%;
+            --primary: var(--brand-h), var(--brand-s), var(--brand-l);
+            --primary-deep: var(--brand-h), var(--brand-s), 20%;
+            --accent-pop: calc(var(--brand-h) + 30), 60%, 55%;
+            --surface-tint: var(--brand-h), 10%, 97%;
+            --surface-pure: 0, 0%, 100%;
+            --text-main: var(--brand-h), 15%, 15%;
+            --text-muted: var(--brand-h), 5%, 45%;
+            
+            --font-display: 'Fraunces', serif;
+            --font-body: 'Manrope', sans-serif;
+            
+            --container-padding: clamp(1.5rem, 5vw, 4rem);
+            --radius-sm: 4px;
+            --radius-md: 12px;
+            
+            /* Premium Easing Curves */
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+            --ease-elastic: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background-color: hsla(var(--surface-tint), 1);
+            color: hsla(var(--text-main), 1);
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* --- NOISE TEXTURE OVERLAY --- */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.05;
+            /* Simple noise data URI */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+        }
+
+        .container--narrow { max-width: 800px; margin: 0 auto; }
+
+        /* ===================================
+           2. ANIMATION UTILITIES
+           =================================== */
+        
+        /* The Observer Class */
+        .observe-me {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1s ease, transform 1s var(--ease-out-expo);
+        }
+
+        .observe-me.is-in-view {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Staggered Delays */
+        .delay-100 { transition-delay: 0.1s; }
+        .delay-200 { transition-delay: 0.2s; }
+        .delay-300 { transition-delay: 0.3s; }
+
+        /* ===================================
+           3. CONTENT BLOCKS REFACTORED
+           =================================== */
+
+        /* --- Rich Text & Links --- */
+        .rich-text {
+            font-size: 1.125rem;
+            color: hsla(var(--text-main), 0.9);
+        }
+
+        .rich-text h2, .rich-text h3 {
+            font-family: var(--font-display);
+            color: hsla(var(--text-main), 1);
+            margin-top: 3.5rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.15;
+            letter-spacing: -0.01em;
+        }
+        
+        .rich-text h2 { font-size: 2.5rem; font-weight: 400; }
+        .rich-text h3 { font-size: 1.75rem; font-style: italic; }
+        .rich-text h4 { font-size: 1rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: hsla(var(--accent-pop), 1); margin-top: 2rem; }
+
+        /* The "Swoosh" Link */
+        .rich-text a {
+            color: hsla(var(--primary), 1);
+            text-decoration: none;
+            background-image: linear-gradient(currentColor, currentColor);
+            background-position: 0% 100%;
+            background-repeat: no-repeat;
+            background-size: 100% 1px;
+            transition: background-size 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-bottom: 2px;
+        }
+        
+        .rich-text a:hover {
+            background-size: 100% 2px; /* Gets thicker */
+            color: hsla(var(--accent-pop), 1);
+        }
+
+        /* --- Editorial Quote Block --- */
+        .quote-block {
+            margin: 5rem 0;
+            position: relative;
+        }
+
+        /* Dynamic Border Line */
+        .quote-line {
+            width: 2px;
+            height: 0; /* Animates to 100% */
+            background-color: hsla(var(--accent-pop), 1);
+            position: absolute;
+            left: 0;
+            top: 0;
+            transition: height 1.5s var(--ease-out-expo);
+        }
+
+        .quote-block.is-in-view .quote-line { height: 100%; }
+
+        .quote-content {
+            padding-left: 2.5rem;
+        }
+
+        .quote-text {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-style: italic;
+            line-height: 1.4;
+            color: hsla(var(--text-main), 1);
+            margin-bottom: 2rem;
+        }
+
+        .quote-attribution {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.8s ease 0.5s; /* Delayed reveal */
+        }
+
+        .quote-block.is-in-view .quote-attribution { opacity: 1; transform: translateX(0); }
+
+        .quote-author { font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .quote-role { color: hsla(var(--text-muted), 1); }
+
+        /* --- Cinematic Image Block --- */
+        .image-block { margin: 4rem 0; }
+
+        .image-wrapper {
+            overflow: hidden;
+            border-radius: var(--radius-sm);
+            background: hsla(var(--text-main), 0.05);
+            /* Initial clip-path for curtain reveal effect */
+            clip-path: inset(10% 10% 10% 10%);
+            opacity: 0;
+            transition: all 1.2s var(--ease-out-expo);
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transform: scale(1.15); /* Start zoomed in */
+            transition: transform 1.5s var(--ease-out-expo);
+            will-change: transform;
+        }
+
+        /* Reveal State */
+        .image-block.is-in-view .image-wrapper {
+            clip-path: inset(0 0 0 0);
+            opacity: 1;
+        }
+        
+        .image-block.is-in-view .image-wrapper img {
+            transform: scale(1); /* Smooth zoom out */
+        }
+
+        .image-caption {
+            font-size: 0.875rem;
+            color: hsla(var(--text-muted), 1);
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .image-caption::before {
+            content: '';
+            width: 30px;
+            height: 1px;
+            background-color: hsla(var(--text-muted), 0.4);
+        }
+
+        /* --- Physics Buttons --- */
+        .button-group {
+            display: flex; gap: 1rem; flex-wrap: wrap; margin: 3rem 0;
+        }
+
+        .btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 2.5rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            text-decoration: none;
+            overflow: hidden; /* masks the fill */
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+
+        /* Primary: Slide Up Fill */
+        .btn-primary {
+            background: hsla(var(--primary), 1);
+            color: white;
+            border: 1px solid hsla(var(--primary), 1);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: hsla(var(--primary-deep), 1);
+            z-index: -1;
+            transform: translateY(100%); /* Start below */
+            transition: transform 0.4s var(--ease-out-expo);
+        }
+
+        .btn-primary:hover::before {
+            transform: translateY(0); /* Slide up */
+        }
+        .btn-primary:hover {
+            border-color: hsla(var(--primary-deep), 1);
+            transform: translateY(-2px);
+        }
+
+        /* Secondary: Slide Right Fill */
+        .btn-secondary {
+            background: transparent;
+            color: hsla(var(--text-main), 1);
+            border: 1px solid hsla(var(--text-main), 0.2);
+        }
+
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: hsla(var(--text-main), 1);
+            z-index: -1;
+            transform: translateX(-100%); /* Start left */
+            transition: transform 0.4s var(--ease-out-expo);
+        }
+
+        .btn-secondary:hover::before { transform: translateX(0); }
+        .btn-secondary:hover { color: white; border-color: hsla(var(--text-main), 1); }
+
+        /* Page Context Styling */
+        .page-header { text-align: center; padding: 8rem 0 6rem; }
+        .page-header h1 { font-family: var(--font-display); font-size: clamp(3rem, 6vw, 5rem); line-height: 1; margin-bottom: 1rem; }
+        .page-meta { font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; color: hsla(var(--accent-pop), 1); }
+
+    </style>
+</head>
+<body>
+
+    <div class="noise-overlay"></div>
+
+    <header class="page-header observe-me">
+        <div class="container">
+            <span class="page-meta">Case Study</span>
+            <h1>The Kensington <br><em>Retrofit</em>.</h1>
+        </div>
+    </header>
+
+    <main class="container container--narrow">
+        
+        <!-- Rich Text -->
+        <div class="rich-text observe-me delay-100">
+            <p><strong>Integrating renewable technologies into heritage properties requires a delicate balance.</strong> The challenge is not merely technical, but aesthetic: how do we modernize the energy infrastructure of a Victorian terrace without disrupting its architectural soul?</p>
+        </div>
+
+        <!-- Image Block (Full Width logic in narrow container context for demo) -->
+    </main>
+    
+    <div class="container">
+        <div class="image-block observe-me">
+            <div class="image-wrapper">
+                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2000&auto=format&fit=crop" alt="Solar panels on a slate roof">
+            </div>
+            <figcaption class="image-caption">
+                The finished array, featuring flush-mounted 'all-black' panels.
+            </figcaption>
+        </div>
+    </div>
+
+    <main class="container container--narrow">
+
+        <div class="rich-text observe-me">
+            <h2>The Technical Challenge</h2>
+            <p>The client approached us with a specific set of constraints. The property falls within the Kensington Conservation Area, meaning any street-facing alterations were strictly prohibited.</p>
+            <p>We had to ensure <a href="#">complete invisibility</a> from the street level while maximizing the southern exposure.</p>
+        </div>
+
+        <!-- Editorial Quote -->
+        <blockquote class="quote-block observe-me">
+            <div class="quote-line"></div>
+            <div class="quote-content">
+                <p class="quote-text">
+                    "It was imperative that the home felt modern in function but remained Victorian in form. SolarCraft understood this dichotomy perfectly."
+                </p>
+                <div class="quote-attribution">
+                    <span class="quote-author">Jonathan E.</span>
+                    <span class="quote-role"> — Property Owner</span>
+                </div>
+            </div>
+        </blockquote>
+
+        <div class="rich-text observe-me">
+            <h3>The Solution</h3>
+            <p>By utilizing our slimline mounting system, we were able to recess the panels slightly below the ridge line. The result is a 6.4kW system that generates approximately 5,800kWh per year, covering 80% of the household's daytime usage.</p>
+        </div>
+
+        <!-- Physics Buttons -->
+        <div class="rich-text observe-me" style="margin-top: 4rem;">
+            <h4>Ready to start?</h4>
+        </div>
+        
+        <div class="button-group observe-me">
+            <a href="#" class="btn btn-primary">Book Consultation</a>
+            <a href="#" class="btn btn-secondary">View Project Gallery</a>
+        </div>
+
+        <div style="height: 100px;"></div>
+
+    </main>
+
+    <script>
+        // Simple reusable observer for entrance animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 0px -10% 0px', // Trigger slightly before element is fully visible
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-in-view');
+                    observer.unobserve(entry.target); // Only animate once
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.observe-me, .quote-block, .image-block').forEach((el) => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

@@ -5,9 +5,7 @@ Purpose: Unit tests for TrustStripBlock (logos) and StatsBlock.
 Family: Part of the blocks-level test suite.
 Dependencies: sum_core.blocks.trust module, Wagtail blocks.
 """
-import pytest
 from wagtail.blocks import StructBlock, ListBlock
-from django.core.exceptions import ValidationError
 
 from sum_core.blocks.trust import (
     TrustStripItemBlock,

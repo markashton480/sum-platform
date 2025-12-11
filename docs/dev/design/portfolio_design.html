@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Gallery Block</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===================================
+           1. SHARED TOKENS
+           =================================== */
+        :root {
+            --brand-h: 30; --brand-s: 40%; --brand-l: 35%;
+            --primary: var(--brand-h), var(--brand-s), var(--brand-l);
+            --primary-deep: var(--brand-h), var(--brand-s), 20%;
+            --accent-pop: calc(var(--brand-h) + 30), 60%, 55%;
+            --surface-tint: var(--brand-h), 10%, 97%;
+            --surface-pure: 0, 0%, 100%;
+            --text-main: var(--brand-h), 15%, 15%;
+            --text-muted: var(--brand-h), 5%, 45%;
+            --font-display: 'Fraunces', serif;
+            --font-body: 'Manrope', sans-serif;
+            --container-padding: clamp(1.5rem, 5vw, 4rem);
+            --section-gap: clamp(4rem, 10vw, 8rem);
+            --radius-sm: 4px;
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background-color: hsla(var(--surface-tint), 1);
+            color: hsla(var(--text-main), 1);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+        }
+
+        .section { padding: var(--section-gap) 0; }
+
+        /* Shared Header Styling */
+        .block-header { margin-bottom: 5rem; max-width: 800px; }
+        
+        .block-eyebrow {
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em;
+            font-weight: 700; color: hsla(var(--accent-pop), 1); margin-bottom: 1.25rem;
+            display: inline-block; border: 1px solid hsla(var(--text-main), 0.1);
+            padding: 0.35em 0.75em; border-radius: 50px; background: hsla(var(--surface-pure), 0.5);
+        }
+        
+        .block-heading {
+            font-family: var(--font-display); font-size: clamp(2.5rem, 5vw, 4rem);
+            line-height: 1.1; color: hsla(var(--text-main), 1);
+        }
+        .block-heading em { color: hsla(var(--accent-pop), 1); font-style: italic; }
+
+        /* Animation Classes */
+        .reveal-group {
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .reveal-group.is-in-view { opacity: 1; transform: translateY(0); }
+
+        /* ===================================
+           2. GALLERY BLOCK STYLES
+           =================================== */
+
+        /* Mobile Layout: Horizontal Snap Scroll */
+        .gallery-grid {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 2rem;
+            scroll-snap-type: x mandatory;
+            /* Full bleed hack */
+            margin: 0 calc(var(--container-padding) * -1);
+            padding-left: var(--container-padding);
+            padding-right: var(--container-padding);
+            scrollbar-width: none;
+        }
+        .gallery-grid::-webkit-scrollbar { display: none; }
+
+        /* Desktop Layout: Staggered Grid */
+        @media (min-width: 1024px) {
+            .gallery-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 3rem;
+                margin: 0;
+                padding: 0;
+                overflow: visible;
+                align-items: start; /* Critical for stagger */
+            }
+
+            /* The "Curator's Stagger" 
+               Pushes columns down to create rhythm */
+            .gallery-item:nth-child(3n + 2) { margin-top: 6rem; }
+            .gallery-item:nth-child(3n + 3) { margin-top: 3rem; }
+        }
+
+        /* --- Gallery Item --- */
+        .gallery-item {
+            min-width: 85vw; /* Mobile width */
+            scroll-snap-align: center;
+            position: relative;
+            cursor: pointer;
+            group-hover:;
+        }
+
+        @media (min-width: 768px) { .gallery-item { min-width: 45vw; } }
+        @media (min-width: 1024px) { .gallery-item { min-width: auto; } }
+
+        /* Image Container */
+        .gallery-img-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius-sm);
+            background: hsla(var(--text-main), 0.05);
+            aspect-ratio: 4/5; /* Portrait Ratio */
+            margin-bottom: 1.5rem;
+            
+            /* Initial State for Curtain Reveal */
+            clip-path: inset(10% 10% 10% 10%);
+            opacity: 0;
+            transition: all 1.2s var(--ease-out-expo);
+        }
+
+        .gallery-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scale(1.15);
+            transition: transform 1.5s var(--ease-out-expo);
+            will-change: transform;
+        }
+
+        /* Reveal Animation Active State */
+        .gallery-item.is-in-view .gallery-img-wrapper {
+            clip-path: inset(0 0 0 0);
+            opacity: 1;
+        }
+        .gallery-item.is-in-view .gallery-img-wrapper img {
+            transform: scale(1);
+        }
+
+        /* Hover Interaction */
+        @media (hover: hover) {
+            .gallery-item:hover .gallery-img-wrapper img {
+                transform: scale(1.05);
+            }
+        }
+
+        /* Text Content */
+        .gallery-content {
+            opacity: 0; 
+            transform: translateY(10px);
+            transition: all 0.6s ease 0.4s; /* Delay text slightly */
+        }
+        .gallery-item.is-in-view .gallery-content { opacity: 1; transform: translateY(0); }
+
+        .gallery-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: hsla(var(--accent-pop), 1);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .meta-dot { width: 4px; height: 4px; background: currentColor; border-radius: 50%; }
+
+        .gallery-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: hsla(var(--text-main), 1);
+            line-height: 1.2;
+            transition: color 0.3s ease;
+        }
+        
+        .gallery-item:hover .gallery-title { color: hsla(var(--primary), 1); }
+
+    </style>
+</head>
+<body>
+
+    <section class="section">
+        <div class="container">
+            <div class="block-header reveal-group">
+                <span class="block-eyebrow">Selected Works</span>
+                <h2 class="block-heading">
+                    The Architecture of <br><em>Clean Energy</em>.
+                </h2>
+            </div>
+
+            <div class="gallery-grid">
+                
+                <!-- Project 1 -->
+                <article class="gallery-item">
+                    <div class="gallery-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=1000&auto=format&fit=crop" alt="Project 1">
+                    </div>
+                    <div class="gallery-content">
+                        <div class="gallery-meta">
+                            <span>Kensington</span>
+                            <span class="meta-dot"></span>
+                            <span>Retrofit</span>
+                        </div>
+                        <h3 class="gallery-title">The Victorian Restoration</h3>
+                    </div>
+                </article>
+
+                <!-- Project 2 -->
+                <article class="gallery-item">
+                    <div class="gallery-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1000&auto=format&fit=crop" alt="Project 2">
+                    </div>
+                    <div class="gallery-content">
+                        <div class="gallery-meta">
+                            <span>Surrey Hills</span>
+                            <span class="meta-dot"></span>
+                            <span>New Build</span>
+                        </div>
+                        <h3 class="gallery-title">Glasshouse Integration</h3>
+                    </div>
+                </article>
+
+                <!-- Project 3 -->
+                <article class="gallery-item">
+                    <div class="gallery-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1000&auto=format&fit=crop" alt="Project 3">
+                    </div>
+                    <div class="gallery-content">
+                        <div class="gallery-meta">
+                            <span>Richmond</span>
+                            <span class="meta-dot"></span>
+                            <span>Storage</span>
+                        </div>
+                        <h3 class="gallery-title">Hidden Energy Vault</h3>
+                    </div>
+                </article>
+
+                <!-- Project 4 -->
+                <article class="gallery-item">
+                    <div class="gallery-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?q=80&w=1000&auto=format&fit=crop" alt="Project 4">
+                    </div>
+                    <div class="gallery-content">
+                        <div class="gallery-meta">
+                            <span>Chelsea</span>
+                            <span class="meta-dot"></span>
+                            <span>Urban</span>
+                        </div>
+                        <h3 class="gallery-title">Mews House Array</h3>
+                    </div>
+                </article>
+
+                <!-- Project 5 -->
+                <article class="gallery-item">
+                    <div class="gallery-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?q=80&w=1000&auto=format&fit=crop" alt="Project 5">
+                    </div>
+                    <div class="gallery-content">
+                        <div class="gallery-meta">
+                            <span>Cotswolds</span>
+                            <span class="meta-dot"></span>
+                            <span>Farmhouse</span>
+                        </div>
+                        <h3 class="gallery-title">Heritage Barn Conversion</h3>
+                    </div>
+                </article>
+
+                <!-- Project 6 -->
+                <article class="gallery-item">
+                    <div class="gallery-img-wrapper">
+                        <img src="https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?q=80&w=1000&auto=format&fit=crop" alt="Project 6">
+                    </div>
+                    <div class="gallery-content">
+                        <div class="gallery-meta">
+                            <span>Hampstead</span>
+                            <span class="meta-dot"></span>
+                            <span>Modern</span>
+                        </div>
+                        <h3 class="gallery-title">Geometric Roof Design</h3>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-in-view');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal-group, .gallery-item').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>
