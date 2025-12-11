@@ -91,5 +91,73 @@ document.addEventListener('DOMContentLoaded', () => {
             navLinks.style.boxShadow = isExpanded ? '' : '0 10px 30px rgba(0,0,0,0.1)';
         });
     }
+
+    // 4. Smooth FAQ Accordion Logic
+    // Handles "Auto -> Pixel -> Auto" height transition for smooth animation
+    const toggleAccordion = (btn) => {
+        const item = btn.closest('.faq-item');
+        const answer = item.querySelector('.faq-answer');
+        const isOpen = item.getAttribute('aria-expanded') === 'true';
+        const section = item.closest('[data-faq-block]');
+        const allowMultiple = section ? section.getAttribute('data-allow-multiple') === 'true' : false;
+        
+        // Close other items if not allowing multiple
+        if (!allowMultiple) {
+            section.querySelectorAll('.faq-item').forEach(other => {
+                if (other !== item && other.getAttribute('aria-expanded') === 'true') {
+                    const otherAnswer = other.querySelector('.faq-answer');
+                    // Force height to current pixel value so we can animate from it
+                    const currentHeight = otherAnswer.scrollHeight;
+                    otherAnswer.style.height = `${currentHeight}px`;
+                    
+                    // Force reflow
+                    otherAnswer.offsetHeight; 
+                    
+                    // Animate to 0
+                    requestAnimationFrame(() => {
+                         otherAnswer.style.height = '0px';
+                    });
+                    
+                    other.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
+        if (isOpen) {
+            // CLOSE:
+            // 1. Set height to current scrollHeight (because it might be 'auto')
+            answer.style.height = `${answer.scrollHeight}px`;
+            // 2. Force reflow so browser registers the pixel height
+            answer.offsetHeight; 
+            // 3. Animate to 0
+            requestAnimationFrame(() => {
+                answer.style.height = '0px';
+            });
+            item.setAttribute('aria-expanded', 'false');
+        } else {
+            // OPEN:
+            item.setAttribute('aria-expanded', 'true');
+            // 1. Set height to scrollHeight to start animation
+            const targetHeight = answer.scrollHeight;
+            answer.style.height = `${targetHeight}px`;
+            
+            // 2. After transition, set to 'auto' so it adapts to window resizing
+            const setAuto = () => {
+                if (item.getAttribute('aria-expanded') === 'true') {
+                    answer.style.height = 'auto';
+                }
+                answer.removeEventListener('transitionend', setAuto);
+            };
+            answer.addEventListener('transitionend', setAuto);
+        }
+    };
+
+    // Attach listeners
+    document.querySelectorAll('.faq-toggle').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+             e.preventDefault(); // Prevent standard button behavior if any
+             toggleAccordion(btn);
+        });
+    });
 });
 

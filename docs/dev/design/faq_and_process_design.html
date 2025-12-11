@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Process & Smooth FAQ</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===================================
+           1. SHARED TOKENS
+           =================================== */
+        :root {
+            --brand-h: 30; --brand-s: 40%; --brand-l: 35%;
+            --primary: var(--brand-h), var(--brand-s), var(--brand-l);
+            --accent-pop: calc(var(--brand-h) + 30), 60%, 55%;
+            --surface-tint: var(--brand-h), 10%, 97%;
+            --surface-pure: 0, 0%, 100%;
+            --text-main: var(--brand-h), 15%, 15%;
+            --text-muted: var(--brand-h), 5%, 45%;
+            --font-display: 'Fraunces', serif;
+            --font-body: 'Manrope', sans-serif;
+            --container-padding: clamp(1.5rem, 5vw, 4rem);
+            --section-gap: clamp(4rem, 10vw, 8rem);
+            --radius-md: 12px;
+            --radius-sm: 4px;
+            /* Smooth easing for UI expansion */
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: var(--font-body);
+            background-color: hsla(var(--surface-tint), 1);
+            color: hsla(var(--text-main), 1);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+        }
+
+        .section { padding: var(--section-gap) 0; }
+        
+        .block-eyebrow {
+            font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em;
+            font-weight: 700; color: hsla(var(--accent-pop), 1); margin-bottom: 1.25rem;
+            display: inline-block; border: 1px solid hsla(var(--text-main), 0.1);
+            padding: 0.35em 0.75em; border-radius: 50px; background: hsla(var(--surface-pure), 0.5);
+        }
+        .block-heading {
+            font-family: var(--font-display); font-size: clamp(2rem, 5vw, 3.5rem);
+            line-height: 1.1; color: hsla(var(--text-main), 1);
+        }
+        .block-heading em { color: hsla(var(--accent-pop), 1); font-style: italic; }
+
+        .reveal-group {
+            opacity: 0; transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        .reveal-group.is-in-view { opacity: 1; transform: translateY(0); }
+        .delay-100 { transition-delay: 0.1s; }
+        .delay-200 { transition-delay: 0.2s; }
+        .delay-300 { transition-delay: 0.3s; }
+
+        /* ===================================
+           2. PROCESS RAIL (Preserved from previous step)
+           =================================== */
+        .process-layout { display: grid; gap: 4rem; }
+        @media (min-width: 1024px) {
+            .process-layout { grid-template-columns: 1fr 1.5fr; align-items: start; }
+            .process-header-col { position: sticky; top: 8rem; padding-right: 2rem; }
+        }
+        .process-intro { margin-top: 1.5rem; color: hsla(var(--text-muted), 1); font-size: 1.125rem; max-width: 400px; }
+        .process-rail-container { position: relative; padding-left: 2rem; border-left: 1px solid hsla(var(--text-main), 0.1); }
+        .process-step-item { position: relative; margin-bottom: 4rem; }
+        .process-step-item:last-child { margin-bottom: 0; }
+        .rail-marker {
+            position: absolute; left: -2rem; top: 1.5rem; transform: translateX(-50%);
+            background-color: hsla(var(--surface-tint), 1); border: 1px solid hsla(var(--text-main), 0.2);
+            color: hsla(var(--text-main), 0.6); font-family: var(--font-body); font-weight: 700;
+            font-size: 0.75rem; padding: 0.35em 0.85em; border-radius: 50px; z-index: 2; transition: all 0.3s ease;
+        }
+        .process-step-item:hover .rail-marker {
+            background-color: hsla(var(--accent-pop), 1); border-color: hsla(var(--accent-pop), 1);
+            color: white; box-shadow: 0 0 0 4px hsla(var(--surface-tint), 1);
+        }
+        .process-card {
+            background-color: hsla(var(--surface-pure), 1); border: 1px solid hsla(var(--text-main), 0.08);
+            border-radius: var(--radius-md); padding: 2.5rem; margin-left: 1.5rem;
+            transition: all 0.4s var(--ease-smooth); position: relative;
+        }
+        .process-step-item:hover .process-card {
+            transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08); border-color: hsla(var(--text-main), 0.15);
+        }
+        .process-card::before {
+            content: ''; position: absolute; left: -1.5rem; top: 2.3rem; width: 1.5rem; height: 1px;
+            background-color: hsla(var(--text-main), 0.1); transition: width 0.3s ease;
+        }
+        .step-title { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 1rem; color: hsla(var(--text-main), 1); }
+        .step-desc { color: hsla(var(--text-muted), 1); line-height: 1.6; font-size: 1rem; }
+        @media (max-width: 768px) {
+            .process-card { padding: 1.5rem; margin-left: 1rem; }
+            .rail-marker { left: -2rem; }
+            .process-rail-container { padding-left: 2rem; border-left-width: 1px; }
+        }
+
+        /* ===================================
+           3. SMOOTH FAQ BLOCK (UPDATED)
+           =================================== */
+        .faq-section { background-color: hsla(var(--surface-pure), 1); border-top: 1px solid hsla(var(--text-main), 0.05); }
+        .faq-layout { display: grid; gap: 4rem; }
+        @media (min-width: 1024px) {
+            .faq-layout { grid-template-columns: 1fr 1.5fr; align-items: start; }
+            .faq-header-col { position: sticky; top: 8rem; }
+        }
+        
+        .faq-list { display: flex; flex-direction: column; }
+        
+        .faq-item {
+            border-bottom: 1px solid hsla(var(--text-main), 0.1);
+            /* Important: We animate margins/padding on active state for the card effect */
+            transition: background-color 0.4s ease, margin 0.4s ease, padding 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+            position: relative;
+            overflow: hidden; /* Keeps content contained during animation */
+            border-radius: var(--radius-sm); /* Ready for card state */
+        }
+        .faq-item:first-child { border-top: 1px solid hsla(var(--text-main), 0.1); }
+
+        /* Active Card State */
+        .faq-item[aria-expanded="true"] {
+            background-color: hsla(var(--brand-h), 10%, 97%, 1);
+            padding-left: 2rem;
+            padding-right: 2rem;
+            margin: 1rem 0; /* Pops out of the list */
+            border-color: transparent;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+        }
+
+        .faq-toggle {
+            width: 100%; display: flex; align-items: baseline; gap: 1.5rem;
+            padding: 2rem 0; background: none; border: none; text-align: left; cursor: pointer;
+            transition: padding 0.4s ease;
+        }
+        .faq-item[aria-expanded="true"] .faq-toggle { padding-bottom: 1rem; }
+
+        .faq-question {
+            flex-grow: 1; font-family: var(--font-display); font-size: 1.35rem;
+            font-weight: 400; color: hsla(var(--text-main), 1); line-height: 1.2;
+            transition: color 0.3s ease;
+        }
+        .faq-item:hover .faq-question { color: hsla(var(--primary), 1); }
+
+        .faq-icon {
+            flex-shrink: 0; width: 24px; height: 24px; position: relative;
+            color: hsla(var(--text-main), 0.3); transition: color 0.3s ease;
+            transform: translateY(4px);
+        }
+        .faq-item[aria-expanded="true"] .faq-icon { color: hsla(var(--accent-pop), 1); }
+
+        .faq-icon span {
+            position: absolute; background-color: currentColor; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); transition: transform 0.4s var(--ease-smooth);
+        }
+        .icon-h { width: 12px; height: 1.5px; }
+        .icon-v { width: 1.5px; height: 12px; }
+        .faq-item[aria-expanded="true"] .icon-v { transform: translate(-50%, -50%) rotate(90deg); }
+        .faq-item[aria-expanded="true"] .icon-h { transform: translate(-50%, -50%) rotate(180deg); }
+
+        .faq-index {
+            font-family: var(--font-body); font-size: 0.85rem; color: hsla(var(--accent-pop), 1);
+            font-weight: 700; opacity: 0.6; min-width: 2ch;
+        }
+
+        /* --- THE SMOOTH ANSWER ANIMATION --- */
+        .faq-answer {
+            /* Start closed */
+            height: 0; 
+            opacity: 0;
+            overflow: hidden;
+            /* We animate height and opacity. 
+               Note: 'height' transition is handled via JS setting pixel values. */
+            transition: height 0.5s var(--ease-smooth), opacity 0.5s ease;
+        }
+        
+        /* Inner container allows us to use padding without breaking height:0 calculations */
+        .faq-answer-inner {
+            padding-bottom: 2rem;
+            padding-left: calc(2ch + 1.5rem);
+            color: hsla(var(--text-muted), 1);
+            font-size: 1rem;
+            max-width: 60ch;
+            line-height: 1.7;
+        }
+
+        .faq-item[aria-expanded="true"] .faq-answer {
+            opacity: 1;
+            /* Height is set by JS */
+        }
+        
+        @media (max-width: 768px) {
+            .faq-answer-inner { padding-left: 0; }
+            .faq-item[aria-expanded="true"] { padding-left: 1rem; padding-right: 1rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- PROCESS RAIL SECTION -->
+    <section class="section process">
+        <div class="container">
+            <div class="process-layout">
+                <div class="process-header-col reveal-group">
+                    <span class="block-eyebrow">The Method</span>
+                    <h2 class="block-heading">Engineered for <br><em>Excellence</em>.</h2>
+                    <p class="process-intro">A rigorous four-step protocol ensuring your installation is as beautiful as it is efficient.</p>
+                </div>
+                <div class="process-rail-container">
+                    <div class="process-step-item reveal-group delay-100">
+                        <div class="rail-marker">01</div>
+                        <div class="process-card">
+                            <h3 class="step-title">Feasibility & Design</h3>
+                            <p class="step-desc">We analyze your property's geometry and sun exposure to create a bespoke energy model, ensuring maximum yield.</p>
+                        </div>
+                    </div>
+                    <div class="process-step-item reveal-group delay-200">
+                        <div class="rail-marker">02</div>
+                        <div class="process-card">
+                            <h3 class="step-title">Technical Specification</h3>
+                            <p class="step-desc">Selection of premium components—black-on-black panels, optimizers, and storage—tailored to your architectural aesthetic.</p>
+                        </div>
+                    </div>
+                    <div class="process-step-item reveal-group delay-300">
+                        <div class="rail-marker">03</div>
+                        <div class="process-card">
+                            <h3 class="step-title">Precision Install</h3>
+                            <p class="step-desc">Our in-house master electricians execute the installation. No exposed conduit, no mess. Just clean, efficient power.</p>
+                        </div>
+                    </div>
+                    <div class="process-step-item reveal-group delay-400">
+                        <div class="rail-marker">04</div>
+                        <div class="process-card">
+                            <h3 class="step-title">Commissioning</h3>
+                            <p class="step-desc">System activation, DNO registration, and a personal handover of the monitoring app so you can watch your savings grow.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SMOOTH FAQ SECTION -->
+    <section class="section faq-section">
+        <div class="container">
+            <div class="faq-layout">
+                <div class="faq-header-col reveal-group">
+                    <span class="block-eyebrow">Common Queries</span>
+                    <h2 class="block-heading">Clarity & <br><em>Peace of Mind</em>.</h2>
+                </div>
+                <div class="faq-list">
+                    <!-- Item 1 -->
+                    <div class="faq-item reveal-group delay-100" aria-expanded="false">
+                        <button class="faq-toggle" aria-controls="faq-ans-1">
+                            <span class="faq-index">01</span>
+                            <span class="faq-question">Do I need planning permission?</span>
+                            <div class="faq-icon"><span class="icon-h"></span><span class="icon-v"></span></div>
+                        </button>
+                        <div class="faq-answer" id="faq-ans-1">
+                            <div class="faq-answer-inner">
+                                <p>In most cases, solar installations fall under 'Permitted Development' rights in the UK. However, if you live in a Listed Building or a Conservation Area, we handle the specific applications required to ensure full compliance.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 2 -->
+                    <div class="faq-item reveal-group delay-200" aria-expanded="false">
+                        <button class="faq-toggle" aria-controls="faq-ans-2">
+                            <span class="faq-index">02</span>
+                            <span class="faq-question">How disruptive is the installation process?</span>
+                            <div class="faq-icon"><span class="icon-h"></span><span class="icon-v"></span></div>
+                        </button>
+                        <div class="faq-answer" id="faq-ans-2">
+                            <div class="faq-answer-inner">
+                                <p>We pride ourselves on being "invisible tradespeople". A typical residential system takes 2-3 days. We use external scaffolding access to minimize foot traffic inside your home.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Item 3 -->
+                    <div class="faq-item reveal-group delay-300" aria-expanded="false">
+                        <button class="faq-toggle" aria-controls="faq-ans-3">
+                            <span class="faq-index">03</span>
+                            <span class="faq-question">What is the lifespan of the battery?</span>
+                            <div class="faq-icon"><span class="icon-h"></span><span class="icon-v"></span></div>
+                        </button>
+                        <div class="faq-answer" id="faq-ans-3">
+                            <div class="faq-answer-inner">
+                                <p>Tesla Powerwall units come with a 10-year unlimited cycle warranty. In reality, based on current lithium-ion degradation curves, these units are expected to perform efficiently for 15+ years.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // 1. Reveal Animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('is-in-view');
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal-group').forEach(el => observer.observe(el));
+
+        // 2. SMOOTH ACCORDION LOGIC
+        // This function handles the "Auto -> Pixel -> Auto" height transition
+        const toggleAccordion = (btn) => {
+            const item = btn.closest('.faq-item');
+            const answer = item.querySelector('.faq-answer');
+            const isOpen = item.getAttribute('aria-expanded') === 'true';
+            
+            // OPTIONAL: Close other items (Accordion Mode)
+            document.querySelectorAll('.faq-item').forEach(other => {
+                if (other !== item && other.getAttribute('aria-expanded') === 'true') {
+                    const otherAnswer = other.querySelector('.faq-answer');
+                    // Force height to current pixel value so we can animate from it
+                    otherAnswer.style.height = `${otherAnswer.scrollHeight}px`;
+                    // Force reflow
+                    otherAnswer.offsetHeight; 
+                    // Animate to 0
+                    otherAnswer.style.height = '0px';
+                    other.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            if (isOpen) {
+                // CLOSE:
+                // 1. Set height to current scrollHeight (because it might be 'auto')
+                answer.style.height = `${answer.scrollHeight}px`;
+                // 2. Force reflow so browser registers the pixel height
+                answer.offsetHeight; 
+                // 3. Animate to 0
+                answer.style.height = '0px';
+                item.setAttribute('aria-expanded', 'false');
+            } else {
+                // OPEN:
+                item.setAttribute('aria-expanded', 'true');
+                // 1. Set height to scrollHeight to start animation
+                answer.style.height = `${answer.scrollHeight}px`;
+                
+                // 2. After transition, set to 'auto' so it adapts to window resizing
+                answer.addEventListener('transitionend', function setAuto() {
+                    if (item.getAttribute('aria-expanded') === 'true') {
+                        answer.style.height = 'auto';
+                    }
+                    // Clean up listener
+                    answer.removeEventListener('transitionend', setAuto);
+                }, { once: true });
+            }
+        };
+
+        // Attach listeners
+        document.querySelectorAll('.faq-toggle').forEach(btn => {
+            btn.addEventListener('click', () => toggleAccordion(btn));
+        });
+    </script>
+</body>
+</html>

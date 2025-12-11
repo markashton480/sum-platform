@@ -24,6 +24,7 @@ from sum_core.blocks.trust import (
     TrustStripBlock as TrustStripLogosBlock,
     StatsBlock,
 )
+from sum_core.blocks.process_faq import ProcessStepsBlock, FAQBlock
 
 
 class PageStreamBlock(StreamBlock):
@@ -44,6 +45,8 @@ class PageStreamBlock(StreamBlock):
     trust_strip = TrustStripBlock(group="Sections")
     trust_strip_logos = TrustStripLogosBlock(group="Sections")
     stats = StatsBlock(group="Sections")
+    process = ProcessStepsBlock(group="Sections")
+    faq = FAQBlock(group="Sections")
     features = FeaturesListBlock(group="Sections")
     comparison = ComparisonBlock(group="Sections")
     portfolio = PortfolioBlock(group="Sections")

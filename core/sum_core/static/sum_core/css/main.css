@@ -59,6 +59,8 @@
 @import "components.testimonials.css";
 @import "components.gallery.css";
 @import "components.forms.css";
+@import "components.process.css";
+@import "components.faq.css";
 
 /* Site Chrome */
 @import "components.footer.css";

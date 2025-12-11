@@ -1,6 +1,9 @@
 ---
-alwaysApply: true
+trigger: always_on
+glob:
+description:
 ---
+
 # SUM Platform – Cursor Global Rules
 
 ## Project Context

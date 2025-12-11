@@ -24,6 +24,7 @@ from .trust import (
     StatItemBlock,
     StatsBlock,
 )
+from .process_faq import ProcessStepsBlock, FAQBlock
 
 __all__ = [
     "PageStreamBlock",
@@ -45,4 +46,6 @@ __all__ = [
     "GalleryImageBlock",
     "StatItemBlock",
     "StatsBlock",
+    "ProcessStepsBlock",
+    "FAQBlock",
 ]
