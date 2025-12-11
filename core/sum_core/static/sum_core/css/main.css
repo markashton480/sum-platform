@@ -901,25 +901,10 @@ a {
     }
 }
 
-/* Header Block */
-.services__header {
-    max-width: 720px; /* Match Testimonials width */
-    margin: 0 auto var(--space-16, 4rem); /* Center align the block itself, text left inside */
-    text-align: left;
-    margin-bottom: var(--space-16, 4rem);
-}
-/* Note: I'm keeping 'margin: 0 auto ...' to center the container, but text-align: left aligns content. 
-   Testimonials was 'margin-bottom: ...; max-width: 720px;'. It didn't have auto margins? 
-   Let's check Testimonials CSS again.
-   .testimonials__header { margin-bottom: 4rem; max-width: 720px; ... }
-   If it doesn't have margin auto, it's left aligned relative to container.
-   I will remove '0 auto' from services__header to be safe.
-*/
-
+/* Header Block - matches testimonials__header alignment */
 .services__header {
     margin-bottom: var(--space-16, 4rem);
     max-width: 720px;
-    text-align: left;
 }
 
 
@@ -946,12 +931,10 @@ a {
 
 .services__heading > * {
     font-family: var(--font-display);
-    font-size: clamp(2rem, 5vw, 3.5rem); /* Match Testimonials size */
-    font-weight: var(--font-bold);
+    font-size: clamp(2rem, 5vw, 3.5rem);
     line-height: var(--leading-tight);
     margin: 0;
     color: hsla(var(--text-main), 1);
-    letter-spacing: -0.02em;
 }
 
 @media (min-width: 768px) {
