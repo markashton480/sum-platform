@@ -35,11 +35,11 @@
                 {% image self.image width-1200 class="hero-main-img" %}
                 
                 {% if self.overlay_opacity == 'light' %}
-                    <div style="position: absolute; inset: 0; background-color: rgba(0,0,0,0.2); pointer-events: none;"></div>
+                    <div class="hero__overlay hero__overlay--light"></div>
                 {% elif self.overlay_opacity == 'medium' %}
-                    <div style="position: absolute; inset: 0; background-color: rgba(0,0,0,0.4); pointer-events: none;"></div>
+                    <div class="hero__overlay hero__overlay--medium"></div>
                 {% elif self.overlay_opacity == 'strong' %}
-                    <div style="position: absolute; inset: 0; background-color: rgba(0,0,0,0.6); pointer-events: none;"></div>
+                    <div class="hero__overlay hero__overlay--strong"></div>
                 {% endif %}
             </div>
             

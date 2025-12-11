@@ -34,6 +34,12 @@
   /* Accent - Analogous calculation or custom injection */
   --accent-pop: calc(var(--brand-h) + 30), 60%, 55%;
 
+  /* Semantic Colors - PRD 6.3.1 */
+  --color-success: 142, 71%, 45%;      /* Green - confirmation, positive */
+  --color-warning: 38, 92%, 50%;        /* Amber - caution, attention */
+  --color-error: 0, 72%, 51%;           /* Red - error, destructive */
+  --color-info: 199, 89%, 48%;          /* Blue - informational */
+
   /* Typography - PRD Design Token System */
   /* Font Families - Populated from SiteSettings per client */
   --font-heading: "Fraunces", serif;

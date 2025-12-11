@@ -39,7 +39,7 @@
     font-family: var(--font-body);
     font-weight: 600;
     color: hsla(var(--text-muted), 0.6);
-    font-size: 1.1rem;
+    font-size: var(--text-lg);
     display: flex;
     align-items: center;
     gap: 0.5rem;

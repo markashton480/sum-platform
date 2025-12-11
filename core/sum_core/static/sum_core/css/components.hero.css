@@ -49,8 +49,7 @@
 .status-dot {
   width: 8px;
   height: 8px;
-  /* TODO: Introduce token for status indicator color (green for "available") */
-  background-color: #10b981;
+  background-color: hsla(var(--color-success), 1);
   border-radius: 50%;
   box-shadow: 0 0 0 2px hsla(var(--surface-tint), 1);
 }
@@ -86,6 +85,26 @@
   aspect-ratio: 4/5;
   object-fit: cover;
   border-radius: var(--radius-xl);
+}
+
+/* Hero Image Overlays */
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: var(--radius-xl);
+}
+
+.hero__overlay--light {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.hero__overlay--medium {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.hero__overlay--strong {
+  background-color: rgba(0, 0, 0, 0.6);
 }
 
 /* Floating Element */

@@ -37,7 +37,7 @@
             {% image item.photo fill-96x96 class="author__avatar" %}
           {% else %}
             {% with initials=item.author_name|slice:":2" %}
-            <div class="author__avatar" style="display:flex; align-items:center; justify-content:center; background:hsla(var(--brand-h), 40%, 35%, 1); color:white; font-size:0.9rem;">{{ initials }}</div>
+            <div class="author__avatar author__avatar--initials">{{ initials }}</div>
             {% endwith %}
           {% endif %}
           

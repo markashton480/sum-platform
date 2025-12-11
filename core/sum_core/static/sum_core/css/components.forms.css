@@ -84,13 +84,13 @@
 .form__input--error,
 .form__textarea--error,
 .form__select--error {
-  border-color: #dc2626;
+  border-color: hsla(var(--color-error), 1);
 }
 
 .form__error {
   font-family: var(--font-body);
   font-size: var(--text-xs);
-  color: #dc2626;
+  color: hsla(var(--color-error), 1);
 }
 
 /* Help Text */

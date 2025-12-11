@@ -25,6 +25,7 @@
    2. RESET & BASE STYLES
    =================================== */
 @import "reset.css";
+@import "typography.css";
 
 /* ===================================
    3. LAYOUT SHELL

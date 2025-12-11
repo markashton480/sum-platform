@@ -46,7 +46,7 @@
 }
 
 .block-eyebrow {
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
     text-transform: uppercase;
     letter-spacing: 0.15em;
     font-weight: 700;
@@ -114,7 +114,7 @@
 .faq-question {
     flex-grow: 1;
     font-family: var(--font-heading);
-    font-size: 1.35rem;
+    font-size: var(--text-xl);
     font-weight: 400;
     color: hsla(var(--text-main), 1);
     line-height: 1.2;
@@ -160,7 +160,7 @@
 
 .faq-index {
     font-family: var(--font-body);
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: hsla(var(--accent-pop), 1);
     font-weight: 700;
     opacity: 0.6;
@@ -179,7 +179,7 @@
     padding-bottom: 2rem;
     padding-left: calc(2ch + 1.5rem);
     color: hsla(var(--text-muted), 1);
-    font-size: 1rem;
+    font-size: var(--text-base);
     max-width: 60ch;
     line-height: 1.7;
 }

@@ -318,3 +318,66 @@ I updated the [toggleAccordion](cci:1://file:///home/mark/workspaces/tradesite/c
 3.  The browser waits for the next paint frame before applying the target height (`0px`), which guarantees the transition animation triggers correctly.
 
 This pattern is also more robust for the "opening" animation on slower devices. The logic remains functionally identical for other browsers (like Edge/Firefox) but is now safe for Chrome's optimization pipeline. Existing tests pass.
+
+*User accepted the command `git add .`*
+
+*User accepted the command `git add .`*
+
+*User accepted the command `git commit -m "task: M2-007"`*
+
+### User Input
+
+Please can you explain what and how you implemented regardign styling, why you did it that way and how you changed it. I'm trying to establish what went wrong in the task instructions to result in the weird styling at the start. 
+
+### Planner Response
+
+Here is the breakdown of the styling implementation, the correction process, and the root cause of the initial issues.
+
+### 1. What & How Was Implemented
+
+In the final working version, I implemented the styling by strictly mapping the elements in the **Process** and **FAQ** blocks to your project's [tokens.css](cci:7://file:///home/mark/workspaces/tradesite/core/sum_core/static/sum_core/css/tokens.css:0:0-0:0) system.
+
+*   **HSL Tuple Syntax**: Instead of standard hex codes or direct color variables, your system uses HSL tuples (values separated by commas, e.g., `30, 40%, 35%`).
+*   **Implementation**: I wrapped every color variable in `hsla(...)` to convert these tuples into valid colors.
+    *   *Example*: `background-color: hsla(var(--surface-pure), 1);`
+*   **Scoped Component CSS**: I created [components.process.css](cci:7://file:///home/mark/workspaces/tradesite/core/sum_core/static/sum_core/css/components.process.css:0:0-0:0) and [components.faq.css](cci:7://file:///home/mark/workspaces/tradesite/core/sum_core/static/sum_core/css/components.faq.css:0:0-0:0) to keep these styles modular, importing them into [main.css](cci:7://file:///home/mark/workspaces/tradesite/core/sum_core/static/sum_core/css/main.css:0:0-0:0).
+
+### 2. Why It Went Wrong Initially (Root Cause Analysis)
+
+The discrepancy arose from a conflict between the **Task Instructions (M2-007)** and the **Actual Codebase ([tokens.css](cci:7://file:///home/mark/workspaces/tradesite/core/sum_core/static/sum_core/css/tokens.css:0:0-0:0))**.
+
+**The Misleading Instruction:**
+In [docs/dev/M2/M2-007.md](cci:7://file:///home/mark/workspaces/tradesite/docs/dev/M2/M2-007.md:0:0-0:0) (Line 216), the instructions explicitly stated:
+> *Colours via `var(--color-...)` / `var(--surface-...)`.*
+
+**The Reality ([tokens.css](cci:7://file:///home/mark/workspaces/tradesite/core/sum_core/static/sum_core/css/tokens.css:0:0-0:0)):**
+Your design system does **not** define variables like `--color-brand-primary`. instead, it defines raw HSL values:
+```css
+/* tokens.css */
+--brand-h: 30;
+--primary: var(--brand-h), var(--brand-s), var(--brand-l); /* Tuple, not a color */
+```
+
+**The Result:**
+My first implementation followed the M2-007 document literally, generating CSS like:
+`background-color: var(--color-brand-primary);`
+
+Since this variable does not exist in your system, the browser treated it as "invalid" or "transparent," causing the blocks to appear broken ("atrocious") with missing backgrounds and text colors.
+
+### 3. How I Fixed It
+
+Once I realized the visual failure, I inspected [tokens.css](cci:7://file:///home/mark/workspaces/tradesite/core/sum_core/static/sum_core/css/tokens.css:0:0-0:0) and the reference design ([faq_and_process_design.html](cci:7://file:///home/mark/workspaces/tradesite/docs/dev/design/faq_and_process_design.html:0:0-0:0)) to understand the actual architecture.
+
+1.  **Variable Remapping**: I replaced all instances of `var(--color-...)` with the correct `hsla(var(--token), alpha)` syntax.
+2.  **Rich Text Handling**: I observed that Wagtail's RichText editor wraps content in `<p>` tags that weren't inheriting styles. I added rules like `.block-heading > *` to force these children to inherit the correct font family and size.
+3.  **Italics Inheritance**: To fix the issue where italicized words weren't changing color, I added specific rules targeting [em](cci:2://file:///home/mark/workspaces/tradesite/core/sum_core/blocks/process_faq.py:65:0-77:26) and `i` tags inside the block headers, forcing them to use the `--accent-pop` color:
+    ```css
+    .block-heading em,
+    .block-heading i {
+        color: hsla(var(--accent-pop), 1);
+        font-style: italic;
+    }
+    ```
+
+**Recommendation for Future Tasks:**
+Update the "Design Specifications" section in your documentation templates (like M2-007) to reference the `hsla(var(--token), 1)` pattern rather than `var(--color-...)`, as this will prevent future agents or developers from making the same assumption.

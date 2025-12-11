@@ -125,6 +125,18 @@
   object-fit: cover;
 }
 
+/* Initials fallback when no photo is available */
+.author__avatar--initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: hsla(var(--primary), 1);
+  color: hsla(var(--surface-pure), 1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+}
+
 .author__info {
   font-family: var(--font-body);
 }
