@@ -1,0 +1,81 @@
+{% load wagtailcore_tags %}
+<section class="section quote-form-block {% if self.show_compact_meta %}section--compact{% endif %}">
+  <div class="container">
+    <header class="section__header reveal-group">
+      {% if self.eyebrow %}
+        <span class="section__eyebrow">{{ self.eyebrow }}</span>
+      {% endif %}
+      <div class="section__heading">{{ self.heading|richtext }}</div>
+      {% if self.intro %}
+        <div class="section__intro text-lg">{{ self.intro|richtext }}</div>
+      {% endif %}
+    </header>
+
+    <div class="quote-form-container reveal-group delay-100">
+      <form action="" method="post" novalidate class="form premium-form quote-form" data-form-type="quote">
+        {% csrf_token %}
+        
+        <!-- Honeypot field -->
+        <div class="form__field form__field--honeypot" style="display: none;" aria-hidden="true">
+          <label for="form-company-field">Company</label>
+          <input type="text" name="company" id="form-company-field" tabindex="-1" autocomplete="off">
+        </div>
+
+        {% if form %}
+          <div class="form-fields-stack">
+            {% for field in form %}
+              <div class="form-group {% if field.errors %}has-error{% endif %}">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                <div class="form-control-wrapper">
+                  {{ field }}
+                </div>
+                {% if field.help_text %}
+                  <span class="form-hint text-sm text-muted">{{ field.help_text }}</span>
+                {% endif %}
+                {% if field.errors %}
+                  <span class="form-error-msg" id="{{ field.auto_id }}_errors">
+                    {{ field.errors.0 }}
+                  </span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+          
+          {% if form.non_field_errors %}
+            <div class="form-errors">
+              {% for error in form.non_field_errors %}
+                <p class="form-error-msg">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+        {% else %}
+          <!-- Fallback/Preview rendering -->
+          <div class="form-fields-stack">
+             <div class="form-group">
+                <span class="form-label">Project Type</span>
+                 <div class="pill-group-mock">
+                    <button type="button" class="pill-btn active">Residential</button>
+                    <button type="button" class="pill-btn">Commercial</button>
+                 </div>
+             </div>
+             <div class="form-group">
+                <label class="form-label">Postcode</label>
+                <input type="text" class="form-input" disabled>
+             </div>
+             <div class="form-group">
+                <label class="form-label">Budget</label>
+                <select class="form-select" disabled><option>Select range...</option></select>
+             </div>
+          </div>
+        {% endif %}
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-submit">
+            {{ self.submit_label|default:"Request a quote" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

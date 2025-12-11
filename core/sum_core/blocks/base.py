@@ -32,6 +32,7 @@ from sum_core.blocks.trust import (
     StatsBlock,
 )
 from sum_core.blocks.process_faq import ProcessStepsBlock, FAQBlock
+from sum_core.blocks.forms import ContactFormBlock, QuoteRequestFormBlock
 
 
 class PageStreamBlock(StreamBlock):
@@ -66,6 +67,10 @@ class PageStreamBlock(StreamBlock):
     buttons = ButtonGroupBlock(group="Page Content")
     spacer = SpacerBlock(group="Page Content")
     divider = DividerBlock(group="Page Content")
+
+    # Forms
+    contact_form = ContactFormBlock(group="Forms")
+    quote_request_form = QuoteRequestFormBlock(group="Forms")
 
     rich_text = blocks.RichTextBlock(
         label="Rich Text",

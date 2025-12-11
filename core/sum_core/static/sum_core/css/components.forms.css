@@ -1,126 +1,221 @@
 /* ==========================================================================
-   Name: Forms Component
+   Name: Form Blocks
    Path: core/sum_core/static/sum_core/css/components.forms.css
-   Purpose: Form element styles including inputs, textareas, labels, and
-            form layout patterns. Uses design tokens for consistent styling.
-   Family: SUM Platform Design System – Component: Forms
-   Dependencies: tokens.css
+   Purpose: Layout and styling for contact/quote form blocks
+   Family: SUM Platform Design System – Components
+   Dependencies: tokens.css, typography.css, layout.css, components.buttons.css
    ========================================================================== */
 
-/* Form Container */
-.form {
+/* --- 1. Layouts --- */
+
+/* Contact Form Grid (Desktop) */
+.contact-form-layout {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6, 1.5rem);
+  gap: var(--space-8);
 }
 
-/* Form Group */
-.form__group {
+@media (min-width: 1024px) {
+  .contact-form-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    align-items: start;
+    gap: var(--space-16);
+  }
+
+  .contact-form-header {
+    position: sticky;
+    top: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
+/* Quote Form Alignment */
+.quote-form-block .section__header {
+  text-align: center;
+  max-width: 800px; /* Constrain reading width for intro */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.quote-form-container {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: var(--space-12);
+}
+
+.section--compact .quote-form-container {
+  margin-top: var(--space-6);
+}
+
+/* --- 2. Form Components --- */
+
+.form-group {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2, 0.5rem);
+  gap: var(--space-2);
+  margin-bottom: var(--space-8);
 }
 
-/* Labels */
-.form__label {
+.form-label {
   font-family: var(--font-body);
-  font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: hsla(var(--text-main), 1);
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: var(--font-bold);
+  color: hsla(var(--text-muted), 1);
+  transition: color 0.3s ease;
 }
 
-/* Required indicator */
-.form__label--required::after {
-  content: " *";
-  color: hsla(var(--accent-pop), 1);
+/* Input Styling (Applied to inner widgets) */
+.form-group input:not([type="radio"]):not([type="checkbox"]):not([type="submit"]):not([type="button"]),
+.form-group textarea,
+.form-group select,
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid hsla(var(--text-main), 0.2);
+  padding: var(--space-3) 0;
+  font-family: var(--font-heading); /* Display font for inputs as per design */
+  font-size: var(--text-xl);
+  color: hsla(var(--text-main), 1);
+  border-radius: 0;
+  transition: all 0.3s ease;
+  
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
-/* Base Input Styles */
-.form__input,
-.form__textarea,
-.form__select {
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
-  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
-  background-color: hsla(var(--surface-pure), 1);
-  border: 1px solid hsla(var(--text-main), 0.15);
-  border-radius: var(--radius-sm);
-  color: hsla(var(--text-main), 1);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+/* Focus State */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus,
+.form-control-wrapper:focus-within input,
+.form-control-wrapper:focus-within textarea,
+.form-control-wrapper:focus-within select {
+  outline: none;
+  padding-left: var(--space-4);
+  background-color: hsla(var(--surface-tint), 0.5);
+}
+
+/* Animated Focus Line */
+.form-group:not(.form-group--pills)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0%;
+  height: 2px;
+  background-color: hsla(var(--primary), 1);
+  transition: width 0.4s var(--ease-out-expo);
+  pointer-events: none;
+}
+
+.form-group:not(.form-group--pills):focus-within::after {
   width: 100%;
 }
 
-.form__input:focus,
-.form__textarea:focus,
-.form__select:focus {
-  outline: none;
-  border-color: hsla(var(--primary), 1);
-  box-shadow: 0 0 0 3px hsla(var(--primary), 0.1);
+.form-group:focus-within .form-label {
+  color: hsla(var(--primary), 1);
 }
 
-.form__input::placeholder,
-.form__textarea::placeholder {
-  color: hsla(var(--text-muted), 0.6);
-}
-
-/* Textarea */
-.form__textarea {
-  min-height: 120px;
+.form-textarea {
   resize: vertical;
+  min-height: 120px;
 }
 
-/* Select */
-.form__select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right var(--space-4, 1rem) center;
-  padding-right: var(--space-10, 2.5rem);
+/* Select Dropdown */
+.form-group select {
   cursor: pointer;
+  padding-right: var(--space-8);
+  /* Use a simpler CSS triangle or generic arrow if SVG data URI is too complex to tokenize here, 
+     but for now keeping the hardcoded SVG as it's a UI asset */
+  background-image: url("data:image/svg+xml,%3Csvg width='14' height='10' viewBox='0 0 14 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L7 7L13 1' stroke='%23333333' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+  background-size: 14px;
 }
 
-/* Error State */
-.form__input--error,
-.form__textarea--error,
-.form__select--error {
-  border-color: hsla(var(--color-error), 1);
+.form-group select:focus {
+   /* Update arrow color to rough gold/primary if possible, or leave as dark */
+   background-image: url("data:image/svg+xml,%3Csvg width='14' height='10' viewBox='0 0 14 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 9L7 3L13 9' stroke='%23B48E40' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
-.form__error {
-  font-family: var(--font-body);
+/* Errors */
+.form-error-msg {
   font-size: var(--text-xs);
   color: hsla(var(--color-error), 1);
+  margin-top: var(--space-1);
 }
 
-/* Help Text */
-.form__help {
-  font-family: var(--font-body);
-  font-size: var(--text-xs);
-  color: hsla(var(--text-muted), 1);
+.form-group.has-error input,
+.form-group.has-error textarea,
+.form-group.has-error select {
+  border-bottom-color: hsla(var(--color-error), 1);
 }
 
-/* Checkbox and Radio */
-.form__checkbox,
-.form__radio {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-3, 0.75rem);
-  cursor: pointer;
+/* Pills (Mockup / Static for now, as dynamic django pills are harder without widgets) */
+.form-group--pills {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
 }
 
-.form__checkbox input,
-.form__radio input {
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
-  accent-color: hsla(var(--primary), 1);
-  cursor: pointer;
+.pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
 }
 
-/* Form Actions */
-.form__actions {
-  display: flex;
-  gap: var(--space-4, 1rem);
-  margin-top: var(--space-4, 1rem);
+.pill-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-6);
+    border: 1px solid hsla(var(--text-main), 0.2);
+    border-radius: var(--radius-full);
+    font-size: 0.9rem;
+    font-weight: var(--font-semibold);
+    color: hsla(var(--text-main), 0.7);
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.3s var(--ease-out-expo);
+}
+
+.pill-btn:hover {
+    border-color: hsla(var(--primary), 1);
+    color: hsla(var(--primary), 1);
+    transform: translateY(-2px);
+}
+
+.pill-btn.active {
+    background-color: hsla(var(--primary), 1);
+    border-color: hsla(var(--primary), 1);
+    color: hsla(var(--surface-pure), 1);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Full Width Submit on mobile, auto on desktop */
+.form-actions {
+  margin-top: var(--space-4);
+}
+.btn-submit {
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .btn-submit {
+    width: auto;
+    min-width: 200px;
+  }
+}
+
+/* Honeypot */
+.form__field--honeypot {
+    display: none !important;
 }

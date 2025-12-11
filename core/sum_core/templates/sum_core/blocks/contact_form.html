@@ -1,0 +1,81 @@
+{% load wagtailcore_tags %}
+<section class="section section--muted contact-form-block">
+  <div class="container">
+    <div class="contact-form-layout">
+      <!-- Header Column -->
+      <div class="contact-form-header reveal-group">
+        <header class="section__header" style="text-align: left; max-width: none;">
+          {% if self.eyebrow %}
+            <span class="section__eyebrow">{{ self.eyebrow }}</span>
+          {% endif %}
+          <div class="section__heading">{{ self.heading|richtext }}</div>
+          {% if self.intro %}
+            <div class="section__intro text-lg">{{ self.intro|richtext }}</div>
+          {% endif %}
+        </header>
+      </div>
+
+      <!-- Form Column -->
+      <div class="contact-form-container reveal-group delay-100">
+        <form action="" method="post" novalidate class="form premium-form" data-form-type="contact">
+          {% csrf_token %}
+          
+          <!-- Honeypot field (visually hidden) -->
+          <div class="form__field form__field--honeypot" style="display: none;" aria-hidden="true">
+            <label for="form-website-field">Website</label>
+            <input type="text" name="website" id="form-website-field" tabindex="-1" autocomplete="off">
+          </div>
+
+          {% if form %}
+            {% for field in form %}
+              <div class="form-group {% if field.errors %}has-error{% endif %}">
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                <!-- Render widget manually wrapped or rely on CSS selectors -->
+                <div class="form-control-wrapper">
+                    {{ field }}
+                </div>
+                {% if field.help_text %}
+                  <span class="form-hint text-sm text-muted">{{ field.help_text }}</span>
+                {% endif %}
+                {% if field.errors %}
+                  <span class="form-error-msg" id="{{ field.auto_id }}_errors">
+                    {{ field.errors.0 }}
+                  </span>
+                {% endif %}
+              </div>
+            {% endfor %}
+            
+            {% if form.non_field_errors %}
+              <div class="form-errors">
+                {% for error in form.non_field_errors %}
+                  <p class="form-error-msg">{{ error }}</p>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+          {% else %}
+            <!-- Fallback/Preview rendering if no form object -->
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" class="form-input" placeholder="e.g. James Sterling" disabled>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" class="form-input" placeholder="name@example.com" disabled>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Message</label>
+                <textarea class="form-textarea" placeholder="Tell us how we can help..." disabled></textarea>
+            </div>
+          {% endif %}
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-submit">
+              {{ self.submit_label|default:"Send enquiry" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

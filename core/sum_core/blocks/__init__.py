@@ -33,6 +33,8 @@ from .trust import (
 )
 from .process_faq import ProcessStepsBlock, FAQBlock
 
+from .forms import ContactFormBlock, QuoteRequestFormBlock
+
 __all__ = [
     "PageStreamBlock",
     "HeroImageBlock",
@@ -62,4 +64,6 @@ __all__ = [
     "ButtonGroupBlock",
     "SpacerBlock",
     "DividerBlock",
+    "ContactFormBlock",
+    "QuoteRequestFormBlock",
 ]
