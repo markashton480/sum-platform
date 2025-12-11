@@ -1,0 +1,42 @@
+/* ==========================================================================
+   Name: Layout Utilities
+   Path: core/sum_core/static/sum_core/css/layout.css
+   Purpose: Layout shell styles including .container, .section, and grid
+            helpers that establish the structural foundation for all pages.
+   Family: SUM Platform Design System – Layout
+   Dependencies: tokens.css (requires spacing and layout tokens)
+   ========================================================================== */
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+}
+
+/* Section */
+.section {
+  padding: var(--section-gap) 0;
+}
+
+/* Dark Theme Section Modifier */
+.section--dark {
+  background-color: hsla(var(--text-main), 1);
+  color: hsla(var(--surface-tint), 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ambient Glow Effect for Dark Sections */
+.section--dark::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, hsla(var(--brand-h), var(--brand-s), 45%, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}

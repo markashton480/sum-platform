@@ -1,0 +1,62 @@
+/* ==========================================================================
+   Name: Trust Strip Component (Marquee)
+   Path: core/sum_core/static/sum_core/css/components.trust-strip.css
+   Purpose: Scrolling trust strip / marquee styles for displaying partner
+            logos, certifications, or social proof items.
+   Family: SUM Platform Design System – Component: Trust Strip
+   Dependencies: tokens.css (requires spacing and color tokens)
+   ========================================================================== */
+
+.trust-strip {
+  border-top: 1px solid hsla(var(--text-main), 0.05);
+  border-bottom: 1px solid hsla(var(--text-main), 0.05);
+  padding: var(--space-8, 2rem) 0;
+  overflow: hidden;
+  background: hsla(var(--surface-pure), 0.5);
+}
+
+.marquee-wrapper {
+  display: flex;
+  width: 100%;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+}
+
+.marquee-track {
+  display: flex;
+  gap: var(--space-16, 4rem);
+  white-space: nowrap;
+  animation: scroll 30s linear infinite;
+  padding-left: var(--space-16, 4rem);
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.trust-item {
+  font-family: var(--font-body);
+  font-weight: var(--font-semibold, 600);
+  color: hsla(var(--text-muted), 0.6);
+  font-size: var(--text-lg, 1.1rem);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}

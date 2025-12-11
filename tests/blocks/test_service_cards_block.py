@@ -15,17 +15,17 @@ class ServiceCardsBlockTest(TestCase):
     def test_block_count_validation(self):
         """Test that the block enforces min and max card counts."""
         block = ServiceCardsBlock()
-        
+
         # Test 0 cards (should fail min_num=1)
         with self.assertRaises(Exception):
             block.clean({"heading": "Test", "cards": []})
 
         # Test 13 cards (should fail max_num=12)
         cards = [{"title": f"Card {i}"} for i in range(13)]
-        # We need to construct valid structurally data for clean, but StructBlock validation is complex to mock fully 
+        # We need to construct valid structurally data for clean, but StructBlock validation is complex to mock fully
         # without passing full block data structure.
         # Instead, let's verify the ListBlock constraints directly on the class definition
-        
+
         self.assertEqual(block.child_blocks['cards'].meta.min_num, 1)
         self.assertEqual(block.child_blocks['cards'].meta.max_num, 12)
 
@@ -33,7 +33,7 @@ class ServiceCardsBlockTest(TestCase):
         """Test the ServiceCardItemBlock fields."""
         block = ServiceCardItemBlock()
         self.assertIsInstance(block, StructBlock)
-        
+
         # Check field existence
         self.assertIn('icon', block.child_blocks)
         self.assertIn('image', block.child_blocks)
@@ -41,7 +41,7 @@ class ServiceCardsBlockTest(TestCase):
         self.assertIn('description', block.child_blocks)
         self.assertIn('link_url', block.child_blocks)
         self.assertIn('link_label', block.child_blocks)
-        
+
         # Check required fields
         self.assertTrue(block.child_blocks['title'].required)
         self.assertFalse(block.child_blocks['icon'].required)
@@ -51,12 +51,12 @@ class ServiceCardsBlockTest(TestCase):
         """Test the ServiceCardsBlock structure."""
         block = ServiceCardsBlock()
         self.assertIsInstance(block, StructBlock)
-        
+
         self.assertIn('eyebrow', block.child_blocks)
         self.assertIn('heading', block.child_blocks)
         self.assertIn('intro', block.child_blocks)
         self.assertIn('cards', block.child_blocks)
         self.assertIn('layout_style', block.child_blocks)
-        
+
         self.assertIsInstance(block.child_blocks['cards'], ListBlock)
         self.assertIsInstance(block.child_blocks['cards'].child_block, ServiceCardItemBlock)

@@ -44,10 +44,10 @@ class HomePage(Page):
         """Check if the StreamField body contains any hero blocks."""
         if not self.body:
             return False
-            
+
         # Check against the block names defined in PageStreamBlock
         hero_block_types = ["hero_image", "hero_gradient"]
-        
+
         # StreamField iteration yields blocks that behave like bound blocks
         for block in self.body:
              if block.block_type in hero_block_types:

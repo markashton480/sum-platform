@@ -9,7 +9,8 @@ Dependencies: Django template system, Wagtail Site and SiteSettings, Django cach
 from __future__ import annotations
 
 import colorsys
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 from urllib.parse import quote_plus
 
 from django import template
@@ -96,7 +97,7 @@ def _build_css_variables(site_settings: SiteSettings) -> list[str]:
         else:
             # Fallback if invalid hex, let CSS defaults handle it
             pass
-    
+
     # If no primary color set, we do NOT inject defaults here.
     # We rely on main.css :root variables to provide the default "Gold" theme.
 
@@ -105,10 +106,10 @@ def _build_css_variables(site_settings: SiteSettings) -> list[str]:
     # We can inject them as overrides if we want, or just stick to the design system logic.
     # For now, let's inject the provided secondary/accent as simple hex variables
     # in case we want to use them directly, but the main theme will drive off brand-h/s/l.
-    
+
     if site_settings.secondary_color:
         variables.append(f"    --color-secondary-custom: {site_settings.secondary_color};")
-    
+
     if site_settings.accent_color:
         variables.append(f"    --color-accent-custom: {site_settings.accent_color};")
         # Also try to generate accent HSL if needed
@@ -170,11 +171,11 @@ def _unique_fonts(site_settings: SiteSettings) -> list[str]:
         cleaned = font.strip() if font else ""
         if cleaned and cleaned not in fonts:
             fonts.append(cleaned)
-    
+
     # If no fonts configured, fallback to the design system defaults
     if not fonts:
         return ["Fraunces", "Manrope"]
-        
+
     return fonts
 
 

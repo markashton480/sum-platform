@@ -30,8 +30,8 @@ class HeroCTABlock(blocks.StructBlock):
 
 class BaseHeroBlock(blocks.StructBlock):
     headline = blocks.RichTextBlock(
-        required=True, 
-        features=["italic"], 
+        required=True,
+        features=["italic"],
         help_text="Main heading. Highlight text and use 'Italic' to apply the accent styling."
     )
     subheadline = blocks.TextBlock(required=False)
@@ -59,18 +59,18 @@ class HeroImageBlock(BaseHeroBlock):
         default="medium",
         help_text="Dark overlay opacity for text contrast"
     )
-    
+
     # Floating Card Fields
     floating_card_label = blocks.CharBlock(
-        required=False, 
-        max_length=50, 
-        label="Floating Card Label", 
+        required=False,
+        max_length=50,
+        label="Floating Card Label",
         help_text="e.g. 'Est. Annual Savings'"
     )
     floating_card_value = blocks.CharBlock(
-        required=False, 
-        max_length=50, 
-        label="Floating Card Value", 
+        required=False,
+        max_length=50,
+        label="Floating Card Value",
         help_text="e.g. '£2,450'"
     )
 

@@ -29,11 +29,11 @@ class TestimonialBlock(blocks.StructBlock):
 
 class TestimonialsBlock(blocks.StructBlock):
     eyebrow = blocks.CharBlock(
-        required=False, 
+        required=False,
         help_text="Small text above heading, e.g. 'Client Stories'."
     )
     heading = blocks.RichTextBlock(
-        required=False, 
+        required=False,
         features=['bold', 'italic'],
         help_text="Main section heading. Use italics for accent styling."
     )

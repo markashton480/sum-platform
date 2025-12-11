@@ -1,0 +1,126 @@
+/* ==========================================================================
+   Name: Forms Component
+   Path: core/sum_core/static/sum_core/css/components.forms.css
+   Purpose: Form element styles including inputs, textareas, labels, and
+            form layout patterns. Uses design tokens for consistent styling.
+   Family: SUM Platform Design System – Component: Forms
+   Dependencies: tokens.css
+   ========================================================================== */
+
+/* Form Container */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 1.5rem);
+}
+
+/* Form Group */
+.form__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 0.5rem);
+}
+
+/* Labels */
+.form__label {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: hsla(var(--text-main), 1);
+}
+
+/* Required indicator */
+.form__label--required::after {
+  content: " *";
+  color: hsla(var(--accent-pop), 1);
+}
+
+/* Base Input Styles */
+.form__input,
+.form__textarea,
+.form__select {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  background-color: hsla(var(--surface-pure), 1);
+  border: 1px solid hsla(var(--text-main), 0.15);
+  border-radius: var(--radius-sm);
+  color: hsla(var(--text-main), 1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  width: 100%;
+}
+
+.form__input:focus,
+.form__textarea:focus,
+.form__select:focus {
+  outline: none;
+  border-color: hsla(var(--primary), 1);
+  box-shadow: 0 0 0 3px hsla(var(--primary), 0.1);
+}
+
+.form__input::placeholder,
+.form__textarea::placeholder {
+  color: hsla(var(--text-muted), 0.6);
+}
+
+/* Textarea */
+.form__textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Select */
+.form__select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-4, 1rem) center;
+  padding-right: var(--space-10, 2.5rem);
+  cursor: pointer;
+}
+
+/* Error State */
+.form__input--error,
+.form__textarea--error,
+.form__select--error {
+  border-color: #dc2626;
+}
+
+.form__error {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: #dc2626;
+}
+
+/* Help Text */
+.form__help {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: hsla(var(--text-muted), 1);
+}
+
+/* Checkbox and Radio */
+.form__checkbox,
+.form__radio {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3, 0.75rem);
+  cursor: pointer;
+}
+
+.form__checkbox input,
+.form__radio input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: hsla(var(--primary), 1);
+  cursor: pointer;
+}
+
+/* Form Actions */
+.form__actions {
+  display: flex;
+  gap: var(--space-4, 1rem);
+  margin-top: var(--space-4, 1rem);
+}

@@ -157,7 +157,7 @@ USE_I18N: bool = True
 USE_TZ: bool = True
 
 
-# Media 
+# Media
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52_428_800 # 50MB
 

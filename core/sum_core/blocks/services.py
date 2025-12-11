@@ -14,8 +14,8 @@ class ServiceCardItemBlock(blocks.StructBlock):
     A single service card within the ServiceCardsBlock grid.
     """
     icon = blocks.CharBlock(
-        required=False, 
-        max_length=4, 
+        required=False,
+        max_length=4,
         help_text="Emoji or short icon text (optional)"
     )
     image = ImageChooserBlock(
@@ -23,7 +23,7 @@ class ServiceCardItemBlock(blocks.StructBlock):
         help_text="Allows proper image/icon; render as the primary visual if present."
     )
     title = blocks.CharBlock(
-        required=True, 
+        required=True,
         max_length=120
     )
     description = blocks.RichTextBlock(
@@ -35,8 +35,8 @@ class ServiceCardItemBlock(blocks.StructBlock):
         required=False
     )
     link_label = blocks.CharBlock(
-        required=False, 
-        max_length=50, 
+        required=False,
+        max_length=50,
         help_text="Defaults to “Learn more” if left blank."
     )
 
@@ -50,30 +50,30 @@ class ServiceCardsBlock(blocks.StructBlock):
     A section containing a grid of ServiceCardItemBlocks.
     """
     eyebrow = blocks.CharBlock(
-        required=False, 
-        max_length=120, 
+        required=False,
+        max_length=120,
         help_text="Short label above the heading (optional)."
     )
     heading = blocks.RichTextBlock(
-        required=True, 
+        required=True,
         features=['italic', 'bold'],
         help_text="Section heading. Use Italic for accent color."
     )
     intro = blocks.TextBlock(
-        required=False, 
+        required=False,
         help_text="Short supporting paragraph."
     )
     cards = blocks.ListBlock(
-        ServiceCardItemBlock(), 
-        min_num=1, 
+        ServiceCardItemBlock(),
+        min_num=1,
         max_num=12
     )
     layout_style = blocks.ChoiceBlock(
         choices=[
-            ("default", "Default"), 
+            ("default", "Default"),
             ("tight", "Tight spacing")
-        ], 
-        default="default", 
+        ],
+        default="default",
         required=False
     )
 

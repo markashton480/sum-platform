@@ -41,6 +41,6 @@ def test_navigation_template_renders_with_correct_classes() -> None:
     assert "header" in rendered
     assert "nav-links" in rendered
     assert "nav-item" in rendered
-    
+
     # Assert the home link is present
     assert 'href="/"' in rendered

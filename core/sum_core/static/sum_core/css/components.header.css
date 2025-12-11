@@ -1,0 +1,98 @@
+/* ==========================================================================
+   Name: Header Component
+   Path: core/sum_core/static/sum_core/css/components.header.css
+   Purpose: Header and navigation styles including fixed positioning,
+            glassmorphism scrolled state, logo, nav links, and mobile menu.
+   Family: SUM Platform Design System – Component: Header
+   Dependencies: tokens.css, reset.css, layout.css
+   ========================================================================== */
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  padding: 1.5rem 0;
+  transition: all 0.4s ease;
+}
+
+.header.scrolled {
+  padding: 1rem 0;
+  background: hsla(var(--surface-pure), 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid hsla(var(--text-main), 0.05);
+}
+
+.nav-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: hsla(var(--primary), 1);
+}
+
+.nav-links {
+  display: none;
+  gap: 2.5rem;
+}
+
+@media (min-width: 1024px) {
+  .nav-links {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.nav-item {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  position: relative;
+}
+
+.nav-item::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: hsla(var(--accent-pop), 1);
+  transition: width 0.3s ease;
+}
+
+.nav-item:hover::after {
+  width: 100%;
+}
+
+/* Mobile Menu Button */
+.menu-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 110;
+}
+
+@media (min-width: 1024px) {
+  .menu-btn {
+    display: none;
+  }
+}
+
+.menu-line {
+  width: 24px;
+  height: 2px;
+  background-color: hsla(var(--text-main), 1);
+  transition: 0.3s ease;
+}

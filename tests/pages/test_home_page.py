@@ -100,7 +100,7 @@ def test_home_page_renders_service_cards() -> None:
 
     # Create a PageStreamBlock with service cards
     stream_block = PageStreamBlock()
-    
+
     # Minimal valid data for service_cards
     service_card_data = {
         "eyebrow": "Our Services",

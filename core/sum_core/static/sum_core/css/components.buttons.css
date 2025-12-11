@@ -1,0 +1,66 @@
+/* ==========================================================================
+   Name: Button Components
+   Path: core/sum_core/static/sum_core/css/components.buttons.css
+   Purpose: Button styles including primary, outline, and link button variants
+            with hover states and transitions.
+   Family: SUM Platform Design System – Component: Buttons
+   Dependencies: tokens.css (requires spacing, typography, and color tokens)
+   ========================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: var(--space-4, 1rem) var(--space-8, 2rem);
+  border-radius: var(--radius-sm); /* Architectural feel = sharper corners */
+  font-family: var(--font-body);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-base);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.btn-primary {
+  background-color: hsla(var(--primary), 1);
+  color: white; /* TODO: Add token for button text color for contrast checking */
+  border: 1px solid hsla(var(--primary), 1);
+}
+
+.btn-primary:hover {
+  background-color: hsla(var(--primary-deep), 1);
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid hsla(var(--text-main), 0.2);
+  color: hsla(var(--text-main), 1);
+}
+
+.btn-outline:hover {
+  border-color: hsla(var(--primary), 1);
+  color: hsla(var(--primary), 1);
+}
+
+/* Link Button Variant */
+.btn--link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: hsla(var(--primary), 1);
+  text-decoration: none;
+  transition: color 0.3s ease;
+  margin-top: auto;
+}
+
+.btn--link span {
+  transition: transform 0.3s ease;
+  display: inline-block;
+}

@@ -1,0 +1,84 @@
+/* ==========================================================================
+   Name: Footer Component
+   Path: core/sum_core/static/sum_core/css/components.footer.css
+   Purpose: Footer section styles including grid layout, brand info,
+            link sections, and contact information.
+   Family: SUM Platform Design System – Component: Footer
+   Dependencies: tokens.css, layout.css
+   ========================================================================== */
+
+.footer {
+  border-top: 1px solid hsla(var(--text-main), 0.1);
+  background-color: hsla(var(--surface-tint), 1);
+  padding: var(--section-gap) 0;
+}
+
+.footer__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-12, 3rem);
+  align-items: flex-start;
+}
+
+@media (min-width: 768px) {
+  .footer__grid {
+    grid-template-columns: 1.2fr 1fr;
+    gap: var(--space-16, 4rem);
+  }
+}
+
+.footer__brand-name {
+  font-family: var(--font-heading);
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.footer__tagline {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--font-normal);
+  line-height: var(--leading-normal);
+  color: hsla(var(--text-muted), 1);
+}
+
+.footer__links {
+  display: flex;
+  gap: var(--space-16, 4rem);
+  flex-wrap: wrap;
+}
+
+.footer__section-title {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-4, 1rem);
+}
+
+.footer__text {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--font-normal);
+  line-height: var(--leading-normal);
+}
+
+.footer__text--spaced {
+  margin-bottom: var(--space-2, 0.5rem);
+}
+
+.footer__text--address {
+  margin-top: var(--space-4, 1rem);
+  white-space: pre-line;
+}
+
+.footer__link {
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+.footer__link:hover {
+  color: hsla(var(--primary), 1);
+}
