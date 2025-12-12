@@ -7,33 +7,30 @@ Dependencies: PageStreamBlock from base module.
 """
 
 from .base import PageStreamBlock
-from .hero import HeroImageBlock, HeroGradientBlock, HeroCTABlock
 from .content import (
-    HeroBlock,
-    TrustStripBlock,
-    FeaturesListBlock,
-    ComparisonBlock,
-    PortfolioBlock,
-    RichTextContentBlock,
-    EditorialHeaderBlock,
-    QuoteBlock,
-    ImageBlock,
     ButtonGroupBlock,
-    SpacerBlock,
+    ComparisonBlock,
     DividerBlock,
+    EditorialHeaderBlock,
+    FeaturesListBlock,
+    HeroBlock,
+    ImageBlock,
+    PortfolioBlock,
+    QuoteBlock,
+    RichTextContentBlock,
+    SpacerBlock,
+    TrustStripBlock,
 )
-from .services import ServiceCardsBlock, ServiceCardItemBlock
-from .testimonials import TestimonialsBlock, TestimonialBlock
-from .gallery import GalleryBlock, GalleryImageBlock
-from .trust import (
-    TrustStripItemBlock,
-    TrustStripBlock as TrustStripLogosBlock,
-    StatItemBlock,
-    StatsBlock,
-)
-from .process_faq import ProcessStepsBlock, FAQBlock
-
 from .forms import ContactFormBlock, QuoteRequestFormBlock
+from .gallery import GalleryBlock, GalleryImageBlock
+from .hero import HeroCTABlock, HeroGradientBlock, HeroImageBlock
+from .links import LINK_TYPE_CHOICES, UniversalLinkBlock, UniversalLinkValue
+from .process_faq import FAQBlock, ProcessStepsBlock
+from .services import ServiceCardItemBlock, ServiceCardsBlock
+from .testimonials import TestimonialBlock, TestimonialsBlock
+from .trust import StatItemBlock, StatsBlock
+from .trust import TrustStripBlock as TrustStripLogosBlock
+from .trust import TrustStripItemBlock
 
 __all__ = [
     "PageStreamBlock",
@@ -66,4 +63,7 @@ __all__ = [
     "DividerBlock",
     "ContactFormBlock",
     "QuoteRequestFormBlock",
+    "UniversalLinkBlock",
+    "UniversalLinkValue",
+    "LINK_TYPE_CHOICES",
 ]
