@@ -1,4 +1,6 @@
-.PHONY: help lint test format run install install-dev clean db-up db-down db-logs
+.PHONY: help lint test format run migrate makemigrations install install-dev clean db-up db-down db-logs
+
+MANAGE = python core/sum_core/test_project/manage.py
 
 help: ## Show this help message
 	@echo "Available targets:"
@@ -25,7 +27,14 @@ format: ## Format code with Black and isort
 	isort .
 
 run: ## Initial for local dev (may be wired to Docker later)
-	python manage.py runserver
+	$(MANAGE) migrate --noinput
+	$(MANAGE) runserver
+
+migrate: ## Apply database migrations for the test project
+	$(MANAGE) migrate --noinput
+
+makemigrations: ## Create new migrations for the test project
+	$(MANAGE) makemigrations
 
 clean: ## Clean up generated files
 	find . -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true

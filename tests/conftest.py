@@ -94,3 +94,27 @@ def wagtail_default_site():
 
     Site.clear_site_root_paths_cache()
     return site
+
+
+@pytest.fixture(autouse=True)
+def _reset_homepage_between_tests() -> None:
+    """
+    Ensure HomePage tests remain isolated.
+
+    The test DB is session-scoped (see `django_test_environment`), so without
+    cleanup, a HomePage created in one test would prevent other tests from
+    creating one because HomePage enforces a single-instance constraint.
+    """
+    from home.models import HomePage
+    from wagtail.models import Page, Site
+
+    # If any Site is currently pointing at a HomePage, reset it back to the root node
+    # before deleting HomePages to avoid dangling references/caches.
+    root = Page.get_first_root_node()
+    for site in Site.objects.all():
+        if HomePage.objects.filter(pk=site.root_page_id).exists():
+            site.root_page = root
+            site.save()
+
+    HomePage.objects.all().delete()
+    Site.clear_site_root_paths_cache()
