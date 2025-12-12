@@ -10,20 +10,27 @@
     <title>
       {% block title %}
         {% if page %}
-          {% firstof page.seo_title page.title %}
+          {% if page.meta_title %}
+            {{ page.meta_title }}
+          {% elif page.seo_title %}
+            {{ page.seo_title }}
+          {% else %}
+            {{ page.title }} | {{ site_name }}
+          {% endif %}
         {% else %}
           {{ site_name }}
         {% endif %}
       {% endblock %}
     </title>
+    {% include "sum_core/includes/meta_tags.html" %}
     {% if site_settings.favicon %}
       {% image site_settings.favicon fill-32x32 as favicon_rendition %}
       <link rel="icon" href="{{ favicon_rendition.url }}">
     {% endif %}
-    
+
     <!-- Branding Fonts -->
     {% branding_fonts %}
-    
+
     <!-- Main CSS -->
     <link rel="stylesheet" href="{% static 'sum_core/css/main.css' %}">
 
@@ -33,13 +40,13 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body id="body">
-    
+
     {% include "sum_core/includes/header.html" %}
-    
+
     <main>
         {% block content %}{% endblock %}
     </main>
-      
+
     {% include "sum_core/includes/footer.html" %}
 
     <!-- Mobile FAB -->

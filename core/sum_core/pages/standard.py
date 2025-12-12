@@ -7,14 +7,14 @@ Dependencies: Wagtail Page model, sum_core.blocks.base.PageStreamBlock
 """
 from __future__ import annotations
 
+from sum_core.blocks.base import PageStreamBlock
+from sum_core.pages.mixins import BreadcrumbMixin, OpenGraphMixin, SeoFieldsMixin
 from wagtail.admin.panels import FieldPanel
 from wagtail.fields import StreamField
 from wagtail.models import Page
 
-from sum_core.blocks.base import PageStreamBlock
 
-
-class StandardPage(Page):
+class StandardPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
     """
     General-purpose content page for About, FAQ, Terms, Service Overview, etc.
 
@@ -34,6 +34,12 @@ class StandardPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel("body"),
     ]
+
+    promote_panels = (
+        SeoFieldsMixin.seo_panels
+        + OpenGraphMixin.open_graph_panels
+        + Page.promote_panels
+    )
 
     # Allow StandardPage to be created under any Page type for flexibility
     # In real client sites, this can be overridden to limit to specific parents
@@ -60,4 +66,3 @@ class StandardPage(Page):
             if block.block_type in hero_block_types:
                 return True
         return False
-

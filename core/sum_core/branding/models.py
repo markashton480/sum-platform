@@ -12,10 +12,9 @@ from typing import Any
 
 from django.core.cache import cache
 from django.db import models
+from sum_core.branding.panels import FormFieldPanel
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.contrib.settings.models import BaseSiteSetting, register_setting
-
-from sum_core.branding.panels import FormFieldPanel
 
 
 @register_setting
@@ -81,6 +80,14 @@ class SiteSettings(BaseSiteSetting):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+    og_default_image = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        help_text="Default image for social sharing (Open Graph).",
+    )
     heading_font = models.CharField(
         max_length=100,
         blank=True,
@@ -131,6 +138,7 @@ class SiteSettings(BaseSiteSetting):
                 FieldPanel("header_logo"),
                 FieldPanel("footer_logo"),
                 FieldPanel("favicon"),
+                FieldPanel("og_default_image"),
             ],
             heading="Logos & Favicon",
         ),
