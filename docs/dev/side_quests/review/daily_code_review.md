@@ -28,7 +28,8 @@ Diffs / snippets to review:
 <<<PASTE_GIT_DIFF_OR_FILES_HERE>>>
 
 Optional notes / questions:
-<<<MY_NOTES_OR_QUESTIONS_HERE>>>
+
+Today is the first review and we're still in early development, so I'd like you to go through the entire codebase as we've developed so far, which is the @sum_core. We have a task ticket system, and all completed tasks are in docs/dev/ each milestone has a corresponding dir (so far we have M0,M1,M2). So for the first run, please make sure everything we have to date is up to scratch.
 
 =====================
 REVIEW OBJECTIVES
@@ -110,6 +111,8 @@ For each such issue:
 =====================
 OUTPUT FORMAT
 =====================
+
+Save the report in docs/dev/reports/daily/<currentdate_report.md>
 
 Respond with a concise but thorough review in this structure:
 

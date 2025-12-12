@@ -9,6 +9,7 @@ class TestFormBlocks:
     def test_contact_form_block_definitions(self):
         block = ContactFormBlock()
         fields = block.child_blocks
+        assert "eyebrow" in fields
         assert "heading" in fields
         assert "intro" in fields
         assert "success_message" in fields
@@ -19,6 +20,7 @@ class TestFormBlocks:
     def test_quote_request_form_block_definitions(self):
         block = QuoteRequestFormBlock()
         fields = block.child_blocks
+        assert "eyebrow" in fields
         assert "heading" in fields
         assert "intro" in fields
         assert "success_message" in fields
@@ -31,12 +33,12 @@ class TestFormBlocks:
         stream_block = PageStreamBlock()
         # Debug available blocks
         print(f"DEBUG: child_blocks keys: {stream_block.child_blocks.keys()}")
-        
+
         assert "contact_form" in stream_block.child_blocks, f"contact_form not found in {stream_block.child_blocks.keys()}"
         assert "quote_request_form" in stream_block.child_blocks
-        
+
         contact = stream_block.child_blocks["contact_form"]
         assert isinstance(contact, ContactFormBlock)
-        
+
         quote = stream_block.child_blocks["quote_request_form"]
         assert isinstance(quote, QuoteRequestFormBlock)

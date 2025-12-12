@@ -21,7 +21,7 @@
           {% csrf_token %}
           
           <!-- Honeypot field (visually hidden) -->
-          <div class="form__field form__field--honeypot" style="display: none;" aria-hidden="true">
+          <div class="form__field form__field--honeypot" aria-hidden="true">
             <label for="form-website-field">Website</label>
             <input type="text" name="website" id="form-website-field" tabindex="-1" autocomplete="off">
           </div>
@@ -30,7 +30,6 @@
             {% for field in form %}
               <div class="form-group {% if field.errors %}has-error{% endif %}">
                 <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                <!-- Render widget manually wrapped or rely on CSS selectors -->
                 <div class="form-control-wrapper">
                     {{ field }}
                 </div>
@@ -54,18 +53,22 @@
             {% endif %}
 
           {% else %}
-            <!-- Fallback/Preview rendering if no form object -->
+            <!-- Working form fields for frontend use (no backend form object yet) -->
             <div class="form-group">
-                <label class="form-label">Full Name</label>
-                <input type="text" class="form-input" placeholder="e.g. James Sterling" disabled>
+                <label for="contact-name" class="form-label">Full Name</label>
+                <input type="text" id="contact-name" name="name" class="form-input" placeholder="e.g. James Sterling" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Email Address</label>
-                <input type="email" class="form-input" placeholder="name@example.com" disabled>
+                <label for="contact-email" class="form-label">Email Address</label>
+                <input type="email" id="contact-email" name="email" class="form-input" placeholder="name@example.com" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Message</label>
-                <textarea class="form-textarea" placeholder="Tell us how we can help..." disabled></textarea>
+                <label for="contact-phone" class="form-label">Phone (Optional)</label>
+                <input type="tel" id="contact-phone" name="phone" class="form-input" placeholder="+44 ...">
+            </div>
+            <div class="form-group">
+                <label for="contact-message" class="form-label">How can we help?</label>
+                <textarea id="contact-message" name="message" class="form-textarea" placeholder="Tell us about your project..."></textarea>
             </div>
           {% endif %}
 

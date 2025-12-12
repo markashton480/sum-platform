@@ -21,15 +21,15 @@ def test_contact_form_rendering():
         "intro": "Get in touch.",
         "submit_label": "Send It"
     })
-    
+
     # Use plain dict for context, let Wagtail handle it
     context = {
         "form": DummyContactForm()
     }
-    
+
     # Render using the block's template directly or render the block instance
     rendered = block.render(value, context=context)
-    
+
     assert "Contact Us" in rendered
     assert "Get in touch" in rendered
     assert "Send It" in rendered
@@ -49,13 +49,13 @@ def test_quote_request_form_rendering():
         "submit_label": "Request Quote",
         "show_compact_meta": True
     })
-    
+
     context = {
         "form": DummyQuoteForm()
     }
-    
+
     rendered = block.render(value, context=context)
-    
+
     assert "Get a Quote" in rendered
     assert "Request Quote" in rendered
     assert 'section--compact' in rendered

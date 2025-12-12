@@ -16,7 +16,7 @@
         {% csrf_token %}
         
         <!-- Honeypot field -->
-        <div class="form__field form__field--honeypot" style="display: none;" aria-hidden="true">
+        <div class="form__field form__field--honeypot" aria-hidden="true">
           <label for="form-company-field">Company</label>
           <input type="text" name="company" id="form-company-field" tabindex="-1" autocomplete="off">
         </div>
@@ -50,22 +50,47 @@
           {% endif %}
 
         {% else %}
-          <!-- Fallback/Preview rendering -->
+          <!-- Working form fields for frontend use (no backend form object yet) -->
           <div class="form-fields-stack">
-             <div class="form-group">
+             <!-- Pill selector - uses form-group--pills to exclude animated underline -->
+             <div class="form-group form-group--pills">
                 <span class="form-label">Project Type</span>
-                 <div class="pill-group-mock">
-                    <button type="button" class="pill-btn active">Residential</button>
-                    <button type="button" class="pill-btn">Commercial</button>
-                 </div>
+                <div class="pill-group">
+                  <label class="pill-option">
+                    <input type="radio" name="project_type" value="residential" class="pill-input" checked>
+                    <span class="pill-label">Residential Retrofit</span>
+                  </label>
+                  <label class="pill-option">
+                    <input type="radio" name="project_type" value="newbuild" class="pill-input">
+                    <span class="pill-label">New Build / Extension</span>
+                  </label>
+                  <label class="pill-option">
+                    <input type="radio" name="project_type" value="commercial" class="pill-input">
+                    <span class="pill-label">Commercial</span>
+                  </label>
+                </div>
              </div>
-             <div class="form-group">
-                <label class="form-label">Postcode</label>
-                <input type="text" class="form-input" disabled>
+
+             <!-- Two-column grid for postcode and budget -->
+             <div class="form-row">
+               <div class="form-group">
+                  <label for="quote-postcode" class="form-label">Project Postcode</label>
+                  <input type="text" id="quote-postcode" name="postcode" class="form-input" required>
+               </div>
+               <div class="form-group">
+                  <label for="quote-budget" class="form-label">Est. Budget</label>
+                  <select id="quote-budget" name="budget" class="form-select">
+                    <option value="" disabled selected>Select a range</option>
+                    <option value="10-20k">£10k - £20k</option>
+                    <option value="20-40k">£20k - £40k</option>
+                    <option value="40k+">£40k+</option>
+                  </select>
+               </div>
              </div>
+
              <div class="form-group">
-                <label class="form-label">Budget</label>
-                <select class="form-select" disabled><option>Select range...</option></select>
+                <label for="quote-details" class="form-label">Additional Details</label>
+                <textarea id="quote-details" name="details" class="form-textarea" placeholder="Any specific requirements or constraints?"></textarea>
              </div>
           </div>
         {% endif %}

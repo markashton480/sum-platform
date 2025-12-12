@@ -11,9 +11,10 @@ from wagtail.blocks import CharBlock, RichTextBlock, StructBlock, TextBlock, Boo
 
 
 class ContactFormBlock(StructBlock):
+    eyebrow = CharBlock(required=False, help_text="Small label above heading (e.g. 'Enquiries')")
     heading = RichTextBlock(required=True, help_text="Section heading")
     intro = RichTextBlock(required=False, help_text="Optional introductory copy")
-    success_message = TextBlock(required=False, default="Thanks, we’ll be in touch shortly.")
+    success_message = TextBlock(required=False, default="Thanks, we'll be in touch shortly.")
     submit_label = CharBlock(required=False, default="Send enquiry")
 
     class Meta:
@@ -24,9 +25,10 @@ class ContactFormBlock(StructBlock):
 
 
 class QuoteRequestFormBlock(StructBlock):
+    eyebrow = CharBlock(required=False, help_text="Small label above heading (e.g. 'Project Application')")
     heading = RichTextBlock(required=True)
     intro = RichTextBlock(required=False)
-    success_message = TextBlock(required=False, default="Thanks, we’ll prepare your quote.")
+    success_message = TextBlock(required=False, default="Thanks, we'll prepare your quote.")
     submit_label = CharBlock(required=False, default="Request a quote")
     show_compact_meta = BooleanBlock(required=False, help_text="Compact layout for sidebars/short sections.")
 
