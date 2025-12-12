@@ -9,8 +9,8 @@ Dependencies: Django template system, Wagtail Site and SiteSettings, Django cach
 from __future__ import annotations
 
 import colorsys
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 from urllib.parse import quote_plus
 
 from django import template
@@ -19,9 +19,8 @@ from django.core.cache import cache
 from django.http import HttpRequest
 from django.utils.html import SafeString, format_html
 from django.utils.safestring import mark_safe
-from wagtail.models import Site
-
 from sum_core.branding.models import SiteSettings
+from wagtail.models import Site
 
 register = template.Library()
 
@@ -40,7 +39,9 @@ def get_site_settings(context: dict[str, Any]) -> SiteSettings:
 
     request = context.get("request")
     if request is None or not isinstance(request, HttpRequest):
-        raise ValueError("get_site_settings requires 'request' in the template context.")
+        raise ValueError(
+            "get_site_settings requires 'request' in the template context."
+        )
 
     cached_settings = getattr(request, "_site_settings_cache", None)
     if cached_settings is not None:
@@ -75,8 +76,8 @@ def _hex_to_hsl(hex_value: str) -> tuple[int, int, int] | None:
 
     try:
         r, g, b = (int(hex_value[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
-        h, l, s = colorsys.rgb_to_hls(r, g, b)
-        return round(h * 360), round(s * 100), round(l * 100)
+        hue, lightness, saturation = colorsys.rgb_to_hls(r, g, b)
+        return round(hue * 360), round(saturation * 100), round(lightness * 100)
     except (ValueError, IndexError):
         return None
 
@@ -88,12 +89,14 @@ def _build_css_variables(site_settings: SiteSettings) -> list[str]:
     if site_settings.primary_color:
         hsl = _hex_to_hsl(site_settings.primary_color)
         if hsl:
-            h, s, l = hsl
-            variables.extend([
-                f"    --brand-h: {h};",
-                f"    --brand-s: {s}%;",
-                f"    --brand-l: {l}%;",
-            ])
+            hue, saturation, lightness = hsl
+            variables.extend(
+                [
+                    f"    --brand-h: {hue};",
+                    f"    --brand-s: {saturation}%;",
+                    f"    --brand-l: {lightness}%;",
+                ]
+            )
         else:
             # Fallback if invalid hex, let CSS defaults handle it
             pass
@@ -101,24 +104,24 @@ def _build_css_variables(site_settings: SiteSettings) -> list[str]:
     # If no primary color set, we do NOT inject defaults here.
     # We rely on main.css :root variables to provide the default "Gold" theme.
 
-
     # Also inject other specific colors if needed, but the system relies on HSL
     # We can inject them as overrides if we want, or just stick to the design system logic.
     # For now, let's inject the provided secondary/accent as simple hex variables
     # in case we want to use them directly, but the main theme will drive off brand-h/s/l.
 
     if site_settings.secondary_color:
-        variables.append(f"    --color-secondary-custom: {site_settings.secondary_color};")
+        variables.append(
+            f"    --color-secondary-custom: {site_settings.secondary_color};"
+        )
 
     if site_settings.accent_color:
         variables.append(f"    --color-accent-custom: {site_settings.accent_color};")
         # Also try to generate accent HSL if needed
         accent_hsl = _hex_to_hsl(site_settings.accent_color)
         if accent_hsl:
-             variables.append(f"    --accent-h: {accent_hsl[0]};")
-             variables.append(f"    --accent-s: {accent_hsl[1]}%;")
-             variables.append(f"    --accent-l: {accent_hsl[2]}%;")
-
+            variables.append(f"    --accent-h: {accent_hsl[0]};")
+            variables.append(f"    --accent-s: {accent_hsl[1]}%;")
+            variables.append(f"    --accent-l: {accent_hsl[2]}%;")
 
     heading_font = _format_font_value(site_settings.heading_font)
     if heading_font:

@@ -10,10 +10,10 @@
    ========================================================================== */
 
 :root {
-  /* 
+  /*
      Base HSL Values are injected by Wagtail via branding_tags.py:
      --brand-h, --brand-s, --brand-l
-     
+
      If not present, fallback values are defined here.
   */
   --brand-h: 30; /* Brown/Gold Default */
@@ -85,7 +85,7 @@
   --space-16: 4rem;     /* 64px */
   --space-20: 5rem;     /* 80px */
   --space-24: 6rem;     /* 96px */
-  
+
   /* Layout Spacing */
   --container-padding: clamp(var(--space-6), 5vw, var(--space-16));
   --section-gap: clamp(var(--space-16), 10vw, var(--space-24));
@@ -93,6 +93,9 @@
   /* Animation Easings */
   --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Animation Durations */
+  --duration-default: 240ms;
 
   /* Borders & Radius - PRD C.1.5 (extended) */
   --radius-sm: 0.25rem;   /* 4px */
