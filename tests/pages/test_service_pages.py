@@ -100,6 +100,12 @@ def test_service_index_page_subpage_types() -> None:
     assert "sum_core_pages.ServicePage" in ServiceIndexPage.subpage_types
 
 
+def test_service_index_page_parent_page_types() -> None:
+    """ServiceIndexPage can be created under root or HomePage."""
+    assert "wagtailcore.Page" in ServiceIndexPage.parent_page_types
+    assert "home.HomePage" in ServiceIndexPage.parent_page_types
+
+
 def test_service_index_page_get_context_includes_services() -> None:
     """ServiceIndexPage.get_context() includes live, public ServicePage children."""
     root = Page.get_first_root_node()
