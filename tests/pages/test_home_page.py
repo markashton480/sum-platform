@@ -10,11 +10,9 @@ from __future__ import annotations
 import pytest
 from django.template import RequestContext, Template
 from django.test import RequestFactory
-from wagtail.models import Page, Site
-
 from home.models import HomePage
 from sum_core.blocks import PageStreamBlock
-
+from wagtail.models import Page, Site
 
 pytestmark = pytest.mark.django_db
 
@@ -58,17 +56,17 @@ def test_home_page_renders_streamfield_content() -> None:
 
     # Create a PageStreamBlock with rich text content
     stream_block = PageStreamBlock()
-    stream_data = stream_block.to_python([
-        {
-            "type": "rich_text",
-            "value": "<h2>Test Heading</h2><p>This is test content with <strong>bold</strong> text.</p>",
-        }
-    ])
+    stream_data = stream_block.to_python(
+        [
+            {
+                "type": "rich_text",
+                "value": "<h2>Test Heading</h2><p>This is test content with <strong>bold</strong> text.</p>",
+            }
+        ]
+    )
 
     homepage = HomePage(
-        title="Test Home with Content",
-        slug="test-home-content",
-        body=stream_data
+        title="Test Home with Content", slug="test-home-content", body=stream_data
     )
     root.add_child(instance=homepage)
 
@@ -111,7 +109,7 @@ def test_home_page_renders_service_cards() -> None:
                 "title": "Service 1",
                 "description": "Description 1",
                 "link_url": "https://example.com/1",
-                "link_label": "Go to 1"
+                "link_label": "Go to 1",
             },
             {
                 "title": "Service 2",
@@ -120,22 +118,22 @@ def test_home_page_renders_service_cards() -> None:
             {
                 "title": "Service 3",
                 "description": "Description 3",
-            }
+            },
         ],
-        "layout_style": "default"
+        "layout_style": "default",
     }
 
-    stream_data = stream_block.to_python([
-        {
-            "type": "service_cards",
-            "value": service_card_data,
-        }
-    ])
+    stream_data = stream_block.to_python(
+        [
+            {
+                "type": "service_cards",
+                "value": service_card_data,
+            }
+        ]
+    )
 
     homepage = HomePage(
-        title="Test Home with Services",
-        slug="test-home-services",
-        body=stream_data
+        title="Test Home with Services", slug="test-home-services", body=stream_data
     )
     root.add_child(instance=homepage)
 
@@ -154,3 +152,58 @@ def test_home_page_renders_service_cards() -> None:
     assert "services__grid" in rendered
     assert "services__card" in rendered
     assert "btn--link" in rendered
+
+
+def test_home_page_clean_validates_when_root_page() -> None:
+    """Test that HomePage.clean() validates correctly when it's a root_page."""
+    root = Page.get_first_root_node()
+
+    # Create HomePage and set it as root_page
+    homepage = HomePage(title="Root Home", slug="root-home")
+    root.add_child(instance=homepage)
+
+    site = Site.objects.get(is_default_site=True)
+    site.root_page = homepage
+    site.save()
+
+    # Refresh and validate - should not raise
+    homepage.refresh_from_db()
+    homepage.clean()  # Should not raise ValidationError
+
+    # Verify it's the root_page
+    assert Site.objects.get(is_default_site=True).root_page == homepage
+
+
+def test_home_page_has_seo_fields() -> None:
+    """Test that HomePage has SEO fields from mixins."""
+    root = Page.get_first_root_node()
+    homepage = HomePage(
+        title="SEO Test Home",
+        slug="seo-test-home",
+        meta_title="Custom Meta Title",
+        meta_description="Custom meta description for testing.",
+    )
+    root.add_child(instance=homepage)
+
+    assert homepage.meta_title == "Custom Meta Title"
+    assert homepage.meta_description == "Custom meta description for testing."
+
+
+def test_home_page_has_promote_panels() -> None:
+    """Test that HomePage has promote_panels with SEO/OG fields."""
+    # Verify promote_panels attribute exists and includes SEO/OG panels
+    assert hasattr(HomePage, "promote_panels"), "HomePage should have promote_panels"
+    assert len(HomePage.promote_panels) > 0, "promote_panels should not be empty"
+
+    # Check that SEO fields are accessible
+    root = Page.get_first_root_node()
+    homepage = HomePage(
+        title="Promote Test",
+        slug="promote-test",
+        meta_title="Test Meta Title",
+        meta_description="Test description",
+    )
+    root.add_child(instance=homepage)
+
+    assert homepage.meta_title == "Test Meta Title"
+    assert homepage.meta_description == "Test description"
