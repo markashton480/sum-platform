@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any
 from django import template
 from django.conf import settings
 from django.core.cache import cache
+from sum_core.navigation.cache import get_nav_cache_key
 from sum_core.navigation.models import FooterNavigation
 from sum_core.navigation.services import (
     get_effective_footer_settings,
@@ -55,8 +56,12 @@ def _get_cache_ttl() -> int:
 
 
 def _make_cache_key(tag_name: str, site_id: int) -> str:
-    """Build a site-specific cache key matching spec format."""
-    return f"{CACHE_KEY_PREFIX}:{tag_name}:{site_id}"
+    """
+    Build a site-specific cache key matching spec format.
+
+    Delegates to shared helper to prevent key format drift.
+    """
+    return get_nav_cache_key(site_id, tag_name)
 
 
 def _cache_get_or_build(

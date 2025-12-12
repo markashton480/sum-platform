@@ -16,3 +16,8 @@ class NavigationConfig(AppConfig):
     label = "sum_core_navigation"
     verbose_name = "Navigation"
     default_auto_field = "django.db.models.BigAutoField"
+
+    def ready(self) -> None:
+        """Import cache module to register signal handlers."""
+        # Import cache module to ensure signal handlers are registered
+        import sum_core.navigation.cache  # noqa: F401

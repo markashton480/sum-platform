@@ -650,21 +650,19 @@ class TestTagUsesCache:
     def test_second_call_returns_cached_content(
         self, template_context, branding_settings, footer_navigation, default_site
     ):
-        """Second call returns cached content without rebuilding."""
+        """Second call returns cached content when cache is not invalidated."""
+        cache_key = _make_cache_key("footer", default_site.id)
 
-        # First call
-        result1 = footer_nav(template_context)
+        # Pre-populate cache with test data directly (bypass DB)
+        test_data = {"tagline": "Cached Value", "test": True}
+        cache.set(cache_key, test_data)
 
-        # Modify database (shouldn't affect cached result)
-        footer_navigation.tagline = "Changed Tagline"
-        footer_navigation.save()
+        # Call should return cached value
+        result = footer_nav(template_context)
 
-        # Second call should return cached (unchanged) result
-        result2 = footer_nav(template_context)
-
-        # Both should match original (cached) tagline
-        assert result2["tagline"] == result1["tagline"]
-        assert result2["tagline"] == "Footer Tagline"  # Original value
+        # Should match cached data
+        assert result["tagline"] == "Cached Value"
+        assert result == test_data
 
     def test_cache_hit_does_not_rebuild(
         self, template_context, branding_settings, footer_navigation, default_site
@@ -672,20 +670,24 @@ class TestTagUsesCache:
         """
         When cache is hit, the builder function is not called.
 
-        We verify this by checking that DB changes don't affect the cached value.
+        We verify this by pre-populating cache and checking the cached data is returned.
         """
-        # First call builds and caches
-        footer_nav(template_context)
+        cache_key = _make_cache_key("footer", default_site.id)
 
-        # Modify the branding settings
-        branding_settings.company_name = "New Company Name"
-        branding_settings.save()
+        # Pre-populate cache with test data
+        test_data = {
+            "tagline": "Cached Tagline",
+            "copyright": {"rendered": "© 2025 Cached Company"},
+            "test": True,
+        }
+        cache.set(cache_key, test_data)
 
-        # Second call should return cached value
+        # Call should return cached value without querying DB
         result = footer_nav(template_context)
 
-        # Copyright should still have old company name (cached)
-        assert "Test Company" in result["copyright"]["rendered"]
+        # Should match cached data exactly
+        assert result["tagline"] == "Cached Tagline"
+        assert result == test_data
 
     def test_cache_graceful_fallback_on_get_failure(
         self, template_context, branding_settings, footer_navigation
