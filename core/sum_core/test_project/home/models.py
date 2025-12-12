@@ -12,7 +12,7 @@ from sum_core.blocks import PageStreamBlock
 from sum_core.pages.mixins import BreadcrumbMixin, OpenGraphMixin, SeoFieldsMixin
 from wagtail.admin.panels import FieldPanel
 from wagtail.fields import RichTextField, StreamField
-from wagtail.models import Page, Site
+from wagtail.models import Page
 
 
 class HomePage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
@@ -58,46 +58,27 @@ class HomePage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         verbose_name = "Home Page"
         verbose_name_plural = "Home Pages"
 
+    @classmethod
+    def can_create_at(cls, parent: Page) -> bool:
+        """
+        Enforce root-only creation for HomePage.
+
+        This is used by Wagtail admin UI, but also helps prevent programmatic
+        misuse when callers respect the standard Wagtail create APIs.
+        """
+        return parent.is_root() and super().can_create_at(parent)
+
     def clean(self) -> None:
         """
-        Validate that only one HomePage exists per site.
+        Validate that only one HomePage exists.
 
-        Raises ValidationError if this HomePage would conflict with an existing
-        HomePage that is already set as root_page for a site.
-
-        Note: This validation checks if this page is already a root_page.
-        Since Site.root_page is unique per site, the database enforces that
-        only one page can be root_page per site. This validation is defensive.
+        This rule is enforced at the model layer so programmatic creation can't
+        bypass it.
         """
         super().clean()
 
-        # Get sites where this page is currently the root_page
-        sites_with_this_page = Site.objects.filter(root_page=self)
-
-        # If this page is not a root_page for any site yet, allow it
-        # (The validation will happen via signal when it's set as root_page)
-        if not sites_with_this_page.exists():
-            return
-
-        # Check each site where this page is root_page
-        for site in sites_with_this_page:
-            # Check if there's another HomePage that's also root_page for this same site
-            # (This shouldn't happen due to Site.root_page uniqueness, but we validate defensively)
-            other_homepages = HomePage.objects.exclude(pk=self.pk).filter(
-                id__in=Site.objects.filter(id=site.id)
-                .exclude(root_page=self)
-                .values_list("root_page_id", flat=True)
-            )
-
-            if other_homepages.exists():
-                raise ValidationError(
-                    {
-                        "title": (
-                            f"Only one HomePage is allowed per site. "
-                            f"Another HomePage is already set as the root page for site '{site.hostname}'."
-                        )
-                    }
-                )
+        if HomePage.objects.exclude(pk=self.pk).exists():
+            raise ValidationError({"title": "Only one HomePage is allowed per site."})
 
     @property
     def has_hero_block(self) -> bool:

@@ -8,6 +8,7 @@ Dependencies: Wagtail Site & Page models, home.HomePage, sum_core templates.
 from __future__ import annotations
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.template import RequestContext, Template
 from django.test import RequestFactory
 from home.models import HomePage
@@ -27,6 +28,28 @@ def test_home_page_can_be_created_under_root() -> None:
     site.save()
 
     assert HomePage.objects.filter(title="Test Home").exists()
+
+
+def test_home_page_can_only_be_created_under_root() -> None:
+    root = Page.get_first_root_node()
+    non_root_parent = Page(title="Non-root Parent", slug="non-root-parent")
+    root.add_child(instance=non_root_parent)
+
+    assert HomePage.can_create_at(root) is True
+    assert HomePage.can_create_at(non_root_parent) is False
+
+
+def test_home_page_cannot_create_second_homepage() -> None:
+    root = Page.get_first_root_node()
+
+    first = HomePage(title="Home 1", slug="home-1")
+    root.add_child(instance=first)
+
+    second = HomePage(title="Home 2", slug="home-2")
+    with pytest.raises(ValidationError) as excinfo:
+        root.add_child(instance=second)
+
+    assert "Only one HomePage is allowed" in str(excinfo.value)
 
 
 def test_home_page_template_uses_sum_core_base() -> None:
