@@ -3,12 +3,13 @@ Name: Service Page Tests
 Path: tests/pages/test_service_pages.py
 Purpose: Validate ServiceIndexPage and ServicePage models, hierarchy enforcement, and template rendering.
 Family: Part of the page-level test suite exercising the page types.
-Dependencies: Wagtail Site & Page models, sum_core.pages.services.
+Dependencies: Wagtail Site & Page models, sum_core.pages.services, home.HomePage.
 """
 from __future__ import annotations
 
 import pytest
 from django.test import RequestFactory
+from home.models import HomePage
 from sum_core.blocks import PageStreamBlock
 from sum_core.pages.services import ServiceIndexPage, ServicePage
 from wagtail.fields import StreamField
@@ -39,14 +40,20 @@ def test_service_index_page_intro_uses_page_stream_block() -> None:
     assert isinstance(intro_field.stream_block, PageStreamBlock)
 
 
-def test_service_index_page_can_be_created_under_root() -> None:
-    """ServiceIndexPage can be created under the site root."""
+def test_service_index_page_can_be_created_under_homepage() -> None:
+    """ServiceIndexPage can be created under HomePage."""
     root = Page.get_first_root_node()
+
+    # Create HomePage first
+    homepage = HomePage(title="Home", slug="home-under")
+    root.add_child(instance=homepage)
+
+    # Create ServiceIndexPage under HomePage
     service_index = ServiceIndexPage(
         title="Our Services",
         slug="services",
     )
-    root.add_child(instance=service_index)
+    homepage.add_child(instance=service_index)
 
     assert ServiceIndexPage.objects.filter(title="Our Services").exists()
 
@@ -54,12 +61,17 @@ def test_service_index_page_can_be_created_under_root() -> None:
 def test_service_index_page_can_be_created_with_empty_intro() -> None:
     """ServiceIndexPage can be created with an empty intro StreamField."""
     root = Page.get_first_root_node()
+
+    # Create HomePage first
+    homepage = HomePage(title="Home", slug="home-empty-intro")
+    root.add_child(instance=homepage)
+
     service_index = ServiceIndexPage(
         title="Services Empty Intro",
         slug="services-empty-intro",
         intro=None,
     )
-    root.add_child(instance=service_index)
+    homepage.add_child(instance=service_index)
 
     retrieved = ServiceIndexPage.objects.get(slug="services-empty-intro")
     assert retrieved.title == "Services Empty Intro"
@@ -68,6 +80,10 @@ def test_service_index_page_can_be_created_with_empty_intro() -> None:
 def test_service_index_page_can_be_created_with_intro_content() -> None:
     """ServiceIndexPage can be created with intro content."""
     root = Page.get_first_root_node()
+
+    # Create HomePage first
+    homepage = HomePage(title="Home", slug="home-intro-content")
+    root.add_child(instance=homepage)
 
     stream_block = PageStreamBlock()
     stream_data = stream_block.to_python(
@@ -84,7 +100,7 @@ def test_service_index_page_can_be_created_with_intro_content() -> None:
         slug="services-with-intro",
         intro=stream_data,
     )
-    root.add_child(instance=service_index)
+    homepage.add_child(instance=service_index)
 
     retrieved = ServiceIndexPage.objects.get(slug="services-with-intro")
     assert len(list(retrieved.intro)) == 1
@@ -101,18 +117,21 @@ def test_service_index_page_subpage_types() -> None:
 
 
 def test_service_index_page_parent_page_types() -> None:
-    """ServiceIndexPage can be created under root or HomePage."""
-    assert "wagtailcore.Page" in ServiceIndexPage.parent_page_types
-    assert "home.HomePage" in ServiceIndexPage.parent_page_types
+    """ServiceIndexPage can only be created under HomePage."""
+    assert ServiceIndexPage.parent_page_types == ["home.HomePage"]
 
 
 def test_service_index_page_get_context_includes_services() -> None:
     """ServiceIndexPage.get_context() includes live, public ServicePage children."""
     root = Page.get_first_root_node()
 
+    # Create HomePage first
+    homepage = HomePage(title="Home", slug="home-context")
+    root.add_child(instance=homepage)
+
     # Create ServiceIndexPage
     service_index = ServiceIndexPage(title="Services", slug="services-context-test")
-    root.add_child(instance=service_index)
+    homepage.add_child(instance=service_index)
 
     # Create a published ServicePage child
     service1 = ServicePage(
@@ -148,9 +167,13 @@ def test_service_index_page_get_context_excludes_drafts() -> None:
     """ServiceIndexPage.get_context() excludes draft ServicePage children."""
     root = Page.get_first_root_node()
 
+    # Create HomePage first
+    homepage = HomePage(title="Home", slug="home-exclude-drafts")
+    root.add_child(instance=homepage)
+
     # Create ServiceIndexPage
     service_index = ServiceIndexPage(title="Services", slug="services-exclude-drafts")
-    root.add_child(instance=service_index)
+    homepage.add_child(instance=service_index)
 
     # Create a published ServicePage
     service1 = ServicePage(title="Published Service", slug="published")
@@ -172,6 +195,34 @@ def test_service_index_page_get_context_excludes_drafts() -> None:
     services = list(context["services"])
     assert len(services) == 1
     assert services[0].title == "Published Service"
+
+
+# =============================================================================
+# Page Tree Rule Tests (Regression Tests for M3-005)
+# =============================================================================
+
+
+def test_service_index_page_cannot_be_created_under_root() -> None:
+    """ServiceIndexPage cannot be created directly under root (negative test)."""
+    # Verify that ServiceIndexPage.parent_page_types does not allow root
+    assert "wagtailcore.Page" not in ServiceIndexPage.parent_page_types
+
+
+def test_service_index_page_can_create_at_homepage() -> None:
+    """ServiceIndexPage.can_create_at() returns True for HomePage."""
+    root = Page.get_first_root_node()
+
+    # Create HomePage
+    homepage = HomePage(title="Home", slug="home-can-create")
+    root.add_child(instance=homepage)
+
+    assert ServiceIndexPage.can_create_at(homepage) is True
+
+
+def test_service_index_page_cannot_create_at_root() -> None:
+    """ServiceIndexPage.can_create_at() returns False for Root."""
+    root = Page.get_first_root_node()
+    assert ServiceIndexPage.can_create_at(root) is False
 
 
 # =============================================================================

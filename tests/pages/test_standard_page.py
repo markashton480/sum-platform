@@ -10,12 +10,10 @@ from __future__ import annotations
 import pytest
 from django.template import RequestContext, Template
 from django.test import RequestFactory
-from wagtail.fields import StreamField
-from wagtail.models import Page, Site
-
 from sum_core.blocks import PageStreamBlock
 from sum_core.pages import StandardPage
-
+from wagtail.fields import StreamField
+from wagtail.models import Page, Site
 
 pytestmark = pytest.mark.django_db
 
@@ -66,12 +64,14 @@ def test_standard_page_can_be_created_with_rich_text_block() -> None:
     root = Page.get_first_root_node()
 
     stream_block = PageStreamBlock()
-    stream_data = stream_block.to_python([
-        {
-            "type": "rich_text",
-            "value": "<h2>About Us</h2><p>We are a company.</p>",
-        }
-    ])
+    stream_data = stream_block.to_python(
+        [
+            {
+                "type": "rich_text",
+                "value": "<h2>About Us</h2><p>We are a company.</p>",
+            }
+        ]
+    )
 
     standard_page = StandardPage(
         title="About Page",
@@ -90,16 +90,18 @@ def test_standard_page_can_be_created_with_multiple_blocks() -> None:
     root = Page.get_first_root_node()
 
     stream_block = PageStreamBlock()
-    stream_data = stream_block.to_python([
-        {
-            "type": "rich_text",
-            "value": "<h2>Section 1</h2><p>Content.</p>",
-        },
-        {
-            "type": "rich_text",
-            "value": "<h2>Section 2</h2><p>More content.</p>",
-        },
-    ])
+    stream_data = stream_block.to_python(
+        [
+            {
+                "type": "rich_text",
+                "value": "<h2>Section 1</h2><p>Content.</p>",
+            },
+            {
+                "type": "rich_text",
+                "value": "<h2>Section 2</h2><p>More content.</p>",
+            },
+        ]
+    )
 
     standard_page = StandardPage(
         title="Multi Block Page",
@@ -126,9 +128,9 @@ def test_standard_page_has_hero_block_returns_false_for_non_hero_blocks() -> Non
     root = Page.get_first_root_node()
 
     stream_block = PageStreamBlock()
-    stream_data = stream_block.to_python([
-        {"type": "rich_text", "value": "<p>Content.</p>"}
-    ])
+    stream_data = stream_block.to_python(
+        [{"type": "rich_text", "value": "<p>Content.</p>"}]
+    )
 
     standard_page = StandardPage(
         title="Content Only Page",
@@ -142,29 +144,31 @@ def test_standard_page_has_hero_block_returns_false_for_non_hero_blocks() -> Non
 
 def test_standard_page_has_hero_block_returns_true_for_hero_image() -> None:
     """has_hero_block returns True when body contains hero_image block."""
-    from wagtail.images.tests.utils import get_test_image_file
     from wagtail.images.models import Image
+    from wagtail.images.tests.utils import get_test_image_file
 
     root = Page.get_first_root_node()
     image = Image.objects.create(title="Hero Image", file=get_test_image_file())
 
     stream_block = PageStreamBlock()
-    stream_data = stream_block.to_python([
-        {
-            "type": "hero_image",
-            "value": {
-                "headline": "<p>Welcome</p>",
-                "subheadline": "",
-                "ctas": [],
-                "status": "",
-                "image": image.pk,
-                "image_alt": "Hero background",
-                "overlay_opacity": "medium",
-                "floating_card_label": "",
-                "floating_card_value": "",
-            },
-        }
-    ])
+    stream_data = stream_block.to_python(
+        [
+            {
+                "type": "hero_image",
+                "value": {
+                    "headline": "<p>Welcome</p>",
+                    "subheadline": "",
+                    "ctas": [],
+                    "status": "",
+                    "image": image.pk,
+                    "image_alt": "Hero background",
+                    "overlay_opacity": "medium",
+                    "floating_card_label": "",
+                    "floating_card_value": "",
+                },
+            }
+        ]
+    )
 
     standard_page = StandardPage(
         title="Hero Page",
@@ -181,18 +185,20 @@ def test_standard_page_has_hero_block_returns_true_for_hero_gradient() -> None:
     root = Page.get_first_root_node()
 
     stream_block = PageStreamBlock()
-    stream_data = stream_block.to_python([
-        {
-            "type": "hero_gradient",
-            "value": {
-                "headline": "<p>Welcome</p>",
-                "subheadline": "",
-                "ctas": [],
-                "status": "",
-                "gradient_style": "primary",
-            },
-        }
-    ])
+    stream_data = stream_block.to_python(
+        [
+            {
+                "type": "hero_gradient",
+                "value": {
+                    "headline": "<p>Welcome</p>",
+                    "subheadline": "",
+                    "ctas": [],
+                    "status": "",
+                    "gradient_style": "primary",
+                },
+            }
+        ]
+    )
 
     standard_page = StandardPage(
         title="Gradient Hero Page",
@@ -215,9 +221,8 @@ def test_standard_page_is_leaf_page() -> None:
 
 
 def test_standard_page_parent_page_types() -> None:
-    """StandardPage can be created under Wagtail root or HomePage."""
-    assert "wagtailcore.Page" in StandardPage.parent_page_types
-    assert "home.HomePage" in StandardPage.parent_page_types
+    """StandardPage can only be created under HomePage."""
+    assert StandardPage.parent_page_types == ["home.HomePage"]
 
 
 def test_standard_page_template_uses_sum_core_base() -> None:
@@ -240,4 +245,3 @@ def test_standard_page_template_uses_sum_core_base() -> None:
     assert "sum_core/css/main.css" in rendered
     assert "<header" in rendered
     assert "<footer" in rendered
-

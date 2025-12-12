@@ -193,8 +193,8 @@ def test_home_page_clean_validates_when_root_page() -> None:
     homepage.refresh_from_db()
     homepage.clean()  # Should not raise ValidationError
 
-    # Verify it's the root_page
-    assert Site.objects.get(is_default_site=True).root_page == homepage
+    # Verify it's the root_page (use .specific to get the HomePage instance)
+    assert Site.objects.get(is_default_site=True).root_page.specific == homepage
 
 
 def test_home_page_has_seo_fields() -> None:

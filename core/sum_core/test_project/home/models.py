@@ -49,8 +49,11 @@ class HomePage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
     # HomePage can only be created under the root page
     parent_page_types: list[str] = ["wagtailcore.Page"]
 
-    # HomePage can have child pages (e.g., StandardPage)
-    subpage_types: list[str] = ["wagtailcore.Page"]
+    # HomePage can have child pages - explicitly list allowed types
+    subpage_types: list[str] = [
+        "sum_core_pages.StandardPage",
+        "sum_core_pages.ServiceIndexPage",
+    ]
 
     template: str = "sum_core/home_page.html"
 

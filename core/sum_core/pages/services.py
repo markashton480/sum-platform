@@ -42,8 +42,8 @@ class ServiceIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         + Page.promote_panels
     )
 
-    # ServiceIndexPage can be created under root or HomePage for flexibility
-    parent_page_types: list[str] = ["wagtailcore.Page", "home.HomePage"]
+    # ServiceIndexPage can only be created under HomePage
+    parent_page_types: list[str] = ["home.HomePage"]
 
     # Only allow ServicePage children
     subpage_types: list[str] = ["sum_core_pages.ServicePage"]
