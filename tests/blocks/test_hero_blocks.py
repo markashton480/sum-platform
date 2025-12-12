@@ -11,14 +11,11 @@ def test_hero_cta_block_validation():
         "style": "primary",
         "open_in_new_tab": True
     }
-    cleaned = block.to_python(data)
     # StructBlock validation runs in clean usually, but to_python converts logic.
     # For StructBlock, clean() validates children.
-    # We can mock values.
-
-    # Validation errors often bubble up from clean()
-    # block.clean(cleaned)
-    pass
+    result = block.to_python(data)
+    assert result["label"] == "Click Me"
+    assert result["style"] == "primary"
 
 def test_hero_image_block_structure():
     block = HeroImageBlock()
@@ -39,5 +36,7 @@ def test_hero_gradient_block_structure():
 
 def test_hero_cta_defaults():
     block = HeroCTABlock()
-    # Wagtail blocks don't expose .default easily on the instance, skipping default check
-    pass
+    # Wagtail blocks don't expose .default easily on the instance
+    # Verify the block has the expected child blocks
+    assert "style" in block.child_blocks
+    assert "open_in_new_tab" in block.child_blocks

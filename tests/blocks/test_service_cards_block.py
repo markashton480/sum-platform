@@ -20,12 +20,8 @@ class ServiceCardsBlockTest(TestCase):
         with self.assertRaises(Exception):
             block.clean({"heading": "Test", "cards": []})
 
-        # Test 13 cards (should fail max_num=12)
-        cards = [{"title": f"Card {i}"} for i in range(13)]
-        # We need to construct valid structurally data for clean, but StructBlock validation is complex to mock fully
-        # without passing full block data structure.
-        # Instead, let's verify the ListBlock constraints directly on the class definition
-
+        # Verify the ListBlock constraints directly on the class definition
+        # (constructing full valid data for 13 cards is complex due to StructBlock validation)
         self.assertEqual(block.child_blocks['cards'].meta.min_num, 1)
         self.assertEqual(block.child_blocks['cards'].meta.max_num, 12)
 
