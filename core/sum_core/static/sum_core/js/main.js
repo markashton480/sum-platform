@@ -41,9 +41,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // 3. Header Scroll Effect & Mobile FAB
+    // 3. Header Scroll Effect & Sticky CTA
     const header = document.querySelector('.header');
-    const fab = document.getElementById('mobileFab');
+    const stickyCta = document.getElementById('stickyCta');
 
     const handleScroll = () => {
         const scrollY = window.scrollY;
@@ -57,40 +57,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Mobile FAB Reveal
-        if (fab) {
+        // Sticky CTA Reveal
+        if (stickyCta) {
             if (scrollY > 400) {
-                fab.classList.add('visible');
+                stickyCta.classList.add('visible');
             } else {
-                fab.classList.remove('visible');
+                stickyCta.classList.remove('visible');
             }
         }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Mobile Menu Button Logic
-    const menuBtn = document.querySelector('.menu-btn');
-    const navLinks = document.querySelector('.nav-links');
-    
-    if (menuBtn && navLinks) {
-        menuBtn.addEventListener('click', () => {
-            const isExpanded = menuBtn.getAttribute('aria-expanded') === 'true';
-            menuBtn.setAttribute('aria-expanded', !isExpanded);
-            
-            // Simple toggle for now, can be enhanced with animation classes
-            navLinks.style.display = isExpanded ? '' : 'flex';
-            navLinks.style.flexDirection = isExpanded ? '' : 'column';
-            navLinks.style.position = isExpanded ? '' : 'absolute';
-            navLinks.style.top = isExpanded ? '' : '100%';
-            navLinks.style.left = isExpanded ? '' : '0';
-            navLinks.style.width = isExpanded ? '' : '100%';
-            navLinks.style.background = isExpanded ? '' : 'var(--color-surface)'; // Fallback if var not ready, but should be ok
-            navLinks.style.backgroundColor = isExpanded ? '' : 'hsla(var(--surface-pure), 0.98)';
-            navLinks.style.padding = isExpanded ? '' : '2rem';
-            navLinks.style.boxShadow = isExpanded ? '' : '0 10px 30px rgba(0,0,0,0.1)';
-        });
-    }
+
 
     // 4. Smooth FAQ Accordion Logic
     // Handles "Auto -> Pixel -> Auto" height transition for smooth animation
@@ -100,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isOpen = item.getAttribute('aria-expanded') === 'true';
         const section = item.closest('[data-faq-block]');
         const allowMultiple = section ? section.getAttribute('data-allow-multiple') === 'true' : false;
-        
+
         // Close other items if not allowing multiple
         if (!allowMultiple) {
             section.querySelectorAll('.faq-item').forEach(other => {
@@ -109,15 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Force height to current pixel value so we can animate from it
                     const currentHeight = otherAnswer.scrollHeight;
                     otherAnswer.style.height = `${currentHeight}px`;
-                    
+
                     // Force reflow
-                    otherAnswer.offsetHeight; 
-                    
+                    otherAnswer.offsetHeight;
+
                     // Animate to 0
                     requestAnimationFrame(() => {
                          otherAnswer.style.height = '0px';
                     });
-                    
+
                     other.setAttribute('aria-expanded', 'false');
                 }
             });
@@ -128,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 1. Set height to current scrollHeight (because it might be 'auto')
             answer.style.height = `${answer.scrollHeight}px`;
             // 2. Force reflow so browser registers the pixel height
-            answer.offsetHeight; 
+            answer.offsetHeight;
             // 3. Animate to 0
             requestAnimationFrame(() => {
                 answer.style.height = '0px';
@@ -140,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 1. Set height to scrollHeight to start animation
             const targetHeight = answer.scrollHeight;
             answer.style.height = `${targetHeight}px`;
-            
+
             // 2. After transition, set to 'auto' so it adapts to window resizing
             const setAuto = () => {
                 if (item.getAttribute('aria-expanded') === 'true') {
@@ -160,4 +138,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
-

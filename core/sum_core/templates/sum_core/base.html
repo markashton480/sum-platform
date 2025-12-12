@@ -49,14 +49,12 @@
 
     {% include "sum_core/includes/footer.html" %}
 
-    <!-- Mobile FAB -->
-    <a href="#quote" class="mobile-fab" id="mobileFab">
-        <span>Book Survey</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </a>
+    <!-- Sticky CTA (Mobile) -->
+    {% include "sum_core/includes/sticky_cta.html" %}
 
     <!-- Main JS -->
     <script src="{% static 'sum_core/js/main.js' %}"></script>
+    <script src="{% static 'sum_core/js/navigation.js' %}"></script>
     {% block extra_body %}{% endblock %}
   </body>
 </html>

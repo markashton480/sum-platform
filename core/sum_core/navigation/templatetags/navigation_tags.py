@@ -110,9 +110,13 @@ def _normalize_phone_href(phone_number: str | None) -> str:
 
 def _extract_link_data(link_value: Any) -> dict[str, Any]:
     """
-    Extract link metadata from a UniversalLinkValue.
+    Extract link metadata from a UniversalLinkValue or raw dict.
 
     Returns dict with: href, text, is_external, opens_new_tab, attrs, attrs_str
+
+    Handles both:
+    - UniversalLinkValue objects (from proper StreamField loading)
+    - Raw dicts (from tests or JSON data)
     """
     if link_value is None:
         return {
@@ -124,13 +128,109 @@ def _extract_link_data(link_value: Any) -> dict[str, Any]:
             "attrs_str": "",
         }
 
+    # Check if it has computed properties (UniversalLinkValue)
+    # Properties aren't callable, so check for property descriptor on the class
+    href_attr = getattr(type(link_value), "href", None)
+    if href_attr is not None and isinstance(href_attr, property):
+        # This is a proper UniversalLinkValue with computed properties
+        return {
+            "href": link_value.href,
+            "text": link_value.text,
+            "is_external": link_value.is_external,
+            "opens_new_tab": link_value.opens_new_tab,
+            "attrs": link_value.attrs,
+            "attrs_str": link_value.attrs_str,
+        }
+
+    # Fallback: treat as dict and compute values directly
+    # This handles raw dict input from tests or when blocks aren't fully instantiated
+    link_type = None
+    if hasattr(link_value, "get"):
+        link_type = link_value.get("link_type")
+    elif hasattr(link_value, "__getitem__"):
+        try:
+            link_type = link_value["link_type"]
+        except (KeyError, TypeError):
+            pass
+
+    # Compute href from dict
+    href = "#"
+    if link_type == "page":
+        page = link_value.get("page") if hasattr(link_value, "get") else None
+        if page:
+            href = getattr(page, "url", "#")
+    elif link_type == "url":
+        href = link_value.get("url", "#") if hasattr(link_value, "get") else "#"
+    elif link_type == "email":
+        email = link_value.get("email", "") if hasattr(link_value, "get") else ""
+        href = f"mailto:{email}" if email else "#"
+    elif link_type == "phone":
+        phone = link_value.get("phone", "") if hasattr(link_value, "get") else ""
+        if phone:
+            if phone.startswith("+"):
+                cleaned = "+" + PHONE_CLEAN_PATTERN.sub("", phone[1:])
+            else:
+                cleaned = PHONE_CLEAN_PATTERN.sub("", phone)
+            href = f"tel:{cleaned}" if cleaned else "#"
+    elif link_type == "anchor":
+        anchor = link_value.get("anchor", "") if hasattr(link_value, "get") else ""
+        anchor = anchor.lstrip("#")
+        href = f"#{anchor}" if anchor else "#"
+
+    # Compute text from dict
+    text = ""
+    if hasattr(link_value, "get"):
+        text = link_value.get("link_text", "") or link_value.get("text", "")
+        if not text:
+            # Fallback based on link type
+            if link_type == "page":
+                page = link_value.get("page")
+                text = getattr(page, "title", "Link") if page else "Link"
+            elif link_type == "url":
+                text = link_value.get("url", "Link") or "Link"
+            elif link_type == "email":
+                text = link_value.get("email", "Email") or "Email"
+            elif link_type == "phone":
+                text = link_value.get("phone", "Phone") or "Phone"
+            elif link_type == "anchor":
+                text = link_value.get("anchor", "Link").lstrip("#") or "Link"
+            else:
+                text = "Link"
+
+    # Determine if external
+    is_external = link_type == "url"
+
+    # Determine if opens in new tab
+    open_in_new_tab = None
+    if hasattr(link_value, "get"):
+        open_in_new_tab = link_value.get("open_in_new_tab")
+    if open_in_new_tab is True:
+        opens_new_tab = True
+    elif open_in_new_tab is False:
+        opens_new_tab = False
+    else:
+        opens_new_tab = is_external  # Default: new tab for external
+
+    # Build attrs
+    attrs = {}
+    if opens_new_tab:
+        attrs["target"] = "_blank"
+        attrs["rel"] = "noopener noreferrer"
+    if link_type == "phone":
+        attrs["data-contact-type"] = "phone"
+    elif link_type == "email":
+        attrs["data-contact-type"] = "email"
+
+    # Build attrs_str
+    attrs_str = " ".join(f'{k}="{v}"' for k, v in attrs.items())
+
     return {
-        "href": getattr(link_value, "href", "#"),
-        "text": getattr(link_value, "text", ""),
-        "is_external": getattr(link_value, "is_external", False),
-        "opens_new_tab": getattr(link_value, "opens_new_tab", False),
-        "attrs": getattr(link_value, "attrs", {}),
-        "attrs_str": getattr(link_value, "attrs_str", ""),
+        "href": href,
+        "text": text,
+        "is_external": is_external,
+        "opens_new_tab": opens_new_tab,
+        "attrs": attrs,
+        "attrs_str": attrs_str,
     }
 
 

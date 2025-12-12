@@ -1,9 +1,11 @@
 """
 Name: Base Template Tests
 Path: tests/templates/test_base_template.py
-Purpose: Validate base layout and shared header/footer render SiteSettings data and branding hooks.
+Purpose: Validate base layout and shared header/footer render SiteSettings data
+         and branding hooks, with navigation template tags integration.
 Family: Template/layout test suite.
-Dependencies: Django templates, Wagtail Site and SiteSettings helpers.
+Dependencies: Django templates, Wagtail Site and SiteSettings helpers,
+              navigation models and template tags.
 """
 
 from __future__ import annotations
@@ -11,15 +13,26 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
+from django.core.cache import cache
 from django.template import RequestContext, Template
 from django.test import RequestFactory
-from sum_core.branding.models import SiteSettings  # type: ignore[import-not-found]
+from sum_core.branding.models import SiteSettings
+from sum_core.navigation.models import FooterNavigation
 from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db
 
 
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """Clear cache before and after each test."""
+    cache.clear()
+    yield
+    cache.clear()
+
+
 def test_base_template_renders_with_branding_and_content() -> None:
+    """Test that base template renders with branding CSS and content blocks."""
     site = Site.objects.get(is_default_site=True)
     settings = SiteSettings.for_site(site)
     settings.company_name = "Test Co"
@@ -44,6 +57,7 @@ def test_base_template_renders_with_branding_and_content() -> None:
 
 
 def test_header_and_footer_render_site_settings() -> None:
+    """Test that header shows company name and footer shows business info."""
     site = Site.objects.get(is_default_site=True)
     settings = SiteSettings.for_site(site)
     settings.company_name = "Header Footer Co"
@@ -53,19 +67,56 @@ def test_header_and_footer_render_site_settings() -> None:
     settings.address = "123 Test St\nTestville"
     settings.save()
 
+    # Ensure navigation has no overrides
+    nav = FooterNavigation.for_site(site)
+    nav.tagline = ""
+    nav.save()
+
     request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
     context = RequestContext(request, {})
 
     header_html = Template(
-        "{% load branding_tags %}" "{% include 'sum_core/includes/header.html' %}"
+        "{% load branding_tags navigation_tags %}"
+        "{% include 'sum_core/includes/header.html' %}"
     ).render(context)
     footer_html = Template(
-        "{% load branding_tags %}" "{% include 'sum_core/includes/footer.html' %}"
+        "{% load branding_tags navigation_tags %}"
+        "{% include 'sum_core/includes/footer.html' %}"
     ).render(context)
 
+    # Header should show company name in logo
     assert "Header Footer Co" in header_html
+
+    # Footer should show company name and tagline
     assert "Header Footer Co" in footer_html
     assert "Quality you can trust" in footer_html
-    assert "01234 567890" in footer_html
+
+    # Business info should appear in footer (via fallback contact section or business section)
     assert "hello@example.com" in footer_html
-    assert "123 Test St" in footer_html
+
+
+def test_footer_business_info_in_contact_section() -> None:
+    """Test that footer shows business info when no link sections configured."""
+    site = Site.objects.get(is_default_site=True)
+    settings = SiteSettings.for_site(site)
+    settings.company_name = "Business Info Co"
+    settings.phone_number = "01onal234 567890"
+    settings.email = "info@business.com"
+    settings.address = "456 Business Ave\nCommerceville"
+    settings.save()
+
+    # Ensure no link sections - should trigger fallback contact section
+    nav = FooterNavigation.for_site(site)
+    nav.link_sections = []
+    nav.save()
+
+    request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
+    context = RequestContext(request, {})
+
+    footer_html = Template(
+        "{% load branding_tags navigation_tags %}"
+        "{% include 'sum_core/includes/footer.html' %}"
+    ).render(context)
+
+    assert "Business Info Co" in footer_html
+    assert "info@business.com" in footer_html

@@ -2,9 +2,14 @@
    Name: Header Component
    Path: core/sum_core/static/sum_core/css/components.header.css
    Purpose: Header and navigation styles including fixed positioning,
-            glassmorphism scrolled state, logo, nav links, and mobile menu.
+            glassmorphism scrolled state, logo, nav links, dropdowns,
+            and mobile menu.
    Family: SUM Platform Design System – Component: Header
    Dependencies: tokens.css, reset.css, layout.css
+   ========================================================================== */
+
+/* ==========================================================================
+   Base Header
    ========================================================================== */
 
 .header {
@@ -37,6 +42,10 @@
   color: hsla(var(--primary), 1);
 }
 
+/* ==========================================================================
+   Desktop Navigation Links
+   ========================================================================== */
+
 .nav-links {
   display: none;
   gap: 2.5rem;
@@ -56,6 +65,11 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+  padding: 0;
 }
 
 .nav-item::after {
@@ -69,11 +83,102 @@
   transition: width 0.3s ease;
 }
 
-.nav-item:hover::after {
+.nav-item:hover::after,
+.nav-item.is-active::after {
   width: 100%;
 }
 
-/* Mobile Menu Button */
+.nav-item[aria-current="page"]::after {
+  width: 100%;
+  background: hsla(var(--primary), 1);
+}
+
+/* ==========================================================================
+   Phone Link in Header
+   ========================================================================== */
+
+.nav-phone {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.nav-phone__icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Dropdown Menus
+   ========================================================================== */
+
+.nav-dropdown {
+  position: relative;
+}
+
+.nav-dropdown__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 0.5rem);
+}
+
+.nav-dropdown__icon {
+  transition: transform 0.2s ease;
+}
+
+.nav-dropdown__toggle[aria-expanded="true"] .nav-dropdown__icon {
+  transform: rotate(180deg);
+}
+
+.nav-dropdown__menu {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 200px;
+  padding: var(--space-4, 1rem) 0;
+  margin-top: var(--space-4, 1rem);
+  background: hsla(var(--surface-pure), 0.98);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  list-style: none;
+}
+
+.nav-dropdown__toggle[aria-expanded="true"] + .nav-dropdown__menu {
+  opacity: 1;
+  visibility: visible;
+}
+
+.nav-dropdown__item {
+  display: block;
+  padding: var(--space-3, 0.75rem) var(--space-6, 1.5rem);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: var(--font-normal);
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.nav-dropdown__item:hover {
+  background: hsla(var(--surface-tint), 1);
+  color: hsla(var(--primary), 1);
+}
+
+.nav-dropdown__item.is-current,
+.nav-dropdown__item.is-active {
+  color: hsla(var(--primary), 1);
+  font-weight: var(--font-medium);
+}
+
+/* ==========================================================================
+   Mobile Menu Button
+   ========================================================================== */
+
 .menu-btn {
   display: flex;
   flex-direction: column;
@@ -82,6 +187,7 @@
   border: none;
   cursor: pointer;
   z-index: 110;
+  padding: var(--space-2, 0.5rem);
 }
 
 @media (min-width: 1024px) {
@@ -95,4 +201,84 @@
   height: 2px;
   background-color: hsla(var(--text-main), 1);
   transition: 0.3s ease;
+}
+
+/* Hamburger to X animation */
+.menu-btn[aria-expanded="true"] .menu-line:first-child {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.menu-btn[aria-expanded="true"] .menu-line:last-child {
+  transform: rotate(-45deg) translate(3px, -4px);
+  width: 24px;
+}
+
+/* ==========================================================================
+   Mobile Navigation
+   ========================================================================== */
+
+@media (max-width: 1023px) {
+  .nav-links {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: hsla(var(--surface-pure), 0.98);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-6, 1.5rem);
+    padding: var(--space-8, 2rem);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 105;
+  }
+
+  .nav-links.is-open {
+    display: flex;
+    transform: translateX(0);
+  }
+
+  .nav-item {
+    font-size: var(--text-lg);
+    text-align: center;
+  }
+
+  /* Mobile dropdown styles */
+  .nav-dropdown {
+    width: 100%;
+    text-align: center;
+  }
+
+  .nav-dropdown__toggle {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .nav-dropdown__menu {
+    position: static;
+    transform: none;
+    min-width: auto;
+    width: 100%;
+    margin-top: var(--space-2, 0.5rem);
+    padding: var(--space-2, 0.5rem) 0;
+    background: hsla(var(--surface-tint), 0.5);
+    box-shadow: none;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 1;
+    visibility: visible;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+  }
+
+  .nav-dropdown__toggle[aria-expanded="true"] + .nav-dropdown__menu {
+    max-height: 500px;
+    padding: var(--space-4, 1rem) 0;
+  }
+
+  .nav-dropdown__item {
+    text-align: center;
+    padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+  }
 }

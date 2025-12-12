@@ -4,10 +4,10 @@
    Purpose: Single public stylesheet referenced by templates. Imports all
             modular CSS partials in the correct cascade order.
    Family: SUM Platform Design System
-   
+
    IMPORTANT: This is the ONLY CSS file that should be referenced in templates.
    All actual styles live in the imported partials below.
-   
+
    Cascade Order:
    1. Tokens     – CSS custom properties (design values)
    2. Reset      – Browser normalization and base element styles
@@ -52,7 +52,7 @@
 @import "components.features.css";
 @import "components.comparison.css";
 @import "components.portfolio.css";
-@import "components.mobile-fab.css";
+@import "components.sticky-cta.css";
 
 /* Content Blocks */
 @import "components.cards.css";
