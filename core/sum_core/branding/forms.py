@@ -11,10 +11,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from django import forms
+from sum_core.branding.theme_presets import THEME_PRESETS, get_theme_preset_choices
 from wagtail.admin.forms.models import WagtailAdminModelForm
 from wagtail.images.widgets import AdminImageChooser
-
-from sum_core.branding.theme_presets import THEME_PRESETS, get_theme_preset_choices
 
 if TYPE_CHECKING:
     from sum_core.branding.models import SiteSettings
@@ -74,4 +73,3 @@ class SiteSettingsAdminForm(WagtailAdminModelForm):
             instance.save()
 
         return instance
-

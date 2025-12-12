@@ -4,9 +4,8 @@ Management command to set up a test HomePage for the SUM test project.
 from __future__ import annotations
 
 from django.core.management.base import BaseCommand
-from wagtail.models import Page, Site
-
 from home.models import HomePage
+from wagtail.models import Page, Site
 
 
 class Command(BaseCommand):
@@ -24,7 +23,7 @@ class Command(BaseCommand):
             homepage = HomePage(
                 title="Welcome to SUM",
                 slug="sum-home",
-                intro="<p>This is a test homepage using the SUM core base layout and branding system.</p>"
+                intro="<p>This is a test homepage using the SUM core base layout and branding system.</p>",
             )
             root.add_child(instance=homepage)
             self.stdout.write("Created HomePage")

@@ -6,10 +6,11 @@ Purpose: Integration tests for rendering Process and FAQ blocks on the homepage.
 
 import pytest
 from django.test import Client
-from wagtail.models import Site
 from home.models import HomePage
+from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db
+
 
 def test_homepage_renders_process_and_faq_blocks():
     site = Site.objects.get(is_default_site=True)
@@ -22,31 +23,41 @@ def test_homepage_renders_process_and_faq_blocks():
 
     # Define process block data
     process_data = {
-        'type': 'process',
-        'value': {
-            'eyebrow': 'Our Workflow',
-            'heading': '<p>How We Work</p>',
-            'intro': '<p>Simple 3 step process.</p>',
-            'steps': [
-                {'title': 'Step One', 'description': '<p>First do this.</p>', 'number': 1},
-                {'title': 'Step Two', 'description': '<p>Then this.</p>'}, # Auto number
-                {'title': 'Step Three', 'description': '<p>Finally this.</p>'}, # Auto number
-            ]
-        }
+        "type": "process",
+        "value": {
+            "eyebrow": "Our Workflow",
+            "heading": "<p>How We Work</p>",
+            "intro": "<p>Simple 3 step process.</p>",
+            "steps": [
+                {
+                    "title": "Step One",
+                    "description": "<p>First do this.</p>",
+                    "number": 1,
+                },
+                {
+                    "title": "Step Two",
+                    "description": "<p>Then this.</p>",
+                },  # Auto number
+                {
+                    "title": "Step Three",
+                    "description": "<p>Finally this.</p>",
+                },  # Auto number
+            ],
+        },
     }
 
     # Define FAQ block data
     faq_data = {
-        'type': 'faq',
-        'value': {
-            'eyebrow': 'Help',
-            'heading': '<p>Common Questions</p>',
-            'items': [
-                {'question': 'Is this real?', 'answer': '<p>Yes it is.</p>'},
-                {'question': 'Can I return it?', 'answer': '<p>No returns.</p>'},
+        "type": "faq",
+        "value": {
+            "eyebrow": "Help",
+            "heading": "<p>Common Questions</p>",
+            "items": [
+                {"question": "Is this real?", "answer": "<p>Yes it is.</p>"},
+                {"question": "Can I return it?", "answer": "<p>No returns.</p>"},
             ],
-            'allow_multiple_open': False
-        }
+            "allow_multiple_open": False,
+        },
     }
 
     home.body = [process_data, faq_data]
@@ -60,15 +71,15 @@ def test_homepage_renders_process_and_faq_blocks():
 
     # --- Process Block Checks ---
     assert 'class="section process"' in content
-    assert 'Our Workflow' in content
-    assert 'How We Work' in content
-    assert 'process-layout' in content
-    assert 'process-rail-container' in content
-    assert 'process-step-item' in content
+    assert "Our Workflow" in content
+    assert "How We Work" in content
+    assert "process-layout" in content
+    assert "process-rail-container" in content
+    assert "process-step-item" in content
 
     # Check steps content
-    assert 'Step One' in content
-    assert 'First do this.' in content
+    assert "Step One" in content
+    assert "First do this." in content
     # Check numbering
     # Step 1 has manual number '1'
     # Step 2 has auto number (index 2)
@@ -80,15 +91,15 @@ def test_homepage_renders_process_and_faq_blocks():
 
     # --- FAQ Block Checks ---
     assert 'class="section faq-section"' in content
-    assert 'data-faq-block' in content
+    assert "data-faq-block" in content
     assert 'data-allow-multiple="false"' in content
-    assert 'Common Questions' in content
-    assert 'faq-item' in content
+    assert "Common Questions" in content
+    assert "faq-item" in content
 
     # Check questions and answers
-    assert 'Is this real?' in content
-    assert 'Yes it is.' in content
-    assert 'Can I return it?' in content
+    assert "Is this real?" in content
+    assert "Yes it is." in content
+    assert "Can I return it?" in content
 
     # Check JSON-LD
     assert '<script type="application/ld+json">' in content

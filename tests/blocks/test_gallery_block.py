@@ -6,9 +6,8 @@ Family: Part of the blocks-level test suite.
 Dependencies: sum_core.blocks.content module, Wagtail blocks, pytest.
 """
 
-from wagtail.blocks import StructBlock, ListBlock
-
 from sum_core.blocks.content import PortfolioBlock, PortfolioItemBlock
+from wagtail.blocks import ListBlock, StructBlock
 
 
 class TestPortfolioBlockStructure:
@@ -47,6 +46,7 @@ class TestPortfolioBlockStructure:
     def test_heading_is_richtext_block(self) -> None:
         """Test that heading is a RichTextBlock with bold/italic features."""
         from wagtail.blocks import RichTextBlock
+
         block = PortfolioBlock()
         heading_block = block.child_blocks["heading"]
         assert isinstance(heading_block, RichTextBlock)

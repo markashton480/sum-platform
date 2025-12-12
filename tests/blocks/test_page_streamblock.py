@@ -8,10 +8,8 @@ Dependencies: sum_core.blocks module, Wagtail blocks.
 from __future__ import annotations
 
 import pytest
-from wagtail import blocks
-
 from sum_core.blocks import PageStreamBlock
-
+from wagtail import blocks
 
 pytestmark = pytest.mark.django_db
 

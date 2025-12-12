@@ -6,33 +6,30 @@ Family: Imported by page models and block implementations across sum_core.
 Dependencies: Wagtail blocks, rich text utilities.
 """
 
-from wagtail import blocks
-from wagtail.blocks import StreamBlock
-
 from sum_core.blocks.content import (
-    HeroBlock,
-    TrustStripBlock,
-    FeaturesListBlock,
-    ComparisonBlock,
-    PortfolioBlock,
-    RichTextContentBlock,
-    EditorialHeaderBlock,
-    QuoteBlock,
-    ImageBlock,
     ButtonGroupBlock,
-    SpacerBlock,
+    ComparisonBlock,
     DividerBlock,
+    EditorialHeaderBlock,
+    FeaturesListBlock,
+    HeroBlock,
+    ImageBlock,
+    PortfolioBlock,
+    QuoteBlock,
+    RichTextContentBlock,
+    SpacerBlock,
+    TrustStripBlock,
 )
-from sum_core.blocks.hero import HeroImageBlock, HeroGradientBlock
+from sum_core.blocks.forms import ContactFormBlock, QuoteRequestFormBlock
+from sum_core.blocks.gallery import GalleryBlock
+from sum_core.blocks.hero import HeroGradientBlock, HeroImageBlock
+from sum_core.blocks.process_faq import FAQBlock, ProcessStepsBlock
 from sum_core.blocks.services import ServiceCardsBlock
 from sum_core.blocks.testimonials import TestimonialsBlock
-from sum_core.blocks.gallery import GalleryBlock
-from sum_core.blocks.trust import (
-    TrustStripBlock as TrustStripLogosBlock,
-    StatsBlock,
-)
-from sum_core.blocks.process_faq import ProcessStepsBlock, FAQBlock
-from sum_core.blocks.forms import ContactFormBlock, QuoteRequestFormBlock
+from sum_core.blocks.trust import StatsBlock
+from sum_core.blocks.trust import TrustStripBlock as TrustStripLogosBlock
+from wagtail import blocks
+from wagtail.blocks import StreamBlock
 
 
 class PageStreamBlock(StreamBlock):
@@ -76,18 +73,22 @@ class PageStreamBlock(StreamBlock):
         label="Rich Text",
         help_text="Add formatted text content. Use H2-H4 for headings, avoid H1.",
         features=[
-            "h2", "h3", "h4",  # Headings H2-H4 only, no H1
-            "bold", "italic",   # Text formatting
-            "link",             # Links
-            "ol", "ul",         # Ordered and unordered lists
+            "h2",
+            "h3",
+            "h4",  # Headings H2-H4 only, no H1
+            "bold",
+            "italic",  # Text formatting
+            "link",  # Links
+            "ol",
+            "ul",  # Ordered and unordered lists
         ],
         required=False,
     )
 
     class Meta:
         """Meta configuration for PageStreamBlock."""
+
         icon = "doc-full"
         label = "Content Block"
         label_format = "Content: {label}"
         template = "sum_core/blocks/rich_text.html"  # Default template for rendering
-

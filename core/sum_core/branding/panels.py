@@ -14,7 +14,6 @@ from django.utils.functional import cached_property
 from wagtail.admin.panels import FieldPanel
 
 
-
 class FormFieldPanel(FieldPanel):
     """
     A panel for rendering form-only fields (not model fields).
@@ -39,4 +38,3 @@ class FormFieldPanel(FieldPanel):
         def is_shown(self) -> bool:
             """Show the panel if the field exists in the form."""
             return self.bound_field is not None
-

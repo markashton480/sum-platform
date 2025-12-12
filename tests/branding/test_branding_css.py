@@ -8,12 +8,11 @@ Dependencies: Django templates, Wagtail Site model, branding template tags.
 
 from __future__ import annotations
 
+import pytest
 from django.template import RequestContext, Template
 from django.test import RequestFactory
-from wagtail.models import Site
-import pytest
-
 from sum_core.branding.models import SiteSettings  # type: ignore[import-not-found]
+from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db
 
@@ -31,10 +30,7 @@ def test_branding_css_outputs_site_colors_and_fonts() -> None:
 
     request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
 
-    template = Template(
-        "{% load branding_tags %}"
-        "{% branding_css %}"
-    )
+    template = Template("{% load branding_tags %}" "{% branding_css %}")
     rendered = template.render(RequestContext(request, {}))
 
     # The implementation outputs HSL-based variables for theming
@@ -64,10 +60,7 @@ def test_branding_css_respects_defaults_when_blank() -> None:
 
     request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
 
-    template = Template(
-        "{% load branding_tags %}"
-        "{% branding_css %}"
-    )
+    template = Template("{% load branding_tags %}" "{% branding_css %}")
     rendered = template.render(RequestContext(request, {}))
 
     # Primary color generates HSL variables

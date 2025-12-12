@@ -1,7 +1,6 @@
-
 import pytest
-from sum_core.blocks.forms import ContactFormBlock, QuoteRequestFormBlock
 from sum_core.blocks.base import PageStreamBlock
+from sum_core.blocks.forms import ContactFormBlock, QuoteRequestFormBlock
 
 
 @pytest.mark.django_db
@@ -34,7 +33,9 @@ class TestFormBlocks:
         # Debug available blocks
         print(f"DEBUG: child_blocks keys: {stream_block.child_blocks.keys()}")
 
-        assert "contact_form" in stream_block.child_blocks, f"contact_form not found in {stream_block.child_blocks.keys()}"
+        assert (
+            "contact_form" in stream_block.child_blocks
+        ), f"contact_form not found in {stream_block.child_blocks.keys()}"
         assert "quote_request_form" in stream_block.child_blocks
 
         contact = stream_block.child_blocks["contact_form"]

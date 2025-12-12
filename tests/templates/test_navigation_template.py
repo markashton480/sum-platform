@@ -11,9 +11,8 @@ from __future__ import annotations
 import pytest
 from django.template import RequestContext, Template
 from django.test import RequestFactory
-from wagtail.models import Page, Site
-
 from home.models import HomePage
+from wagtail.models import Page, Site
 
 pytestmark = pytest.mark.django_db
 

@@ -9,12 +9,10 @@ from __future__ import annotations
 
 import pytest
 from django.test import Client
+from sum_core.pages import StandardPage
 from wagtail.images.models import Image
 from wagtail.images.tests.utils import get_test_image_file
 from wagtail.models import Site
-
-from sum_core.pages import StandardPage
-
 
 pytestmark = pytest.mark.django_db
 
@@ -65,13 +63,16 @@ def test_standard_page_hides_header_when_hero_present() -> None:
 
     # Add hero gradient block
     page.body = [
-        ("hero_gradient", {
-            "headline": "<p>Welcome to Our Site</p>",
-            "subheadline": "Subhead text",
-            "ctas": [],
-            "status": "",
-            "gradient_style": "primary",
-        })
+        (
+            "hero_gradient",
+            {
+                "headline": "<p>Welcome to Our Site</p>",
+                "subheadline": "Subhead text",
+                "ctas": [],
+                "status": "",
+                "gradient_style": "primary",
+            },
+        )
     ]
     page.save()
 
@@ -120,17 +121,20 @@ def test_standard_page_renders_hero_and_content_blocks() -> None:
     root.add_child(instance=page)
 
     page.body = [
-        ("hero_image", {
-            "headline": "<p>Welcome to <em>Our Services</em></p>",
-            "subheadline": "Quality solutions for your needs",
-            "ctas": [],
-            "status": "",
-            "image": image,
-            "image_alt": "Hero background image",
-            "overlay_opacity": "medium",
-            "floating_card_label": "",
-            "floating_card_value": "",
-        }),
+        (
+            "hero_image",
+            {
+                "headline": "<p>Welcome to <em>Our Services</em></p>",
+                "subheadline": "Quality solutions for your needs",
+                "ctas": [],
+                "status": "",
+                "image": image,
+                "image_alt": "Hero background image",
+                "overlay_opacity": "medium",
+                "floating_card_label": "",
+                "floating_card_value": "",
+            },
+        ),
         ("rich_text", "<h2>About Our Company</h2><p>Founded in 2020.</p>"),
     ]
     page.save()
@@ -158,22 +162,25 @@ def test_standard_page_renders_service_cards_block() -> None:
     root.add_child(instance=page)
 
     page.body = [
-        ("service_cards", {
-            "eyebrow": "What We Do",
-            "heading": "<p>Our <em>Services</em></p>",
-            "intro": "Professional solutions for every need.",
-            "cards": [
-                {
-                    "title": "Consulting",
-                    "description": "<p>Expert advice for your business.</p>",
-                },
-                {
-                    "title": "Development",
-                    "description": "<p>Building solutions that scale.</p>",
-                },
-            ],
-            "layout_style": "default",
-        })
+        (
+            "service_cards",
+            {
+                "eyebrow": "What We Do",
+                "heading": "<p>Our <em>Services</em></p>",
+                "intro": "Professional solutions for every need.",
+                "cards": [
+                    {
+                        "title": "Consulting",
+                        "description": "<p>Expert advice for your business.</p>",
+                    },
+                    {
+                        "title": "Development",
+                        "description": "<p>Building solutions that scale.</p>",
+                    },
+                ],
+                "layout_style": "default",
+            },
+        )
     ]
     page.save()
 
@@ -200,23 +207,26 @@ def test_standard_page_renders_testimonials_block() -> None:
     root.add_child(instance=page)
 
     page.body = [
-        ("testimonials", {
-            "eyebrow": "Customer Stories",
-            "heading": "<p>What People <em>Say</em></p>",
-            "testimonials": [
-                {
-                    "quote": "Excellent service and great results!",
-                    "author_name": "Jane Doe",
-                    "company": "Acme Inc",
-                    "rating": 5,
-                },
-                {
-                    "quote": "Highly recommend to everyone.",
-                    "author_name": "John Smith",
-                    "rating": 4,
-                },
-            ],
-        })
+        (
+            "testimonials",
+            {
+                "eyebrow": "Customer Stories",
+                "heading": "<p>What People <em>Say</em></p>",
+                "testimonials": [
+                    {
+                        "quote": "Excellent service and great results!",
+                        "author_name": "Jane Doe",
+                        "company": "Acme Inc",
+                        "rating": 5,
+                    },
+                    {
+                        "quote": "Highly recommend to everyone.",
+                        "author_name": "John Smith",
+                        "rating": 4,
+                    },
+                ],
+            },
+        )
     ]
     page.save()
 
@@ -242,22 +252,25 @@ def test_standard_page_renders_faq_block() -> None:
     root.add_child(instance=page)
 
     page.body = [
-        ("faq", {
-            "eyebrow": "Questions",
-            "heading": "<p>Frequently Asked</p>",
-            "intro": "",
-            "items": [
-                {
-                    "question": "What is your return policy?",
-                    "answer": "<p>We offer 30-day returns.</p>",
-                },
-                {
-                    "question": "How do I contact support?",
-                    "answer": "<p>Email us at support@example.com.</p>",
-                },
-            ],
-            "allow_multiple_open": True,
-        })
+        (
+            "faq",
+            {
+                "eyebrow": "Questions",
+                "heading": "<p>Frequently Asked</p>",
+                "intro": "",
+                "items": [
+                    {
+                        "question": "What is your return policy?",
+                        "answer": "<p>We offer 30-day returns.</p>",
+                    },
+                    {
+                        "question": "How do I contact support?",
+                        "answer": "<p>Email us at support@example.com.</p>",
+                    },
+                ],
+                "allow_multiple_open": True,
+            },
+        )
     ]
     page.save()
 
@@ -308,11 +321,10 @@ def test_standard_page_uses_layout_classes() -> None:
 
     assert response.status_code == 200
     # Main layout elements from base template
-    assert "<main>" in content or '<main id=' in content
+    assert "<main>" in content or "<main id=" in content
     assert "<header" in content
     assert "<footer" in content
     # Container class for proper width constraints
     assert "container" in content
     # Section class for proper spacing
     assert "section" in content
-

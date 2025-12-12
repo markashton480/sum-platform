@@ -8,12 +8,11 @@ Dependencies: Django templates, Wagtail Site model, branding template tags.
 
 from __future__ import annotations
 
+import pytest
 from django.template import RequestContext, Template
 from django.test import RequestFactory
-from wagtail.models import Site
-import pytest
-
 from sum_core.branding.models import SiteSettings  # type: ignore[import-not-found]
+from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db
 
@@ -28,10 +27,7 @@ def test_branding_fonts_outputs_google_fonts_link() -> None:
 
     request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
 
-    template = Template(
-        "{% load branding_tags %}"
-        "{% branding_fonts %}"
-    )
+    template = Template("{% load branding_tags %}" "{% branding_fonts %}")
     rendered = template.render(RequestContext(request, {}))
 
     assert "fonts.googleapis.com/css2" in rendered
@@ -51,10 +47,7 @@ def test_branding_fonts_deduplicates_same_font() -> None:
 
     request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
 
-    template = Template(
-        "{% load branding_tags %}"
-        "{% branding_fonts %}"
-    )
+    template = Template("{% load branding_tags %}" "{% branding_fonts %}")
     rendered = template.render(RequestContext(request, {}))
 
     # Should only include Inter once (deduplicated)
@@ -71,10 +64,7 @@ def test_branding_fonts_uses_defaults_when_no_fonts() -> None:
 
     request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
 
-    template = Template(
-        "{% load branding_tags %}"
-        "{% branding_fonts %}"
-    )
+    template = Template("{% load branding_tags %}" "{% branding_fonts %}")
     rendered = template.render(RequestContext(request, {}))
 
     # When no fonts are configured, the design system defaults are used

@@ -9,11 +9,14 @@ Dependencies: SiteSettings, SiteSettingsAdminForm, THEME_PRESETS.
 from __future__ import annotations
 
 import pytest
-from wagtail.models import Site
-
-from sum_core.branding.forms import SiteSettingsAdminForm  # type: ignore[import-not-found]
+from sum_core.branding.forms import (
+    SiteSettingsAdminForm,  # type: ignore[import-not-found]
+)
 from sum_core.branding.models import SiteSettings  # type: ignore[import-not-found]
-from sum_core.branding.theme_presets import THEME_PRESETS  # type: ignore[import-not-found]
+from sum_core.branding.theme_presets import (
+    THEME_PRESETS,  # type: ignore[import-not-found]
+)
+from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db
 
@@ -78,12 +81,18 @@ def test_theme_presets_match_prd_definitions() -> None:
     for key, expected in PRD_PRESETS.items():
         preset = THEME_PRESETS[key]
         assert preset.label == expected["label"], f"{key}: label mismatch"
-        assert preset.primary_color == expected["primary_color"], f"{key}: primary_color mismatch"
+        assert (
+            preset.primary_color == expected["primary_color"]
+        ), f"{key}: primary_color mismatch"
         assert (
             preset.secondary_color == expected["secondary_color"]
         ), f"{key}: secondary_color mismatch"
-        assert preset.accent_color == expected["accent_color"], f"{key}: accent_color mismatch"
-        assert preset.heading_font == expected["heading_font"], f"{key}: heading_font mismatch"
+        assert (
+            preset.accent_color == expected["accent_color"]
+        ), f"{key}: accent_color mismatch"
+        assert (
+            preset.heading_font == expected["heading_font"]
+        ), f"{key}: heading_font mismatch"
         assert preset.body_font == expected["body_font"], f"{key}: body_font mismatch"
 
 
@@ -245,4 +254,3 @@ def test_manual_edits_after_preset_are_respected() -> None:
     assert settings.heading_font == custom_heading_font
     # Other preset values should still be from clean-slate (unchanged)
     assert settings.secondary_color == PRD_PRESETS["clean-slate"]["secondary_color"]
-

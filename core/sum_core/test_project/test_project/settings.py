@@ -26,7 +26,10 @@ def _load_env_file() -> Path | None:
     Lightweight .env loader so the test project picks up DB settings without
     requiring python-dotenv. Walks up the tree to find the first .env file.
     """
-    for directory in [Path(__file__).resolve().parent, *Path(__file__).resolve().parents]:
+    for directory in [
+        Path(__file__).resolve().parent,
+        *Path(__file__).resolve().parents,
+    ]:
         candidate = directory / ".env"
         if not candidate.exists():
             continue
@@ -73,6 +76,7 @@ INSTALLED_APPS: list[str] = [
     # Project apps
     "sum_core",
     "sum_core.pages",
+    "sum_core.navigation",
     "home",
 ]
 
@@ -160,9 +164,9 @@ USE_TZ: bool = True
 
 # Media
 
-FILE_UPLOAD_MAX_MEMORY_SIZE = 52_428_800 # 50MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 52_428_800  # 50MB
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 52_428_800 # 50MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52_428_800  # 50MB
 
 MEDIA_URL: str = "/images/"
 MEDIA_ROOT: str = BASE_DIR / "images"

@@ -10,12 +10,11 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
 from django.template import RequestContext, Template
 from django.test import RequestFactory
-from wagtail.models import Site
-import pytest
-
 from sum_core.branding.models import SiteSettings  # type: ignore[import-not-found]
+from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db
 
@@ -58,12 +57,10 @@ def test_header_and_footer_render_site_settings() -> None:
     context = RequestContext(request, {})
 
     header_html = Template(
-        "{% load branding_tags %}"
-        "{% include 'sum_core/includes/header.html' %}"
+        "{% load branding_tags %}" "{% include 'sum_core/includes/header.html' %}"
     ).render(context)
     footer_html = Template(
-        "{% load branding_tags %}"
-        "{% include 'sum_core/includes/footer.html' %}"
+        "{% load branding_tags %}" "{% include 'sum_core/includes/footer.html' %}"
     ).render(context)
 
     assert "Header Footer Co" in header_html
