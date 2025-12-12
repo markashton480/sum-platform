@@ -228,7 +228,10 @@ class FooterNavigation(BaseSiteSetting):
         max_length=255,
         blank=True,
         default="",
-        help_text="Short tagline displayed in the footer (max 255 characters).",
+        help_text=(
+            "Optional override. Leave blank to use Site Settings tagline. "
+            "(max 255 characters)"
+        ),
     )
 
     link_sections = StreamField(
@@ -250,31 +253,31 @@ class FooterNavigation(BaseSiteSetting):
     social_facebook = models.URLField(
         blank=True,
         default="",
-        help_text="Facebook page URL.",
+        help_text="Optional override. Leave blank to use Site Settings value.",
     )
 
     social_instagram = models.URLField(
         blank=True,
         default="",
-        help_text="Instagram profile URL.",
+        help_text="Optional override. Leave blank to use Site Settings value.",
     )
 
     social_linkedin = models.URLField(
         blank=True,
         default="",
-        help_text="LinkedIn page URL.",
+        help_text="Optional override. Leave blank to use Site Settings value.",
     )
 
     social_youtube = models.URLField(
         blank=True,
         default="",
-        help_text="YouTube channel URL.",
+        help_text="Optional override. Leave blank to use Site Settings value.",
     )
 
     social_x = models.URLField(
         blank=True,
         default="",
-        help_text="X (Twitter) profile URL.",
+        help_text="Optional override. Leave blank to use Site Settings value.",
     )
 
     # =========================================================================

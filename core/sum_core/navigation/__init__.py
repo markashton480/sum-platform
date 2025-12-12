@@ -18,6 +18,12 @@ Usage:
         FooterNavigation,
     )
 
+    # Import effective settings resolver from services
+    from sum_core.navigation.services import (
+        get_effective_footer_settings,
+        get_effective_header_settings,
+    )
+
 Note: Direct imports from sum_core.navigation are not provided to avoid
 circular import issues during Django app loading.
 """
