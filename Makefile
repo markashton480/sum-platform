@@ -18,6 +18,8 @@ install-dev:
 lint: ## Run linting (ruff + mypy)
 	ruff check .
 	mypy . || true
+	black .
+	isort .
 
 test: ## Run tests with pytest
 	python -m pytest
