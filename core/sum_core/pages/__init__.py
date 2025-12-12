@@ -17,9 +17,19 @@ def __getattr__(name: str):
         from sum_core.pages.standard import StandardPage
 
         return StandardPage
+    if name == "ServiceIndexPage":
+        from sum_core.pages.services import ServiceIndexPage
+
+        return ServiceIndexPage
+    if name == "ServicePage":
+        from sum_core.pages.services import ServicePage
+
+        return ServicePage
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 __all__ = [
     "StandardPage",
+    "ServiceIndexPage",
+    "ServicePage",
 ]

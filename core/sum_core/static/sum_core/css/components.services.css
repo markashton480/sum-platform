@@ -30,11 +30,11 @@
   overflow-x: auto;
   padding-bottom: var(--space-12, 3rem);
   scroll-snap-type: x mandatory;
-  
+
   /* Hide Scrollbar */
   scrollbar-width: none;
   -ms-overflow-style: none;
-  
+
   /* Full bleed on mobile hack */
   margin: 0 calc(var(--container-padding) * -1);
   padding-left: var(--container-padding);
@@ -63,11 +63,11 @@
   position: relative;
   min-width: 85vw; /* Mobile width */
   scroll-snap-align: center;
-  
+
   background-color: hsla(var(--surface-pure), 1);
   border: 1px solid hsla(var(--text-main), 0.06);
   border-radius: var(--radius-sm);
-  
+
   display: flex;
   flex-direction: column;
   transition: all 0.4s var(--ease-out-expo);
@@ -174,4 +174,15 @@
 
 .services__card:hover .btn--link span {
   transform: translateX(6px);
+}
+
+/* Service Page Featured Image */
+.service-featured-image {
+  margin-top: var(--space-10, 2.5rem);
+}
+
+.service-featured-image img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
 }
