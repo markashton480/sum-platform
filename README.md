@@ -12,6 +12,11 @@ This repository contains the **SUM Platform** core package (`sum_core`), a reusa
 - **Theme presets** for quick brand setup
 - **Test project** for development and CI validation
 
+## Documentation
+
+- Dev docs index: [`docs/dev/README.md`](docs/dev/README.md)
+- Navigation system: [`docs/dev/NAV/navigation.md`](docs/dev/NAV/navigation.md)
+
 ## Prerequisites
 
 * **Python 3.12+**

@@ -15,18 +15,19 @@ install-dev:
 	pre-commit install
 
 
-lint: ## Run linting (ruff + mypy)
+lint: ## Run linting checks (no changes)
 	ruff check .
 	mypy . || true
+	black --check .
+	isort --check-only --diff .
+
+format: ## Auto-format code
 	black .
 	isort .
+
 
 test: ## Run tests with pytest
 	python -m pytest
-
-format: ## Format code with Black and isort
-	black .
-	isort .
 
 run: ## Initial for local dev (may be wired to Docker later)
 	$(MANAGE) migrate --noinput

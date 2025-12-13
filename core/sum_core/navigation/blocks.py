@@ -21,6 +21,36 @@ from sum_core.blocks import UniversalLinkBlock
 from wagtail import blocks
 
 # =============================================================================
+# SubSubmenuItemBlock
+# =============================================================================
+
+
+class SubSubmenuItemBlock(blocks.StructBlock):
+    """
+    A second-level submenu item (nested within a SubmenuItem).
+
+    Fields:
+        label: Display text for the menu item (max 50 chars)
+        link: Universal link destination
+    """
+
+    label = blocks.CharBlock(
+        max_length=50,
+        required=True,
+        help_text="Menu item label (max 50 characters).",
+    )
+
+    link = UniversalLinkBlock(
+        required=True,
+        help_text="Link destination for this menu item.",
+    )
+
+    class Meta:
+        icon = "link"
+        label = "Sub-submenu Item"
+
+
+# =============================================================================
 # SubmenuItemBlock
 # =============================================================================
 
@@ -46,8 +76,15 @@ class SubmenuItemBlock(blocks.StructBlock):
     )
 
     class Meta:
-        icon = "link"
+        icon = "indent"  # Changed icon to distinguish from simple link
         label = "Submenu Item"
+
+    children = blocks.ListBlock(
+        SubSubmenuItemBlock(),
+        required=False,
+        max_num=8,
+        help_text="Nested menu items (optional, max 8 items).",
+    )
 
 
 # =============================================================================

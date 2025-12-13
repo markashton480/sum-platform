@@ -16,6 +16,7 @@ from sum_core.navigation.blocks import (
     FooterLinkSectionBlock,
     MenuItemBlock,
     SubmenuItemBlock,
+    SubSubmenuItemBlock,
 )
 from wagtail import blocks as wagtail_blocks
 
@@ -40,11 +41,21 @@ def valid_link_data():
 
 
 @pytest.fixture
+def valid_subsubmenu_item_data(valid_link_data):
+    """Returns valid SubSubmenuItemBlock data."""
+    return {
+        "label": "Sub-submenu Item",
+        "link": valid_link_data,
+    }
+
+
+@pytest.fixture
 def valid_submenu_item_data(valid_link_data):
     """Returns valid SubmenuItemBlock data."""
     return {
         "label": "Submenu Item",
         "link": valid_link_data,
+        "children": [],
     }
 
 
@@ -68,6 +79,34 @@ def valid_footer_section_data(valid_link_data):
 
 
 # =============================================================================
+# SubSubmenuItemBlock Tests
+# =============================================================================
+
+
+class TestSubSubmenuItemBlock:
+    """Tests for SubSubmenuItemBlock."""
+
+    def test_block_has_required_fields(self):
+        """Verify SubSubmenuItemBlock has label and link fields."""
+        block = SubSubmenuItemBlock()
+        field_names = [name for name, _ in block.child_blocks.items()]
+        assert "label" in field_names
+        assert "link" in field_names
+
+    def test_label_max_length_50(self):
+        """Verify label field has max_length of 50."""
+        block = SubSubmenuItemBlock()
+        label_block = block.child_blocks["label"]
+        assert label_block.field.max_length == 50
+
+    def test_subsubmenu_item_can_clean_valid_data(self, valid_subsubmenu_item_data):
+        """Verify SubSubmenuItemBlock validates minimal valid data."""
+        block = SubSubmenuItemBlock()
+        result = block.clean(valid_subsubmenu_item_data)
+        assert result["label"] == "Sub-submenu Item"
+
+
+# =============================================================================
 # SubmenuItemBlock Tests
 # =============================================================================
 
@@ -76,11 +115,12 @@ class TestSubmenuItemBlock:
     """Tests for SubmenuItemBlock."""
 
     def test_block_has_required_fields(self):
-        """Verify SubmenuItemBlock has label and link fields."""
+        """Verify SubmenuItemBlock has label, link and children fields."""
         block = SubmenuItemBlock()
         field_names = [name for name, _ in block.child_blocks.items()]
         assert "label" in field_names
         assert "link" in field_names
+        assert "children" in field_names
 
     def test_label_max_length_50(self):
         """Verify label field has max_length of 50."""
@@ -88,12 +128,25 @@ class TestSubmenuItemBlock:
         label_block = block.child_blocks["label"]
         assert label_block.field.max_length == 50
 
+    def test_children_is_list_block(self):
+        """Verify children field is a ListBlock."""
+        block = SubmenuItemBlock()
+        children_block = block.child_blocks["children"]
+        assert isinstance(children_block, wagtail_blocks.ListBlock)
+
+    def test_children_max_num_is_8(self):
+        """Verify children ListBlock has max_num of 8."""
+        block = SubmenuItemBlock()
+        children_block = block.child_blocks["children"]
+        assert children_block.meta.max_num == 8
+
     def test_submenu_item_can_clean_valid_data(self, valid_submenu_item_data):
         """Verify SubmenuItemBlock validates minimal valid data."""
         block = SubmenuItemBlock()
         # Should not raise an exception
         result = block.clean(valid_submenu_item_data)
         assert result["label"] == "Submenu Item"
+        assert list(result["children"]) == []
 
 
 # =============================================================================
@@ -250,6 +303,14 @@ class TestFooterLinkSectionBlock:
 class TestBlockDependencies:
     """Tests verifying blocks correctly depend on UniversalLinkBlock."""
 
+    def test_subsubmenu_item_uses_universal_link_block(self):
+        """Verify SubSubmenuItemBlock uses UniversalLinkBlock."""
+        from sum_core.blocks import UniversalLinkBlock
+
+        block = SubSubmenuItemBlock()
+        link_block = block.child_blocks["link"]
+        assert isinstance(link_block, UniversalLinkBlock)
+
     def test_submenu_item_uses_universal_link_block(self):
         """Verify SubmenuItemBlock uses UniversalLinkBlock (not duplicated logic)."""
         from sum_core.blocks import UniversalLinkBlock
@@ -281,3 +342,10 @@ class TestBlockDependencies:
         children_block = block.child_blocks["children"]
         # children is a ListBlock, check its child_block
         assert isinstance(children_block.child_block, SubmenuItemBlock)
+
+    def test_submenu_item_children_use_subsubmenu_item_block(self):
+        """Verify SubmenuItemBlock.children uses SubSubmenuItemBlock."""
+        block = SubmenuItemBlock()
+        children_block = block.child_blocks["children"]
+        # children is a ListBlock, check its child_block
+        assert isinstance(children_block.child_block, SubSubmenuItemBlock)

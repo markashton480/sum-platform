@@ -59,7 +59,7 @@ This gap creates significant UX and maintainability issues:
 
 - Header navigation settings model (per-site)
 - Footer navigation settings model (per-site)
-- StreamField blocks for menu items with single-level dropdown support
+- StreamField blocks for menu items with nested dropdown support (2 levels)
 - **UniversalLinkBlock** with 5 link types (page, URL, email, phone, anchor)
 - Template tags for rendering navigation
 - Mobile sticky CTA configuration
@@ -71,7 +71,7 @@ This gap creates significant UX and maintainability issues:
 
 - Navigation variants (seasonal, campaign-specific) — trivial to add later
 - Mega menus with rich content/images
-- Multi-level dropdown submenus (beyond 2 levels)
+- Multi-level dropdown submenus (beyond 2 levels supported MVP)
 - User authentication-based menu visibility
 - A/B testing of navigation variants
 - Language/locale-specific menus
@@ -239,6 +239,14 @@ This separation ensures the navigation system is **design-system-agnostic** and 
 | `children` | ListBlock(SubmenuItemBlock) | No       | Dropdown items (max 8) |
 
 #### SubmenuItemBlock (StreamField Block)
+
+| Field      | Type                           | Required | Description          |
+| ---------- | ------------------------------ | -------- | -------------------- |
+| `label`    | CharBlock(50)                  | Yes      | Display text         |
+| `link`     | UniversalLinkBlock             | Yes      | Link destination     |
+| `children` | ListBlock(SubSubmenuItemBlock) | No       | Nested items (max 8) |
+
+#### SubSubmenuItemBlock (StreamField Block)
 
 | Field   | Type               | Required | Description      |
 | ------- | ------------------ | -------- | ---------------- |

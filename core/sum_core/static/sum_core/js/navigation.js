@@ -15,7 +15,7 @@
     const SELECTORS = {
         menuBtn: '#menuBtn, .menu-btn',
         navLinks: '#navLinks, .nav-links',
-        dropdownToggle: '.nav-dropdown__toggle',
+        dropdownToggle: '.nav-dropdown__toggle, .nav-nested-dropdown__toggle',
         dropdownMenu: '.nav-dropdown__menu',
         dropdown: '.nav-dropdown',
         header: '.header'
@@ -89,16 +89,34 @@
      */
     function toggleDropdown(toggle) {
         const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-
-        // Close other dropdowns first (accordion behaviour)
-        document.querySelectorAll(SELECTORS.dropdownToggle).forEach(otherToggle => {
-            if (otherToggle !== toggle) {
-                otherToggle.setAttribute('aria-expanded', 'false');
-            }
-        });
+        const isOpening = !isExpanded;
 
         // Toggle this dropdown
-        toggle.setAttribute('aria-expanded', !isExpanded);
+        toggle.setAttribute('aria-expanded', isOpening);
+
+        if (isOpening) {
+            // Close other dropdowns NOT in the ancestry of this one
+            document.querySelectorAll(SELECTORS.dropdownToggle).forEach(otherToggle => {
+                if (otherToggle === toggle) return;
+
+                const otherMenu = otherToggle.nextElementSibling;
+                // If the clicked toggle is INSIDE the other menu, then otherToggle is a parent
+                // Don't close parents
+                if (otherMenu && otherMenu.contains(toggle)) {
+                    return;
+                }
+
+                otherToggle.setAttribute('aria-expanded', 'false');
+            });
+        } else {
+            // If closing, close all children dropdowns
+            const menu = toggle.nextElementSibling;
+            if (menu) {
+                menu.querySelectorAll(SELECTORS.dropdownToggle).forEach(childToggle => {
+                    childToggle.setAttribute('aria-expanded', 'false');
+                });
+            }
+        }
     }
 
     // =============================================================================

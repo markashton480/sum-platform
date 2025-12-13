@@ -509,41 +509,10 @@ def _build_menu_item_base(item_block: Any) -> dict[str, Any]:
         if linked_page:
             linked_page_pk = linked_page.pk
 
-    # Build children base data
+    # Build children base data (recursive)
     children_blocks = value.get("children", [])
-    children_base: list[dict[str, Any]] = []
+    children_base = _build_children_base(children_blocks)
     has_children = bool(children_blocks)
-
-    for child_block in children_blocks:
-        child_value = (
-            child_block.value if hasattr(child_block, "value") else child_block
-        )
-        child_label = child_value.get("label", "")
-        child_link = child_value.get("link")
-        child_link_data = _extract_link_data(child_link)
-
-        # Child page PK for active detection
-        child_page_pk: int | None = None
-        child_link_type: str | None = None
-        if child_link and hasattr(child_link, "get"):
-            child_link_type = child_link.get("link_type")
-            child_page = child_link.get("page")
-            if child_page:
-                child_page_pk = child_page.pk
-
-        children_base.append(
-            {
-                "label": child_label,
-                "href": child_link_data["href"],
-                "is_external": child_link_data["is_external"],
-                "opens_new_tab": child_link_data["opens_new_tab"],
-                "attrs": child_link_data["attrs"],
-                "attrs_str": child_link_data["attrs_str"],
-                # For active detection (not displayed in template)
-                "_page_pk": child_page_pk,
-                "_link_type": child_link_type,
-            }
-        )
 
     return {
         "label": label,
@@ -586,6 +555,111 @@ def _apply_header_active_states(
     return result
 
 
+def _build_children_base(children_blocks: list[Any]) -> list[dict[str, Any]]:
+    """
+    Recursively build base data for a list of children blocks.
+    """
+    children_base: list[dict[str, Any]] = []
+
+    for child_block in children_blocks:
+        child_value = (
+            child_block.value if hasattr(child_block, "value") else child_block
+        )
+        child_label = child_value.get("label", "")
+        child_link = child_value.get("link")
+        child_link_data = _extract_link_data(child_link)
+
+        # Child page PK for active detection
+        child_page_pk: int | None = None
+        child_link_type: str | None = None
+        if child_link and hasattr(child_link, "get"):
+            child_link_type = child_link.get("link_type")
+            child_page = child_link.get("page")
+            if child_page:
+                child_page_pk = child_page.pk
+
+        # Recursively build grandchildren
+        grand_children_blocks = child_value.get("children", [])
+        grand_children_base = _build_children_base(grand_children_blocks)
+        has_children = bool(grand_children_blocks)
+
+        children_base.append(
+            {
+                "label": child_label,
+                "href": child_link_data["href"],
+                "is_external": child_link_data["is_external"],
+                "opens_new_tab": child_link_data["opens_new_tab"],
+                "attrs": child_link_data["attrs"],
+                "attrs_str": child_link_data["attrs_str"],
+                "has_children": has_children,
+                "children_base": grand_children_base,
+                # For active detection (not displayed in template)
+                "_page_pk": child_page_pk,
+                "_link_type": child_link_type,
+            }
+        )
+    return children_base
+
+
+def _apply_children_active_states(
+    children_base: list[dict[str, Any]],
+    current_page: Page | None,
+    request: HttpRequest | None,
+) -> tuple[list[dict[str, Any]], bool]:
+    """
+    Recursively apply active states to children.
+    Returns (list of processed children, bool indicating if any descendant is active).
+    """
+    children: list[dict[str, Any]] = []
+    any_child_active = False
+
+    for child_base in children_base:
+        child_page_pk = child_base.get("_page_pk")
+        child_link_type = child_base.get("_link_type")
+        child_href = child_base.get("href", "#")
+
+        # Check direct active state
+        child_is_current = False
+        child_is_active = False
+
+        if child_link_type == "page" and child_page_pk is not None:
+            child_is_current = _is_current_page_by_pk(child_page_pk, current_page)
+            child_is_active = _is_active_section_by_pk(child_page_pk, current_page)
+        else:
+            child_is_current = _is_current_path(child_href, request, child_link_type)
+            child_is_active = child_is_current
+
+        # Recursively process grandchildren
+        grand_children_base = child_base.get("children_base", [])
+        grand_children, grandchild_active = _apply_children_active_states(
+            grand_children_base, current_page, request
+        )
+
+        # If any grandchild is active, this child is active
+        if grandchild_active:
+            child_is_active = True
+
+        # Propagate up
+        if child_is_active:
+            any_child_active = True
+
+        child = {
+            "label": child_base.get("label", ""),
+            "href": child_href,
+            "is_external": child_base.get("is_external", False),
+            "opens_new_tab": child_base.get("opens_new_tab", False),
+            "attrs": child_base.get("attrs", {}),
+            "attrs_str": child_base.get("attrs_str", ""),
+            "is_current": child_is_current,
+            "is_active": child_is_active,
+            "has_children": child_base.get("has_children", False),
+            "children": grand_children,
+        }
+        children.append(child)
+
+    return children, any_child_active
+
+
 def _apply_item_active_state(
     item_base: dict[str, Any],
     current_page: Page | None,
@@ -609,39 +683,15 @@ def _apply_item_active_state(
         is_current = _is_current_path(href, request, link_type)
         is_active = is_current
 
-    # Process children
-    children: list[dict[str, Any]] = []
-    for child_base in item_base.get("children_base", []):
-        child_page_pk = child_base.get("_page_pk")
-        child_link_type = child_base.get("_link_type")
-        child_href = child_base.get("href", "#")
+    # Process children recursively
+    children_base_list = item_base.get("children_base", [])
+    children, child_active = _apply_children_active_states(
+        children_base_list, current_page, request
+    )
 
-        child_is_current = False
-        child_is_active = False
-
-        if child_link_type == "page" and child_page_pk is not None:
-            child_is_current = _is_current_page_by_pk(child_page_pk, current_page)
-            child_is_active = _is_active_section_by_pk(child_page_pk, current_page)
-        else:
-            child_is_current = _is_current_path(child_href, request, child_link_type)
-            child_is_active = child_is_current
-
-        # If any child is active, parent should be active too
-        if child_is_active:
-            is_active = True
-
-        # Build child dict without internal keys
-        child = {
-            "label": child_base.get("label", ""),
-            "href": child_href,
-            "is_external": child_base.get("is_external", False),
-            "opens_new_tab": child_base.get("opens_new_tab", False),
-            "attrs": child_base.get("attrs", {}),
-            "attrs_str": child_base.get("attrs_str", ""),
-            "is_current": child_is_current,
-            "is_active": child_is_active,
-        }
-        children.append(child)
+    # If any child is active, parent should be active too
+    if child_active:
+        is_active = True
 
     # Build final item dict without internal keys
     return {
