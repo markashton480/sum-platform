@@ -13,10 +13,8 @@ from django.db import connection
 from django.template import RequestContext, Template
 from django.test import RequestFactory
 from django.test.utils import CaptureQueriesContext
-from sum_core.branding.models import SiteSettings  # type: ignore[import-not-found]
-from sum_core.branding.templatetags.branding_tags import (  # type: ignore[import-not-found]
-    get_site_settings,
-)
+from sum_core.branding.models import SiteSettings
+from sum_core.branding.templatetags.branding_tags import get_site_settings
 from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db

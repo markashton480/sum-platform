@@ -4,12 +4,13 @@ Path: core/sum_core/blocks/links.py
 Purpose: Define UniversalLinkBlock - a reusable link primitive supporting page,
          URL, email, phone, and anchor link types.
 Family: Foundation block for navigation, CTAs, and any link-based content.
-Dependencies: wagtail.blocks, django.core.exceptions
+Dependencies: wagtail.blocks, django.core.exceptions, sum_core.utils
 """
 import re
 from urllib.parse import urlparse
 
 from django.core.exceptions import ValidationError
+from sum_core.utils.contact import normalize_phone_href
 from wagtail import blocks
 
 # =============================================================================
@@ -32,8 +33,7 @@ LINK_TYPE_CHOICES = [
 # Anchor must start with a letter, then letters/numbers/hyphen/underscore
 ANCHOR_PATTERN = re.compile(r"^[a-zA-Z][a-zA-Z0-9_-]*$")
 
-# Phone number cleaning - remove all non-digit characters except leading +
-PHONE_CLEAN_PATTERN = re.compile(r"[^\d+]")
+# Phone number cleaning uses shared utility from sum_core.utils.contact
 
 
 # =============================================================================
@@ -80,12 +80,9 @@ class UniversalLinkValue(blocks.StructValue):
 
         elif link_type == "phone":
             phone = self.get("phone") or ""
-            # Clean phone: strip all non-digits except leading +
-            if phone.startswith("+"):
-                cleaned = "+" + PHONE_CLEAN_PATTERN.sub("", phone[1:])
-            else:
-                cleaned = PHONE_CLEAN_PATTERN.sub("", phone)
-            return f"tel:{cleaned}" if cleaned else "#"
+            # Use shared utility for phone normalization
+            href = normalize_phone_href(phone)
+            return href if href else "#"
 
         elif link_type == "anchor":
             anchor = self.get("anchor") or ""

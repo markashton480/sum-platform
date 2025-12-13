@@ -13,7 +13,7 @@ Tags:
 
 from __future__ import annotations
 
-import re
+import copy
 from collections.abc import Callable
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
@@ -27,6 +27,7 @@ from sum_core.navigation.services import (
     get_effective_footer_settings,
     get_effective_header_settings,
 )
+from sum_core.utils.contact import normalize_phone_href
 from wagtail.models import Page, Site
 
 if TYPE_CHECKING:
@@ -41,8 +42,7 @@ register = template.Library()
 CACHE_TTL_DEFAULT = 3600  # 1 hour in seconds
 CACHE_KEY_PREFIX = "nav"
 
-# Phone number cleaning pattern - strips non-digits except leading +
-PHONE_CLEAN_PATTERN = re.compile(r"[^\d+]")
+# Phone number cleaning now uses shared utility from sum_core.utils.contact
 
 
 # =============================================================================
@@ -61,7 +61,7 @@ def _make_cache_key(tag_name: str, site_id: int) -> str:
 
     Delegates to shared helper to prevent key format drift.
     """
-    return get_nav_cache_key(site_id, tag_name)
+    return str(get_nav_cache_key(site_id, tag_name))
 
 
 def _cache_get_or_build(
@@ -75,7 +75,9 @@ def _cache_get_or_build(
     try:
         cached = cache.get(cache_key)
         if cached is not None:
-            return cached
+            # Return type is dict[str, Any], assert it explicitly for mypy
+            result: dict[str, Any] = cached
+            return result
     except Exception:
         # Cache backend failed, continue to build
         pass
@@ -96,16 +98,9 @@ def _cache_get_or_build(
 # =============================================================================
 
 
-def _normalize_phone_href(phone_number: str | None) -> str:
-    """Clean phone number to tel: href format."""
-    if not phone_number:
-        return ""
-    # Strip non-digits except leading +
-    if phone_number.startswith("+"):
-        cleaned = "+" + PHONE_CLEAN_PATTERN.sub("", phone_number[1:])
-    else:
-        cleaned = PHONE_CLEAN_PATTERN.sub("", phone_number)
-    return f"tel:{cleaned}" if cleaned else ""
+# _normalize_phone_href is now imported from sum_core.utils.contact
+# Keeping local alias for backward compatibility in this module
+_normalize_phone_href = normalize_phone_href
 
 
 def _extract_link_data(link_value: Any) -> dict[str, Any]:
@@ -167,11 +162,8 @@ def _extract_link_data(link_value: Any) -> dict[str, Any]:
     elif link_type == "phone":
         phone = link_value.get("phone", "") if hasattr(link_value, "get") else ""
         if phone:
-            if phone.startswith("+"):
-                cleaned = "+" + PHONE_CLEAN_PATTERN.sub("", phone[1:])
-            else:
-                cleaned = PHONE_CLEAN_PATTERN.sub("", phone)
-            href = f"tel:{cleaned}" if cleaned else "#"
+            phone_href = normalize_phone_href(phone)
+            href = phone_href if phone_href else "#"
     elif link_type == "anchor":
         anchor = link_value.get("anchor", "") if hasattr(link_value, "get") else ""
         anchor = anchor.lstrip("#")
@@ -272,7 +264,7 @@ def _is_current_page(linked_page: Page | None, current_page: Page | None) -> boo
     """Check if linked page is exactly the current page."""
     if linked_page is None or current_page is None:
         return False
-    return linked_page.pk == current_page.pk
+    return bool(linked_page.pk == current_page.pk)
 
 
 def _is_active_section(linked_page: Page | None, current_page: Page | None) -> bool:
@@ -286,7 +278,7 @@ def _is_active_section(linked_page: Page | None, current_page: Page | None) -> b
     if linked_page.pk == current_page.pk:
         return True
     # Check if current page is a descendant of linked page
-    return current_page.is_descendant_of(linked_page)
+    return bool(current_page.is_descendant_of(linked_page))
 
 
 def _is_current_path(
@@ -302,7 +294,7 @@ def _is_current_path(
     if link_type == "page":
         # Page links should use page-based detection
         return False
-    return request.path == href
+    return bool(request.path == href)
 
 
 # =============================================================================
@@ -427,6 +419,11 @@ def header_nav(context: dict[str, Any]) -> dict[str, Any]:
         - header_cta: dict with enabled, text, href, attrs
         - current_page: Page object or None
 
+    Caching Strategy:
+        Base menu data (structure, labels, hrefs, etc.) is cached under
+        nav:header:{site_id}. Active states (is_current, is_active) are
+        computed per-request and applied via deep copy to avoid mutating cache.
+
     Usage:
         {% load navigation_tags %}
         {% header_nav as nav %}
@@ -442,15 +439,31 @@ def header_nav(context: dict[str, Any]) -> dict[str, Any]:
 
     current_page = _get_current_page(context)
 
-    # Build the context (active detection must happen per-request, not cached)
-    # The base data can be cached, but we need to compute active states per-request
+    # Get cached base data or build it
+    cache_key = _make_cache_key("header", site.id)
+    base_data = _cache_get_or_build(cache_key, lambda: _build_header_base_data(site))
+
+    # Apply active states per-request (use deep copy to avoid mutating cache)
+    result = _apply_header_active_states(base_data, current_page, request)
+    result["current_page"] = current_page
+
+    return result
+
+
+def _build_header_base_data(site: Site) -> dict[str, Any]:
+    """
+    Build cacheable header navigation base data.
+
+    This builds the menu structure, CTA, and phone settings without any
+    per-request active states. Page PKs are included for active detection.
+    """
     header_settings = get_effective_header_settings(site)
 
-    # Build menu items with active detection
-    menu_items = []
+    # Build menu items (base data only, no active states)
+    menu_items_base: list[dict[str, Any]] = []
     if header_settings.menu_items:
         for item in header_settings.menu_items:
-            menu_items.append(_build_menu_item(item, current_page, request))
+            menu_items_base.append(_build_menu_item_base(item))
 
     # Build CTA dict
     cta_link_data = _extract_cta_link(header_settings.header_cta.link)
@@ -464,15 +477,211 @@ def header_nav(context: dict[str, Any]) -> dict[str, Any]:
     # Build phone data
     phone_number = header_settings.phone_number or ""
     phone_href = _normalize_phone_href(phone_number)
+    show_phone = header_settings.show_phone_in_header
 
     return {
-        "menu_items": menu_items,
-        "show_phone": header_settings.show_phone_in_header,
-        "phone_number": phone_number if header_settings.show_phone_in_header else "",
-        "phone_href": phone_href if header_settings.show_phone_in_header else "",
+        "menu_items_base": menu_items_base,
+        "show_phone": show_phone,
+        "phone_number": phone_number if show_phone else "",
+        "phone_href": phone_href if show_phone else "",
         "header_cta": header_cta,
-        "current_page": current_page,
     }
+
+
+def _build_menu_item_base(item_block: Any) -> dict[str, Any]:
+    """
+    Build base menu item dict without active states (cacheable).
+
+    Includes page_pk for later active detection.
+    """
+    value = item_block.value if hasattr(item_block, "value") else item_block
+
+    label = value.get("label", "")
+    link_value = value.get("link")
+    link_data = _extract_link_data(link_value)
+
+    # Extract page PK and link type for later active detection
+    linked_page_pk: int | None = None
+    link_type: str | None = None
+    if link_value:
+        link_type = link_value.get("link_type") if hasattr(link_value, "get") else None
+        linked_page = link_value.get("page") if hasattr(link_value, "get") else None
+        if linked_page:
+            linked_page_pk = linked_page.pk
+
+    # Build children base data
+    children_blocks = value.get("children", [])
+    children_base: list[dict[str, Any]] = []
+    has_children = bool(children_blocks)
+
+    for child_block in children_blocks:
+        child_value = (
+            child_block.value if hasattr(child_block, "value") else child_block
+        )
+        child_label = child_value.get("label", "")
+        child_link = child_value.get("link")
+        child_link_data = _extract_link_data(child_link)
+
+        # Child page PK for active detection
+        child_page_pk: int | None = None
+        child_link_type: str | None = None
+        if child_link and hasattr(child_link, "get"):
+            child_link_type = child_link.get("link_type")
+            child_page = child_link.get("page")
+            if child_page:
+                child_page_pk = child_page.pk
+
+        children_base.append(
+            {
+                "label": child_label,
+                "href": child_link_data["href"],
+                "is_external": child_link_data["is_external"],
+                "opens_new_tab": child_link_data["opens_new_tab"],
+                "attrs": child_link_data["attrs"],
+                "attrs_str": child_link_data["attrs_str"],
+                # For active detection (not displayed in template)
+                "_page_pk": child_page_pk,
+                "_link_type": child_link_type,
+            }
+        )
+
+    return {
+        "label": label,
+        "href": link_data["href"],
+        "is_external": link_data["is_external"],
+        "opens_new_tab": link_data["opens_new_tab"],
+        "attrs": link_data["attrs"],
+        "attrs_str": link_data["attrs_str"],
+        "has_children": has_children,
+        "children_base": children_base,
+        # For active detection (not displayed in template)
+        "_page_pk": linked_page_pk,
+        "_link_type": link_type,
+    }
+
+
+def _apply_header_active_states(
+    base_data: dict[str, Any],
+    current_page: Page | None,
+    request: HttpRequest | None,
+) -> dict[str, Any]:
+    """
+    Apply per-request active states to base header data.
+
+    Returns a new dict structure without mutating the cached base_data.
+    """
+    # Deep copy to avoid mutating cached data
+    result: dict[str, Any] = copy.deepcopy(base_data)
+
+    # Convert menu_items_base to menu_items with active states
+    menu_items: list[dict[str, Any]] = []
+    for item_base in result.get("menu_items_base", []):
+        item = _apply_item_active_state(item_base, current_page, request)
+        menu_items.append(item)
+
+    result["menu_items"] = menu_items
+    # Remove the base key from result
+    result.pop("menu_items_base", None)
+
+    return result
+
+
+def _apply_item_active_state(
+    item_base: dict[str, Any],
+    current_page: Page | None,
+    request: HttpRequest | None,
+) -> dict[str, Any]:
+    """
+    Apply active state to a single menu item and its children.
+    """
+    # Compute active states for this item
+    page_pk = item_base.get("_page_pk")
+    link_type = item_base.get("_link_type")
+    href = item_base.get("href", "#")
+
+    is_current = False
+    is_active = False
+
+    if link_type == "page" and page_pk is not None:
+        is_current = _is_current_page_by_pk(page_pk, current_page)
+        is_active = _is_active_section_by_pk(page_pk, current_page)
+    else:
+        is_current = _is_current_path(href, request, link_type)
+        is_active = is_current
+
+    # Process children
+    children: list[dict[str, Any]] = []
+    for child_base in item_base.get("children_base", []):
+        child_page_pk = child_base.get("_page_pk")
+        child_link_type = child_base.get("_link_type")
+        child_href = child_base.get("href", "#")
+
+        child_is_current = False
+        child_is_active = False
+
+        if child_link_type == "page" and child_page_pk is not None:
+            child_is_current = _is_current_page_by_pk(child_page_pk, current_page)
+            child_is_active = _is_active_section_by_pk(child_page_pk, current_page)
+        else:
+            child_is_current = _is_current_path(child_href, request, child_link_type)
+            child_is_active = child_is_current
+
+        # If any child is active, parent should be active too
+        if child_is_active:
+            is_active = True
+
+        # Build child dict without internal keys
+        child = {
+            "label": child_base.get("label", ""),
+            "href": child_href,
+            "is_external": child_base.get("is_external", False),
+            "opens_new_tab": child_base.get("opens_new_tab", False),
+            "attrs": child_base.get("attrs", {}),
+            "attrs_str": child_base.get("attrs_str", ""),
+            "is_current": child_is_current,
+            "is_active": child_is_active,
+        }
+        children.append(child)
+
+    # Build final item dict without internal keys
+    return {
+        "label": item_base.get("label", ""),
+        "href": href,
+        "is_external": item_base.get("is_external", False),
+        "opens_new_tab": item_base.get("opens_new_tab", False),
+        "attrs": item_base.get("attrs", {}),
+        "attrs_str": item_base.get("attrs_str", ""),
+        "is_current": is_current,
+        "is_active": is_active,
+        "has_children": item_base.get("has_children", False),
+        "children": children,
+    }
+
+
+def _is_current_page_by_pk(page_pk: int, current_page: Page | None) -> bool:
+    """Check if a page PK matches the current page."""
+    if current_page is None:
+        return False
+    return bool(current_page.pk == page_pk)
+
+
+def _is_active_section_by_pk(page_pk: int, current_page: Page | None) -> bool:
+    """
+    Check if current page matches the page PK or is a descendant.
+
+    Fetches the page from DB only when needed for descendant check.
+    """
+    if current_page is None:
+        return False
+    if current_page.pk == page_pk:
+        return True
+
+    # Need to fetch the page to check descendant relationship
+    try:
+        linked_page = Page.objects.get(pk=page_pk)
+        return bool(current_page.is_descendant_of(linked_page))
+    except Page.DoesNotExist:
+        return False
 
 
 @register.simple_tag(takes_context=True)

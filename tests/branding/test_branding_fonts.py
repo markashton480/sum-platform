@@ -11,7 +11,7 @@ from __future__ import annotations
 import pytest
 from django.template import RequestContext, Template
 from django.test import RequestFactory
-from sum_core.branding.models import SiteSettings  # type: ignore[import-not-found]
+from sum_core.branding.models import SiteSettings
 from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db

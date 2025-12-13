@@ -9,13 +9,9 @@ Dependencies: SiteSettings, SiteSettingsAdminForm, THEME_PRESETS.
 from __future__ import annotations
 
 import pytest
-from sum_core.branding.forms import (
-    SiteSettingsAdminForm,  # type: ignore[import-not-found]
-)
-from sum_core.branding.models import SiteSettings  # type: ignore[import-not-found]
-from sum_core.branding.theme_presets import (
-    THEME_PRESETS,  # type: ignore[import-not-found]
-)
+from sum_core.branding.forms import SiteSettingsAdminForm
+from sum_core.branding.models import SiteSettings
+from sum_core.branding.theme_presets import THEME_PRESETS
 from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db

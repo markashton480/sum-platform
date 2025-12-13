@@ -9,7 +9,7 @@ Dependencies: Django, Wagtail, sum_core.branding.models.SiteSettings.
 from __future__ import annotations
 
 import pytest
-from sum_core.branding.models import SiteSettings  # type: ignore[import-not-found]
+from sum_core.branding.models import SiteSettings
 from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db

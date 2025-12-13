@@ -249,6 +249,11 @@ class FooterNavigation(BaseSiteSetting):
     # =========================================================================
     # Social Links Fields
     # =========================================================================
+    #
+    # Note: TikTok is intentionally NOT included here. TikTok URLs are always
+    # sourced from SiteSettings (Branding) to maintain a single source of truth.
+    # See navigation/services.py::get_effective_footer_settings for details.
+    #
 
     social_facebook = models.URLField(
         blank=True,
