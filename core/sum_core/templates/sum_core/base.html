@@ -1,9 +1,10 @@
-{% load static wagtailcore_tags branding_tags wagtailimages_tags %}
+{% load static wagtailcore_tags branding_tags wagtailimages_tags analytics_tags %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% analytics_head %}
     {% get_site_settings as site_settings %}
     {% wagtail_site as current_site %}
     {% firstof site_settings.company_name current_site.site_name WAGTAIL_SITE_NAME as site_name %}
@@ -40,6 +41,7 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body id="body">
+    {% analytics_body %}
 
     {% include "sum_core/includes/header.html" %}
 

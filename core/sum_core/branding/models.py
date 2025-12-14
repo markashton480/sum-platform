@@ -132,6 +132,17 @@ class SiteSettings(BaseSiteSetting):
     youtube_url = models.URLField(blank=True)
     tiktok_url = models.URLField(blank=True)
 
+    gtm_container_id = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Google Tag Manager Container ID (e.g. GTM-XXXXXX).",
+    )
+    ga_measurement_id = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Google Analytics 4 Measurement ID (e.g. G-XXXXXXXXXX).",
+    )
+
     panels = [
         MultiFieldPanel(
             [
@@ -192,6 +203,13 @@ class SiteSettings(BaseSiteSetting):
                 FieldPanel("tiktok_url"),
             ],
             heading="Social Links",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("gtm_container_id"),
+                FieldPanel("ga_measurement_id"),
+            ],
+            heading="Analytics",
         ),
     ]
 
