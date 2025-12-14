@@ -12,11 +12,11 @@
     </header>
 
     <div class="quote-form-container reveal-group delay-100">
-      <form action="/forms/submit/" method="post" novalidate class="form premium-form quote-form" data-form-type="quote" id="quote-form">
+      <form action="/forms/submit/" method="post" novalidate class="form premium-form quote-form" data-form-type="quote_request" id="quote-form">
         {% csrf_token %}
 
         <!-- Hidden fields for attribution and spam protection -->
-        {% form_hidden_fields form_type="quote" %}
+        {% form_hidden_fields form_type="quote_request" %}
 
         <!-- Honeypot field -->
         <div class="form__field form__field--honeypot" aria-hidden="true">

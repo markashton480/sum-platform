@@ -57,6 +57,6 @@ def test_quote_request_form_rendering():
     assert "Get a Quote" in rendered
     assert "Request Quote" in rendered
     assert "section--compact" in rendered
-    assert 'data-form-type="quote"' in rendered
+    assert 'data-form-type="quote_request"' in rendered
     assert 'name="company"' in rendered  # Honeypot
     assert "Postcode" in rendered

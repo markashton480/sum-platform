@@ -120,3 +120,20 @@ def test_footer_business_info_in_contact_section() -> None:
 
     assert "Business Info Co" in footer_html
     assert "info@business.com" in footer_html
+
+
+def test_event_tracking_script_included() -> None:
+    """Validate that event tracking JS is included in base template with defer."""
+    site = Site.objects.get(is_default_site=True)
+    request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
+    page = SimpleNamespace(title="Event Tracking Test")
+
+    template = Template(
+        "{% extends 'sum_core/base.html' %}" "{% block content %}{% endblock %}"
+    )
+    rendered = template.render(RequestContext(request, {"page": page}))
+
+    # Check for script tag
+    assert 'src="/static/sum_core/js/event_tracking.js"' in rendered
+    # Check that defer attribute is present (simple string check)
+    assert "defer" in rendered
