@@ -37,11 +37,24 @@ class SeoFieldsMixin(models.Model):
         help_text="Optional. Brief summary for search engines (recommended max 160 characters).",
     )
 
+    seo_noindex = models.BooleanField(
+        default=False,
+        help_text="If checked, this page will be hidden from search engines (noindex).",
+        verbose_name="No-Index",
+    )
+    seo_nofollow = models.BooleanField(
+        default=False,
+        help_text="If checked, search engines will not follow links on this page (nofollow).",
+        verbose_name="No-Follow",
+    )
+
     seo_panels = [
         MultiFieldPanel(
             [
                 FieldPanel("meta_title"),
                 FieldPanel("meta_description"),
+                FieldPanel("seo_noindex"),
+                FieldPanel("seo_nofollow"),
             ],
             heading="SEO",
         )
@@ -58,6 +71,9 @@ class SeoFieldsMixin(models.Model):
         """
         if self.meta_title:
             return self.meta_title
+
+        if getattr(self, "seo_title", None):
+            return self.seo_title
 
         site_name = (site_settings.company_name or "").strip()
         if not site_name:

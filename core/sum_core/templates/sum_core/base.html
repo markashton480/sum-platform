@@ -1,29 +1,17 @@
-{% load static wagtailcore_tags branding_tags wagtailimages_tags analytics_tags %}
+{% load static wagtailcore_tags branding_tags wagtailimages_tags analytics_tags seo_tags %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% analytics_head %}
+
+    {% render_meta page %}
+    {% render_og page %}
+
     {% get_site_settings as site_settings %}
     {% wagtail_site as current_site %}
     {% firstof site_settings.company_name current_site.site_name WAGTAIL_SITE_NAME as site_name %}
-    <title>
-      {% block title %}
-        {% if page %}
-          {% if page.meta_title %}
-            {{ page.meta_title }}
-          {% elif page.seo_title %}
-            {{ page.seo_title }}
-          {% else %}
-            {{ page.title }} | {{ site_name }}
-          {% endif %}
-        {% else %}
-          {{ site_name }}
-        {% endif %}
-      {% endblock %}
-    </title>
-    {% include "sum_core/includes/meta_tags.html" %}
     {% if site_settings.favicon %}
       {% image site_settings.favicon fill-32x32 as favicon_rendition %}
       <link rel="icon" href="{{ favicon_rendition.url }}">
