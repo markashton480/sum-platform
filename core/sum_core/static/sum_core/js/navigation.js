@@ -14,17 +14,19 @@
     // =============================================================================
     const SELECTORS = {
         menuBtn: '#menuBtn, .menu-btn',
-        navLinks: '#navLinks, .nav-links',
+        mobileDrawer: '#mobileDrawer, .mobile-drawer',
         dropdownToggle: '.nav-dropdown__toggle, .nav-nested-dropdown__toggle',
         dropdownMenu: '.nav-dropdown__menu',
         dropdown: '.nav-dropdown',
+        mobileGroup: '.mobile-group',
+        mobileGroupToggle: 'button.mobile-link.has-submenu',
         header: '.header'
     };
 
     // =============================================================================
     // State
     // =============================================================================
-    let mobileMenuOpen = false;
+    let mobileDrawerOpen = false;
 
     // =============================================================================
     // Helper Functions
@@ -40,46 +42,79 @@
     }
 
     /**
-     * Close the mobile menu
+     * Close all open mobile drawer groups (accordions)
      */
-    function closeMobileMenu() {
-        const menuBtn = document.querySelector(SELECTORS.menuBtn);
-        const navLinks = document.querySelector(SELECTORS.navLinks);
+    function closeAllMobileGroups() {
+        const drawer = document.querySelector(SELECTORS.mobileDrawer);
+        if (!drawer) return;
 
-        if (!menuBtn || !navLinks) return;
+        drawer.querySelectorAll(SELECTORS.mobileGroup).forEach(group => {
+            group.classList.remove('is-open');
+        });
+
+        drawer.querySelectorAll(SELECTORS.mobileGroupToggle).forEach(toggle => {
+            toggle.setAttribute('aria-expanded', 'false');
+            const controlsId = toggle.getAttribute('aria-controls');
+            if (!controlsId) return;
+            const panel = document.getElementById(controlsId);
+            if (panel) {
+                panel.setAttribute('aria-hidden', 'true');
+            }
+        });
+    }
+
+    /**
+     * Close the mobile drawer
+     */
+    function closeMobileDrawer() {
+        const menuBtn = document.querySelector(SELECTORS.menuBtn);
+        const drawer = document.querySelector(SELECTORS.mobileDrawer);
+
+        if (!menuBtn || !drawer) return;
 
         menuBtn.setAttribute('aria-expanded', 'false');
-        navLinks.classList.remove('is-open');
-        navLinks.setAttribute('aria-hidden', 'true');
-        mobileMenuOpen = false;
+        drawer.classList.remove('is-open');
+        drawer.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('nav-scroll-lock');
+        mobileDrawerOpen = false;
 
-        // Close all dropdowns when closing mobile menu
+        // Reset open states when closing the drawer
+        closeAllMobileGroups();
+
+        // Close all dropdowns when closing mobile drawer
         closeAllDropdowns();
     }
 
     /**
-     * Open the mobile menu
+     * Open the mobile drawer
      */
-    function openMobileMenu() {
+    function openMobileDrawer() {
         const menuBtn = document.querySelector(SELECTORS.menuBtn);
-        const navLinks = document.querySelector(SELECTORS.navLinks);
+        const drawer = document.querySelector(SELECTORS.mobileDrawer);
 
-        if (!menuBtn || !navLinks) return;
+        if (!menuBtn || !drawer) return;
 
         menuBtn.setAttribute('aria-expanded', 'true');
-        navLinks.classList.add('is-open');
-        navLinks.setAttribute('aria-hidden', 'false');
-        mobileMenuOpen = true;
+        drawer.classList.add('is-open');
+        drawer.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('nav-scroll-lock');
+        mobileDrawerOpen = true;
+
+        // Focus the first interactive element inside the drawer for keyboard users
+        const firstFocusable = drawer.querySelector('a, button');
+        if (firstFocusable && typeof firstFocusable.focus === 'function') {
+            firstFocusable.focus();
+        }
     }
 
     /**
-     * Toggle the mobile menu
+     * Toggle the mobile drawer
      */
-    function toggleMobileMenu() {
-        if (mobileMenuOpen) {
-            closeMobileMenu();
+    function toggleMobileDrawer() {
+        if (mobileDrawerOpen) {
+            closeMobileDrawer();
         } else {
-            openMobileMenu();
+            openMobileDrawer();
         }
     }
 
@@ -128,7 +163,49 @@
      */
     function handleMenuBtnClick(event) {
         event.preventDefault();
-        toggleMobileMenu();
+        toggleMobileDrawer();
+    }
+
+    /**
+     * Toggle a mobile accordion group
+     * @param {HTMLButtonElement} toggleBtn
+     */
+    function toggleMobileGroup(toggleBtn) {
+        const group = toggleBtn.closest(SELECTORS.mobileGroup);
+        if (!group) return;
+
+        const isOpen = group.classList.contains('is-open');
+        group.classList.toggle('is-open', !isOpen);
+        toggleBtn.setAttribute('aria-expanded', String(!isOpen));
+
+        const controlsId = toggleBtn.getAttribute('aria-controls');
+        if (!controlsId) return;
+
+        const panel = document.getElementById(controlsId);
+        if (panel) {
+            panel.setAttribute('aria-hidden', String(isOpen));
+        }
+    }
+
+    /**
+     * Handle clicks inside the mobile drawer (accordion toggles and link close behaviour)
+     */
+    function handleMobileDrawerClick(event) {
+        const drawer = document.querySelector(SELECTORS.mobileDrawer);
+        if (!drawer) return;
+
+        const toggleBtn = event.target.closest(SELECTORS.mobileGroupToggle);
+        if (toggleBtn && drawer.contains(toggleBtn)) {
+            event.preventDefault();
+            toggleMobileGroup(toggleBtn);
+            return;
+        }
+
+        // Close drawer when clicking any link inside it (navigation is about to change)
+        const link = event.target.closest('a');
+        if (link && drawer.contains(link)) {
+            closeMobileDrawer();
+        }
     }
 
     /**
@@ -148,9 +225,9 @@
         if (event.key === 'Escape') {
             closeAllDropdowns();
 
-            // Also close mobile menu if open
-            if (mobileMenuOpen) {
-                closeMobileMenu();
+            // Also close mobile drawer if open
+            if (mobileDrawerOpen) {
+                closeMobileDrawer();
                 // Return focus to menu button
                 const menuBtn = document.querySelector(SELECTORS.menuBtn);
                 if (menuBtn) {
@@ -176,8 +253,8 @@
      * Handle window resize - close mobile menu on desktop breakpoint
      */
     function handleResize() {
-        if (window.innerWidth >= 1024 && mobileMenuOpen) {
-            closeMobileMenu();
+        if (window.innerWidth >= 1024 && mobileDrawerOpen) {
+            closeMobileDrawer();
         }
     }
 
@@ -197,6 +274,12 @@
             toggle.addEventListener('click', handleDropdownToggleClick);
         });
 
+        // Mobile drawer delegation (accordion + close-on-link)
+        const drawer = document.querySelector(SELECTORS.mobileDrawer);
+        if (drawer) {
+            drawer.addEventListener('click', handleMobileDrawerClick);
+        }
+
         // Keyboard navigation
         document.addEventListener('keydown', handleKeydown);
 
@@ -205,12 +288,6 @@
 
         // Window resize handler
         window.addEventListener('resize', handleResize, { passive: true });
-
-        // Initial state - set nav as hidden for screen readers on mobile
-        const navLinks = document.querySelector(SELECTORS.navLinks);
-        if (navLinks && window.innerWidth < 1024) {
-            navLinks.setAttribute('aria-hidden', 'true');
-        }
     }
 
     // Run on DOM ready

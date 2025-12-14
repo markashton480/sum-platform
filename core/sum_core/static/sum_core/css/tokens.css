@@ -96,6 +96,7 @@
 
   /* Animation Durations */
   --duration-default: 240ms;
+  --duration-slow: 600ms;
 
   /* Borders & Radius - PRD C.1.5 (extended) */
   --radius-sm: 0.25rem;   /* 4px */

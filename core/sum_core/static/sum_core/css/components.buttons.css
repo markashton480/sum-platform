@@ -130,3 +130,7 @@
 .btn--link:hover span {
   transform: translateX(4px);
 }
+
+.btn-full {
+  width: 100%;
+}

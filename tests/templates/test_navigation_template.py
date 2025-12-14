@@ -10,6 +10,8 @@ Dependencies: Django templates, Wagtail Site & Page models, home.HomePage,
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from django.core.cache import cache
 from django.template import RequestContext, Template
@@ -53,8 +55,11 @@ class TestHeaderWiring:
         # Core structure
         assert "header" in rendered
         assert "nav-links" in rendered
+        assert "mobile-drawer" in rendered
         assert "nav-item" in rendered
         assert 'href="/"' in rendered
+        # Design system: no inline styles in templates
+        assert "style=" not in rendered
 
     def test_header_renders_menu_items_from_settings(self) -> None:
         """Test that header renders menu items from HeaderNavigation settings."""
@@ -100,6 +105,82 @@ class TestHeaderWiring:
         assert 'href="/about/"' in header_html
         assert "Services" in header_html
         assert 'href="/services/"' in header_html
+
+    def test_header_renders_mobile_drawer_and_button_wiring(self) -> None:
+        """Test that header includes the mobile drawer and menu button controls it."""
+        site = Site.objects.get(is_default_site=True)
+
+        # Ensure navigation settings exist
+        HeaderNavigation.for_site(site).save()
+
+        request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
+        context = RequestContext(request, {})
+
+        header_html = Template(
+            "{% load branding_tags navigation_tags %}"
+            "{% include 'sum_core/includes/header.html' %}"
+        ).render(context)
+
+        assert 'id="menuBtn"' in header_html
+        assert 'aria-controls="mobileDrawer"' in header_html
+        assert 'id="mobileDrawer"' in header_html
+
+    def test_header_renders_nested_mobile_menu_groups(self) -> None:
+        """Items with children render as nested mobile groups in the drawer."""
+        site = Site.objects.get(is_default_site=True)
+
+        nav = HeaderNavigation.for_site(site)
+        nav.menu_items = [
+            {
+                "type": "item",
+                "value": {
+                    "label": "Expertise",
+                    "link": {
+                        "link_type": "url",
+                        "url": "/expertise/",
+                    },
+                    "children": [
+                        {
+                            "label": "Solar Integration",
+                            "link": {
+                                "link_type": "url",
+                                "url": "/expertise/solar/",
+                            },
+                            "children": [
+                                {
+                                    "label": "Roof Integrated",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/expertise/solar/roof/",
+                                    },
+                                }
+                            ],
+                        },
+                        {
+                            "label": "Battery Storage",
+                            "link": {
+                                "link_type": "url",
+                                "url": "/expertise/battery/",
+                            },
+                            "children": [],
+                        },
+                    ],
+                },
+            }
+        ]
+        nav.save()
+
+        request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
+        context = RequestContext(request, {})
+
+        header_html = Template(
+            "{% load branding_tags navigation_tags %}"
+            "{% include 'sum_core/includes/header.html' %}"
+        ).render(context)
+
+        assert "mobile-group" in header_html
+        assert "mobile-sub" in header_html
+        assert "Roof Integrated" in header_html
 
     def test_header_renders_cta_button(self) -> None:
         """Test that header renders CTA button when configured."""
@@ -151,6 +232,20 @@ class TestHeaderWiring:
         # Fallback should show Home link
         assert 'href="/"' in header_html
         assert "Home" in header_html
+
+
+def test_header_css_does_not_underline_active_nav_items() -> None:
+    """
+    Regression test: active/current nav items should not get a persistent underline.
+
+    The design reference uses an underline on hover only, not for `.is-active` or
+    `aria-current="page"` states.
+    """
+    css_path = Path("core/sum_core/static/sum_core/css/components.header.css")
+    css = css_path.read_text(encoding="utf-8")
+
+    assert ".nav-item.is-active::after" not in css
+    assert '.nav-item[aria-current="page"]::after' not in css
 
 
 class TestFooterWiring:
