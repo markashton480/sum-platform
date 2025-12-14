@@ -59,6 +59,7 @@ class LeadViewSet(ModelViewSet):
     icon = "mail"
     menu_label = "Leads"
     menu_order = 200
+    add_to_admin_menu = True
     add_to_settings_menu = False
     exclude_from_explorer = False
     copy_view_enabled = False

@@ -218,6 +218,54 @@ class TestFormSubmissionSpamProtection:
 
 
 @pytest.mark.django_db
+class TestFormSubmissionCSRF:
+    """Tests for CSRF protection on the submission endpoint."""
+
+    def test_missing_csrf_returns_403(
+        self, wagtail_site, form_config, valid_time_token
+    ):
+        """POST without CSRF should return 403 when CSRF checks are enforced."""
+        client = Client(enforce_csrf_checks=True)
+        data = make_valid_submission_data(valid_time_token)
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 5
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                HTTP_HOST=wagtail_site.hostname,
+            )
+
+        assert response.status_code == 403
+
+    def test_valid_csrf_allows_submission(
+        self, wagtail_site, form_config, valid_time_token
+    ):
+        """POST with CSRF should succeed when CSRF checks are enforced."""
+        client = Client(enforce_csrf_checks=True)
+        data = make_valid_submission_data(valid_time_token)
+
+        # Trigger CSRF cookie to be set on the client.
+        client.get("/admin/login/", HTTP_HOST=wagtail_site.hostname)
+        csrf_token = client.cookies["csrftoken"].value
+        data["csrfmiddlewaretoken"] = csrf_token
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 5
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                HTTP_HOST=wagtail_site.hostname,
+            )
+
+        assert response.status_code == 200
+
+
+@pytest.mark.django_db
 class TestFormSubmissionSuccess:
     """Tests for successful form submission and Lead creation."""
 
@@ -246,6 +294,36 @@ class TestFormSubmissionSuccess:
         assert lead.email == "john@example.com"
         assert lead.message == "Hello, I have a question."
         assert lead.form_type == "contact"
+
+    def test_submission_succeeds_without_default_site(
+        self, client, wagtail_site, form_config, valid_time_token
+    ):
+        """
+        Submissions should still succeed even if no Site is marked as default.
+
+        This can occur in dev environments after manual Site edits.
+        """
+        wagtail_site.is_default_site = False
+        wagtail_site.hostname = "different.test"
+        wagtail_site.save(update_fields=["is_default_site", "hostname"])
+
+        data = make_valid_submission_data(valid_time_token)
+        initial_count = Lead.objects.count()
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 5
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                # Use the Django test client's allowed host, but one that no longer
+                # matches Site.hostname after our edit above.
+                HTTP_HOST="testserver",
+            )
+
+        assert response.status_code == 200
+        assert Lead.objects.count() == initial_count + 1
 
     def test_valid_submission_returns_lead_id(
         self, client, wagtail_site, form_config, valid_time_token

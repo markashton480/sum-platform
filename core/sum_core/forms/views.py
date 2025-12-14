@@ -14,7 +14,7 @@ from typing import Any
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_protect
 from sum_core.forms.models import FormConfiguration
 from sum_core.forms.services import (
     get_client_ip,
@@ -25,7 +25,7 @@ from sum_core.leads.services import AttributionData, create_lead_from_submission
 from wagtail.models import Site
 
 
-@method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(csrf_protect, name="dispatch")
 class FormSubmissionView(View):
     """
     Handle form submissions from Contact and Quote forms.
@@ -80,8 +80,16 @@ class FormSubmissionView(View):
 
         if spam_result.is_spam:
             # Return 400 for spam (indistinguishable from validation error to bots)
+            is_xhr = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            if is_xhr and spam_result.reason.startswith("Submitted too quickly"):
+                message = "Please wait a moment and try again."
+            elif is_xhr and spam_result.reason == "Time token expired":
+                message = "Please refresh the page and try again."
+            else:
+                message = "Invalid submission"
+
             return JsonResponse(
-                {"success": False, "errors": {"__all__": ["Invalid submission"]}},
+                {"success": False, "errors": {"__all__": [message]}},
                 status=400,
             )
 
@@ -133,7 +141,11 @@ class FormSubmissionView(View):
 
     def _get_site(self, request) -> Site | None:
         """Get the Wagtail Site for this request."""
-        return Site.find_for_request(request)
+        site = Site.find_for_request(request)
+        if site is not None:
+            return site
+
+        return Site.objects.filter(is_default_site=True).first() or Site.objects.first()
 
     def _get_config(self, site: Site) -> FormConfiguration:
         """Get or create FormConfiguration for site."""

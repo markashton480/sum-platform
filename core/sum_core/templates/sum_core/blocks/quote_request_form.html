@@ -146,11 +146,16 @@
     messagesDiv.innerHTML = '';
     messagesDiv.className = 'form-messages';
 
+    var csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    var csrfToken = csrfInput ? csrfInput.value : '';
+
     fetch(form.action, {
       method: 'POST',
       body: formData,
+      credentials: 'same-origin',
       headers: {
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': csrfToken
       }
     })
     .then(function(response) {
