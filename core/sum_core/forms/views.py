@@ -102,6 +102,10 @@ class FormSubmissionView(View):
                 status=400,
             )
 
+        # Queue notification tasks AFTER lead is safely persisted
+        # Failure to queue does NOT lose the lead - we update status fields
+        self._queue_notification_tasks(lead)
+
         # Increment rate limit counter AFTER successful lead creation
         increment_rate_limit_counter(get_client_ip(request), site.id)
 
@@ -228,6 +232,41 @@ class FormSubmissionView(View):
             form_data=extra_data if extra_data else None,
             attribution=attribution,
         )
+
+    def _queue_notification_tasks(self, lead) -> None:
+        """
+        Queue async notification tasks after lead creation.
+
+        Failure to queue does NOT lose the lead - we update status fields
+        to reflect the queueing failure for visibility in admin.
+
+        This ensures the "no lost leads" invariant is maintained even when
+        Celery/broker is unavailable.
+        """
+        import logging
+
+        from sum_core.leads.models import EmailStatus, WebhookStatus
+        from sum_core.leads.tasks import send_lead_notification, send_lead_webhook
+
+        logger = logging.getLogger(__name__)
+
+        # Attempt to queue email notification task
+        try:
+            send_lead_notification.delay(lead.id)
+        except Exception as e:
+            logger.exception(f"Failed to queue email notification for lead {lead.id}")
+            lead.email_status = EmailStatus.FAILED
+            lead.email_last_error = f"Failed to queue task: {str(e)[:500]}"
+            lead.save(update_fields=["email_status", "email_last_error"])
+
+        # Attempt to queue webhook notification task
+        try:
+            send_lead_webhook.delay(lead.id)
+        except Exception as e:
+            logger.exception(f"Failed to queue webhook notification for lead {lead.id}")
+            lead.webhook_status = WebhookStatus.FAILED
+            lead.webhook_last_error = f"Failed to queue task: {str(e)[:500]}"
+            lead.save(update_fields=["webhook_status", "webhook_last_error"])
 
 
 # Convenience function-based view for URL routing

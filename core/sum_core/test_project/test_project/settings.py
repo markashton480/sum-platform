@@ -184,3 +184,20 @@ MEDIA_ROOT: str = BASE_DIR / "images"
 STATIC_URL: str = "/static/"
 
 DEFAULT_AUTO_FIELD: str = "django.db.models.BigAutoField"
+
+# Celery Configuration
+# In test project, tasks run synchronously for predictable testing
+CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", "memory://")
+CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", "cache+memory://")
+CELERY_TASK_ALWAYS_EAGER: bool = True  # Run tasks synchronously
+CELERY_TASK_EAGER_PROPAGATES: bool = True  # Propagate exceptions in eager mode
+
+# Email Configuration
+EMAIL_BACKEND: str = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL: str = os.getenv("DEFAULT_FROM_EMAIL", "noreply@example.com")
+
+# Lead Notification Settings
+LEAD_NOTIFICATION_EMAIL: str = os.getenv("LEAD_NOTIFICATION_EMAIL", "")
+
+# Webhook Configuration
+ZAPIER_WEBHOOK_URL: str = os.getenv("ZAPIER_WEBHOOK_URL", "")

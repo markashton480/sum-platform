@@ -81,8 +81,11 @@ addopts = [
     "--verbose",
     "--cov=.",
     "--cov-report=term-missing",
+    "--cov-report=term-missing",
     "--cov-report=html",
 ]
+pythonpath = ["core", "core/sum_core/test_project"]
+DJANGO_SETTINGS_MODULE = "sum_core.test_project.test_project.settings"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",

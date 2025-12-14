@@ -26,7 +26,9 @@ from wagtail.snippets.views.snippets import SnippetViewSet
 class LeadStatusColumn(Column):
     """Custom column for rendering lead status with styling."""
 
-    def render_cell_html(self, obj: Lead, **kwargs: Any) -> str:
+    def render_cell_html(
+        self, obj: Lead, context: dict | None = None, **kwargs: Any
+    ) -> str:
         status_colors = {
             Lead.Status.NEW: "#2563eb",  # blue
             Lead.Status.CONTACTED: "#7c3aed",  # purple
@@ -74,6 +76,8 @@ class LeadViewSet(ModelViewSet):
 
     list_filter = [
         "status",
+        "email_status",
+        "webhook_status",
         "lead_source",
         "form_type",
         "submitted_at",
@@ -127,6 +131,27 @@ class LeadViewSet(ModelViewSet):
                 FieldPanel("referrer_url", read_only=True),
             ],
             heading="URLs",
+            classname="collapsible collapsed",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("email_status", read_only=True),
+                FieldPanel("email_sent_at", read_only=True),
+                FieldPanel("email_attempts", read_only=True),
+                FieldPanel("email_last_error", read_only=True),
+            ],
+            heading="Email Notification",
+            classname="collapsible collapsed",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("webhook_status", read_only=True),
+                FieldPanel("webhook_sent_at", read_only=True),
+                FieldPanel("webhook_attempts", read_only=True),
+                FieldPanel("webhook_last_status_code", read_only=True),
+                FieldPanel("webhook_last_error", read_only=True),
+            ],
+            heading="Webhook Integration",
             classname="collapsible collapsed",
         ),
     ]

@@ -25,6 +25,23 @@ class LeadSource(models.TextChoices):
     UNKNOWN = "unknown", "Unknown"
 
 
+class EmailStatus(models.TextChoices):
+    """Status of email notification delivery."""
+
+    PENDING = "pending", "Pending"
+    SENT = "sent", "Sent"
+    FAILED = "failed", "Failed"
+
+
+class WebhookStatus(models.TextChoices):
+    """Status of webhook notification delivery."""
+
+    PENDING = "pending", "Pending"
+    SENT = "sent", "Sent"
+    FAILED = "failed", "Failed"
+    DISABLED = "disabled", "Disabled"
+
+
 class Lead(models.Model):
     class Status(models.TextChoices):
         NEW = "new", "New"
@@ -119,6 +136,55 @@ class Lead(models.Model):
         default=Status.NEW,
     )
     is_archived: models.BooleanField = models.BooleanField(default=False)
+
+    # Email notification status
+    email_status: models.CharField = models.CharField(
+        max_length=20,
+        choices=EmailStatus.choices,
+        default=EmailStatus.PENDING,
+        help_text="Status of email notification delivery.",
+    )
+    email_sent_at: models.DateTimeField = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the email notification was successfully sent.",
+    )
+    email_last_error: models.TextField = models.TextField(
+        blank=True,
+        help_text="Last error message if email delivery failed.",
+    )
+    email_attempts: models.PositiveIntegerField = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of email delivery attempts.",
+    )
+
+    # Webhook notification status
+    webhook_status: models.CharField = models.CharField(
+        max_length=20,
+        choices=WebhookStatus.choices,
+        default=WebhookStatus.PENDING,
+        help_text="Status of webhook notification delivery.",
+    )
+    webhook_sent_at: models.DateTimeField = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the webhook notification was successfully sent.",
+    )
+    webhook_last_error: models.TextField = models.TextField(
+        blank=True,
+        help_text="Last error message if webhook delivery failed.",
+    )
+    webhook_attempts: models.PositiveIntegerField = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of webhook delivery attempts.",
+    )
+    webhook_last_status_code: models.PositiveSmallIntegerField = (
+        models.PositiveSmallIntegerField(
+            null=True,
+            blank=True,
+            help_text="HTTP status code from last webhook attempt.",
+        )
+    )
 
     class Meta:
         ordering = ["-submitted_at"]

@@ -219,4 +219,4 @@ def can_user_export_leads(user: AbstractBaseUser | None) -> bool:
     if user is None or not user.is_authenticated:
         return False
 
-    return user.has_perm("leads.export_lead")
+    return user.has_perm("sum_core_leads.export_lead")
