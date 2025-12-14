@@ -24,6 +24,37 @@ if str(TEST_PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(TEST_PROJECT_DIR))
 
 
+@pytest.fixture(scope="session")
+def _session_media_root(tmp_path_factory) -> Path:
+    return tmp_path_factory.mktemp("django-media")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_django_media_root(_session_media_root: Path, settings) -> None:
+    """
+    Ensure tests never write uploaded/generated files into the repo.
+
+    Wagtail image tests save uploaded images + renditions via Django's default
+    storage (MEDIA_ROOT). If MEDIA_ROOT points at a path within the repo, test
+    runs can produce untracked images that accidentally get committed.
+    """
+    settings.MEDIA_ROOT = str(_session_media_root)
+
+    if hasattr(settings, "STORAGES") and "default" in settings.STORAGES:
+        settings.STORAGES["default"] = {
+            **settings.STORAGES["default"],
+            "LOCATION": str(_session_media_root),
+        }
+
+    from django.core.files.storage import default_storage, storages
+    from django.utils.functional import empty
+
+    # Force default_storage + storages handler to re-read settings for this test.
+    default_storage._wrapped = empty
+    if hasattr(storages, "_storages"):
+        storages._storages.clear()
+
+
 @pytest.fixture()
 def wagtail_default_site(db):
     """

@@ -179,7 +179,14 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 52_428_800  # 50MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52_428_800  # 50MB
 
 MEDIA_URL: str = "/images/"
-MEDIA_ROOT: str = BASE_DIR / "images"
+_REPO_ROOT: Path | None = None
+for directory in [BASE_DIR, *BASE_DIR.parents]:
+    if (directory / ".git").exists():
+        _REPO_ROOT = directory
+        break
+MEDIA_ROOT: Path = Path(
+    os.getenv("SUM_MEDIA_ROOT", str((_REPO_ROOT or Path.cwd()) / "media"))
+)
 
 STATIC_URL: str = "/static/"
 
