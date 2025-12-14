@@ -120,5 +120,6 @@ def _reset_homepage_between_tests(db) -> None:
             site.root_page = root
             site.save()
 
-    HomePage.objects.all().delete()
+    for homepage in HomePage.objects.all():
+        homepage.delete()
     Site.clear_site_root_paths_cache()

@@ -85,8 +85,18 @@ class SeoFieldsMixin(models.Model):
         return f"{self.title} | {site_name}"
 
     def get_meta_description(self) -> str:
-        """Return meta description, or an empty string."""
-        return (self.meta_description or "").strip()
+        """
+        Return meta description for <meta name="description">.
+
+        Precedence:
+        - SeoFieldsMixin.meta_description
+        - Wagtail's Page.search_description (Promote tab)
+        - empty string
+        """
+        description = (self.meta_description or "").strip()
+        if description:
+            return description
+        return (getattr(self, "search_description", "") or "").strip()
 
     def get_canonical_url(self, request: HttpRequest | None = None) -> str:
         """

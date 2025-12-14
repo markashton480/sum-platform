@@ -9,6 +9,7 @@ Dependencies: Django, Wagtail, sum_core
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 # Wagtail Settings
@@ -49,7 +50,7 @@ ENV_FILE_PATH = _load_env_file()
 
 SECRET_KEY: str = "dev-only-not-for-production"
 DEBUG: bool = True
-ALLOWED_HOSTS: list[str] = []
+ALLOWED_HOSTS: list[str] = ["localhost", "testserver", "127.0.0.1", "[::1]"]
 
 INSTALLED_APPS: list[str] = [
     "django.contrib.admin",
@@ -80,6 +81,7 @@ INSTALLED_APPS: list[str] = [
     "sum_core.leads",
     "sum_core.forms",
     "sum_core.analytics",
+    "sum_core.seo",
     "home",
 ]
 
@@ -144,9 +146,13 @@ def _validate_db_env() -> None:
         )
 
 
-_validate_db_env()
+RUNNING_TESTS = any("pytest" in arg for arg in sys.argv)
+USE_POSTGRES_FOR_TESTS = os.getenv("SUM_TEST_DB", "sqlite").lower() == "postgres"
 
-if DB_HOST and DB_NAME:
+if not RUNNING_TESTS:
+    _validate_db_env()
+
+if (DB_HOST and DB_NAME) and (not RUNNING_TESTS or USE_POSTGRES_FOR_TESTS):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -158,10 +164,11 @@ if DB_HOST and DB_NAME:
         }
     }
 else:
+    SQLITE_DB_NAME: str = ":memory:" if RUNNING_TESTS else str(BASE_DIR / "db.sqlite3")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "NAME": SQLITE_DB_NAME,
         }
     }
 

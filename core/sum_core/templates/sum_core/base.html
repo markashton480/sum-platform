@@ -6,8 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% analytics_head %}
 
-    {% render_meta page %}
-    {% render_og page %}
+    {% if page %}
+      {% render_meta page %}
+      {% render_og page %}
+    {% endif %}
 
     {% get_site_settings as site_settings %}
     {% wagtail_site as current_site %}

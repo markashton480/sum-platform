@@ -1,169 +1,203 @@
 import pytest
-from django.test import Client
 from home.models import HomePage
 from sum_core.branding.models import SiteSettings
+from sum_core.pages.services import ServiceIndexPage, ServicePage
 from wagtail.images.models import Image
 from wagtail.images.tests.utils import get_test_image_file
 from wagtail.models import Page, Site
 
 
+def publish(page: Page) -> None:
+    page.save_revision().publish()
+    page.refresh_from_db()
+
+
 @pytest.mark.django_db
 class TestSeoTags:
+    @pytest.fixture
+    def root_page(self) -> Page:
+        return Page.get_first_root_node()
+
+    @pytest.fixture
+    def home_page(self, root_page: Page) -> HomePage:
+        for existing in root_page.get_children().filter(slug="home"):
+            existing.delete()
+        root_page.refresh_from_db()
+        home = HomePage(title="Home", slug="home", intro="Welcome")
+        root_page.add_child(instance=home)
+        publish(home)
+        return home
+
     @pytest.fixture(autouse=True)
-    def setup(self):
-        # Setup site and home page
-        self.root = Page.get_first_root_node()
+    def site(self, home_page: HomePage, wagtail_default_site: Site) -> Site:
+        wagtail_default_site.root_page = home_page
+        wagtail_default_site.site_name = "Test Site"
+        wagtail_default_site.save()
+        Site.clear_site_root_paths_cache()
+        return wagtail_default_site
 
-        if not self.root:
-            pass  # Should probably handle this, but let it fail if root is missing
+    @pytest.fixture(autouse=True)
+    def site_settings(self, site: Site) -> SiteSettings:
+        settings = SiteSettings.for_site(site)
+        settings.company_name = "ACME Corp"
+        settings.save()
+        return settings
 
-        # Check for existing page with slug 'home' to avoid collision
-        existing = self.root.get_children().filter(slug="home").first()
-        if existing:
-            if isinstance(existing.specific, HomePage):
-                self.home = existing.specific
-            else:
-                existing.delete()
-                self.home = None
-        else:
-            self.home = None
+    @pytest.fixture
+    def service_page(self, home_page: HomePage) -> ServicePage:
+        index = ServiceIndexPage(title="Services", slug="services")
+        home_page.add_child(instance=index)
+        publish(index)
 
-        if not self.home:
-            self.home = HomePage(title="Home", slug="home", intro="Welcome")
-            self.root.add_child(instance=self.home)
+        service = ServicePage(title="Plumbing", slug="plumbing")
+        index.add_child(instance=service)
+        publish(service)
+        return service
 
-        self.site = Site.objects.first()
-        if not self.site:
-            self.site = Site.objects.create(
-                hostname="localhost",
-                root_page=self.home,
-                is_default_site=True,
-                site_name="Test Site",
-            )
-        else:
-            self.site.root_page = self.home
-            self.site.site_name = "Test Site"
-            self.site.save()
-
-        # Setup branding
-        self.site_settings = SiteSettings.for_site(self.site)
-        self.site_settings.company_name = "ACME Corp"
-        self.site_settings.save()
-
-        self.client = Client()
-
-    def test_meta_defaults(self):
-        """Test default meta title, description, and canonical."""
-        response = self.client.get(self.home.url)
+    def test_meta_title_default(self, client, home_page: HomePage) -> None:
+        response = client.get(home_page.url)
         content = response.content.decode()
 
-        # Title: Page Title | Site Name
         assert "<title>Home | ACME Corp</title>" in content
 
-        # Canonical
-        expected_canonical = f"http://testserver{self.home.url}"
-        # Note: client.get sets host to testserver usually
-        # But wait, self.home.url is usually just path /.../ for root usually /
-        # Canonical logic uses request.build_absolute_uri
-        assert f'<link rel="canonical" href="{expected_canonical}">' in content
+    def test_meta_title_meta_title_wins(self, client, home_page: HomePage) -> None:
+        home_page.meta_title = "Platform Meta Title"
+        home_page.seo_title = "Wagtail SEO Title"
+        publish(home_page)
 
-        # Robots default (index, follow implied or explicit)
-        # My implementation outputs "index, follow"
-        assert '<meta name="robots" content="index, follow">' in content
-
-    def test_meta_overrides(self):
-        """Test overriding meta title, description, and robots."""
-        self.home.meta_title = "Custom SEO Title"
-        self.home.meta_description = "A custom description."
-        self.home.seo_noindex = True
-        self.home.seo_nofollow = True
-        self.home.save()
-
-        response = self.client.get(self.home.url)
+        response = client.get(home_page.url)
         content = response.content.decode()
 
-        assert "<title>Custom SEO Title</title>" in content
-        assert '<meta name="description" content="A custom description.">' in content
-        assert '<meta name="robots" content="noindex, nofollow">' in content
+        assert "<title>Platform Meta Title</title>" in content
 
-    def test_og_defaults(self):
-        """Test OG tags presence and defaults."""
-        response = self.client.get(self.home.url)
+    def test_meta_title_seo_title_fallback(self, client, home_page: HomePage) -> None:
+        home_page.meta_title = ""
+        home_page.seo_title = "Wagtail SEO Title"
+        publish(home_page)
+
+        response = client.get(home_page.url)
         content = response.content.decode()
-
-        assert '<meta property="og:title" content="Home | ACME Corp">' in content
-        assert '<meta property="og:type" content="website">' in content
-        assert '<meta property="og:url" content="http://testserver/">' in content
-        assert '<meta property="og:site_name" content="Test Site">' in content
-        # No image by default
-        assert '<meta property="og:image"' not in content
-
-    def test_og_overrides(self):
-        """Test OG tags with explicit image and title."""
-        # Create image
-        image = Image.objects.create(title="OG Image", file=get_test_image_file())
-        self.home.og_image = image
-        self.home.save()
-
-        response = self.client.get(self.home.url)
-        content = response.content.decode()
-
-        assert '<meta property="og:image"' in content
-        # Check absolute URL
-        # image.file.url is relative e.g. /media/...
-        # absolute_url filter prepends request host
-        expected_url = f"http://testserver{image.file.url}"
-        assert expected_url in content
-
-    def test_og_fallback_to_site_settings(self):
-        """Test OG image fallback to site default."""
-        image = Image.objects.create(title="Site OG", file=get_test_image_file())
-        self.site_settings.og_default_image = image
-        self.site_settings.save()
-
-        response = self.client.get(self.home.url)
-        content = response.content.decode()
-
-        assert '<meta property="og:image"' in content
-        expected_url = f"http://testserver{image.file.url}"
-        assert expected_url in content
-
-    def test_seo_title_fallback_logic(self):
-        """Test fallback when seo_title (Wagtail default) is set but meta_title (Mixin) is not."""
-        self.home.seo_title = "Wagtail SEO Title"
-        self.home.meta_title = ""
-        self.home.save()
-
-        response = self.client.get(self.home.url)
-        content = response.content.decode()
-
-        # logic: if get_meta_title() -> returns self.meta_title or title|site
-        # Wait, my Mixin `get_meta_title` implementation:
-        # if self.meta_title: return ...
-        # else: return "{self.title} | {site_name}"
-        # It DOES NOT check `seo_title`!
-        # This is a regression if we expect usage of Wagtail's native `seo_title`.
-        # However, `SeoFieldsMixin` defines `meta_title`.
-        # If I want to support Wagtail's `seo_title`, I should update the mixin or the tag.
-        # My tag logic:
-        # if hasattr(page, "get_meta_title") ... call it.
-        # render_meta tag implementation:
-        # if hasattr(page, "get_meta_title") and site_settings: meta_title = page.get_meta_title(site_settings)
-        # So it uses the mixin helper.
-        # The mixin helper `get_meta_title` (lines 53-70 of mixin.py)
-        # if self.meta_title: return ...
-        # return f"{self.title} | {site_name}"
-        # It ignores `seo_title`.
-
-        # Let's check requirements.
-        # "AC2: default meta title = page title + site name (or equivalent) when page meta title is blank."
-        # It doesn't explicitly mention `seo_title`.
-        # But Wagtail pages have `seo_title` by default (on Promote tab).
-        # Should we respect it?
-        # A good implementation normally does.
-        # I should probably update `SeoFieldsMixin.get_meta_title` to check `seo_title` if available.
-
-        # I will update the test to expect this behavior (respect seo_title).
-        # And then I will update the Mixin.
 
         assert "<title>Wagtail SEO Title</title>" in content
+
+    @pytest.mark.parametrize(
+        ("meta_description", "search_description", "expected_present"),
+        [
+            ("Platform description.", "Wagtail description.", "Platform description."),
+            ("", "Wagtail description.", "Wagtail description."),
+            ("", "", None),
+        ],
+    )
+    def test_meta_description_precedence(
+        self,
+        client,
+        home_page: HomePage,
+        meta_description: str,
+        search_description: str,
+        expected_present: str | None,
+    ) -> None:
+        home_page.meta_description = meta_description
+        home_page.search_description = search_description
+        publish(home_page)
+
+        response = client.get(home_page.url)
+        content = response.content.decode()
+
+        if expected_present is None:
+            assert '<meta name="description"' not in content
+        else:
+            assert f'<meta name="description" content="{expected_present}">' in content
+
+    @pytest.mark.parametrize(
+        ("noindex", "nofollow", "expected"),
+        [
+            (False, False, "index, follow"),
+            (True, False, "noindex, follow"),
+            (False, True, "index, nofollow"),
+            (True, True, "noindex, nofollow"),
+        ],
+    )
+    def test_robots_truth_table(
+        self, client, home_page: HomePage, noindex: bool, nofollow: bool, expected: str
+    ) -> None:
+        home_page.seo_noindex = noindex
+        home_page.seo_nofollow = nofollow
+        publish(home_page)
+
+        response = client.get(home_page.url)
+        content = response.content.decode()
+
+        assert f'<meta name="robots" content="{expected}">' in content
+
+    def test_canonical_url_is_absolute(self, client, home_page: HomePage) -> None:
+        response = client.get(home_page.url)
+        content = response.content.decode()
+
+        assert '<link rel="canonical" href="http://testserver/">' in content
+
+    def test_canonical_and_og_url_use_request_host_and_path(
+        self, client, service_page: ServicePage
+    ) -> None:
+        response = client.get(service_page.url)
+        content = response.content.decode()
+
+        expected = f"http://testserver{service_page.url}"
+        assert f'<link rel="canonical" href="{expected}">' in content
+        assert f'<meta property="og:url" content="{expected}">' in content
+
+    def test_og_defaults_and_omissions(self, client, home_page: HomePage) -> None:
+        response = client.get(home_page.url)
+        content = response.content.decode()
+
+        assert '<meta property="og:type" content="website">' in content
+        assert '<meta property="og:title" content="Home | ACME Corp">' in content
+        assert '<meta property="og:url" content="http://testserver/">' in content
+        assert '<meta property="og:site_name" content="ACME Corp">' in content
+
+        assert '<meta property="og:description"' not in content
+        assert '<meta property="og:image"' not in content
+
+    def test_og_description_falls_back_to_search_description(
+        self, client, home_page: HomePage
+    ) -> None:
+        home_page.meta_description = ""
+        home_page.search_description = "Wagtail description."
+        publish(home_page)
+
+        response = client.get(home_page.url)
+        content = response.content.decode()
+
+        assert (
+            '<meta property="og:description" content="Wagtail description.">' in content
+        )
+
+    def test_og_image_fallback_order(
+        self, client, service_page: ServicePage, site_settings: SiteSettings
+    ) -> None:
+        response = client.get(service_page.url)
+        content = response.content.decode()
+        assert '<meta property="og:image"' not in content
+
+        site_default = Image.objects.create(title="Site OG", file=get_test_image_file())
+        site_settings.og_default_image = site_default
+        site_settings.save()
+        response = client.get(service_page.url)
+        content = response.content.decode()
+        expected = f"http://testserver{site_default.get_rendition('original').url}"
+        assert f'property="og:image" content="{expected}"' in content
+
+        featured = Image.objects.create(title="Featured", file=get_test_image_file())
+        service_page.featured_image = featured
+        publish(service_page)
+        response = client.get(service_page.url)
+        content = response.content.decode()
+        expected = f"http://testserver{featured.get_rendition('original').url}"
+        assert f'property="og:image" content="{expected}"' in content
+
+        explicit = Image.objects.create(title="Explicit OG", file=get_test_image_file())
+        service_page.og_image = explicit
+        publish(service_page)
+        response = client.get(service_page.url)
+        content = response.content.decode()
+        expected = f"http://testserver{explicit.get_rendition('original').url}"
+        assert f'property="og:image" content="{expected}"' in content

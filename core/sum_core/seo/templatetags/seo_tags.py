@@ -13,6 +13,14 @@ from wagtail.models import Page, Site
 register = template.Library()
 
 
+def _resolve_site(request, page) -> Site | None:
+    if request is not None:
+        return Site.find_for_request(request)
+    if isinstance(page, Page):
+        return page.get_site()
+    return None
+
+
 @register.inclusion_tag("sum_core/includes/seo/meta.html", takes_context=True)
 def render_meta(context, page):
     """
@@ -20,85 +28,55 @@ def render_meta(context, page):
     """
     request = context.get("request")
 
-    # Resolve Site Settings/Site Name
-    site = None
-    if request:
-        site = Site.find_for_request(request)
-
-    # Fallback to page.get_site() if request resolution fails
-    if not site and isinstance(page, Page):
-        site = page.get_site()
-
+    site = _resolve_site(request, page)
     site_settings = SiteSettings.for_site(site) if site else None
-    site_name = (site.site_name if site else "") or ""
 
-    # 1. Title
-    # Use helper if available (SeoFieldsMixin), else manual fallback
-    if hasattr(page, "get_meta_title") and site_settings:
-        meta_title = page.get_meta_title(site_settings)
-    else:
-        # Fallback for pages not using SeoFieldsMixin or missing settings
-        p_title = getattr(page, "title", "")
-        # Try to read meta_title directly if mixin present but no settings
-        if hasattr(page, "meta_title") and page.meta_title:
-            meta_title = page.meta_title
-        elif hasattr(page, "seo_title") and page.seo_title:  # Wagtail default
-            meta_title = page.seo_title
-        else:
-            meta_title = f"{p_title} | {site_name}" if site_name else p_title
+    # 1) Meta title precedence:
+    # meta_title (platform) -> seo_title (Wagtail) -> "{title} | {company_name/site_name}"
+    meta_title = (getattr(page, "meta_title", "") or "").strip()
+    if not meta_title:
+        meta_title = (getattr(page, "seo_title", "") or "").strip()
+    if not meta_title and hasattr(page, "get_meta_title") and site_settings:
+        meta_title = (page.get_meta_title(site_settings) or "").strip()
+    if not meta_title:
+        page_title = (getattr(page, "title", "") or "").strip()
+        site_name = ""
+        if site_settings:
+            site_name = (getattr(site_settings, "company_name", "") or "").strip()
+        if not site_name and site:
+            site_name = (site.site_name or "").strip()
+        meta_title = f"{page_title} | {site_name}" if site_name else page_title
 
-    # 2. Description
+    # 2) Meta description precedence:
+    # meta_description (platform) -> search_description (Wagtail) -> omitted
+    meta_description = ""
     if hasattr(page, "get_meta_description"):
-        meta_description = page.get_meta_description()
-    else:
-        meta_description = getattr(page, "search_description", "")
+        meta_description = (page.get_meta_description() or "").strip()
+    if not meta_description:
+        meta_description = (getattr(page, "meta_description", "") or "").strip()
+    if not meta_description:
+        meta_description = (getattr(page, "search_description", "") or "").strip()
 
-    # 3. Robots
-    # Check for seo_noindex/seo_nofollow
-    noindex = getattr(page, "seo_noindex", False)
-    nofollow = getattr(page, "seo_nofollow", False)
+    # 3) Robots meta from flags
+    noindex = bool(getattr(page, "seo_noindex", False))
+    nofollow = bool(getattr(page, "seo_nofollow", False))
+    robots_val = (
+        f"{'noindex' if noindex else 'index'}, {'nofollow' if nofollow else 'follow'}"
+    )
 
-    robots_content = []
-    if noindex:
-        robots_content.append("noindex")
-    else:
-        robots_content.append(
-            "index"
-        )  # Explicit index is fine, or omit. keeping implicit usually better but requirement says "variants as needed".
-        # Actually usually 'noindex' or nothing (which implies index).
-        # But if noindex is False, we typically don't output "index".
-        # Let's clean this up.
-
-    if nofollow:
-        robots_content.append("nofollow")
-    else:
-        robots_content.append("follow")
-
-    # Simplify: default is index, follow. Only output if deviating or explicit 'noindex'.
-    # Actually, standard is: if noindex or nofollow is set, output meta robots.
-    # If both false, we can omit or output "index, follow".
-    # Requirement: "Use seo_noindex / seo_nofollow flags to build content='noindex,nofollow' variants as needed."
-
-    robots_val = ""
-    parts = []
-    if noindex:
-        parts.append("noindex")
-    else:
-        parts.append("index")
-
-    if nofollow:
-        parts.append("nofollow")
-    else:
-        parts.append("follow")
-
-    robots_val = ", ".join(parts)
-
-    # 4. Canonical
+    # 4) Canonical URL (absolute when request present)
     canonical_url = ""
-    if hasattr(page, "get_canonical_url"):
-        canonical_url = page.get_canonical_url(request)
+    if request is not None:
+        relative = ""
+        if isinstance(page, Page):
+            relative = page.get_url(request=request) or getattr(page, "url", "") or "/"
+        else:
+            relative = getattr(page, "url", "") or "/"
+        canonical_url = request.build_absolute_uri(relative or "/")
+    elif hasattr(page, "get_canonical_url"):
+        canonical_url = (page.get_canonical_url(None) or "").strip()
     elif isinstance(page, Page):
-        canonical_url = page.get_full_url(request)
+        canonical_url = (page.get_full_url() or "").strip()
 
     return {
         "meta_title": meta_title,
@@ -116,49 +94,49 @@ def render_og(context, page):
     """
     request = context.get("request")
 
-    site = None
-    if request:
-        site = Site.find_for_request(request)
-    if not site and isinstance(page, Page):
-        site = page.get_site()
-
+    site = _resolve_site(request, page)
     site_settings = SiteSettings.for_site(site) if site else None
 
-    # OG Title
-    og_title = ""
-    if hasattr(page, "get_og_title") and site_settings:
-        og_title = page.get_og_title(site_settings)
-    else:
-        og_title = getattr(page, "title", "")
+    meta = render_meta(context, page)
+    canonical_url = meta.get("canonical_url", "")
+    meta_title = meta.get("meta_title", "")
+    meta_description = meta.get("meta_description", "")
 
-    # OG Description
-    og_description = ""
-    if hasattr(page, "get_og_description"):
-        og_description = page.get_og_description()
+    # OG Title precedence: og_title -> helper -> meta title
+    og_title = (getattr(page, "og_title", "") or "").strip()
+    if not og_title and hasattr(page, "get_og_title") and site_settings:
+        og_title = (page.get_og_title(site_settings) or "").strip()
+    if not og_title:
+        og_title = (meta_title or "").strip() or (getattr(page, "title", "") or "")
 
-    # OG Type
+    # OG Description precedence: og_description -> helper -> meta description
+    og_description = (getattr(page, "og_description", "") or "").strip()
+    if not og_description and hasattr(page, "get_og_description"):
+        og_description = (page.get_og_description() or "").strip()
+    if not og_description:
+        og_description = (meta_description or "").strip()
+
     og_type = "website"
 
-    # OG URL
-    og_url = ""
-    if isinstance(page, Page):
-        og_url = page.get_full_url(request)
+    og_url = canonical_url
 
-    # OG Image
+    # OG Image fallback chain: page og_image -> featured_image -> site default
     og_image = None
     if hasattr(page, "get_og_image") and site_settings:
         og_image = page.get_og_image(site_settings)
     else:
-        # Manual fallback chain if mixin helper missing
-        # 1. page.og_image
         if hasattr(page, "og_image") and page.og_image:
             og_image = page.og_image
-        # 2. page.featured_image
         elif hasattr(page, "featured_image") and page.featured_image:
             og_image = page.featured_image
-        # 3. site defaults
         elif site_settings and site_settings.og_default_image:
             og_image = site_settings.og_default_image
+
+    site_name = ""
+    if site_settings:
+        site_name = (getattr(site_settings, "company_name", "") or "").strip()
+    if not site_name and site:
+        site_name = (site.site_name or "").strip()
 
     return {
         "og_title": og_title,
@@ -166,7 +144,7 @@ def render_og(context, page):
         "og_type": og_type,
         "og_url": og_url,
         "og_image": og_image,
-        "site_name": site.site_name if site else "",
+        "site_name": site_name,
         "request": request,
     }
 
