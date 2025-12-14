@@ -14,7 +14,6 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.urls import path
 from django.utils.html import format_html
 from sum_core.leads.models import Lead, LeadSourceRule
-from wagtail import hooks
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.admin.ui.tables import Column, DateColumn
 from wagtail.admin.views import generic
@@ -253,10 +252,6 @@ class LeadPermissionPolicy(ModelPermissionPolicy):
 
 
 # Register the viewset
-@hooks.register("register_admin_viewset")
-def register_lead_viewset() -> LeadViewSet:
-    """Register the Lead ViewSet with Wagtail admin."""
-    return LeadViewSet("leads")
 
 
 # Also register LeadSourceRule as a snippet for configuration
