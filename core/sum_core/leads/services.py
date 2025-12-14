@@ -8,10 +8,14 @@ Dependencies: Django ORM, sum_core.leads.models.Lead, Wagtail Page model.
 
 from __future__ import annotations
 
+import csv
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
+from io import StringIO
 from typing import Any
 
+from django.contrib.auth.models import AbstractBaseUser
+from django.db.models import QuerySet
 from sum_core.leads.attribution import derive_lead_source
 from sum_core.leads.models import Lead
 from wagtail.models import Page
@@ -132,3 +136,87 @@ def create_lead_from_submission(
         post_create_hook(lead)
 
     return lead
+
+
+def build_lead_csv(queryset: QuerySet[Lead]) -> str:
+    """
+    Generate CSV export from a Lead queryset.
+
+    Includes all relevant fields with proper CSV quoting/escaping.
+
+    Args:
+        queryset: Lead queryset to export
+
+    Returns:
+        CSV content as string
+    """
+    output = StringIO()
+    writer = csv.writer(output, quoting=csv.QUOTE_MINIMAL)
+
+    # CSV header
+    headers = [
+        "Submitted At",
+        "Name",
+        "Email",
+        "Phone",
+        "Message",
+        "Form Type",
+        "Status",
+        "Lead Source",
+        "Lead Source Detail",
+        "UTM Source",
+        "UTM Medium",
+        "UTM Campaign",
+        "UTM Term",
+        "UTM Content",
+        "Landing Page URL",
+        "Page URL",
+        "Referrer URL",
+        "Source Page",
+    ]
+    writer.writerow(headers)
+
+    # Data rows
+    for lead in queryset.select_related("source_page"):
+        writer.writerow(
+            [
+                lead.submitted_at.isoformat() if lead.submitted_at else "",
+                lead.name,
+                lead.email,
+                lead.phone,
+                lead.message,
+                lead.form_type,
+                lead.get_status_display(),
+                lead.get_lead_source_display() if lead.lead_source else "",
+                lead.lead_source_detail,
+                lead.utm_source,
+                lead.utm_medium,
+                lead.utm_campaign,
+                lead.utm_term,
+                lead.utm_content,
+                lead.landing_page_url,
+                lead.page_url,
+                lead.referrer_url,
+                lead.source_page.title if lead.source_page else "",
+            ]
+        )
+
+    return output.getvalue()
+
+
+def can_user_export_leads(user: AbstractBaseUser | None) -> bool:
+    """
+    Check if user has permission to export leads.
+
+    Only users with 'leads.export_lead' permission can export.
+
+    Args:
+        user: User to check permissions for
+
+    Returns:
+        True if user can export leads, False otherwise
+    """
+    if user is None or not user.is_authenticated:
+        return False
+
+    return user.has_perm("leads.export_lead")

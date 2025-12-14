@@ -122,6 +122,9 @@ class Lead(models.Model):
 
     class Meta:
         ordering = ["-submitted_at"]
+        permissions = [
+            ("export_lead", "Can export leads to CSV"),
+        ]
 
     def __str__(self) -> str:
         return f"{self.name} <{self.email}> ({self.form_type})"

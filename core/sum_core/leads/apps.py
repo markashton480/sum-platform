@@ -18,3 +18,8 @@ class LeadsConfig(AppConfig):
     name: str = "sum_core.leads"
     label: str = "sum_core_leads"
     verbose_name: str = "Leads"
+
+    def ready(self) -> None:
+        """Import Wagtail admin hooks when app is ready."""
+        # Import wagtail_admin to register hooks
+        from sum_core.leads import wagtail_admin  # noqa: F401
