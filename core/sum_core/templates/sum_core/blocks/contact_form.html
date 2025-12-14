@@ -1,4 +1,4 @@
-{% load wagtailcore_tags %}
+{% load wagtailcore_tags form_tags %}
 <section class="section section--muted contact-form-block">
   <div class="container">
     <div class="contact-form-layout">
@@ -17,13 +17,16 @@
 
       <!-- Form Column -->
       <div class="contact-form-container reveal-group delay-100">
-        <form action="" method="post" novalidate class="form premium-form" data-form-type="contact">
+        <form action="/forms/submit/" method="post" novalidate class="form premium-form" data-form-type="contact" id="contact-form">
           {% csrf_token %}
-          
+
+          <!-- Hidden fields for attribution and spam protection -->
+          {% form_hidden_fields form_type="contact" %}
+
           <!-- Honeypot field (visually hidden) -->
           <div class="form__field form__field--honeypot" aria-hidden="true">
-            <label for="form-website-field">Website</label>
-            <input type="text" name="website" id="form-website-field" tabindex="-1" autocomplete="off">
+            <label for="form-company-field">Company</label>
+            <input type="text" name="company" id="form-company-field" tabindex="-1" autocomplete="off">
           </div>
 
           {% if form %}
@@ -43,7 +46,7 @@
                 {% endif %}
               </div>
             {% endfor %}
-            
+
             {% if form.non_field_errors %}
               <div class="form-errors">
                 {% for error in form.non_field_errors %}
@@ -72,6 +75,9 @@
             </div>
           {% endif %}
 
+          <!-- Form messages -->
+          <div class="form-messages" role="alert" aria-live="polite"></div>
+
           <div class="form-actions">
             <button type="submit" class="btn btn-primary btn-submit">
               {{ self.submit_label|default:"Send enquiry" }}
@@ -82,3 +88,70 @@
     </div>
   </div>
 </section>
+
+{% form_attribution_script %}
+
+<script>
+(function() {
+  'use strict';
+
+  var form = document.getElementById('contact-form');
+  if (!form) return;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var formData = new FormData(form);
+    var submitBtn = form.querySelector('.btn-submit');
+    var messagesDiv = form.querySelector('.form-messages');
+    var originalBtnText = submitBtn.textContent;
+
+    // Disable button and show loading state
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    messagesDiv.innerHTML = '';
+    messagesDiv.className = 'form-messages';
+
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(function(response) {
+      return response.json().then(function(data) {
+        return { status: response.status, data: data };
+      });
+    })
+    .then(function(result) {
+      if (result.data.success) {
+        // Success - show success message
+        messagesDiv.className = 'form-messages form-messages--success';
+        messagesDiv.innerHTML = '<p class="form-success-msg">{{ self.success_message|default:"Thanks, we\'ll be in touch shortly." }}</p>';
+        form.reset();
+      } else {
+        // Error - show error messages
+        messagesDiv.className = 'form-messages form-messages--error';
+        var errorHtml = '';
+        if (result.data.errors) {
+          for (var field in result.data.errors) {
+            result.data.errors[field].forEach(function(msg) {
+              errorHtml += '<p class="form-error-msg">' + msg + '</p>';
+            });
+          }
+        }
+        messagesDiv.innerHTML = errorHtml || '<p class="form-error-msg">Something went wrong. Please try again.</p>';
+      }
+    })
+    .catch(function(error) {
+      messagesDiv.className = 'form-messages form-messages--error';
+      messagesDiv.innerHTML = '<p class="form-error-msg">Something went wrong. Please try again.</p>';
+    })
+    .finally(function() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnText;
+    });
+  });
+})();
+</script>

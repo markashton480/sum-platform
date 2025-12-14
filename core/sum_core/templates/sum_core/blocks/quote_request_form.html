@@ -1,4 +1,4 @@
-{% load wagtailcore_tags %}
+{% load wagtailcore_tags form_tags %}
 <section class="section quote-form-block {% if self.show_compact_meta %}section--compact{% endif %}">
   <div class="container">
     <header class="section__header reveal-group">
@@ -12,9 +12,12 @@
     </header>
 
     <div class="quote-form-container reveal-group delay-100">
-      <form action="" method="post" novalidate class="form premium-form quote-form" data-form-type="quote">
+      <form action="/forms/submit/" method="post" novalidate class="form premium-form quote-form" data-form-type="quote" id="quote-form">
         {% csrf_token %}
-        
+
+        <!-- Hidden fields for attribution and spam protection -->
+        {% form_hidden_fields form_type="quote" %}
+
         <!-- Honeypot field -->
         <div class="form__field form__field--honeypot" aria-hidden="true">
           <label for="form-company-field">Company</label>
@@ -40,7 +43,7 @@
               </div>
             {% endfor %}
           </div>
-          
+
           {% if form.non_field_errors %}
             <div class="form-errors">
               {% for error in form.non_field_errors %}
@@ -88,12 +91,27 @@
                </div>
              </div>
 
+             <!-- Name and Email row -->
+             <div class="form-row">
+               <div class="form-group">
+                  <label for="quote-name" class="form-label">Full Name</label>
+                  <input type="text" id="quote-name" name="name" class="form-input" placeholder="e.g. James Sterling" required>
+               </div>
+               <div class="form-group">
+                  <label for="quote-email" class="form-label">Email Address</label>
+                  <input type="email" id="quote-email" name="email" class="form-input" placeholder="name@example.com" required>
+               </div>
+             </div>
+
              <div class="form-group">
                 <label for="quote-details" class="form-label">Additional Details</label>
-                <textarea id="quote-details" name="details" class="form-textarea" placeholder="Any specific requirements or constraints?"></textarea>
+                <textarea id="quote-details" name="message" class="form-textarea" placeholder="Any specific requirements or constraints?"></textarea>
              </div>
           </div>
         {% endif %}
+
+        <!-- Form messages -->
+        <div class="form-messages" role="alert" aria-live="polite"></div>
 
         <div class="form-actions">
           <button type="submit" class="btn btn-primary btn-submit">
@@ -104,3 +122,70 @@
     </div>
   </div>
 </section>
+
+{% form_attribution_script %}
+
+<script>
+(function() {
+  'use strict';
+
+  var form = document.getElementById('quote-form');
+  if (!form) return;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    var formData = new FormData(form);
+    var submitBtn = form.querySelector('.btn-submit');
+    var messagesDiv = form.querySelector('.form-messages');
+    var originalBtnText = submitBtn.textContent;
+
+    // Disable button and show loading state
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    messagesDiv.innerHTML = '';
+    messagesDiv.className = 'form-messages';
+
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(function(response) {
+      return response.json().then(function(data) {
+        return { status: response.status, data: data };
+      });
+    })
+    .then(function(result) {
+      if (result.data.success) {
+        // Success - show success message
+        messagesDiv.className = 'form-messages form-messages--success';
+        messagesDiv.innerHTML = '<p class="form-success-msg">{{ self.success_message|default:"Thanks, we\'ll prepare your quote." }}</p>';
+        form.reset();
+      } else {
+        // Error - show error messages
+        messagesDiv.className = 'form-messages form-messages--error';
+        var errorHtml = '';
+        if (result.data.errors) {
+          for (var field in result.data.errors) {
+            result.data.errors[field].forEach(function(msg) {
+              errorHtml += '<p class="form-error-msg">' + msg + '</p>';
+            });
+          }
+        }
+        messagesDiv.innerHTML = errorHtml || '<p class="form-error-msg">Something went wrong. Please try again.</p>';
+      }
+    })
+    .catch(function(error) {
+      messagesDiv.className = 'form-messages form-messages--error';
+      messagesDiv.innerHTML = '<p class="form-error-msg">Something went wrong. Please try again.</p>';
+    })
+    .finally(function() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnText;
+    });
+  });
+})();
+</script>

@@ -1,0 +1,234 @@
+"""
+Name: Form submission handler
+Path: core/sum_core/forms/views.py
+Purpose: Accept Contact/Quote submissions, apply spam checks, persist Leads.
+Family: Forms, Leads, Attribution, Notifications.
+Dependencies: FormConfiguration, Lead service, Django cache, Wagtail Site.
+"""
+
+from __future__ import annotations
+
+import json
+from typing import Any
+
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from sum_core.forms.models import FormConfiguration
+from sum_core.forms.services import (
+    get_client_ip,
+    increment_rate_limit_counter,
+    run_spam_checks,
+)
+from sum_core.leads.services import AttributionData, create_lead_from_submission
+from wagtail.models import Site
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class FormSubmissionView(View):
+    """
+    Handle form submissions from Contact and Quote forms.
+
+    Accepts POST with JSON or form-encoded data.
+    Performs spam checks, validates input, and creates Lead records.
+
+    Response codes:
+    - 200: Success, Lead created
+    - 400: Validation error (missing fields, spam detected)
+    - 429: Rate limit exceeded
+    - 405: Method not allowed (not POST)
+    """
+
+    def post(self, request, *args, **kwargs) -> JsonResponse:
+        """Handle form submission POST request."""
+        # Parse request data
+        data = self._parse_request_data(request)
+        if data is None:
+            return JsonResponse(
+                {"success": False, "errors": {"__all__": ["Invalid request data"]}},
+                status=400,
+            )
+
+        # Get site from request
+        site = self._get_site(request)
+        if site is None:
+            return JsonResponse(
+                {"success": False, "errors": {"__all__": ["Site not found"]}},
+                status=400,
+            )
+
+        # Get form configuration
+        config = self._get_config(site)
+
+        # Run spam checks
+        spam_result = run_spam_checks(
+            form_data=data,
+            ip_address=get_client_ip(request),
+            site_id=site.id,
+            time_token=data.get("_time_token", ""),
+            honeypot_field_name=config.honeypot_field_name,
+            rate_limit_per_hour=config.rate_limit_per_ip_per_hour,
+            min_seconds_to_submit=config.min_seconds_to_submit,
+        )
+
+        if spam_result.should_rate_limit:
+            return JsonResponse(
+                {"success": False, "errors": {"__all__": ["Too many requests"]}},
+                status=429,
+            )
+
+        if spam_result.is_spam:
+            # Return 400 for spam (indistinguishable from validation error to bots)
+            return JsonResponse(
+                {"success": False, "errors": {"__all__": ["Invalid submission"]}},
+                status=400,
+            )
+
+        # Validate required fields
+        validation_errors = self._validate_submission(data, config)
+        if validation_errors:
+            return JsonResponse(
+                {"success": False, "errors": validation_errors},
+                status=400,
+            )
+
+        # Create Lead (must happen before any side effects)
+        try:
+            lead = self._create_lead(data, site)
+        except ValueError as e:
+            return JsonResponse(
+                {"success": False, "errors": {"__all__": [str(e)]}},
+                status=400,
+            )
+
+        # Increment rate limit counter AFTER successful lead creation
+        increment_rate_limit_counter(get_client_ip(request), site.id)
+
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "Thank you for your submission",
+                "lead_id": lead.id,
+            },
+            status=200,
+        )
+
+    def _parse_request_data(self, request) -> dict | None:
+        """Parse request body as JSON or form data."""
+        content_type = request.content_type or ""
+
+        if "application/json" in content_type:
+            try:
+                return json.loads(request.body)
+            except (json.JSONDecodeError, ValueError):
+                return None
+
+        # Fall back to form-encoded data
+        return request.POST.dict()
+
+    def _get_site(self, request) -> Site | None:
+        """Get the Wagtail Site for this request."""
+        return Site.find_for_request(request)
+
+    def _get_config(self, site: Site) -> FormConfiguration:
+        """Get or create FormConfiguration for site."""
+        return FormConfiguration.get_for_site(site)
+
+    def _validate_submission(self, data: dict, config: FormConfiguration) -> dict:
+        """
+        Validate required submission fields.
+
+        Returns dict of field -> error messages, empty if valid.
+        """
+        errors: dict[str, list[str]] = {}
+
+        # Required fields
+        required_fields = {
+            "name": "Name is required",
+            "email": "Email is required",
+            "message": "Message is required",
+        }
+
+        for field, error_msg in required_fields.items():
+            value = data.get(field, "").strip()
+            if not value:
+                errors[field] = [error_msg]
+
+        # Form type - required or use default
+        form_type = data.get("form_type", "").strip()
+        if not form_type:
+            if config.default_form_type:
+                # Will use default, no error
+                pass
+            else:
+                errors["form_type"] = ["Form type is required"]
+
+        return errors
+
+    def _create_lead(self, data: dict, site: Site):
+        """
+        Create Lead from validated submission data.
+
+        Uses the canonical Lead service to ensure "no lost leads" invariant.
+        """
+        # Determine form type
+        form_type = data.get("form_type", "").strip()
+        if not form_type:
+            config = self._get_config(site)
+            form_type = config.default_form_type or "unknown"
+
+        # Build attribution data
+        attribution = AttributionData(
+            utm_source=data.get("utm_source", ""),
+            utm_medium=data.get("utm_medium", ""),
+            utm_campaign=data.get("utm_campaign", ""),
+            utm_term=data.get("utm_term", ""),
+            utm_content=data.get("utm_content", ""),
+            landing_page_url=data.get("landing_page_url", ""),
+            page_url=data.get("page_url", ""),
+            referrer_url=data.get("referrer_url", ""),
+        )
+
+        # Collect additional form data (excluding standard fields)
+        standard_fields = {
+            "name",
+            "email",
+            "phone",
+            "message",
+            "form_type",
+            "utm_source",
+            "utm_medium",
+            "utm_campaign",
+            "utm_term",
+            "utm_content",
+            "landing_page_url",
+            "page_url",
+            "referrer_url",
+            "_time_token",
+            "csrfmiddlewaretoken",
+        }
+
+        # Get honeypot field name to exclude it
+        config = self._get_config(site)
+        standard_fields.add(config.honeypot_field_name)
+
+        extra_data: dict[str, Any] = {}
+        for key, value in data.items():
+            if key not in standard_fields and not key.startswith("_"):
+                extra_data[key] = value
+
+        # Create the lead using canonical service
+        return create_lead_from_submission(
+            name=data.get("name", ""),
+            email=data.get("email", ""),
+            message=data.get("message", ""),
+            form_type=form_type,
+            phone=data.get("phone"),
+            form_data=extra_data if extra_data else None,
+            attribution=attribution,
+        )
+
+
+# Convenience function-based view for URL routing
+form_submission_view = FormSubmissionView.as_view()

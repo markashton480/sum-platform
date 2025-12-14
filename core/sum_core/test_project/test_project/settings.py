@@ -78,8 +78,17 @@ INSTALLED_APPS: list[str] = [
     "sum_core.pages",
     "sum_core.navigation",
     "sum_core.leads",
+    "sum_core.forms",
     "home",
 ]
+
+# Cache configuration (used for rate limiting)
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "sum-core-cache",
+    }
+}
 
 MIDDLEWARE: list[str] = [
     "django.middleware.security.SecurityMiddleware",
