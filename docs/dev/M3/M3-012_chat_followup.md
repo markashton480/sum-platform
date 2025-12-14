@@ -1,6 +1,6 @@
 # M3-012 Investigation Report (follow-up)
 
-Context: Manual testing still reported (a) missing **“Leads”** in Wagtail admin sidebar, and (b) frontend form submissions failing. Prior agent work is preserved in `docs/dev/M3/M3-012_chat_og.md`.
+Context: Manual testing still reported (a) missing **“Leads”** in Wagtail admin sidebar, and (b) frontend form submissions failing. Prior agent work is preserved in `docs/dev/M3/M3-012_chat.md`.
 
 ## Findings (root causes)
 

@@ -1,82 +1,84 @@
 # SUM Platform
 
-Monorepo for trade website platform built on Django and Wagtail.
+SUM Platform is a Django/Wagtail foundation for quickly launching lead-focused websites for home improvement trades. The primary deliverable is the installable core package `sum-core` (import path `sum_core`), plus a minimal `test_project/` used for local development and CI-style validation.
 
-## Overview
+This README is the main “how the repo works” entrypoint. The consolidated product/implementation spec lives in `docs/dev/SUM-PLATFORM-SSOT.md`.
 
-This repository contains the **SUM Platform** core package (`sum_core`), a reusable Django/Wagtail foundation for building trade website platforms. The platform provides:
+## Where to start (docs)
 
-- **Token-based CSS design system** with dynamic branding
-- **SiteSettings** for per-site customization (colours, fonts, logos, business info)
-- **Base templates** and component library
-- **Theme presets** for quick brand setup
-- **Test project** for development and CI validation
+- Product + architecture SSOT: `docs/dev/SUM-PLATFORM-SSOT.md`
+- Full PRD (audit trail): `docs/dev/prd-sum-platform-v1.1.md`
+- CSS tokens + rules: `docs/dev/design/css-architecture-and-tokens.md`
+- Block catalogue (authoritative): `docs/dev/blocks-reference.md`
+- Page types reference: `docs/dev/page-types-reference.md`
+- Navigation system deep-dive: `docs/dev/NAV/navigation.md`
+- Milestone audit trail: `docs/dev/M0/`, `docs/dev/M1/`, `docs/dev/M2/`, `docs/dev/M3/`
 
-## Documentation
+## Current status (end of Milestone 3)
 
-- Dev docs index: [`docs/dev/README.md`](docs/dev/README.md)
-- Navigation system: [`docs/dev/NAV/navigation.md`](docs/dev/NAV/navigation.md)
+Implemented in `sum_core` today:
+
+- **Token-based design system** (`core/sum_core/static/sum_core/css/`) with a single template entrypoint: `sum_core/css/main.css`.
+- **Branding + SiteSettings** (Wagtail Settings → “Site settings”) providing colours, fonts, logos/favicon, business info, and social links.
+- **Page types**:
+  - `HomePage` (in `core/sum_core/test_project/home/`) with “only one per site” enforcement.
+  - `StandardPage`, `ServiceIndexPage`, `ServicePage` (in `core/sum_core/pages/`).
+  - Shared page metadata via `SeoFieldsMixin`, `OpenGraphMixin`, `BreadcrumbMixin`.
+- **Navigation system** (Wagtail Settings → “Header Navigation” / “Footer Navigation”): header menus (3 levels), footer sections, and a mobile sticky CTA; output is cached and invalidated on relevant changes.
+- **Forms + lead pipeline**:
+  - Frontend blocks: `contact_form`, `quote_request_form`.
+  - Submission endpoint: `POST /forms/submit/` (CSRF-protected) with honeypot + timing + rate-limit spam protection.
+  - Lead persistence (“no lost leads” invariant), attribution capture, notification tasks (email + webhook), and Wagtail admin UI (“Leads”) including CSV export.
+
+Present but currently placeholders (namespaces exist; functionality is minimal):
+
+- `core/sum_core/analytics/`, `core/sum_core/seo/`, `core/sum_core/integrations/`
+- Top-level `cli/`, `boilerplate/`, `clients/`, `scripts/`, `infrastructure/` are currently stubs/placeholders.
 
 ## Prerequisites
 
-* **Python 3.12+**
-* **Docker** and **Docker Compose** (for PostgreSQL database)
-* A working virtual environment
+- Python **3.12+**
+- Optional (recommended): Docker + Docker Compose (local Postgres)
 
-## Getting Started
+## Quickstart (local dev)
 
-### 1. Create and Activate Virtual Environment
+Create and activate the repo-root virtualenv:
 
 ```bash
 python3.12 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate
 ```
 
-### 2. Install Development Dependencies
+Install `sum-core` in editable mode + dev tooling:
 
 ```bash
 make install-dev
 ```
 
-This installs:
-- Core package (`sum_core`) in editable mode
-- Development tools (Black, isort, ruff, pytest, mypy, pre-commit)
-- Sets up pre-commit hooks
+Run the test project:
 
-### 3. Database Setup
+```bash
+make run
+```
 
-The project uses **PostgreSQL** via Docker for development. The test project will fall back to SQLite if database environment variables are not set.
+Then visit:
 
-**Start PostgreSQL:**
+- Wagtail admin: `http://localhost:8000/admin/`
+- Django admin: `http://localhost:8000/django-admin/` (used for some non-Wagtail models)
+
+## Database (Postgres fallback to Sqlite)
+
+`core/sum_core/test_project/test_project/settings.py` uses SQLite unless a complete Postgres config is supplied via environment variables (it also auto-loads the first `.env` it finds while walking up the tree).
+
+### Start Postgres via Docker Compose:
 
 ```bash
 make db-up
 ```
 
-This starts a PostgreSQL 17 container with:
-- Database: `sum_db`
-- User: `sum_user`
-- Password: `sum_password`
-- Port: `5432`
-
-**Stop PostgreSQL:**
+And set a repo-root `.env` (example):
 
 ```bash
-make db-down
-```
-
-**View database logs:**
-
-```bash
-make db-logs
-```
-
-### 4. Configure Environment Variables (Optional)
-
-For PostgreSQL, create a `.env` file in the repo root:
-
-```bash
-# Database settings for local Postgres (Docker)
 DJANGO_DB_NAME=sum_db
 DJANGO_DB_USER=sum_user
 DJANGO_DB_PASSWORD=sum_password
@@ -84,241 +86,72 @@ DJANGO_DB_HOST=localhost
 DJANGO_DB_PORT=5432
 ```
 
-The test project will automatically load `.env` files. If these variables are not set, it will use SQLite as a fallback.
-
-### 5. Run Migrations
-
-With the database running and environment configured:
+Stop Postgres:
 
 ```bash
-cd core/sum_core/test_project
-python manage.py migrate
-python manage.py createsuperuser  # Optional: create admin user
+make db-down
 ```
 
-### 6. Run the Test Project
+## Core package: `sum-core` (`sum_core`)
 
-```bash
-make run
-```
+Source lives in `core/sum_core/`.
 
-Or manually:
+### Design system & tokens
 
-```bash
-cd core/sum_core/test_project
-python manage.py runserver
-```
+- CSS entrypoint referenced by templates: `core/sum_core/static/sum_core/css/main.css`
+- Token source of truth: `core/sum_core/static/sum_core/css/tokens.css`
+- Rules and architecture: `docs/dev/design/css-architecture-and-tokens.md`
 
-Visit `http://localhost:8000/admin/` to access the Wagtail admin interface.
+Branding is injected at runtime via template tags:
 
-## Development Commands
+- `{% branding_fonts %}` inserts Google Fonts links for configured fonts.
+- `{% branding_css %}` inserts a `<style>` block with CSS variables derived from Wagtail SiteSettings.
 
-All commands should be run from the repository root with the virtual environment activated.
+### Navigation system
 
-### Available Make Targets
+Navigation is managed per-site in Wagtail Settings:
 
-Run `make help` to see all available commands:
+- **Header Navigation**: menu structure, header CTA, phone toggle, mobile sticky CTA config.
+- **Footer Navigation**: footer sections, optional tagline/social overrides.
 
-```bash
-make help
-```
+Technical deep-dive: `docs/dev/NAV/navigation.md`.
 
-#### Installation
+### Forms & leads
 
-- `make install` - Install project dependencies
-- `make install-dev` - Install development dependencies and set up pre-commit hooks
+Forms are implemented as StreamField blocks and submit to `POST /forms/submit/`:
 
-#### Code Quality
+- Spam protection: honeypot, timing token, and per-IP rate limiting.
+- Attribution capture: UTM parameters, referrer, landing page URL (via `form_attribution_script`).
+- Persistence: every valid submission creates a `Lead` record; async side-effects are queued after persistence.
 
-- `make lint` - Run linting checks (ruff + mypy)
-- `make format` - Format code with Black and isort
-- `make test` - Run test suite with pytest
+Admin surfaces:
 
-#### Database
+- Wagtail: “Leads” (list/detail, filters/search, status updates, CSV export).
+- Django admin: `FormConfiguration` (per-site spam/rate-limit/notification settings).
 
-- `make db-up` - Start PostgreSQL via Docker Compose
-- `make db-down` - Stop PostgreSQL container
-- `make db-logs` - Tail PostgreSQL logs
+Runtime configuration (environment variables used by the test project):
 
-#### Development Server
+- `LEAD_NOTIFICATION_EMAIL`: destination for lead email notifications.
+- `ZAPIER_WEBHOOK_URL`: webhook URL for lead POSTs (optional).
+- `DEFAULT_FROM_EMAIL`: sender address for notifications.
 
-- `make run` - Run Django development server (test project)
+## Repo layout (what’s real vs planned)
 
-#### Cleanup
+- `core/`: installable `sum-core` package + `test_project/` (this is the product).
+- `tests/`: pytest suite for `sum_core`.
+- `docs/dev/`: PRD, SSOT, design docs, and milestone audit trail.
+- Placeholders today: `cli/`, `boilerplate/`, `clients/`, `scripts/`, `infrastructure/`.
 
-- `make clean` - Clean up generated files (pyc, cache, etc.)
+## Commands
 
-### Pre-commit Hooks
+From repo root (with `.venv` active):
 
-Pre-commit hooks are automatically installed when you run `make install-dev`. They run automatically on git commit. You can also run them manually:
-
-```bash
-pre-commit run --all-files
-```
-
-## Project Structure
-
-```
-.
-├── core/                    # Core package (sum_core)
-│   └── sum_core/           # Reusable Django/Wagtail core
-│       ├── branding/       # SiteSettings, theme presets, branding tags
-│       ├── blocks/         # Wagtail blocks
-│       ├── pages/          # Page models
-│       ├── leads/          # Lead capture
-│       ├── analytics/       # Analytics integration
-│       ├── seo/            # SEO utilities
-│       ├── integrations/   # Third-party integrations
-│       ├── utils/          # Utility functions
-│       ├── templates/      # Base templates
-│       ├── static/         # CSS, JS, images
-│       └── test_project/   # Test Django project for CI/development
-├── boilerplate/            # Boilerplate templates
-├── clients/                # Client projects
-├── cli/                    # CLI tools
-├── docs/                   # Documentation
-│   └── dev/                # Development documentation
-│       ├── M0/             # Milestone 0 tasks
-│       └── M1/             # Milestone 1 tasks
-├── scripts/                # Utility scripts
-├── infrastructure/         # Infrastructure as code
-├── tests/                  # Test suite
-├── docker-compose.yml      # Docker Compose config (PostgreSQL)
-├── Makefile               # Development commands
-└── pyproject.toml         # Root tooling configuration
-```
-
-## Core Package (`sum_core`)
-
-The `sum_core` package is the central dependency for all client projects. It provides:
-
-### Design System
-
-- **CSS Token System** (`main.css`) - Token-based design system with colour, typography, spacing, radius, and shadow tokens
-- **Dynamic Branding** - CSS variables generated from `SiteSettings` via `{% branding_css %}` template tag
-- **Google Fonts Integration** - Dynamic font loading via `{% branding_fonts %}` template tag
-- **Component Library** - Buttons, cards, forms, navigation styles using tokens exclusively
-
-### SiteSettings
-
-- Brand colours (primary, secondary, accent, background, text)
-- Logo uploads (header, footer, favicon)
-- Typography (heading and body fonts)
-- Business information (company name, tagline, contact details)
-- Social media links
-- **Theme Presets** - 5 pre-configured themes (Premium Trade, Professional Blue, Modern Green, Warm Earth, Clean Slate)
-
-### Templates
-
-- `base.html` - Core layout template with header, main, footer
-- `home_page.html` - Homepage template
-- Includes: `header.html`, `footer.html`
-
-### Template Tags
-
-- `{% get_site_settings %}` - Access SiteSettings in templates
-- `{% branding_css %}` - Generate CSS variables from SiteSettings
-- `{% branding_fonts %}` - Generate Google Fonts links
-
-## Test Project
-
-The test project (`core/sum_core/test_project`) serves multiple purposes:
-
-- **CI Validation** - Ensures `sum_core` works correctly
-- **Development** - Local testing and development environment
-- **Documentation** - Example implementation
-
-### Running the Test Project
-
-1. Ensure database is running: `make db-up`
-2. Run migrations: `cd core/sum_core/test_project && python manage.py migrate`
-3. Start server: `make run` or `python manage.py runserver`
-4. Access admin: `http://localhost:8000/admin/`
-
-### Test Project Structure
-
-```
-core/sum_core/test_project/
-├── manage.py
-├── test_project/
-│   ├── settings.py      # Django settings (env-aware DB config)
-│   ├── urls.py         # URL configuration
-│   └── wsgi.py         # WSGI application
-└── home/               # Home app (HomePage model)
-    ├── models.py
-    └── apps.py
-```
-
-## Database Configuration
-
-The test project supports both **PostgreSQL** (via Docker) and **SQLite** (fallback).
-
-### PostgreSQL (Recommended)
-
-1. Start database: `make db-up`
-2. Set environment variables (via `.env` or export):
-   ```bash
-   export DJANGO_DB_NAME=sum_db
-   export DJANGO_DB_USER=sum_user
-   export DJANGO_DB_PASSWORD=sum_password
-   export DJANGO_DB_HOST=localhost
-   export DJANGO_DB_PORT=5432
-   ```
-3. Run migrations: `python core/sum_core/test_project/manage.py migrate`
-
-### SQLite (Fallback)
-
-If database environment variables are not set, the project automatically uses SQLite. No additional setup required.
-
-## Development Workflow
-
-1. **Activate virtual environment**: `source .venv/bin/activate`
-2. **Start database**: `make db-up`
-3. **Run tests**: `make test`
-4. **Run linting**: `make lint`
-5. **Format code**: `make format`
-6. **Start dev server**: `make run`
-
-## Testing
-
-Run the full test suite:
-
-```bash
-make test
-```
-
-Tests use **pytest** and **pytest-django**. The test suite includes:
-
-- Unit tests for `sum_core` components
-- Template tag tests
-- Model tests
-- Integration tests for the test project
-
-## Code Style
-
-The project uses:
-
-- **Black** - Code formatting
-- **isort** - Import sorting
-- **ruff** - Linting
-- **mypy** - Type checking
-
-Format code before committing:
-
-```bash
-make format
-```
-
-## Git Workflow
-
-- Default branch: `main` (must remain stable)
-- Create feature branches: `git checkout -b feat/m0-001-description`
-- Commit prefixes:
-  - `feature:` - New user-facing behaviour
-  - `fix:` - Bug fixes
-  - `chore:` - Tooling, infrastructure, refactors
-  - `docs:` - Documentation changes
-  - `refactor:` - Internal code restructuring
+- `make help`: list targets
+- `make lint`: ruff + mypy + black + isort (check-only)
+- `make format`: black + isort (write)
+- `make test`: pytest
+- `make run`: migrate + runserver for the test project
+- `make db-up` / `make db-down` / `make db-logs`: local Postgres via Docker Compose
 
 ## License
 
