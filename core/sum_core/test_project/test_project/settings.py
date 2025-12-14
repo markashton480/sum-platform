@@ -77,6 +77,7 @@ INSTALLED_APPS: list[str] = [
     "sum_core",
     "sum_core.pages",
     "sum_core.navigation",
+    "sum_core.leads",
     "home",
 ]
 
