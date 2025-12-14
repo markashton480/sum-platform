@@ -10,13 +10,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.urls import path
 from django.utils.html import format_html
 from sum_core.leads.models import Lead, LeadSourceRule
 from wagtail import hooks
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.admin.ui.tables import Column, DateColumn
+from wagtail.admin.views import generic
 from wagtail.admin.viewsets.model import ModelViewSet
 from wagtail.permissions import ModelPermissionPolicy
 from wagtail.snippets.models import register_snippet
@@ -156,10 +157,9 @@ class LeadViewSet(ModelViewSet):
         ),
     ]
 
-    def get_queryset(self, request: HttpRequest) -> Any:
-        """Get queryset with optimizations."""
-        qs = super().get_queryset(request)
-        return qs.select_related("source_page")
+    def get_base_queryset(self) -> Any:
+        """Base queryset for list/export operations."""
+        return self.model.objects.all().select_related("source_page")
 
     @property
     def permission_policy(self) -> ModelPermissionPolicy:
@@ -183,17 +183,9 @@ class LeadViewSet(ModelViewSet):
 
         # Permission check
         if not can_user_export_leads(request.user):
-            from django.core.exceptions import PermissionDenied
+            return HttpResponseForbidden("You do not have permission to export leads.")
 
-            raise PermissionDenied("You do not have permission to export leads.")
-
-        # Get filtered queryset (respects list_filter state)
-        queryset = self.get_queryset(request)
-
-        # Apply any active filters from the list view
-        # Note: In production, you'd parse the querystring to apply filters
-        # For simplicity, we export the base queryset
-        queryset = queryset.select_related("source_page")
+        queryset = self._get_export_queryset(request)
 
         # Generate CSV
         csv_content = build_lead_csv(queryset)
@@ -202,6 +194,28 @@ class LeadViewSet(ModelViewSet):
         response = HttpResponse(csv_content, content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="leads_export.csv"'
         return response
+
+    def _get_export_queryset(self, request: HttpRequest) -> Any:
+        """
+        Build the queryset for CSV export, matching the admin list's filtering/search.
+
+        This uses Wagtail's IndexView queryset pipeline (ordering → filters → search)
+        so that exported CSV matches the currently applied list view state.
+        """
+        index_view = generic.IndexView()
+        index_view.request = request
+        index_view.model = self.model
+        index_view.queryset = self.get_base_queryset()
+        index_view.list_display = self.list_display
+        index_view.list_filter = self.list_filter
+        index_view.search_fields = self.search_fields
+        index_view.search_backend_name = self.search_backend_name
+        index_view.index_url_name = self.get_url_name("index")
+        index_view.index_results_url_name = self.get_url_name("index_results")
+        if self.ordering:
+            index_view.default_ordering = self.ordering
+
+        return index_view.get_queryset()
 
 
 class LeadPermissionPolicy(ModelPermissionPolicy):
@@ -214,17 +228,25 @@ class LeadPermissionPolicy(ModelPermissionPolicy):
 
     def user_has_permission(self, user: Any, action: str) -> bool:
         """Check if user has permission for the given action."""
-        if action in ["add"]:
+        if action == "add":
             # No one can add leads through Wagtail admin (they come from forms)
             return False
 
-        if action in ["change", "delete"]:
-            # Only users with change_lead can edit status/archive
-            return user.has_perm("leads.change_lead")
+        if action == "change":
+            # Users with change permission can edit status/archive.
+            return user.has_perm(
+                f"{self.model._meta.app_label}.change_{self.model._meta.model_name}"
+            )
+
+        if action == "delete":
+            # Leads should not be deleted via the admin.
+            return False
 
         if action == "export":
             # Only users with export_lead can export
-            return user.has_perm("leads.export_lead")
+            return user.has_perm(
+                f"{self.model._meta.app_label}.export_{self.model._meta.model_name}"
+            )
 
         # For index/inspect, allow if user has view or change permission
         return super().user_has_permission(user, action)

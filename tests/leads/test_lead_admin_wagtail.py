@@ -34,19 +34,22 @@ def admin_user(db):
 
 @pytest.fixture
 def editor_user(db):
-    """Create an editor user with view_lead and change_lead permissions only."""
+    """Create an editor user with access_admin + view_lead permissions only."""
     user = User.objects.create_user(
         username="editor",
         email="editor@test.com",
         password="password123",
     )
-    # Grant view and change permissions (but NOT export)
+    user.is_staff = True
+    user.save(update_fields=["is_staff"])
+
+    # Grant Wagtail admin access + view permission (but NOT change/export)
     user.user_permissions.add(
         Permission.objects.get(
-            codename="view_lead", content_type__app_label="sum_core_leads"
+            codename="access_admin", content_type__app_label="wagtailadmin"
         ),
         Permission.objects.get(
-            codename="change_lead", content_type__app_label="sum_core_leads"
+            codename="view_lead", content_type__app_label="sum_core_leads"
         ),
     )
     return user
@@ -54,14 +57,20 @@ def editor_user(db):
 
 @pytest.fixture
 def viewer_user(db):
-    """Create a viewer user with only view_lead permission."""
+    """Create a viewer user with access_admin + view_lead permission."""
     user = User.objects.create_user(
         username="viewer",
         email="viewer@test.com",
         password="password123",
     )
-    # Grant only view permission
+    user.is_staff = True
+    user.save(update_fields=["is_staff"])
+
+    # Grant Wagtail admin access + view permission
     user.user_permissions.add(
+        Permission.objects.get(
+            codename="access_admin", content_type__app_label="wagtailadmin"
+        ),
         Permission.objects.get(
             codename="view_lead", content_type__app_label="sum_core_leads"
         ),
@@ -281,7 +290,7 @@ class TestWagtailLeadAdmin:
         client.force_login(editor_user)
 
         lead = sample_leads[0]
-        response = client.get(f"/admin/leads/edit/{lead.id}/")
+        response = client.get(f"/admin/leads/inspect/{lead.id}/")
 
         assert response.status_code == 200
 
@@ -306,15 +315,15 @@ class TestWagtailLeadAdmin:
         lead.refresh_from_db()
         assert lead.status == Lead.Status.CONTACTED
 
-    def test_editor_can_update_lead_status(self, editor_user, sample_leads):
-        """Editor users can also update lead status (they have change_lead permission)."""
+    def test_editor_cannot_update_lead_status(self, editor_user, sample_leads):
+        """Editor users cannot update lead status (view-only)."""
         client = Client()
         client.force_login(editor_user)
 
         lead = sample_leads[0]
         assert lead.status == Lead.Status.NEW
 
-        client.post(
+        response = client.post(
             f"/admin/leads/edit/{lead.id}/",
             {
                 "status": Lead.Status.QUOTED,
@@ -323,7 +332,8 @@ class TestWagtailLeadAdmin:
         )
 
         lead.refresh_from_db()
-        assert lead.status == Lead.Status.QUOTED
+        assert response.status_code in [302, 403]
+        assert lead.status == Lead.Status.NEW
 
     def test_viewer_cannot_update_lead_status(self, viewer_user, sample_leads):
         """Viewer users (without change permission) cannot update lead status."""
@@ -371,6 +381,22 @@ class TestCSVExportPermissions:
 
         assert len(rows) == 5  # Should have all 5 sample leads
 
+    def test_export_respects_status_filter(self, admin_user, sample_leads):
+        """CSV export applies the same filters as the list view."""
+        client = Client()
+        client.force_login(admin_user)
+
+        response = client.get(f"/admin/leads/export/?status={Lead.Status.NEW}")
+
+        assert response.status_code == 200
+
+        content = response.content.decode("utf-8")
+        reader = csv.DictReader(StringIO(content))
+        rows = list(reader)
+
+        assert len(rows) == 3
+        assert {row["Status"] for row in rows} == {"New"}
+
     def test_user_with_export_permission_can_export(self, sample_leads):
         """Users with export_lead permission can export."""
         user = User.objects.create_user(
@@ -378,7 +404,12 @@ class TestCSVExportPermissions:
             email="exporter@test.com",
             password="password123",
         )
+        user.is_staff = True
+        user.save(update_fields=["is_staff"])
         user.user_permissions.add(
+            Permission.objects.get(
+                codename="access_admin", content_type__app_label="wagtailadmin"
+            ),
             Permission.objects.get(
                 codename="export_lead", content_type__app_label="sum_core_leads"
             ),
