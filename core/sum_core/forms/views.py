@@ -308,7 +308,9 @@ class FormSubmissionView(View):
 
         # Attempt to queue email notification task
         try:
-            send_lead_notification.delay(lead.id, request_id=request_id)
+            send_lead_notification.delay(
+                lead.id, request_id=request_id, site_id=site_id
+            )
         except Exception as e:
             logger.exception(f"Failed to queue email notification for lead {lead.id}")
             lead.email_status = EmailStatus.FAILED

@@ -37,7 +37,7 @@ class TestTaskCorrelation:
 
         try:
             with caplog.at_level(logging.INFO):
-                with patch("sum_core.leads.tasks.send_mail"):
+                with patch("sum_core.leads.tasks.EmailMultiAlternatives"):
                     with patch("django.conf.settings.LEAD_NOTIFICATION_EMAIL", ""):
                         from sum_core.leads.tasks import send_lead_notification
 
@@ -68,7 +68,7 @@ class TestTaskCorrelation:
             form_type="contact",
         )
 
-        with patch("sum_core.leads.tasks.send_mail"):
+        with patch("sum_core.leads.tasks.EmailMultiAlternatives"):
             with patch("django.conf.settings.LEAD_NOTIFICATION_EMAIL", ""):
                 from sum_core.leads.tasks import send_lead_notification
 

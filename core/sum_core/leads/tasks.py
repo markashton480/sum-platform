@@ -100,7 +100,9 @@ def build_webhook_payload(lead: Lead) -> dict:
     retry_backoff=True,
     retry_backoff_max=300,
 )
-def send_lead_notification(self, lead_id: int, request_id: str | None = None) -> None:
+def send_lead_notification(
+    self, lead_id: int, request_id: str | None = None, site_id: int | None = None
+) -> None:
     """
     Send email notification for a new lead.
 
@@ -110,13 +112,19 @@ def send_lead_notification(self, lead_id: int, request_id: str | None = None) ->
     Args:
         lead_id: The ID of the Lead to send notification for.
         request_id: Optional correlation ID from originating request.
+        site_id: Optional ID of the Wagtail Site to fetch branding settings from.
     """
     from django.db import transaction
+    from sum_core.branding.models import SiteSettings
     from sum_core.leads.models import EmailStatus, Lead
+    from wagtail.models import Site
 
     # Set Sentry context for error tracking
     set_sentry_context(
-        request_id=request_id, lead_id=lead_id, task="send_lead_notification"
+        request_id=request_id,
+        lead_id=lead_id,
+        site_id=site_id,
+        task="send_lead_notification",
     )
 
     # Use select_for_update within a transaction for concurrency safety
@@ -126,7 +134,11 @@ def send_lead_notification(self, lead_id: int, request_id: str | None = None) ->
         except Lead.DoesNotExist:
             logger.error(
                 "Lead not found for email notification",
-                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                extra={
+                    "lead_id": lead_id,
+                    "site_id": site_id,
+                    "request_id": request_id or "-",
+                },
             )
             return
 
@@ -134,7 +146,11 @@ def send_lead_notification(self, lead_id: int, request_id: str | None = None) ->
         if lead.email_status == EmailStatus.SENT:
             logger.info(
                 "Lead email already sent, skipping",
-                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                extra={
+                    "lead_id": lead_id,
+                    "site_id": site_id,
+                    "request_id": request_id or "-",
+                },
             )
             return
 
@@ -156,10 +172,40 @@ def send_lead_notification(self, lead_id: int, request_id: str | None = None) ->
         # Build email context and render templates
         context = build_lead_notification_context(lead)
 
+        # Prepare email configuration (defaults)
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@example.com")
+        reply_to = []
+        subject_prefix = ""
+
+        # Apply SiteSettings branding if available
+        if site_id:
+            try:
+                site = Site.objects.get(id=site_id)
+                site_settings = SiteSettings.for_site(site)
+
+                if site_settings.notification_from_email:
+                    name = site_settings.notification_from_name
+                    email = site_settings.notification_from_email
+                    if name:
+                        from_email = f"{name} <{email}>"
+                    else:
+                        from_email = email
+
+                if site_settings.notification_reply_to_email:
+                    reply_to = [site_settings.notification_reply_to_email]
+
+                if site_settings.notification_subject_prefix:
+                    subject_prefix = f"{site_settings.notification_subject_prefix} "
+            except (Site.DoesNotExist, SiteSettings.DoesNotExist):
+                # Fallback to defaults regardless of error in fetching settings
+                pass
+
         try:
-            subject = render_to_string(
+            subject_raw = render_to_string(
                 "sum_core/emails/lead_notification_subject.txt", context
             ).strip()
+            subject = f"{subject_prefix}{subject_raw}"
+
             body = render_to_string(
                 "sum_core/emails/lead_notification_body.txt", context
             )
@@ -168,10 +214,9 @@ def send_lead_notification(self, lead_id: int, request_id: str | None = None) ->
             msg = EmailMultiAlternatives(
                 subject=subject,
                 body=body,
-                from_email=getattr(
-                    settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"
-                ),
+                from_email=from_email,
                 to=[notification_email],
+                reply_to=reply_to or None,
             )
 
             # Check if HTML template exists (it should, but safety first)

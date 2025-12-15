@@ -161,6 +161,26 @@ class SiteSettings(BaseSiteSetting):
         help_text="Zapier webhook URL for lead notifications.",
     )
 
+    # Email Notification Settings (M4-011)
+    notification_from_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Name used in the 'From' header (e.g. 'ACME Corp Leads').",
+    )
+    notification_from_email = models.EmailField(
+        blank=True,
+        help_text="Email address used in the 'From' header (e.g. leads@acme.com).",
+    )
+    notification_reply_to_email = models.EmailField(
+        blank=True,
+        help_text="Email address for the 'Reply-To' header (e.g. sales@acme.com).",
+    )
+    notification_subject_prefix = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Optional prefix for the email subject (e.g. '[New Lead]').",
+    )
+
     panels = [
         MultiFieldPanel(
             [
@@ -241,6 +261,15 @@ class SiteSettings(BaseSiteSetting):
                 FieldPanel("zapier_webhook_url"),
             ],
             heading="Zapier Integration",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("notification_from_name"),
+                FieldPanel("notification_from_email"),
+                FieldPanel("notification_reply_to_email"),
+                FieldPanel("notification_subject_prefix"),
+            ],
+            heading="Email Notifications",
         ),
     ]
 
