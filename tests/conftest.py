@@ -123,3 +123,34 @@ def _reset_homepage_between_tests(db) -> None:
     for homepage in HomePage.objects.all():
         homepage.delete()
     Site.clear_site_root_paths_cache()
+
+
+@pytest.fixture
+def caplog_propagate(caplog):
+    """
+    Fixture returning a context manager that temporarily enables propagation
+    for specified loggers.
+
+    This is useful for testing logs in codebases that disable propagation
+    to prevent double-logging (like this one).
+    """
+    import contextlib
+    import logging
+
+    @contextlib.contextmanager
+    def _propagator(*logger_names: str):
+        original_states = {}
+        loggers = []
+        for name in logger_names:
+            logger = logging.getLogger(name)
+            loggers.append(logger)
+            original_states[name] = logger.propagate
+            logger.propagate = True
+
+        try:
+            yield caplog
+        finally:
+            for logger in loggers:
+                logger.propagate = original_states[logger.name]
+
+    return _propagator

@@ -18,7 +18,7 @@ class TestTaskCorrelation:
     """Tests for request_id propagation in lead tasks."""
 
     @pytest.mark.django_db
-    def test_send_lead_notification_logs_request_id(self, caplog):
+    def test_send_lead_notification_logs_request_id(self, caplog_propagate):
         """Test send_lead_notification includes request_id in logs."""
         from sum_core.leads.models import Lead
 
@@ -30,29 +30,19 @@ class TestTaskCorrelation:
             form_type="contact",
         )
 
-        # Force propagation to capture logs since strict config disables it
-        logger = logging.getLogger("sum_core.leads.tasks")
-        old_propagate = logger.propagate
-        logger.propagate = True
-
-        # Also enable propagation on parent logger so caplog can capture
-        parent_logger = logging.getLogger("sum_core")
-        old_parent_propagate = parent_logger.propagate
-        parent_logger.propagate = True
-
         try:
-            with caplog.at_level(logging.INFO):
-                with patch("sum_core.leads.tasks.EmailMultiAlternatives"):
-                    with patch("django.conf.settings.LEAD_NOTIFICATION_EMAIL", ""):
-                        from sum_core.leads.tasks import send_lead_notification
+            with caplog_propagate("sum_core.leads.tasks", "sum_core") as caplog:
+                with caplog.at_level(logging.INFO):
+                    with patch("sum_core.leads.tasks.EmailMultiAlternatives"):
+                        with patch("django.conf.settings.LEAD_NOTIFICATION_EMAIL", ""):
+                            from sum_core.leads.tasks import send_lead_notification
 
-                        # Call task directly
-                        send_lead_notification(
-                            lead.id, request_id="test-correlation-123"
-                        )
+                            # Call task directly
+                            send_lead_notification(
+                                lead.id, request_id="test-correlation-123"
+                            )
         finally:
-            logger.propagate = old_propagate
-            parent_logger.propagate = old_parent_propagate
+            pass
 
         # Check that request_id appears in log records
         # Check all records, and handle potential UUID vs str mismatch
@@ -82,7 +72,7 @@ class TestTaskCorrelation:
                 send_lead_notification(lead.id, request_id=None)
 
     @pytest.mark.django_db
-    def test_send_lead_webhook_includes_request_id(self, caplog):
+    def test_send_lead_webhook_includes_request_id(self, caplog_propagate):
         """Test send_lead_webhook includes request_id in logs."""
         from sum_core.leads.models import Lead
 
@@ -94,25 +84,15 @@ class TestTaskCorrelation:
             form_type="contact",
         )
 
-        # Force propagation
-        logger = logging.getLogger("sum_core.leads.tasks")
-        old_propagate = logger.propagate
-        logger.propagate = True
-
-        # Also enable propagation on parent logger so caplog can capture
-        parent_logger = logging.getLogger("sum_core")
-        old_parent_propagate = parent_logger.propagate
-        parent_logger.propagate = True
-
         try:
-            with caplog.at_level(logging.INFO):
-                with patch("django.conf.settings.ZAPIER_WEBHOOK_URL", ""):
-                    from sum_core.leads.tasks import send_lead_webhook
+            with caplog_propagate("sum_core.leads.tasks", "sum_core") as caplog:
+                with caplog.at_level(logging.INFO):
+                    with patch("django.conf.settings.ZAPIER_WEBHOOK_URL", ""):
+                        from sum_core.leads.tasks import send_lead_webhook
 
-                    send_lead_webhook(lead.id, request_id="webhook-correlation-456")
+                        send_lead_webhook(lead.id, request_id="webhook-correlation-456")
         finally:
-            logger.propagate = old_propagate
-            parent_logger.propagate = old_parent_propagate
+            pass
 
         # Check that request_id appears in log extra
         assert any(
@@ -122,7 +102,7 @@ class TestTaskCorrelation:
 
     @pytest.mark.django_db
     def test_send_zapier_webhook_includes_request_id(
-        self, caplog, wagtail_default_site
+        self, caplog_propagate, wagtail_default_site
     ):
         """Test send_zapier_webhook includes request_id in logs."""
         from sum_core.leads.models import Lead
@@ -135,28 +115,18 @@ class TestTaskCorrelation:
             form_type="contact",
         )
 
-        # Force propagation
-        logger = logging.getLogger("sum_core.leads.tasks")
-        old_propagate = logger.propagate
-        logger.propagate = True
-
-        # Also enable propagation on parent logger so caplog can capture
-        parent_logger = logging.getLogger("sum_core")
-        old_parent_propagate = parent_logger.propagate
-        parent_logger.propagate = True
-
         try:
-            with caplog.at_level(logging.INFO):
-                from sum_core.leads.tasks import send_zapier_webhook
+            with caplog_propagate("sum_core.leads.tasks", "sum_core") as caplog:
+                with caplog.at_level(logging.INFO):
+                    from sum_core.leads.tasks import send_zapier_webhook
 
-                send_zapier_webhook(
-                    lead.id,
-                    wagtail_default_site.id,
-                    request_id="zapier-correlation-789",
-                )
+                    send_zapier_webhook(
+                        lead.id,
+                        wagtail_default_site.id,
+                        request_id="zapier-correlation-789",
+                    )
         finally:
-            logger.propagate = old_propagate
-            parent_logger.propagate = old_parent_propagate
+            pass
 
         # Check that request_id appears in log extra
         # Use str() comparison to handle potential UUID vs str mismatch
