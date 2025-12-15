@@ -42,8 +42,10 @@ class ServiceIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         + Page.promote_panels
     )
 
-    # ServiceIndexPage can only be created under HomePage
-    parent_page_types: list[str] = ["home.HomePage"]
+    # NOTE: parent_page_types is intentionally NOT set here.
+    # Wagtail's default (inherited from Page) allows ANY parent page type.
+    # Client projects should restrict via their HomePage's subpage_types.
+    # Empty list would mean "no parents allowed" (i.e., can't be created).
 
     # Only allow ServicePage children
     subpage_types: list[str] = ["sum_core_pages.ServicePage"]

@@ -221,8 +221,11 @@ def test_standard_page_is_leaf_page() -> None:
 
 
 def test_standard_page_parent_page_types() -> None:
-    """StandardPage can only be created under HomePage."""
-    assert StandardPage.parent_page_types == ["home.HomePage"]
+    """StandardPage allows any parent page type via Wagtail default."""
+    # parent_page_types is NOT explicitly set in core, inheriting Wagtail's default.
+    # Verify it uses Wagtail's default behavior (can be created under root)
+    root = Page.get_first_root_node()
+    assert StandardPage.can_create_at(root) is True
 
 
 def test_standard_page_template_uses_sum_core_base() -> None:

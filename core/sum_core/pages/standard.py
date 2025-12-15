@@ -41,8 +41,10 @@ class StandardPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         + Page.promote_panels
     )
 
-    # StandardPage can only be created under HomePage
-    parent_page_types: list[str] = ["home.HomePage"]
+    # NOTE: parent_page_types is intentionally NOT set here.
+    # Wagtail's default (inherited from Page) allows ANY parent page type.
+    # Client projects should restrict via their HomePage's subpage_types.
+    # Empty list would mean "no parents allowed" (i.e., can't be created).
 
     # StandardPage is a leaf content page - no child pages allowed
     subpage_types: list[str] = []

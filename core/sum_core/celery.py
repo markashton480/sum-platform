@@ -8,12 +8,12 @@ Dependencies: Celery, Django settings.
 
 from __future__ import annotations
 
-import os
-
 from celery import Celery
 
-# Set the default Django settings module for the 'celery' program.
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "test_project.settings")
+# Note: DJANGO_SETTINGS_MODULE must be configured by the client project before
+# importing this module. This is typically done in the client's celery.py or
+# when starting the Celery worker (e.g., `celery -A myproject worker`).
+# We do NOT set a default here to avoid coupling to test_project.
 
 app = Celery("sum_core")
 

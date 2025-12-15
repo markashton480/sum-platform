@@ -117,8 +117,13 @@ def test_service_index_page_subpage_types() -> None:
 
 
 def test_service_index_page_parent_page_types() -> None:
-    """ServiceIndexPage can only be created under HomePage."""
-    assert ServiceIndexPage.parent_page_types == ["home.HomePage"]
+    """ServiceIndexPage allows any parent page type via Wagtail default."""
+    # parent_page_types is NOT explicitly set in core, inheriting Wagtail's default.
+    # Verify it uses Wagtail's default behavior (can be created under root)
+    from wagtail.models import Page
+
+    root = Page.get_first_root_node()
+    assert ServiceIndexPage.can_create_at(root) is True
 
 
 def test_service_index_page_get_context_includes_services() -> None:
@@ -202,10 +207,12 @@ def test_service_index_page_get_context_excludes_drafts() -> None:
 # =============================================================================
 
 
-def test_service_index_page_cannot_be_created_under_root() -> None:
-    """ServiceIndexPage cannot be created directly under root (negative test)."""
-    # Verify that ServiceIndexPage.parent_page_types does not allow root
-    assert "wagtailcore.Page" not in ServiceIndexPage.parent_page_types
+def test_service_index_page_allows_creation_under_root() -> None:
+    """ServiceIndexPage can be created under root (flexible parent types)."""
+    # parent_page_types is not explicitly restricted in core
+    # Wagtail's default allows creation under any parent including root
+    root = Page.get_first_root_node()
+    assert ServiceIndexPage.can_create_at(root) is True
 
 
 def test_service_index_page_can_create_at_homepage() -> None:
@@ -219,10 +226,11 @@ def test_service_index_page_can_create_at_homepage() -> None:
     assert ServiceIndexPage.can_create_at(homepage) is True
 
 
-def test_service_index_page_cannot_create_at_root() -> None:
-    """ServiceIndexPage.can_create_at() returns False for Root."""
+def test_service_index_page_can_create_at_root() -> None:
+    """ServiceIndexPage.can_create_at() returns True for Root (flexible parent types)."""
+    # Core pages intentionally don't restrict parent_page_types
     root = Page.get_first_root_node()
-    assert ServiceIndexPage.can_create_at(root) is False
+    assert ServiceIndexPage.can_create_at(root) is True
 
 
 # =============================================================================
