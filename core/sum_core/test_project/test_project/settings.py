@@ -12,6 +12,9 @@ import os
 import sys
 from pathlib import Path
 
+from sum_core.ops.logging import get_logging_config
+from sum_core.ops.sentry import init_sentry
+
 # Wagtail Settings
 WAGTAIL_SITE_NAME: str = "SUM Test Project"
 WAGTAIL_ENABLE_UPDATE_CHECK = "lts"
@@ -94,6 +97,7 @@ CACHES = {
 }
 
 MIDDLEWARE: list[str] = [
+    "sum_core.ops.middleware.CorrelationIdMiddleware",  # Must be early for request_id
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -216,3 +220,17 @@ LEAD_NOTIFICATION_EMAIL: str = os.getenv("LEAD_NOTIFICATION_EMAIL", "")
 
 # Webhook Configuration
 ZAPIER_WEBHOOK_URL: str = os.getenv("ZAPIER_WEBHOOK_URL", "")
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+
+
+LOGGING = get_logging_config(debug=DEBUG)
+
+# =============================================================================
+# Sentry Integration (optional - only if SENTRY_DSN is set)
+# =============================================================================
+
+
+init_sentry()

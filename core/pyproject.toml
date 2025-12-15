@@ -12,6 +12,7 @@ dependencies = [
   "wagtail>=7.0,<7.1",
   "celery>=5.4,<6.0",
   "requests>=2.31,<3.0",
+  "sentry-sdk[celery]>=2.0,<3.0",
 ]
 
 [project.optional-dependencies]

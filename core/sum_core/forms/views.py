@@ -125,7 +125,7 @@ class FormSubmissionView(View):
 
         # Queue notification tasks AFTER lead is safely persisted
         # Failure to queue does NOT lose the lead - we update status fields
-        self._queue_notification_tasks(lead, site.id)
+        self._queue_notification_tasks(lead, site.id, request)
 
         # Increment rate limit counter AFTER successful lead creation
         increment_rate_limit_counter(get_client_ip(request), site.id)
@@ -139,18 +139,21 @@ class FormSubmissionView(View):
             status=200,
         )
 
-    def _parse_request_data(self, request) -> dict | None:
+    def _parse_request_data(self, request) -> dict[str, Any] | None:
         """Parse request body as JSON or form data."""
+        from typing import cast
+
         content_type = request.content_type or ""
 
         if "application/json" in content_type:
             try:
-                return json.loads(request.body)
+                # helper to shut up mypy no-any-return
+                return cast(dict[str, Any], json.loads(request.body))
             except (json.JSONDecodeError, ValueError):
                 return None
 
         # Fall back to form-encoded data
-        return request.POST.dict()
+        return cast(dict[str, Any], request.POST.dict())
 
     def _get_site(self, request) -> Site | None:
         """Get the Wagtail Site for this request."""
@@ -274,7 +277,7 @@ class FormSubmissionView(View):
             attribution=attribution,
         )
 
-    def _queue_notification_tasks(self, lead, site_id: int) -> None:
+    def _queue_notification_tasks(self, lead, site_id: int, request) -> None:
         """
         Queue async notification tasks after lead creation.
 
@@ -287,6 +290,7 @@ class FormSubmissionView(View):
         Args:
             lead: The created Lead instance.
             site_id: The Wagtail Site ID for per-site configuration lookup.
+            request: The HTTP request (for extracting request_id).
         """
         import logging
 
@@ -299,9 +303,12 @@ class FormSubmissionView(View):
 
         logger = logging.getLogger(__name__)
 
+        # Get request_id set by CorrelationIdMiddleware (if available)
+        request_id = getattr(request, "request_id", None)
+
         # Attempt to queue email notification task
         try:
-            send_lead_notification.delay(lead.id)
+            send_lead_notification.delay(lead.id, request_id=request_id)
         except Exception as e:
             logger.exception(f"Failed to queue email notification for lead {lead.id}")
             lead.email_status = EmailStatus.FAILED
@@ -310,7 +317,7 @@ class FormSubmissionView(View):
 
         # Attempt to queue webhook notification task
         try:
-            send_lead_webhook.delay(lead.id)
+            send_lead_webhook.delay(lead.id, request_id=request_id)
         except Exception as e:
             logger.exception(f"Failed to queue webhook notification for lead {lead.id}")
             lead.webhook_status = WebhookStatus.FAILED
@@ -319,7 +326,7 @@ class FormSubmissionView(View):
 
         # Attempt to queue Zapier webhook task (M4-007)
         try:
-            send_zapier_webhook.delay(lead.id, site_id)
+            send_zapier_webhook.delay(lead.id, site_id, request_id=request_id)
         except Exception as e:
             logger.exception(f"Failed to queue Zapier webhook for lead {lead.id}")
             lead.zapier_status = ZapierStatus.FAILED

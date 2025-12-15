@@ -17,6 +17,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils import timezone
+from sum_core.ops.sentry import set_sentry_context
 
 if TYPE_CHECKING:
     from sum_core.leads.models import Lead
@@ -99,7 +100,7 @@ def build_webhook_payload(lead: Lead) -> dict:
     retry_backoff=True,
     retry_backoff_max=300,
 )
-def send_lead_notification(self, lead_id: int) -> None:
+def send_lead_notification(self, lead_id: int, request_id: str | None = None) -> None:
     """
     Send email notification for a new lead.
 
@@ -108,28 +109,41 @@ def send_lead_notification(self, lead_id: int) -> None:
 
     Args:
         lead_id: The ID of the Lead to send notification for.
+        request_id: Optional correlation ID from originating request.
     """
     from django.db import transaction
     from sum_core.leads.models import EmailStatus, Lead
+
+    # Set Sentry context for error tracking
+    set_sentry_context(
+        request_id=request_id, lead_id=lead_id, task="send_lead_notification"
+    )
 
     # Use select_for_update within a transaction for concurrency safety
     with transaction.atomic():
         try:
             lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
         except Lead.DoesNotExist:
-            logger.error(f"Lead {lead_id} not found for email notification")
+            logger.error(
+                "Lead not found for email notification",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
             return
 
         # Idempotency check - don't resend if already sent (with lock held)
         if lead.email_status == EmailStatus.SENT:
-            logger.info(f"Lead {lead_id} email already sent, skipping")
+            logger.info(
+                "Lead email already sent, skipping",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
             return
 
         # Get notification email address
         notification_email = getattr(settings, "LEAD_NOTIFICATION_EMAIL", "")
         if not notification_email:
             logger.warning(
-                f"No LEAD_NOTIFICATION_EMAIL configured, skipping lead {lead_id}"
+                "No LEAD_NOTIFICATION_EMAIL configured, skipping",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
             )
             lead.email_status = EmailStatus.FAILED
             lead.email_last_error = "No notification email address configured"
@@ -174,7 +188,10 @@ def send_lead_notification(self, lead_id: int) -> None:
                     "email_last_error",
                 ]
             )
-            logger.info(f"Lead {lead_id} email notification sent successfully")
+            logger.info(
+                "Lead email notification sent successfully",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
 
         except Exception as e:
             # Update status on failure
@@ -185,7 +202,12 @@ def send_lead_notification(self, lead_id: int) -> None:
             if self.request.retries < MAX_RETRIES:
                 lead.save(update_fields=["email_attempts", "email_last_error"])
                 logger.warning(
-                    f"Lead {lead_id} email failed (attempt {lead.email_attempts}): {e}"
+                    "Lead email failed, will retry",
+                    extra={
+                        "lead_id": lead_id,
+                        "request_id": request_id or "-",
+                        "attempt": lead.email_attempts,
+                    },
                 )
                 raise  # Trigger retry
             else:
@@ -199,8 +221,12 @@ def send_lead_notification(self, lead_id: int) -> None:
                     ]
                 )
                 logger.error(
-                    f"Lead {lead_id} email failed permanently after "
-                    f"{lead.email_attempts} attempts: {e}"
+                    "Lead email failed permanently",
+                    extra={
+                        "lead_id": lead_id,
+                        "request_id": request_id or "-",
+                        "attempts": lead.email_attempts,
+                    },
                 )
 
 
@@ -212,7 +238,7 @@ def send_lead_notification(self, lead_id: int) -> None:
     retry_backoff=True,
     retry_backoff_max=300,
 )
-def send_lead_webhook(self, lead_id: int) -> None:
+def send_lead_webhook(self, lead_id: int, request_id: str | None = None) -> None:
     """
     Send webhook notification for a new lead.
 
@@ -223,21 +249,31 @@ def send_lead_webhook(self, lead_id: int) -> None:
 
     Args:
         lead_id: The ID of the Lead to send webhook for.
+        request_id: Optional correlation ID from originating request.
     """
     from django.db import transaction
     from sum_core.leads.models import Lead, WebhookStatus
+
+    # Set Sentry context for error tracking
+    set_sentry_context(request_id=request_id, lead_id=lead_id, task="send_lead_webhook")
 
     # Use select_for_update within a transaction for concurrency safety
     with transaction.atomic():
         try:
             lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
         except Lead.DoesNotExist:
-            logger.error(f"Lead {lead_id} not found for webhook notification")
+            logger.error(
+                "Lead not found for webhook notification",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
             return
 
         # Idempotency check - don't resend if already sent (with lock held)
         if lead.webhook_status == WebhookStatus.SENT:
-            logger.info(f"Lead {lead_id} webhook already sent, skipping")
+            logger.info(
+                "Lead webhook already sent, skipping",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
             return
 
         # Check if webhook URL is configured
@@ -245,7 +281,10 @@ def send_lead_webhook(self, lead_id: int) -> None:
         if not webhook_url:
             lead.webhook_status = WebhookStatus.DISABLED
             lead.save(update_fields=["webhook_status"])
-            logger.info(f"Lead {lead_id} webhook disabled (no URL configured)")
+            logger.info(
+                "Lead webhook disabled (no URL configured)",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
             return
 
         # Build JSON payload
@@ -275,7 +314,10 @@ def send_lead_webhook(self, lead_id: int) -> None:
                         "webhook_last_error",
                     ]
                 )
-                logger.info(f"Lead {lead_id} webhook sent successfully")
+                logger.info(
+                    "Lead webhook sent successfully",
+                    extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                )
             else:
                 # Non-2xx response - treat as failure
                 lead.webhook_last_error = (
@@ -291,9 +333,13 @@ def send_lead_webhook(self, lead_id: int) -> None:
                         ]
                     )
                     logger.warning(
-                        f"Lead {lead_id} webhook failed "
-                        f"(attempt {lead.webhook_attempts}): "
-                        f"HTTP {response.status_code}"
+                        "Lead webhook failed, will retry",
+                        extra={
+                            "lead_id": lead_id,
+                            "request_id": request_id or "-",
+                            "attempt": lead.webhook_attempts,
+                            "status_code": response.status_code,
+                        },
                     )
                     raise requests.RequestException(lead.webhook_last_error)
                 else:
@@ -307,8 +353,12 @@ def send_lead_webhook(self, lead_id: int) -> None:
                         ]
                     )
                     logger.error(
-                        f"Lead {lead_id} webhook failed permanently: "
-                        f"HTTP {response.status_code}"
+                        "Lead webhook failed permanently",
+                        extra={
+                            "lead_id": lead_id,
+                            "request_id": request_id or "-",
+                            "status_code": response.status_code,
+                        },
                     )
 
         except requests.Timeout as e:
@@ -318,8 +368,12 @@ def send_lead_webhook(self, lead_id: int) -> None:
             if self.request.retries < MAX_RETRIES:
                 lead.save(update_fields=["webhook_attempts", "webhook_last_error"])
                 logger.warning(
-                    f"Lead {lead_id} webhook timeout "
-                    f"(attempt {lead.webhook_attempts})"
+                    "Lead webhook timeout, will retry",
+                    extra={
+                        "lead_id": lead_id,
+                        "request_id": request_id or "-",
+                        "attempt": lead.webhook_attempts,
+                    },
                 )
                 raise
             else:
@@ -331,7 +385,10 @@ def send_lead_webhook(self, lead_id: int) -> None:
                         "webhook_last_error",
                     ]
                 )
-                logger.error(f"Lead {lead_id} webhook failed permanently: timeout")
+                logger.error(
+                    "Lead webhook failed permanently: timeout",
+                    extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                )
 
         except requests.RequestException as e:
             lead.webhook_attempts += 1
@@ -340,8 +397,12 @@ def send_lead_webhook(self, lead_id: int) -> None:
             if self.request.retries < MAX_RETRIES:
                 lead.save(update_fields=["webhook_attempts", "webhook_last_error"])
                 logger.warning(
-                    f"Lead {lead_id} webhook failed "
-                    f"(attempt {lead.webhook_attempts}): {e}"
+                    "Lead webhook failed, will retry",
+                    extra={
+                        "lead_id": lead_id,
+                        "request_id": request_id or "-",
+                        "attempt": lead.webhook_attempts,
+                    },
                 )
                 raise
             else:
@@ -353,7 +414,10 @@ def send_lead_webhook(self, lead_id: int) -> None:
                         "webhook_last_error",
                     ]
                 )
-                logger.error(f"Lead {lead_id} webhook failed permanently: {e}")
+                logger.error(
+                    "Lead webhook failed permanently",
+                    extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                )
 
 
 # Zapier-specific retry configuration (M4-007)
@@ -369,7 +433,9 @@ ZAPIER_RETRY_BACKOFF = 60  # Base backoff in seconds
     retry_backoff=True,
     retry_backoff_max=600,
 )
-def send_zapier_webhook(self, lead_id: int, site_id: int) -> None:
+def send_zapier_webhook(
+    self, lead_id: int, site_id: int, request_id: str | None = None
+) -> None:
     """
     Send Zapier webhook for a new lead using per-site configuration.
 
@@ -381,6 +447,7 @@ def send_zapier_webhook(self, lead_id: int, site_id: int) -> None:
     Args:
         lead_id: The ID of the Lead to send webhook for.
         site_id: The ID of the Wagtail Site to fetch Zapier config from.
+        request_id: Optional correlation ID from originating request.
     """
     from django.db import transaction
     from sum_core.branding.models import SiteSettings
@@ -388,24 +455,53 @@ def send_zapier_webhook(self, lead_id: int, site_id: int) -> None:
     from sum_core.leads.models import Lead, ZapierStatus
     from wagtail.models import Site
 
+    # Set Sentry context for error tracking
+    set_sentry_context(
+        request_id=request_id,
+        lead_id=lead_id,
+        site_id=site_id,
+        task="send_zapier_webhook",
+    )
+
     # Use select_for_update within a transaction for concurrency safety
     with transaction.atomic():
         try:
             lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
         except Lead.DoesNotExist:
-            logger.error(f"Lead {lead_id} not found for Zapier webhook")
+            logger.error(
+                "Lead not found for Zapier webhook",
+                extra={
+                    "lead_id": lead_id,
+                    "site_id": site_id,
+                    "request_id": request_id or "-",
+                },
+            )
             return
 
         # Idempotency check - don't resend if already sent (with lock held)
         if lead.zapier_status == ZapierStatus.SENT:
-            logger.info(f"Lead {lead_id} Zapier webhook already sent, skipping")
+            logger.info(
+                "Lead Zapier webhook already sent, skipping",
+                extra={
+                    "lead_id": lead_id,
+                    "site_id": site_id,
+                    "request_id": request_id or "-",
+                },
+            )
             return
 
         # Get site and settings
         try:
             site = Site.objects.get(id=site_id)
         except Site.DoesNotExist:
-            logger.error(f"Site {site_id} not found for Zapier webhook, lead {lead_id}")
+            logger.error(
+                "Site not found for Zapier webhook",
+                extra={
+                    "lead_id": lead_id,
+                    "site_id": site_id,
+                    "request_id": request_id or "-",
+                },
+            )
             lead.zapier_status = ZapierStatus.FAILED
             lead.zapier_last_error = f"Site {site_id} not found"
             lead.save(update_fields=["zapier_status", "zapier_last_error"])
@@ -415,7 +511,14 @@ def send_zapier_webhook(self, lead_id: int, site_id: int) -> None:
         try:
             site_settings = SiteSettings.for_site(site)
         except SiteSettings.DoesNotExist:
-            logger.info(f"Lead {lead_id} Zapier disabled (no SiteSettings)")
+            logger.info(
+                "Lead Zapier disabled (no SiteSettings)",
+                extra={
+                    "lead_id": lead_id,
+                    "site_id": site_id,
+                    "request_id": request_id or "-",
+                },
+            )
             lead.zapier_status = ZapierStatus.DISABLED
             lead.save(update_fields=["zapier_status"])
             return
@@ -423,8 +526,14 @@ def send_zapier_webhook(self, lead_id: int, site_id: int) -> None:
         # Check if Zapier is enabled and URL is configured
         if not site_settings.zapier_enabled or not site_settings.zapier_webhook_url:
             logger.info(
-                f"Lead {lead_id} Zapier disabled (enabled={site_settings.zapier_enabled}, "
-                f"url_set={bool(site_settings.zapier_webhook_url)})"
+                "Lead Zapier disabled by config",
+                extra={
+                    "lead_id": lead_id,
+                    "site_id": site_id,
+                    "request_id": request_id or "-",
+                    "zapier_enabled": site_settings.zapier_enabled,
+                    "url_configured": bool(site_settings.zapier_webhook_url),
+                },
             )
             lead.zapier_status = ZapierStatus.DISABLED
             lead.save(update_fields=["zapier_status"])
@@ -450,7 +559,14 @@ def send_zapier_webhook(self, lead_id: int, site_id: int) -> None:
                     "zapier_last_error",
                 ]
             )
-            logger.info(f"Lead {lead_id} Zapier webhook sent successfully")
+            logger.info(
+                "Lead Zapier webhook sent successfully",
+                extra={
+                    "lead_id": lead_id,
+                    "site_id": site_id,
+                    "request_id": request_id or "-",
+                },
+            )
         else:
             # Failure - record error and potentially retry
             lead.zapier_last_error = result.error_message[:500]
@@ -464,8 +580,13 @@ def send_zapier_webhook(self, lead_id: int, site_id: int) -> None:
                     ]
                 )
                 logger.warning(
-                    f"Lead {lead_id} Zapier webhook failed "
-                    f"(attempt {lead.zapier_attempt_count}): {result.error_message}"
+                    "Lead Zapier webhook failed, will retry",
+                    extra={
+                        "lead_id": lead_id,
+                        "site_id": site_id,
+                        "request_id": request_id or "-",
+                        "attempt": lead.zapier_attempt_count,
+                    },
                 )
                 # Raise to trigger Celery retry
                 raise requests.RequestException(result.error_message)
@@ -481,6 +602,11 @@ def send_zapier_webhook(self, lead_id: int, site_id: int) -> None:
                     ]
                 )
                 logger.error(
-                    f"Lead {lead_id} Zapier webhook failed permanently after "
-                    f"{lead.zapier_attempt_count} attempts: {result.error_message}"
+                    "Lead Zapier webhook failed permanently",
+                    extra={
+                        "lead_id": lead_id,
+                        "site_id": site_id,
+                        "request_id": request_id or "-",
+                        "attempts": lead.zapier_attempt_count,
+                    },
                 )
