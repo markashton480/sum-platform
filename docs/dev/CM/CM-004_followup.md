@@ -35,7 +35,7 @@ assert any(
 
 However, `caplog.records` was **empty** despite logs being emitted. The issue was in the logging configuration hierarchy:
 
-1. **Logging Config** ([logging.py:160-164](../core/sum_core/ops/logging.py#L160-L164)):
+1. **Logging Config** ([logging.py:160-164](../../../core/sum_core/ops/logging.py#L160-L164)):
    ```python
    "sum_core": {
        "handlers": ["console"],
@@ -44,7 +44,7 @@ However, `caplog.records` was **empty** despite logs being emitted. The issue wa
    }
    ```
 
-2. **Test Setup** ([test_task_correlation.py:34-36](../tests/leads/test_task_correlation.py#L34-L36)):
+2. **Test Setup** ([test_task_correlation.py:34-36](../../../tests/leads/test_task_correlation.py#L34-L36)):
    ```python
    logger = logging.getLogger("sum_core.leads.tasks")
    old_propagate = logger.propagate
@@ -290,30 +290,30 @@ caplog.set_level(logging.INFO, logger="sum_core")
 ### Key Files
 
 1. **Tests Fixed:**
-   - [tests/leads/test_task_correlation.py](../tests/leads/test_task_correlation.py)
+   - [tests/leads/test_task_correlation.py](../../../tests/leads/test_task_correlation.py)
 
 2. **Production Code (Verified Correct):**
-   - [core/sum_core/leads/tasks.py](../core/sum_core/leads/tasks.py) - Task implementations
-   - [core/sum_core/ops/logging.py](../core/sum_core/ops/logging.py) - Logging configuration
-   - [core/sum_core/ops/middleware.py](../core/sum_core/ops/middleware.py) - Request ID generation
-   - [core/sum_core/ops/sentry.py](../core/sum_core/ops/sentry.py) - Error tracking context
+   - [core/sum_core/leads/tasks.py](../../../core/sum_core/leads/tasks.py) - Task implementations
+   - [core/sum_core/ops/logging.py](../../../core/sum_core/ops/logging.py) - Logging configuration
+   - [core/sum_core/ops/middleware.py](../../../core/sum_core/ops/middleware.py) - Request ID generation
+   - [core/sum_core/ops/sentry.py](../../../core/sum_core/ops/sentry.py) - Error tracking context
 
 ### Specific Line References
 
 **Task Signatures:**
-- Email task: [tasks.py:103-104](../core/sum_core/leads/tasks.py#L103-L104)
-- Webhook task: [tasks.py:299](../core/sum_core/leads/tasks.py#L299)
-- Zapier task: [tasks.py:494-495](../core/sum_core/leads/tasks.py#L494-L495)
+- Email task: [tasks.py:103-104](../../../core/sum_core/leads/tasks.py#L103-L104)
+- Webhook task: [tasks.py:299](../../../core/sum_core/leads/tasks.py#L299)
+- Zapier task: [tasks.py:494-495](../../../core/sum_core/leads/tasks.py#L494-L495)
 
 **Sentry Context:**
-- Email: [tasks.py:123-128](../core/sum_core/leads/tasks.py#L123-L128)
-- Webhook: [tasks.py:316](../core/sum_core/leads/tasks.py#L316)
-- Zapier: [tasks.py:516-522](../core/sum_core/leads/tasks.py#L516-L522)
+- Email: [tasks.py:123-128](../../../core/sum_core/leads/tasks.py#L123-L128)
+- Webhook: [tasks.py:316](../../../core/sum_core/leads/tasks.py#L316)
+- Zapier: [tasks.py:516-522](../../../core/sum_core/leads/tasks.py#L516-L522)
 
 **Example Log Calls:**
-- Email: [tasks.py:160-163](../core/sum_core/leads/tasks.py#L160-L163)
-- Webhook: [tasks.py:343-345](../core/sum_core/leads/tasks.py#L343-L345)
-- Zapier: [tasks.py:585-595](../core/sum_core/leads/tasks.py#L585-L595)
+- Email: [tasks.py:160-163](../../../core/sum_core/leads/tasks.py#L160-L163)
+- Webhook: [tasks.py:343-345](../../../core/sum_core/leads/tasks.py#L343-L345)
+- Zapier: [tasks.py:585-595](../../../core/sum_core/leads/tasks.py#L585-L595)
 
 ---
 

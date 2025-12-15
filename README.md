@@ -4,17 +4,35 @@ SUM Platform is a Django/Wagtail foundation for quickly launching lead-focused w
 
 This README is the main “how the repo works” entrypoint. The consolidated product/implementation spec lives in `docs/dev/SUM-PLATFORM-SSOT.md`.
 
-## Where to start (docs)
+## Where to Start (Documentation)
 
-- Product + architecture SSOT: `docs/dev/SUM-PLATFORM-SSOT.md`
-- Full PRD (audit trail): `docs/dev/prd-sum-platform-v1.1.md`
-- CSS tokens + rules: `docs/dev/design/css-architecture-and-tokens.md`
-- Block catalogue (authoritative): `docs/dev/blocks-reference.md`
-- Page types reference: `docs/dev/page-types-reference.md`
-- Navigation system deep-dive: `docs/dev/NAV/navigation.md`
-- Milestone audit trail: `docs/dev/M0/`, `docs/dev/M1/`, `docs/dev/M2/`, `docs/dev/M3/`
+### For Understanding the Platform
 
-## Current status (end of Milestone 4)
+- **Product + Architecture SSOT**: [docs/dev/SUM-PLATFORM-SSOT.md](docs/dev/SUM-PLATFORM-SSOT.md) — Single source of truth for the entire platform
+- **Wiring Inventory**: [docs/dev/WIRING-INVENTORY.md](docs/dev/WIRING-INVENTORY.md) — How to consume `sum_core` in client projects
+- **Full PRD** (audit trail): [docs/dev/prd-sum-platform-v1.1.md](docs/dev/prd-sum-platform-v1.1.md)
+
+### For Implementing Features
+
+- **Block Catalogue** (authoritative): [docs/dev/blocks-reference.md](docs/dev/blocks-reference.md)
+- **Page Types Reference**: [docs/dev/page-types-reference.md](docs/dev/page-types-reference.md)
+- **CSS Tokens + Design System**: [docs/dev/design/css-architecture-and-tokens.md](docs/dev/design/css-architecture-and-tokens.md)
+- **Navigation System**: [docs/dev/NAV/navigation.md](docs/dev/NAV/navigation.md) — Header, footer, sticky CTA
+- **Navigation Template Tags**: [docs/dev/navigation-tags-reference.md](docs/dev/navigation-tags-reference.md)
+
+### For Contributors
+
+- **Repository Hygiene Standards**: [docs/dev/hygiene.md](docs/dev/hygiene.md)
+- **Daily Code Review Guidance**: [docs/dev/reviews/daily_code_review.md](docs/dev/reviews/daily_code_review.md)
+- **Agent Orientation**: [docs/dev/AGENT-ORIENTATION.md](docs/dev/AGENT-ORIENTATION.md) — Platform vs test harness
+
+### Audit Trail
+
+- **Milestone Documentation**: [docs/dev/M0/](docs/dev/M0/), [docs/dev/M1/](docs/dev/M1/), [docs/dev/M2/](docs/dev/M2/), [docs/dev/M3/](docs/dev/M3/), [docs/dev/M4/](docs/dev/M4/)
+- **Release Reviews**: [docs/dev/reports/M4/M4_release_review.md](docs/dev/reports/M4/M4_release_review.md)
+- **CORE Audits**: [docs/dev/CM/](docs/dev/CM/)
+
+## Current Status (End of Milestone 4)
 
 Implemented in `sum_core` today:
 
@@ -57,7 +75,7 @@ Present but currently stubs/placeholders:
 - Python **3.12+**
 - Optional (recommended): Docker + Docker Compose (local Postgres)
 
-## Quickstart (local dev)
+## Quick Start (Local Development)
 
 Create and activate the repo-root virtualenv:
 
@@ -109,7 +127,7 @@ Stop Postgres:
 make db-down
 ```
 
-## Core package: `sum-core` (`sum_core`)
+## Core Package: `sum-core` (`sum_core`)
 
 Source lives in `core/sum_core/`.
 
@@ -154,14 +172,15 @@ Runtime configuration (environment variables used by the test project):
 - `SENTRY_DSN`: Sentry error tracking (optional; if unset, Sentry is disabled).
 - `LOG_LEVEL`: logging verbosity (default: `INFO`).
 
-See `.env.example` for all available environment variables including email SMTP settings, Celery broker configuration, and observability options.
+See [.env.example](.env.example) for all available environment variables including email SMTP settings, Celery broker configuration, and observability options.
 
-## Repo layout (what’s real vs planned)
+## Repository Layout (What's Real vs Planned)
 
-- `core/`: installable `sum-core` package + `test_project/` (this is the product).
-- `tests/`: pytest suite for `sum_core`.
-- `docs/dev/`: PRD, SSOT, design docs, and milestone audit trail.
-- Placeholders today: `cli/`, `boilerplate/`, `clients/`, `scripts/`, `infrastructure/`.
+- `core/`: Installable `sum-core` package + `test_project/` (this is the product)
+- `tests/`: Pytest suite for `sum_core`
+- `docs/dev/`: PRD, SSOT, design docs, and milestone audit trail
+- `clients/_smoke_consumer/`: Proof-of-concept consumer project validating core package consumability
+- Placeholders today: `cli/`, `boilerplate/`, `scripts/`, `infrastructure/`
 
 ## Commands
 
