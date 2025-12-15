@@ -35,6 +35,11 @@ class TestTaskCorrelation:
         old_propagate = logger.propagate
         logger.propagate = True
 
+        # Also enable propagation on parent logger so caplog can capture
+        parent_logger = logging.getLogger("sum_core")
+        old_parent_propagate = parent_logger.propagate
+        parent_logger.propagate = True
+
         try:
             with caplog.at_level(logging.INFO):
                 with patch("sum_core.leads.tasks.EmailMultiAlternatives"):
@@ -47,6 +52,7 @@ class TestTaskCorrelation:
                         )
         finally:
             logger.propagate = old_propagate
+            parent_logger.propagate = old_parent_propagate
 
         # Check that request_id appears in log records
         # Check all records, and handle potential UUID vs str mismatch
@@ -93,6 +99,11 @@ class TestTaskCorrelation:
         old_propagate = logger.propagate
         logger.propagate = True
 
+        # Also enable propagation on parent logger so caplog can capture
+        parent_logger = logging.getLogger("sum_core")
+        old_parent_propagate = parent_logger.propagate
+        parent_logger.propagate = True
+
         try:
             with caplog.at_level(logging.INFO):
                 with patch("django.conf.settings.ZAPIER_WEBHOOK_URL", ""):
@@ -101,6 +112,7 @@ class TestTaskCorrelation:
                     send_lead_webhook(lead.id, request_id="webhook-correlation-456")
         finally:
             logger.propagate = old_propagate
+            parent_logger.propagate = old_parent_propagate
 
         # Check that request_id appears in log extra
         assert any(
@@ -128,6 +140,11 @@ class TestTaskCorrelation:
         old_propagate = logger.propagate
         logger.propagate = True
 
+        # Also enable propagation on parent logger so caplog can capture
+        parent_logger = logging.getLogger("sum_core")
+        old_parent_propagate = parent_logger.propagate
+        parent_logger.propagate = True
+
         try:
             with caplog.at_level(logging.INFO):
                 from sum_core.leads.tasks import send_zapier_webhook
@@ -139,6 +156,7 @@ class TestTaskCorrelation:
                 )
         finally:
             logger.propagate = old_propagate
+            parent_logger.propagate = old_parent_propagate
 
         # Check that request_id appears in log extra
         # Use str() comparison to handle potential UUID vs str mismatch
