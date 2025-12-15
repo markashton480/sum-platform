@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 import requests
 from celery import shared_task
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils import timezone
 from sum_core.ops.sentry import set_sentry_context
@@ -165,15 +165,28 @@ def send_lead_notification(self, lead_id: int, request_id: str | None = None) ->
             )
 
             # Send the email
-            send_mail(
+            msg = EmailMultiAlternatives(
                 subject=subject,
-                message=body,
+                body=body,
                 from_email=getattr(
                     settings, "DEFAULT_FROM_EMAIL", "noreply@example.com"
                 ),
-                recipient_list=[notification_email],
-                fail_silently=False,
+                to=[notification_email],
             )
+
+            # Check if HTML template exists (it should, but safety first)
+            try:
+                html_body = render_to_string(
+                    "sum_core/emails/lead_notification_body.html", context
+                )
+                msg.attach_alternative(html_body, "text/html")
+            except Exception as e:
+                logger.warning(
+                    "Failed to render HTML lead email, sending text only",
+                    extra={"error": str(e), "lead_id": lead_id},
+                )
+
+            msg.send(fail_silently=False)
 
             # Update status on success (within transaction - lock still held)
             lead.email_status = EmailStatus.SENT

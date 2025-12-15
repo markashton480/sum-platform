@@ -43,6 +43,13 @@ class TestEmailNotificationTask:
         assert mail.outbox[0].to == ["notify@example.com"]
         assert "Test Lead" in mail.outbox[0].subject
 
+        # Verify HTML alternative
+        assert hasattr(mail.outbox[0], "alternatives")
+        assert len(mail.outbox[0].alternatives) == 1
+        content, mimetype = mail.outbox[0].alternatives[0]
+        assert mimetype == "text/html"
+        assert "<html>" in content
+
     def test_email_skipped_if_no_config(self, lead):
         """Task marks FAILED if no notification email configured."""
         with override_settings(LEAD_NOTIFICATION_EMAIL=""):
@@ -66,9 +73,10 @@ class TestEmailNotificationTask:
     @override_settings(LEAD_NOTIFICATION_EMAIL="notify@example.com")
     def test_email_retry_on_failure(self, lead):
         """Task retries on SMTP failure and eventually marks FAILED."""
-        # Patch local import in tasks module and MAX_RETRIES to force failure path
+        # Patch send method of EmailMultiAlternatives
         with patch(
-            "sum_core.leads.tasks.send_mail", side_effect=Exception("SMTP Down")
+            "django.core.mail.EmailMultiAlternatives.send",
+            side_effect=Exception("SMTP Down"),
         ), patch("sum_core.leads.tasks.MAX_RETRIES", 0):
             # With MAX_RETRIES=0, it should fail immediately, update DB, and NOT raise exception (caught in task)
             send_lead_notification(lead.id)

@@ -212,7 +212,15 @@ CELERY_TASK_ALWAYS_EAGER: bool = True  # Run tasks synchronously
 CELERY_TASK_EAGER_PROPAGATES: bool = True  # Propagate exceptions in eager mode
 
 # Email Configuration
-EMAIL_BACKEND: str = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND: str = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST: str = os.getenv("EMAIL_HOST", "localhost")
+EMAIL_PORT: int = int(os.getenv("EMAIL_PORT", "25"))
+EMAIL_HOST_USER: str = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD: str = os.getenv("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS: bool = os.getenv("EMAIL_USE_TLS", "False").lower() == "true"
+EMAIL_USE_SSL: bool = os.getenv("EMAIL_USE_SSL", "False").lower() == "true"
 DEFAULT_FROM_EMAIL: str = os.getenv("DEFAULT_FROM_EMAIL", "noreply@example.com")
 
 # Lead Notification Settings

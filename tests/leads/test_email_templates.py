@@ -101,4 +101,38 @@ class TestEmailTemplates:
         assert "Phone:" not in body
         assert "Page URL:" not in body
         assert "Referrer:" not in body
+        assert "Phone:" not in body
+        assert "Page URL:" not in body
+        assert "Referrer:" not in body
         assert "ATTRIBUTION" not in body
+
+    def test_html_template_renders_correctly(self, lead_with_attribution):
+        """HTML template should contain all lead details and attribution."""
+        context = build_lead_notification_context(lead_with_attribution)
+        html = render_to_string("sum_core/emails/lead_notification_body.html", context)
+
+        # Contact details
+        assert "John Doe" in html
+        assert f'href="mailto:{lead_with_attribution.email}"' in html
+        assert f'href="tel:{lead_with_attribution.phone}"' in html
+
+        # Message (should be in message-box)
+        assert "I am interested in your services." in html
+
+        # Submission info
+        assert "contact" in html
+        assert 'href="https://example.com/contact"' in html
+        assert 'href="https://google.com/search"' in html
+
+        # Attribution
+        assert "Google Ads" in html
+        assert "Campaign match" in html
+        assert "google" in html
+        assert "cpc" in html
+        assert "summer_sale" in html
+        assert "best_kitchens" in html
+        assert "variant_a" in html
+        assert 'href="https://example.com/landing"' in html
+
+        # Footer
+        assert f"Lead ID: {lead_with_attribution.id}" in html
