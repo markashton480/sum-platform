@@ -14,26 +14,43 @@ This README is the main “how the repo works” entrypoint. The consolidated pr
 - Navigation system deep-dive: `docs/dev/NAV/navigation.md`
 - Milestone audit trail: `docs/dev/M0/`, `docs/dev/M1/`, `docs/dev/M2/`, `docs/dev/M3/`
 
-## Current status (end of Milestone 3)
+## Current status (end of Milestone 4)
 
 Implemented in `sum_core` today:
 
 - **Token-based design system** (`core/sum_core/static/sum_core/css/`) with a single template entrypoint: `sum_core/css/main.css`.
-- **Branding + SiteSettings** (Wagtail Settings → “Site settings”) providing colours, fonts, logos/favicon, business info, and social links.
+- **Branding + SiteSettings** (Wagtail Settings → "Site settings") providing colours, fonts, logos/favicon, business info, and social links.
 - **Page types**:
-  - `HomePage` (in `core/sum_core/test_project/home/`) with “only one per site” enforcement.
+  - `HomePage` (in `core/sum_core/test_project/home/`) with "only one per site" enforcement.
   - `StandardPage`, `ServiceIndexPage`, `ServicePage` (in `core/sum_core/pages/`).
   - Shared page metadata via `SeoFieldsMixin`, `OpenGraphMixin`, `BreadcrumbMixin`.
-- **Navigation system** (Wagtail Settings → “Header Navigation” / “Footer Navigation”): header menus (3 levels), footer sections, and a mobile sticky CTA; output is cached and invalidated on relevant changes.
+- **Navigation system** (Wagtail Settings → "Header Navigation" / "Footer Navigation"): header menus (3 levels), footer sections, and a mobile sticky CTA; output is cached and invalidated on relevant changes.
 - **Forms + lead pipeline**:
   - Frontend blocks: `contact_form`, `quote_request_form`.
   - Submission endpoint: `POST /forms/submit/` (CSRF-protected) with honeypot + timing + rate-limit spam protection.
-  - Lead persistence (“no lost leads” invariant), attribution capture, notification tasks (email + webhook), and Wagtail admin UI (“Leads”) including CSV export.
+  - Lead persistence ("no lost leads" invariant), attribution capture, notification tasks (email + webhook), and Wagtail admin UI ("Leads") including CSV export.
+- **Technical SEO** (`core/sum_core/seo/`):
+  - `/sitemap.xml`: Auto-generated XML sitemap scoped per-site with exclusions for noindex/unpublished pages.
+  - `/robots.txt`: Configurable per-site via SiteSettings with sitemap reference.
+  - SEO template tags (`{% seo_tags %}`) for meta titles, descriptions, canonical URLs, and Open Graph.
+  - JSON-LD structured data (`{% render_schema %}`) for LocalBusiness, Article, FAQ, and Service schemas.
+- **Analytics integration** (`core/sum_core/analytics/`):
+  - GA4/GTM injection via `{% analytics_head %}` and `{% analytics_body %}` template tags.
+  - Lead analytics dashboard in Wagtail admin.
+  - `dataLayer` event tracking for forms and CTAs.
+- **Observability baseline** (`core/sum_core/ops/`):
+  - `/health/` endpoint returning JSON status (DB, cache, Celery checks).
+  - Sentry integration (optional, enabled via `SENTRY_DSN`).
+  - Structured JSON logging with request correlation IDs.
+- **Email delivery**:
+  - HTML + plain-text multipart emails for lead notifications.
+  - Per-site From/Reply-To/subject prefix configuration in SiteSettings.
+  - Env-driven SMTP configuration for production providers.
+- **Zapier integration**: Per-site webhook delivery with retries and status tracking.
 
-Present but currently placeholders (namespaces exist; functionality is minimal):
+Present but currently stubs/placeholders:
 
-- `core/sum_core/analytics/`, `core/sum_core/seo/`, `core/sum_core/integrations/`
-- Top-level `cli/`, `boilerplate/`, `clients/`, `scripts/`, `infrastructure/` are currently stubs/placeholders.
+- Top-level `cli/`, `boilerplate/`, `clients/`, `scripts/`, `infrastructure/`.
 
 ## Prerequisites
 
@@ -134,6 +151,10 @@ Runtime configuration (environment variables used by the test project):
 - `LEAD_NOTIFICATION_EMAIL`: destination for lead email notifications.
 - `ZAPIER_WEBHOOK_URL`: webhook URL for lead POSTs (optional).
 - `DEFAULT_FROM_EMAIL`: sender address for notifications.
+- `SENTRY_DSN`: Sentry error tracking (optional; if unset, Sentry is disabled).
+- `LOG_LEVEL`: logging verbosity (default: `INFO`).
+
+See `.env.example` for all available environment variables including email SMTP settings, Celery broker configuration, and observability options.
 
 ## Repo layout (what’s real vs planned)
 
