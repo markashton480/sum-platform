@@ -354,3 +354,133 @@ def send_lead_webhook(self, lead_id: int) -> None:
                     ]
                 )
                 logger.error(f"Lead {lead_id} webhook failed permanently: {e}")
+
+
+# Zapier-specific retry configuration (M4-007)
+ZAPIER_MAX_RETRIES = 5
+ZAPIER_RETRY_BACKOFF = 60  # Base backoff in seconds
+
+
+@shared_task(
+    bind=True,
+    max_retries=ZAPIER_MAX_RETRIES,
+    default_retry_delay=ZAPIER_RETRY_BACKOFF,
+    autoretry_for=(requests.RequestException,),
+    retry_backoff=True,
+    retry_backoff_max=600,
+)
+def send_zapier_webhook(self, lead_id: int, site_id: int) -> None:
+    """
+    Send Zapier webhook for a new lead using per-site configuration.
+
+    This task is idempotent and concurrency-safe - uses select_for_update()
+    to prevent duplicate sends under concurrent execution (CM-001 pattern).
+
+    If Zapier is not configured for the site, the status is set to 'disabled'.
+
+    Args:
+        lead_id: The ID of the Lead to send webhook for.
+        site_id: The ID of the Wagtail Site to fetch Zapier config from.
+    """
+    from django.db import transaction
+    from sum_core.branding.models import SiteSettings
+    from sum_core.integrations.zapier import build_zapier_payload, send_zapier_request
+    from sum_core.leads.models import Lead, ZapierStatus
+    from wagtail.models import Site
+
+    # Use select_for_update within a transaction for concurrency safety
+    with transaction.atomic():
+        try:
+            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+        except Lead.DoesNotExist:
+            logger.error(f"Lead {lead_id} not found for Zapier webhook")
+            return
+
+        # Idempotency check - don't resend if already sent (with lock held)
+        if lead.zapier_status == ZapierStatus.SENT:
+            logger.info(f"Lead {lead_id} Zapier webhook already sent, skipping")
+            return
+
+        # Get site and settings
+        try:
+            site = Site.objects.get(id=site_id)
+        except Site.DoesNotExist:
+            logger.error(f"Site {site_id} not found for Zapier webhook, lead {lead_id}")
+            lead.zapier_status = ZapierStatus.FAILED
+            lead.zapier_last_error = f"Site {site_id} not found"
+            lead.save(update_fields=["zapier_status", "zapier_last_error"])
+            return
+
+        # Get SiteSettings for Zapier configuration
+        try:
+            site_settings = SiteSettings.for_site(site)
+        except SiteSettings.DoesNotExist:
+            logger.info(f"Lead {lead_id} Zapier disabled (no SiteSettings)")
+            lead.zapier_status = ZapierStatus.DISABLED
+            lead.save(update_fields=["zapier_status"])
+            return
+
+        # Check if Zapier is enabled and URL is configured
+        if not site_settings.zapier_enabled or not site_settings.zapier_webhook_url:
+            logger.info(
+                f"Lead {lead_id} Zapier disabled (enabled={site_settings.zapier_enabled}, "
+                f"url_set={bool(site_settings.zapier_webhook_url)})"
+            )
+            lead.zapier_status = ZapierStatus.DISABLED
+            lead.save(update_fields=["zapier_status"])
+            return
+
+        # Build payload and send request
+        payload = build_zapier_payload(lead, site)
+        result = send_zapier_request(site_settings.zapier_webhook_url, payload)
+
+        # Update attempt tracking
+        lead.zapier_attempt_count += 1
+        lead.zapier_last_attempt_at = timezone.now()
+
+        if result.success:
+            # Success - mark sent within transaction
+            lead.zapier_status = ZapierStatus.SENT
+            lead.zapier_last_error = ""
+            lead.save(
+                update_fields=[
+                    "zapier_status",
+                    "zapier_attempt_count",
+                    "zapier_last_attempt_at",
+                    "zapier_last_error",
+                ]
+            )
+            logger.info(f"Lead {lead_id} Zapier webhook sent successfully")
+        else:
+            # Failure - record error and potentially retry
+            lead.zapier_last_error = result.error_message[:500]
+
+            if self.request.retries < ZAPIER_MAX_RETRIES:
+                lead.save(
+                    update_fields=[
+                        "zapier_attempt_count",
+                        "zapier_last_attempt_at",
+                        "zapier_last_error",
+                    ]
+                )
+                logger.warning(
+                    f"Lead {lead_id} Zapier webhook failed "
+                    f"(attempt {lead.zapier_attempt_count}): {result.error_message}"
+                )
+                # Raise to trigger Celery retry
+                raise requests.RequestException(result.error_message)
+            else:
+                # Max retries reached, mark as failed
+                lead.zapier_status = ZapierStatus.FAILED
+                lead.save(
+                    update_fields=[
+                        "zapier_status",
+                        "zapier_attempt_count",
+                        "zapier_last_attempt_at",
+                        "zapier_last_error",
+                    ]
+                )
+                logger.error(
+                    f"Lead {lead_id} Zapier webhook failed permanently after "
+                    f"{lead.zapier_attempt_count} attempts: {result.error_message}"
+                )

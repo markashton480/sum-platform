@@ -151,6 +151,16 @@ class SiteSettings(BaseSiteSetting):
         ),
     )
 
+    # Zapier Integration (M4-007)
+    zapier_enabled = models.BooleanField(
+        default=False,
+        help_text="Enable Zapier webhook integration for new leads.",
+    )
+    zapier_webhook_url = models.URLField(
+        blank=True,
+        help_text="Zapier webhook URL for lead notifications.",
+    )
+
     panels = [
         MultiFieldPanel(
             [
@@ -224,6 +234,13 @@ class SiteSettings(BaseSiteSetting):
                 FieldPanel("robots_txt"),
             ],
             heading="Technical SEO",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("zapier_enabled"),
+                FieldPanel("zapier_webhook_url"),
+            ],
+            heading="Zapier Integration",
         ),
     ]
 

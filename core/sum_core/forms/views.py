@@ -125,7 +125,7 @@ class FormSubmissionView(View):
 
         # Queue notification tasks AFTER lead is safely persisted
         # Failure to queue does NOT lose the lead - we update status fields
-        self._queue_notification_tasks(lead)
+        self._queue_notification_tasks(lead, site.id)
 
         # Increment rate limit counter AFTER successful lead creation
         increment_rate_limit_counter(get_client_ip(request), site.id)
@@ -274,7 +274,7 @@ class FormSubmissionView(View):
             attribution=attribution,
         )
 
-    def _queue_notification_tasks(self, lead) -> None:
+    def _queue_notification_tasks(self, lead, site_id: int) -> None:
         """
         Queue async notification tasks after lead creation.
 
@@ -283,11 +283,19 @@ class FormSubmissionView(View):
 
         This ensures the "no lost leads" invariant is maintained even when
         Celery/broker is unavailable.
+
+        Args:
+            lead: The created Lead instance.
+            site_id: The Wagtail Site ID for per-site configuration lookup.
         """
         import logging
 
-        from sum_core.leads.models import EmailStatus, WebhookStatus
-        from sum_core.leads.tasks import send_lead_notification, send_lead_webhook
+        from sum_core.leads.models import EmailStatus, WebhookStatus, ZapierStatus
+        from sum_core.leads.tasks import (
+            send_lead_notification,
+            send_lead_webhook,
+            send_zapier_webhook,
+        )
 
         logger = logging.getLogger(__name__)
 
@@ -308,6 +316,15 @@ class FormSubmissionView(View):
             lead.webhook_status = WebhookStatus.FAILED
             lead.webhook_last_error = f"Failed to queue task: {str(e)[:500]}"
             lead.save(update_fields=["webhook_status", "webhook_last_error"])
+
+        # Attempt to queue Zapier webhook task (M4-007)
+        try:
+            send_zapier_webhook.delay(lead.id, site_id)
+        except Exception as e:
+            logger.exception(f"Failed to queue Zapier webhook for lead {lead.id}")
+            lead.zapier_status = ZapierStatus.FAILED
+            lead.zapier_last_error = f"Failed to queue task: {str(e)[:500]}"
+            lead.save(update_fields=["zapier_status", "zapier_last_error"])
 
 
 # Convenience function-based view for URL routing

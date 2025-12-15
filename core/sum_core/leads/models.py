@@ -42,6 +42,15 @@ class WebhookStatus(models.TextChoices):
     DISABLED = "disabled", "Disabled"
 
 
+class ZapierStatus(models.TextChoices):
+    """Status of Zapier webhook delivery (M4-007)."""
+
+    PENDING = "pending", "Pending"
+    SENT = "sent", "Sent"
+    FAILED = "failed", "Failed"
+    DISABLED = "disabled", "Disabled"
+
+
 class Lead(models.Model):
     class Status(models.TextChoices):
         NEW = "new", "New"
@@ -184,6 +193,27 @@ class Lead(models.Model):
             blank=True,
             help_text="HTTP status code from last webhook attempt.",
         )
+    )
+
+    # Zapier webhook status (M4-007)
+    zapier_status: models.CharField = models.CharField(
+        max_length=20,
+        choices=ZapierStatus.choices,
+        default=ZapierStatus.PENDING,
+        help_text="Status of Zapier webhook delivery.",
+    )
+    zapier_last_attempt_at: models.DateTimeField = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the Zapier webhook was last attempted.",
+    )
+    zapier_attempt_count: models.PositiveIntegerField = models.PositiveIntegerField(
+        default=0,
+        help_text="Number of Zapier delivery attempts.",
+    )
+    zapier_last_error: models.TextField = models.TextField(
+        blank=True,
+        help_text="Last error message if Zapier delivery failed (truncated).",
     )
 
     class Meta:
