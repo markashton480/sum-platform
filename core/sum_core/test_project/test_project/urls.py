@@ -21,6 +21,7 @@ urlpatterns = [
     path("admin/", include(wagtailadmin_urls)),
     path("documents/", include(wagtaildocs_urls)),
     path("forms/", include("sum_core.forms.urls")),
+    path("", include("sum_core.seo.urls")),
     path("", include(wagtail_urls)),
 ]
 if settings.DEBUG:

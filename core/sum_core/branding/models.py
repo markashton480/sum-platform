@@ -143,6 +143,14 @@ class SiteSettings(BaseSiteSetting):
         help_text="Google Analytics 4 Measurement ID (e.g. G-XXXXXXXXXX).",
     )
 
+    robots_txt = models.TextField(
+        blank=True,
+        help_text=(
+            "Custom robots.txt content. If blank, defaults to allowing all bots. "
+            "Sitemap reference will be added automatically."
+        ),
+    )
+
     panels = [
         MultiFieldPanel(
             [
@@ -210,6 +218,12 @@ class SiteSettings(BaseSiteSetting):
                 FieldPanel("ga_measurement_id"),
             ],
             heading="Analytics",
+        ),
+        MultiFieldPanel(
+            [
+                FieldPanel("robots_txt"),
+            ],
+            heading="Technical SEO",
         ),
     ]
 
