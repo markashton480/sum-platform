@@ -9,8 +9,10 @@ Dependencies: FormConfiguration, Lead service, Django cache, Wagtail Site.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
+from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -23,6 +25,17 @@ from sum_core.forms.services import (
 )
 from sum_core.leads.services import AttributionData, create_lead_from_submission
 from wagtail.models import Site
+
+# UK phone validation regex - accepts common UK formats
+# Matches: 07xxx, +447xxx, 0044 7xxx, 01xxx, 02xxx, 03xxx, etc.
+UK_PHONE_REGEX = re.compile(
+    r"^(?:"
+    r"(?:\+44|0044)[\s\-]?7\d{3}[\s\-]?\d{6}"  # UK mobile with country code
+    r"|07\d{3}[\s\-]?\d{6}"  # UK mobile without country code
+    r"|(?:\+44|0044)[\s\-]?[123]\d{2,3}[\s\-]?\d{6,7}"  # UK landline with country code
+    r"|0[123]\d{2,3}[\s\-]?\d{6,7}"  # UK landline without country code
+    r")$"
+)
 
 
 @method_decorator(csrf_protect, name="dispatch")
@@ -170,6 +183,22 @@ class FormSubmissionView(View):
             value = data.get(field, "").strip()
             if not value:
                 errors[field] = [error_msg]
+
+        # Email format validation (only if email is present)
+        email = data.get("email", "").strip()
+        if email and "email" not in errors:
+            try:
+                validate_email(email)
+            except Exception:
+                errors["email"] = ["Please enter a valid email address"]
+
+        # Phone validation (optional, but if provided must be valid UK format)
+        phone = data.get("phone", "").strip()
+        if phone:
+            # Normalize: remove common separators for regex matching
+            phone_normalized = re.sub(r"[\s\-\(\)]", "", phone)
+            if not UK_PHONE_REGEX.match(phone_normalized):
+                errors["phone"] = ["Please enter a valid UK phone number"]
 
         # Form type - required or use default
         form_type = data.get("form_type", "").strip()

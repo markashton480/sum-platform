@@ -17,7 +17,9 @@
 
       <!-- Form Column -->
       <div class="contact-form-container reveal-group delay-100">
-        <form action="/forms/submit/" method="post" novalidate class="form premium-form" data-form-type="contact" id="contact-form">
+        <form action="/forms/submit/" method="post" novalidate class="form premium-form" data-form-type="contact" id="contact-form"
+              data-success-message="{{ self.success_message|default:"Thanks, we'll be in touch shortly."|escapejs }}"
+              data-error-message="Something went wrong. Please try again.">
           {% csrf_token %}
 
           <!-- Hidden fields for attribution and spam protection -->
@@ -131,27 +133,43 @@
     })
     .then(function(result) {
       if (result.data.success) {
-        // Success - show success message
+        // Success - show success message from data attribute (safe from XSS)
         messagesDiv.className = 'form-messages form-messages--success';
-        messagesDiv.innerHTML = '<p class="form-success-msg">{{ self.success_message|default:"Thanks, we\'ll be in touch shortly." }}</p>';
+        var successMsg = document.createElement('p');
+        successMsg.className = 'form-success-msg';
+        successMsg.textContent = form.dataset.successMessage || 'Thank you for your submission.';
+        messagesDiv.innerHTML = '';
+        messagesDiv.appendChild(successMsg);
         form.reset();
       } else {
-        // Error - show error messages
+        // Error - show error messages (server response is trusted)
         messagesDiv.className = 'form-messages form-messages--error';
-        var errorHtml = '';
+        messagesDiv.innerHTML = '';
         if (result.data.errors) {
           for (var field in result.data.errors) {
             result.data.errors[field].forEach(function(msg) {
-              errorHtml += '<p class="form-error-msg">' + msg + '</p>';
+              var errorP = document.createElement('p');
+              errorP.className = 'form-error-msg';
+              errorP.textContent = msg;
+              messagesDiv.appendChild(errorP);
             });
           }
         }
-        messagesDiv.innerHTML = errorHtml || '<p class="form-error-msg">Something went wrong. Please try again.</p>';
+        if (!messagesDiv.hasChildNodes()) {
+          var fallbackP = document.createElement('p');
+          fallbackP.className = 'form-error-msg';
+          fallbackP.textContent = form.dataset.errorMessage || 'Something went wrong. Please try again.';
+          messagesDiv.appendChild(fallbackP);
+        }
       }
     })
     .catch(function(error) {
       messagesDiv.className = 'form-messages form-messages--error';
-      messagesDiv.innerHTML = '<p class="form-error-msg">Something went wrong. Please try again.</p>';
+      var errorP = document.createElement('p');
+      errorP.className = 'form-error-msg';
+      errorP.textContent = form.dataset.errorMessage || 'Something went wrong. Please try again.';
+      messagesDiv.innerHTML = '';
+      messagesDiv.appendChild(errorP);
     })
     .finally(function() {
       submitBtn.disabled = false;

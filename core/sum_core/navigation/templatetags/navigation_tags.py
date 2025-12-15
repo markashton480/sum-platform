@@ -39,7 +39,7 @@ register = template.Library()
 # Constants
 # =============================================================================
 
-CACHE_TTL_DEFAULT = 3600  # 1 hour in seconds
+CACHE_TTL_DEFAULT = 300  # 5 minutes in seconds (reduced from 1 hour for better UX)
 CACHE_KEY_PREFIX = "nav"
 
 # Phone number cleaning now uses shared utility from sum_core.utils.contact

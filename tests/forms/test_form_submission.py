@@ -137,6 +137,141 @@ class TestFormSubmissionValidation:
         resp_data = response.json()
         assert "form_type" in resp_data["errors"]
 
+    def test_invalid_email_format_rejected(self, client, wagtail_site, form_config):
+        """Invalid email format should return 400 and not create Lead."""
+        initial_count = Lead.objects.count()
+        data = make_valid_submission_data()
+        data["email"] = "not-an-email"
+
+        response = client.post(
+            "/forms/submit/",
+            data=data,
+            HTTP_HOST=wagtail_site.hostname,
+        )
+
+        assert response.status_code == 400
+        resp_data = response.json()
+        assert "email" in resp_data["errors"]
+        assert "valid email" in resp_data["errors"]["email"][0].lower()
+        # Ensure no Lead was created
+        assert Lead.objects.count() == initial_count
+
+    def test_invalid_email_missing_domain_rejected(
+        self, client, wagtail_site, form_config
+    ):
+        """Email without domain should be rejected."""
+        initial_count = Lead.objects.count()
+        data = make_valid_submission_data()
+        data["email"] = "user@"
+
+        response = client.post(
+            "/forms/submit/",
+            data=data,
+            HTTP_HOST=wagtail_site.hostname,
+        )
+
+        assert response.status_code == 400
+        assert Lead.objects.count() == initial_count
+
+    def test_malformed_phone_rejected(self, client, wagtail_site, form_config):
+        """Malformed phone number should return 400 and not create Lead."""
+        initial_count = Lead.objects.count()
+        data = make_valid_submission_data()
+        data["phone"] = "not-a-phone-123"
+
+        response = client.post(
+            "/forms/submit/",
+            data=data,
+            HTTP_HOST=wagtail_site.hostname,
+        )
+
+        assert response.status_code == 400
+        resp_data = response.json()
+        assert "phone" in resp_data["errors"]
+        assert "valid uk phone" in resp_data["errors"]["phone"][0].lower()
+        # Ensure no Lead was created
+        assert Lead.objects.count() == initial_count
+
+    def test_valid_uk_mobile_phone_accepted(
+        self, client, wagtail_site, form_config, valid_time_token
+    ):
+        """Valid UK mobile number should be accepted."""
+        data = make_valid_submission_data(valid_time_token)
+        data["phone"] = "07700 900123"
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 5
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                HTTP_HOST=wagtail_site.hostname,
+            )
+
+        assert response.status_code == 200
+        lead = Lead.objects.latest("submitted_at")
+        assert lead.phone == "07700 900123"
+
+    def test_valid_uk_landline_accepted(
+        self, client, wagtail_site, form_config, valid_time_token
+    ):
+        """Valid UK landline number should be accepted."""
+        data = make_valid_submission_data(valid_time_token)
+        data["phone"] = "020 7946 0958"
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 5
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                HTTP_HOST=wagtail_site.hostname,
+            )
+
+        assert response.status_code == 200
+        lead = Lead.objects.latest("submitted_at")
+        assert lead.phone == "020 7946 0958"
+
+    def test_international_format_uk_phone_accepted(
+        self, client, wagtail_site, form_config, valid_time_token
+    ):
+        """UK phone with +44 prefix should be accepted."""
+        data = make_valid_submission_data(valid_time_token)
+        data["phone"] = "+447700900123"
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 5
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                HTTP_HOST=wagtail_site.hostname,
+            )
+
+        assert response.status_code == 200
+
+    def test_empty_phone_is_optional(
+        self, client, wagtail_site, form_config, valid_time_token
+    ):
+        """Empty phone field should be accepted (phone is optional)."""
+        data = make_valid_submission_data(valid_time_token)
+        data["phone"] = ""
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 5
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                HTTP_HOST=wagtail_site.hostname,
+            )
+
+        assert response.status_code == 200
+
     def test_default_form_type_used_when_configured(
         self, client, wagtail_site, form_config
     ):

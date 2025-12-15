@@ -26,15 +26,17 @@ CONTEXT FOR TODAY
 =====================
 Summary of today’s changes:
 
-We started Milestone 3 `docs/dev/M3` and completed tasks M3-001 - M3-005, we realised we did NOT have a robust, dynamic navigation/menu system, so we created `docs/dev/NAV/navigation-spec.md` (spec) and `docs/dev/NAV/NAV-001.md` to `docs/dev/NAV/NAV-007.md` (tasks).
+We started work at task ID: M3-006 we moved through to the end of Milestone 3 (M3-012). We've also made good progress into milestone 4, getting up to M4-004.
+
+You can review the tasks and transcripts in the docs/dev/M3 docs/dev/M4 directories for full details of work today.
 
 Diffs / snippets to review:
 
-Implementation deteails for each task implemented are in the corrsponding \_chat.md files. I.e details for M3-001 are in M3-001_chat.md.
+Implementation deteails for each task implemented are in the corrsponding \_chat.md files. I.e details for M3-009 are in M3-009_chat.md.
 
 Optional notes / questions:
 
-One feature that's still missing from the navigation is nested/multi-layer menus. I'd like to add support for two levels of depth. `nav-popup-design.html` has a demo of the design/javascript for how the multi-layer menu should work. This should be reviewed for quality and suggested as follow up work when reviewing the NAV implementation.
+We've had some technical issues today, some tests were removed by agents to get around their failures - they had to be reinstated. We also had issues with our Leads not showing in Wagtail Admin + forms not submitting, however those are resolved now. 
 
 =====================
 REVIEW OBJECTIVES

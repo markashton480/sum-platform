@@ -139,3 +139,79 @@ class TestWebhookNotificationTask:
             assert lead.webhook_status == WebhookStatus.FAILED
             assert lead.webhook_attempts >= 1
             assert "timeout" in lead.webhook_last_error
+
+
+@pytest.mark.django_db
+class TestConcurrencyIdempotency:
+    """Tests for concurrency safety in notification tasks (CM-001 requirement)."""
+
+    @override_settings(LEAD_NOTIFICATION_EMAIL="notify@example.com")
+    def test_duplicate_email_tasks_only_send_once(self, lead):
+        """
+        Simulates the "double-run" scenario where two tasks run for the same lead.
+
+        With select_for_update() the second task should see SENT status and skip.
+        This test verifies that even when called twice, only one email is sent.
+        """
+        # First task sends the email
+        send_lead_notification(lead.id)
+
+        lead.refresh_from_db()
+        assert lead.email_status == EmailStatus.SENT
+        assert lead.email_attempts == 1
+        first_sent_at = lead.email_sent_at
+
+        # Clear mail outbox to check if second call sends
+        mail.outbox.clear()
+
+        # Second task should detect SENT and skip
+        send_lead_notification(lead.id)
+
+        lead.refresh_from_db()
+        # Should still be SENT with same timestamp (not re-sent)
+        assert lead.email_status == EmailStatus.SENT
+        assert lead.email_attempts == 1  # Still 1, not incremented
+        assert lead.email_sent_at == first_sent_at
+
+        # No additional email should have been sent
+        assert len(mail.outbox) == 0
+
+    @override_settings(ZAPIER_WEBHOOK_URL="https://hooks.zapier.com/test")
+    def test_duplicate_webhook_tasks_only_send_once(self, lead):
+        """
+        Simulates the "double-run" scenario for webhook tasks.
+
+        With select_for_update() the second task should see SENT status and skip.
+        """
+        call_count = 0
+
+        def counting_post(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            mock_response = type(
+                "Response", (), {"ok": True, "status_code": 200, "text": "OK"}
+            )()
+            return mock_response
+
+        with patch("requests.post", side_effect=counting_post):
+            # First task sends the webhook
+            send_lead_webhook(lead.id)
+
+            lead.refresh_from_db()
+            assert lead.webhook_status == WebhookStatus.SENT
+            assert lead.webhook_attempts == 1
+            assert call_count == 1
+
+            first_sent_at = lead.webhook_sent_at
+
+            # Second task should detect SENT and skip
+            send_lead_webhook(lead.id)
+
+            lead.refresh_from_db()
+            # Should still be SENT with same timestamp (not re-sent)
+            assert lead.webhook_status == WebhookStatus.SENT
+            assert lead.webhook_attempts == 1  # Still 1, not incremented
+            assert lead.webhook_sent_at == first_sent_at
+
+            # Only one HTTP call should have been made
+            assert call_count == 1
