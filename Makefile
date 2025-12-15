@@ -56,3 +56,56 @@ db-down: ## Stop Postgres via Docker Compose
 
 db-logs: ## Tail Postgres logs
 	docker-compose logs -f db
+
+db-info: ## Show database configuration (project name, volume, connection details)
+	@echo "=== Docker Compose Configuration ==="
+	@if [ -f .env ]; then \
+		PROJECT_NAME=$$(grep COMPOSE_PROJECT_NAME .env | cut -d'=' -f2); \
+		echo "Project Name:    $$PROJECT_NAME"; \
+		echo "Active Volume:   $${PROJECT_NAME}_sum_db_data"; \
+	else \
+		echo "Project Name:    <.env not found>"; \
+		echo "Active Volume:   <unknown>"; \
+	fi
+	@echo ""
+	@echo "=== All sum_db_data Volumes ==="
+	@if [ -f .env ]; then \
+		ACTIVE_VOL=$$(grep COMPOSE_PROJECT_NAME .env | cut -d'=' -f2)_sum_db_data; \
+		docker volume ls --filter name=sum_db_data --format '{{.Name}}' | while read vol; do \
+			created=$$(docker volume inspect $$vol --format '{{.CreatedAt}}' 2>/dev/null | cut -d'T' -f1); \
+			if [ "$$vol" = "$$ACTIVE_VOL" ]; then \
+				echo "  $$vol (created: $$created) ← ACTIVE"; \
+			else \
+				echo "  $$vol (created: $$created)"; \
+			fi; \
+		done || echo "  No volumes found"; \
+	else \
+		docker volume ls --filter name=sum_db_data --format '{{.Name}}' | while read vol; do \
+			created=$$(docker volume inspect $$vol --format '{{.CreatedAt}}' 2>/dev/null | cut -d'T' -f1); \
+			echo "  $$vol (created: $$created)"; \
+		done || echo "  No volumes found"; \
+	fi
+	@echo ""
+	@echo "=== Database Connection Details ==="
+	@echo "DB Host:         $${DJANGO_DB_HOST:-localhost}"
+	@echo "DB Port:         $${DJANGO_DB_PORT:-5432}"
+	@echo "DB Name:         $${DJANGO_DB_NAME:-sum_db}"
+	@echo "DB User:         $${DJANGO_DB_USER:-sum_user}"
+	@echo ""
+	@echo "=== Container Status ==="
+	@docker-compose ps db 2>/dev/null || echo "Container not running (use 'make db-up')"
+
+db-migrate-volume: ## Migrate data from old volume (e.g., tradesite_sum_db_data) to current volume
+	@echo "This will copy data from tradesite_sum_db_data to the current active volume."
+	@echo "WARNING: This will OVERWRITE any data in the current volume!"
+	@read -p "Continue? [y/N] " confirm && [ "$$confirm" = "y" ] || exit 1
+	@echo "Stopping current database..."
+	@docker-compose down
+	@echo "Creating temporary container to copy data..."
+	@docker run --rm \
+		-v tradesite_sum_db_data:/source:ro \
+		-v sumplatform_sum_db_data:/target \
+		alpine sh -c "cd /source && cp -av . /target"
+	@echo "Data migration complete. Starting database..."
+	@docker-compose up -d db
+	@echo "Done! Run 'make db-info' to verify."
