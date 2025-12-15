@@ -6,6 +6,8 @@ Family: base template head rendering; SEO verification tests
 Dependencies: Wagtail Page, SiteSettings, SeoFieldsMixin/OpenGraphMixin
 """
 
+from typing import Any
+
 from django import template
 from sum_core.branding.models import SiteSettings
 from wagtail.models import Page, Site
@@ -159,3 +161,77 @@ def absolute_url(context, url):
     if request:
         return request.build_absolute_uri(url)
     return url
+
+
+@register.inclusion_tag("sum_core/includes/seo/schema.html", takes_context=True)
+def render_schema(context, page):
+    """
+    Renders JSON-LD structured data for the page.
+
+    Emits:
+    - LocalBusiness (HomePage, ContactPage)
+    - Article (BlogPostPage)
+    - Service (ServicePage)
+    - FAQPage (pages containing FAQBlock)
+    - BreadcrumbList (all pages)
+    """
+    import json
+
+    from sum_core.seo.schema import (
+        build_article_schema,
+        build_breadcrumb_schema,
+        build_faq_schema,
+        build_localbusiness_schema,
+        build_service_schema,
+        extract_faq_items_from_streamfield,
+    )
+
+    request = context.get("request")
+    site = _resolve_site(request, page)
+    site_settings = SiteSettings.for_site(site) if site else None
+
+    schemas: list[dict[str, Any]] = []
+
+    if not isinstance(page, Page):
+        return {"schema_json_list": schemas}
+
+    # Determine page type
+    page_type = page.specific_class.__name__ if hasattr(page, "specific_class") else ""
+
+    # LocalBusiness (HomePage, ContactPage)
+    if page_type in ["HomePage", "ContactPage"]:
+        localbusiness = build_localbusiness_schema(site_settings, request)
+        if localbusiness:
+            schemas.append(localbusiness)
+
+    # Article (BlogPostPage)
+    if page_type == "BlogPostPage":
+        article = build_article_schema(page.specific, request)
+        if article:
+            schemas.append(article)
+
+    # Service (ServicePage)
+    if page_type == "ServicePage":
+        service = build_service_schema(page.specific, site_settings, request)
+        if service:
+            schemas.append(service)
+
+    # FAQPage (pages containing FAQBlock)
+    if hasattr(page.specific, "body"):
+        faq_items = extract_faq_items_from_streamfield(page.specific.body)
+        if faq_items:
+            faq_schema = build_faq_schema(faq_items)
+            if faq_schema:
+                schemas.append(faq_schema)
+
+    # BreadcrumbList (all pages)
+    breadcrumb = build_breadcrumb_schema(page.specific, request)
+    if breadcrumb:
+        schemas.append(breadcrumb)
+
+    # Serialize to JSON strings
+    schema_json_list = [
+        json.dumps(schema, ensure_ascii=False, indent=2) for schema in schemas
+    ]
+
+    return {"schema_json_list": schema_json_list}
