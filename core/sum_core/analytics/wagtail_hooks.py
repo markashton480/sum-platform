@@ -1,3 +1,4 @@
+from django.forms import Media
 from django.template.loader import render_to_string
 from wagtail import hooks
 from wagtail.models import Site
@@ -16,6 +17,10 @@ class LeadAnalyticsPanel:
 
     def __init__(self, request):
         self.request = request
+
+    @property
+    def media(self):
+        return Media()
 
     def render(self):
         # Scope to the current site from the request
