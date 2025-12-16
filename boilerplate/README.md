@@ -165,7 +165,37 @@ The boilerplate includes a minimal integration test (`test_health.py`) that veri
 
 ## Dependencies
 
-This project depends on `sum_core` from the SUM Platform monorepo. In development, it's installed as an editable package. For standalone deployment, you would:
+This project depends on `sum_core` from the SUM Platform monorepo.
 
-1. Publish `sum_core` to a private PyPI / git
-2. Update `requirements.txt` to reference the published version
+### Default Mode: Git Tag Pinning
+
+By default, `requirements.txt` references a specific git tag of `sum_core`:
+
+```
+sum-core @ git+https://github.com/ORG/REPO.git@SUM_CORE_GIT_REF#subdirectory=core
+```
+
+**Before deploying**, replace `SUM_CORE_GIT_REF` with the actual version tag (e.g., `v0.1.0`).
+
+### Monorepo Development Mode
+
+If you're developing within the SUM Platform monorepo and want to make changes to `sum_core` alongside your client project:
+
+1. Edit `requirements.txt`:
+
+   ```bash
+   # Comment out the git install line
+   # sum-core @ git+https://...
+
+   # Uncomment the editable install
+   -e ../../core
+   ```
+
+2. Reinstall dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+Now changes to `/core/sum_core/` will be immediately reflected in your client project.
+
+**Important**: Do not commit the editable install to your client project repository. It's for local development only.
