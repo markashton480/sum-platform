@@ -1,4 +1,4 @@
-.PHONY: help lint test format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate
+.PHONY: help lint test format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref
 
 MANAGE = python core/sum_core/test_project/manage.py
 
@@ -115,3 +115,16 @@ sync-cli-boilerplate: ## Sync canonical boilerplate to CLI package
 
 check-cli-boilerplate: ## Verify CLI boilerplate matches canonical (CI guard)
 	python cli/scripts/sync_boilerplate.py --check
+
+# --- Release Workflow Targets ---
+
+release-check: lint test check-cli-boilerplate ## Run all pre-release checks (lint, test, drift)
+	@echo ""
+	@echo "[OK] All release checks passed."
+	@echo "You can now run 'make release-set-core-ref REF=vX.Y.Z' to update boilerplate pinning."
+
+release-set-core-ref: ## Update boilerplate to pin to a specific tag (usage: make release-set-core-ref REF=v0.1.0)
+ifndef REF
+	$(error REF is required. Usage: make release-set-core-ref REF=v0.1.0)
+endif
+	python scripts/set_boilerplate_core_ref.py --ref $(REF)
