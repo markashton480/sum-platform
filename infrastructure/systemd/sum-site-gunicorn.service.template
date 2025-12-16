@@ -1,0 +1,53 @@
+[Unit]
+Description=SUM (__SITE_SLUG__) Gunicorn
+After=network.target
+
+# If using optional socket activation, uncomment:
+# Requires=sum-__SITE_SLUG__-gunicorn.socket
+# After=sum-__SITE_SLUG__-gunicorn.socket
+
+[Service]
+Type=simple
+User=__DEPLOY_USER__
+Group=www-data
+WorkingDirectory=/srv/sum/__SITE_SLUG__/app
+EnvironmentFile=/srv/sum/__SITE_SLUG__/.env
+
+# Ensure runtime dir exists for the socket path below:
+RuntimeDirectory=sum-__SITE_SLUG__
+RuntimeDirectoryMode=0755
+
+# Conservative hardening (safe defaults; relax if needed)
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+# Gunicorn
+# - __PROJECT_MODULE__ is your Django project package (e.g. "acme_kitchens")
+# - The socket path must match Caddyfile.template
+#
+# Default (no socket activation):
+ExecStart=/srv/sum/__SITE_SLUG__/venv/bin/gunicorn \
+  --workers 3 \
+  --bind unix:/run/sum-__SITE_SLUG__/gunicorn.sock \
+  --access-logfile - \
+  --error-logfile - \
+  --capture-output \
+  __PROJECT_MODULE__.wsgi:application
+#
+# Optional (socket activation): enable sum-__SITE_SLUG__-gunicorn.socket and use fd://0
+# ExecStart=/srv/sum/__SITE_SLUG__/venv/bin/gunicorn \
+#   --workers 3 \
+#   --bind fd://0 \
+#   --access-logfile - \
+#   --error-logfile - \
+#   --capture-output \
+#   __PROJECT_MODULE__.wsgi:application
+
+Restart=on-failure
+RestartSec=3
+TimeoutStartSec=60
+
+[Install]
+WantedBy=multi-user.target

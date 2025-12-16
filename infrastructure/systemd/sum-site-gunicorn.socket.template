@@ -1,0 +1,15 @@
+[Unit]
+Description=SUM (__SITE_SLUG__) Gunicorn Socket
+
+[Socket]
+ListenStream=/run/sum-__SITE_SLUG__/gunicorn.sock
+SocketUser=__DEPLOY_USER__
+SocketGroup=www-data
+SocketMode=0660
+
+# Create the runtime dir if needed
+RuntimeDirectory=sum-__SITE_SLUG__
+RuntimeDirectoryMode=0755
+
+[Install]
+WantedBy=sockets.target

@@ -1,0 +1,44 @@
+{
+  # Global options. Tune as needed.
+  # email you@example.com
+}
+
+# ---------------------------------------------------------------------------
+# SUM VPS Golden Path (Caddy)
+#
+# How to use:
+# - Copy to: /etc/caddy/sites-enabled/sum-__SITE_SLUG__.caddy
+# - Replace placeholders:
+#   - __SITE_SLUG__ (e.g. acme-kitchens)
+#   - __DOMAIN__ (e.g. example.com, www.example.com)
+# - Ensure Caddy can read static/media and connect to the unix socket:
+#   - Add caddy user to the socket group (recommended: www-data)
+# ---------------------------------------------------------------------------
+
+__DOMAIN__ {
+  # Compression
+  encode gzip zstd
+
+  # Security headers (baseline; adjust to your needs)
+  header {
+    X-Content-Type-Options nosniff
+    X-Frame-Options DENY
+    Referrer-Policy strict-origin-when-cross-origin
+    Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  }
+
+  # Serve static files directly (strip /static prefix)
+  handle_path /static/* {
+    root * /srv/sum/__SITE_SLUG__/static
+    file_server
+  }
+
+  # Serve media uploads directly (strip /media prefix)
+  handle_path /media/* {
+    root * /srv/sum/__SITE_SLUG__/media
+    file_server
+  }
+
+  # App
+  reverse_proxy unix//run/sum-__SITE_SLUG__/gunicorn.sock
+}

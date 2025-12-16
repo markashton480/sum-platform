@@ -1,0 +1,25 @@
+[Unit]
+Description=SUM (__SITE_SLUG__) Celery Worker
+After=network.target
+
+# If Redis is used as broker, you may want:
+# After=redis-server.service
+
+[Service]
+Type=simple
+User=__DEPLOY_USER__
+Group=www-data
+WorkingDirectory=/srv/sum/__SITE_SLUG__/app
+EnvironmentFile=/srv/sum/__SITE_SLUG__/.env
+
+# Celery
+# - __PROJECT_MODULE__ is your Django project package (e.g. "acme_kitchens")
+# - You must configure CELERY_BROKER_URL / CELERY_RESULT_BACKEND in /srv/sum/<slug>/.env
+ExecStart=/srv/sum/__SITE_SLUG__/venv/bin/celery -A __PROJECT_MODULE__ worker -l INFO
+
+Restart=on-failure
+RestartSec=3
+TimeoutStartSec=60
+
+[Install]
+WantedBy=multi-user.target
