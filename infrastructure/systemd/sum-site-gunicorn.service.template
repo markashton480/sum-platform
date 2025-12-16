@@ -10,6 +10,7 @@ After=network.target
 Type=simple
 User=__DEPLOY_USER__
 Group=www-data
+UMask=0007
 WorkingDirectory=/srv/sum/__SITE_SLUG__/app
 EnvironmentFile=/srv/sum/__SITE_SLUG__/.env
 

@@ -222,6 +222,20 @@ Template:
 
 - `infrastructure/caddy/Caddyfile.template`
 
+### Ensure main Caddyfile imports sites-enabled configs
+
+Before installing site configs, ensure the main `/etc/caddy/Caddyfile` imports the sites-enabled directory:
+
+```bash
+sudo nano /etc/caddy/Caddyfile
+```
+
+Add this import directive at the top (after any global options):
+
+```
+import /etc/caddy/sites-enabled/*.caddy
+```
+
 Install a site config (replace `__DOMAIN__` and `__SITE_SLUG__`):
 
 ```bash
@@ -231,6 +245,8 @@ sudo nano /etc/caddy/sites-enabled/sum-${SITE_SLUG}.caddy
 ```
 
 Ensure Caddy can connect to the gunicorn socket:
+
+The systemd service creates the socket with group `www-data`, so add the `caddy` user to this group:
 
 ```bash
 sudo usermod -aG www-data caddy
