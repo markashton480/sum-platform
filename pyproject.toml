@@ -129,4 +129,6 @@ warn_no_return = true
 ignore_missing_imports = true
 exclude = [
     "/(build|dist|\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|venv|_build|buck-out)/",
+    "^boilerplate/",
+    "^clients/",
 ]

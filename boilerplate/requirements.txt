@@ -1,0 +1,11 @@
+# Client Project Requirements
+#
+# Install sum_core from the monorepo (editable for development within the repo).
+# For standalone deployment, replace this with a pinned release:
+#   sum-core==X.Y.Z
+# or a pinned git reference if distributing via git.
+
+-e ../../core
+
+# PostgreSQL driver for production deployments
+psycopg[binary]>=3.2,<4
