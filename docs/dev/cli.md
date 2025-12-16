@@ -104,3 +104,46 @@ make check-cli-boilerplate
 
 > [!IMPORTANT]
 > CI should run `make check-cli-boilerplate` to prevent silent boilerplate drift.
+
+---
+
+## Maintainer Release Notes
+
+When releasing a new version of SUM Platform, follow these steps to keep the CLI and boilerplate in sync.
+
+### When to sync boilerplate
+
+Run `make sync-cli-boilerplate` whenever you modify anything in `/boilerplate/`:
+
+```bash
+# After editing boilerplate files
+make sync-cli-boilerplate
+
+# Verify sync is clean
+make check-cli-boilerplate
+```
+
+### Updating `SUM_CORE_GIT_REF`
+
+Before tagging a release, update the boilerplate to pin to the new version:
+
+```bash
+make release-set-core-ref REF=v0.1.2
+```
+
+This command:
+
+1. Updates `boilerplate/requirements.txt`
+2. Syncs CLI boilerplate automatically
+3. Verifies drift check passes
+
+### Pre-release checklist
+
+```bash
+# Run all release checks
+make release-check
+```
+
+This runs lint, tests, and drift detection in sequence.
+
+→ See [docs/dev/release-workflow.md](./release-workflow.md) for the full release process.
