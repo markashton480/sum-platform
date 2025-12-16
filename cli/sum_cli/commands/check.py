@@ -124,6 +124,49 @@ def _scan_for_test_project_refs(project_dir: Path) -> list[Path]:
     return hits
 
 
+def _detect_monorepo_root(start_dir: Path) -> Path | None:
+    """
+    Traverse upward from start_dir to find the monorepo root.
+
+    Returns the repo root if found (directory containing both `core/` and
+    `boilerplate/` with expected markers), otherwise None.
+    """
+    current = start_dir.resolve()
+    # Limit traversal to avoid infinite loops
+    for _ in range(20):
+        core_marker = current / "core" / "sum_core" / "__init__.py"
+        boilerplate_marker = current / "boilerplate" / "manage.py"
+        if core_marker.exists() and boilerplate_marker.exists():
+            return current
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+    return None
+
+
+def _setup_monorepo_core_import(repo_root: Path) -> bool:
+    """
+    Add the monorepo core directory to sys.path if not already present.
+
+    Returns True if the path was added, False if it was already present.
+    """
+    core_dir = repo_root / "core"
+    core_str = str(core_dir)
+    if core_str not in sys.path:
+        sys.path.insert(0, core_str)
+        return True
+    return False
+
+
+def _cleanup_monorepo_core_import(repo_root: Path) -> None:
+    """Remove the monorepo core directory from sys.path if present."""
+    core_dir = repo_root / "core"
+    core_str = str(core_dir)
+    if core_str in sys.path:
+        sys.path.remove(core_str)
+
+
 def run_check(project_dir: Path | None = None) -> int:
     """
     Validate that a client project is structurally correct.
@@ -230,9 +273,39 @@ def run_check(project_dir: Path | None = None) -> int:
             ok, details = _urlconf_has_health_wiring(urlconf.strip())
             results.append(CheckItem(name="Health wiring", ok=ok, details=details))
 
+        # sum_core import with monorepo detection
+        monorepo_root = _detect_monorepo_root(root)
+        monorepo_core_added = False
+        if monorepo_root is not None:
+            monorepo_core_added = _setup_monorepo_core_import(monorepo_root)
+
         try:
             importlib.import_module("sum_core")
-            results.append(CheckItem(name="sum_core import", ok=True))
+            if monorepo_root is not None:
+                results.append(
+                    CheckItem(name="sum_core import", ok=True, details="monorepo mode")
+                )
+            else:
+                results.append(CheckItem(name="sum_core import", ok=True))
+        except ImportError:
+            if monorepo_root is not None:
+                # Monorepo mode but still failed - unexpected
+                results.append(
+                    CheckItem(
+                        name="sum_core import",
+                        ok=False,
+                        details="Failed in monorepo mode - check core/ directory structure",
+                    )
+                )
+            else:
+                # Standalone mode - provide helpful message
+                results.append(
+                    CheckItem(
+                        name="sum_core import",
+                        ok=False,
+                        details="Install requirements first: pip install -r requirements.txt",
+                    )
+                )
         except Exception as e:
             results.append(
                 CheckItem(
@@ -241,6 +314,9 @@ def run_check(project_dir: Path | None = None) -> int:
                     details=f"Failed to import sum_core: {e}",
                 )
             )
+        finally:
+            if monorepo_core_added and monorepo_root is not None:
+                _cleanup_monorepo_core_import(monorepo_root)
 
         hits = _scan_for_test_project_refs(root)
         if hits:
