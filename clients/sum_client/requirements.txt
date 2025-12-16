@@ -1,0 +1,6 @@
+# SUM Client Requirements
+# Install sum_core from the monorepo (editable for dev, path for deployment)
+-e ../../core
+
+# PostgreSQL driver for production deployments
+psycopg[binary]>=3.2,<4
