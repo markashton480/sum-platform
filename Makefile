@@ -1,4 +1,4 @@
-.PHONY: help lint test format run migrate makemigrations install install-dev clean db-up db-down db-logs
+.PHONY: help lint test format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate
 
 MANAGE = python core/sum_core/test_project/manage.py
 
@@ -109,3 +109,9 @@ db-migrate-volume: ## Migrate data from old volume (e.g., tradesite_sum_db_data)
 	@echo "Data migration complete. Starting database..."
 	@docker-compose up -d db
 	@echo "Done! Run 'make db-info' to verify."
+
+sync-cli-boilerplate: ## Sync canonical boilerplate to CLI package
+	python cli/scripts/sync_boilerplate.py
+
+check-cli-boilerplate: ## Verify CLI boilerplate matches canonical (CI guard)
+	python cli/scripts/sync_boilerplate.py --check

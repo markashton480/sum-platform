@@ -1,0 +1,106 @@
+## SUM CLI (v1): `sum init`, `sum check`
+
+This repo ships a minimal **filesystem scaffolding + validation CLI**.
+It intentionally does **not** create virtualenvs, install dependencies, initialise git, or touch databases.
+
+### Install (monorepo dev)
+
+From repo root (using the repo virtualenv):
+
+```bash
+source .venv/bin/activate
+pip install -e ./cli
+```
+
+### `sum init <project-name>`
+
+Creates a new client project at `clients/<project-name>/` by copying the boilerplate and applying deterministic renames:
+
+- client directory name uses the provided slug (e.g. `acme-kitchens`)
+- Django project package name is normalized for Python imports (hyphens → underscores, e.g. `acme_kitchens`)
+- all `project_name` placeholders are replaced
+- `.env` is created by copying `.env.example` (no secret generation)
+
+Run from the repo root:
+
+```bash
+sum init acme-kitchens
+```
+
+### `sum check`
+
+Validates the **current working directory** is a structurally-correct client project.
+
+#### Execution Modes
+
+`sum check` automatically detects its execution context:
+
+**Mode 1: Monorepo dev mode**
+
+When running inside the SUM Platform repository (detected by the presence of `core/` and `boilerplate/` directories with expected markers), the CLI automatically adds the core package to the import path. Output will show:
+
+```
+[OK] sum_core import: monorepo mode
+```
+
+This allows developers to run `sum check` on scaffolded projects without installing `sum_core` globally.
+
+**Mode 2: Standalone client mode**
+
+When running outside the monorepo (e.g., a client project deployed independently), `sum_core` must be installed via pip. If not installed, the output will show:
+
+```
+[FAIL] sum_core import: Install requirements first: pip install -r requirements.txt
+```
+
+#### What `sum check` validates
+
+| Check                    | Description                                                  |
+| ------------------------ | ------------------------------------------------------------ |
+| **Project root**         | `manage.py` exists                                           |
+| **Env template**         | `.env.example` exists                                        |
+| **Required env vars**    | Keys from `.env.example` are set (via `.env` or environment) |
+| **Settings module**      | Inferred from `.env` or `manage.py`, and importable          |
+| **Health wiring**        | URLConf includes `sum_core.ops.urls` (string-based check)    |
+| **sum_core import**      | `sum_core` package is importable                             |
+| **No test_project refs** | No references to `test_project` in project files             |
+
+#### What `sum check` does NOT validate
+
+- Database connectivity or migrations
+- Full Django startup / `runserver` success
+- Template correctness or static file collection
+- Runtime configuration (e.g., email, Celery)
+- Whether the health endpoint actually responds
+
+Run from a client project directory:
+
+```bash
+cd clients/acme-kitchens
+sum check
+```
+
+### Boilerplate source resolution
+
+`sum init` uses the canonical repo `/boilerplate/` if present (and valid). If not, it falls back to a boilerplate copy bundled with the CLI package.
+
+You can override the boilerplate path for development:
+
+```bash
+SUM_BOILERPLATE_PATH=/path/to/boilerplate sum init acme-kitchens
+```
+
+### Boilerplate sync (maintainers)
+
+The CLI bundles a copy of boilerplate for non-monorepo use. To keep it in sync:
+
+```bash
+# Sync canonical boilerplate to CLI package
+make sync-cli-boilerplate
+
+# Check for drift (CI mode - fails if out of sync)
+make check-cli-boilerplate
+```
+
+> [!IMPORTANT]
+> CI should run `make check-cli-boilerplate` to prevent silent boilerplate drift.

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sum-cli"
+version = "0.1.0"
+description = "SUM Platform CLI (v1): sum init + sum check"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+sum = "sum_cli.__main__:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sum_cli*"]
+
+[tool.setuptools.package-data]
+sum_cli = [
+  "boilerplate/**/*",
+]

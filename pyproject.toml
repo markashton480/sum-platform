@@ -71,7 +71,7 @@ ignore = [
 "__init__.py" = ["F401"]  # Allow unused imports in __init__.py
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests", "cli/tests"]
 python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
@@ -84,7 +84,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=html",
 ]
-pythonpath = ["core", "core/sum_core/test_project"]
+pythonpath = ["core", "core/sum_core/test_project", "cli"]
 DJANGO_SETTINGS_MODULE = "sum_core.test_project.test_project.settings"
 markers = [
     "unit: Unit tests",
@@ -129,4 +129,5 @@ warn_no_return = true
 ignore_missing_imports = true
 exclude = [
     "/(build|dist|\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|venv|_build|buck-out)/",
+    "^boilerplate/",
 ]
