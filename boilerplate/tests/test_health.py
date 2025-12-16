@@ -2,62 +2,49 @@
 Integration tests for the /health/ endpoint.
 
 This test verifies that sum_core endpoints are correctly wired into this client project.
-It should continue to pass after copying the boilerplate and renaming the project.
+It validates the actual health check contract without mocking core internals.
 """
 from __future__ import annotations
-
-from unittest.mock import patch
 
 import pytest
 from django.urls import reverse
 
 
 @pytest.mark.django_db
-def test_health_endpoint_returns_200(client) -> None:
+def test_health_endpoint_returns_200_with_json(client) -> None:
     """
-    Integration test: /health/ returns HTTP 200 with JSON.
+    Integration test: /health/ returns HTTP 200 with JSON in the healthy baseline.
 
-    This test proves that the client project correctly wires the sum_core ops endpoint.
+    This test proves that the client project correctly wires the sum_core ops endpoint
+    and validates the real health check contract (ok/degraded=200, unhealthy=503).
     """
-    # Mock the health checks to ensure stable test results
-    with patch("sum_core.ops.views.get_health_status") as mock_get_status:
-        mock_get_status.return_value = {
-            "status": "ok",
-            "version": {"git_sha": "test", "build": "test"},
-            "checks": {
-                "db": {"status": "ok"},
-                "cache": {"status": "ok"},
-                "celery": {"status": "ok"},
-            },
-            "timestamp": "2025-01-01T00:00:00Z",
-        }
+    response = client.get(reverse("health_check"))
 
-        response = client.get(reverse("health_check"))
+    # In the baseline/healthy state, expect HTTP 200
+    assert response.status_code == 200
 
-        assert response.status_code == 200
+    # Response should be JSON
+    data = response.json()
+    assert isinstance(data, dict), "Health endpoint must return JSON object"
 
 
 @pytest.mark.django_db
-def test_health_endpoint_returns_json_with_status_and_checks(client) -> None:
+def test_health_endpoint_has_required_keys(client) -> None:
     """
-    Integration test: /health/ JSON response has required keys.
+    Integration test: /health/ JSON response has required structure.
 
-    Verifies the health endpoint returns the expected structure.
+    Verifies the endpoint returns 'status' and 'checks' keys without asserting
+    exact check ordering or exhaustive payload contents.
     """
-    with patch("sum_core.ops.views.get_health_status") as mock_get_status:
-        mock_get_status.return_value = {
-            "status": "ok",
-            "version": {"git_sha": "test", "build": "test"},
-            "checks": {
-                "db": {"status": "ok"},
-                "cache": {"status": "ok"},
-                "celery": {"status": "ok"},
-            },
-            "timestamp": "2025-01-01T00:00:00Z",
-        }
+    response = client.get(reverse("health_check"))
+    data = response.json()
 
-        response = client.get(reverse("health_check"))
-        data = response.json()
+    # Verify required keys are present
+    assert "status" in data, "Response JSON must have 'status' key"
+    assert "checks" in data, "Response JSON must have 'checks' key"
 
-        assert "status" in data, "Response JSON must have 'status' key"
-        assert "checks" in data, "Response JSON must have 'checks' key"
+    # Verify status is a valid string (don't hardcode exact value)
+    assert isinstance(data["status"], str), "'status' must be a string"
+
+    # Verify checks is a dict (don't assert specific checks or ordering)
+    assert isinstance(data["checks"], dict), "'checks' must be a dictionary"
