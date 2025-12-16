@@ -99,11 +99,28 @@ def test_health_endpoint_200(client):
 
 
 @pytest.mark.django_db
-def test_health_endpoint_503(client):
-    """Integration test for failed health check."""
+def test_health_endpoint_200_when_degraded(client):
+    """Integration test for degraded health check (non-critical issues)."""
     with patch("sum_core.ops.views.get_health_status") as mock_get_status:
         mock_get_status.return_value = {
             "status": "degraded",
+            "version": {"git_sha": "abc", "build": "123"},
+            "checks": {"celery": {"status": "fail"}},
+            "timestamp": "now",
+        }
+
+        response = client.get(reverse("health_check"))
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "degraded"
+
+
+@pytest.mark.django_db
+def test_health_endpoint_503_when_unhealthy(client):
+    """Integration test for unhealthy health check (critical failures)."""
+    with patch("sum_core.ops.views.get_health_status") as mock_get_status:
+        mock_get_status.return_value = {
+            "status": "unhealthy",
             "version": {"git_sha": "abc", "build": "123"},
             "checks": {"db": {"status": "fail"}},
             "timestamp": "now",
@@ -112,4 +129,4 @@ def test_health_endpoint_503(client):
         response = client.get(reverse("health_check"))
         assert response.status_code == 503
         data = response.json()
-        assert data["status"] == "degraded"
+        assert data["status"] == "unhealthy"

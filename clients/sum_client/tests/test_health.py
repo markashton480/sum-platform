@@ -67,13 +67,41 @@ def test_health_endpoint_returns_json_with_status_and_checks(client) -> None:
 
 
 @pytest.mark.django_db
-def test_health_endpoint_returns_503_when_degraded(client) -> None:
+def test_health_endpoint_returns_200_when_degraded(client) -> None:
     """
-    Integration test: /health/ returns HTTP 503 when status is degraded.
+    Integration test: /health/ returns HTTP 200 when status is degraded.
+
+    Contract: degraded indicates non-critical dependency issues (e.g. Celery) but
+    the service is still up.
     """
     with patch("sum_core.ops.views.get_health_status") as mock_get_status:
         mock_get_status.return_value = {
             "status": "degraded",
+            "version": {"git_sha": "test", "build": "test"},
+            "checks": {
+                "celery": {"status": "fail", "detail": "Connection refused"},
+            },
+            "timestamp": "2025-01-01T00:00:00Z",
+        }
+
+        response = client.get(reverse("health_check"))
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "degraded"
+
+
+@pytest.mark.django_db
+def test_health_endpoint_returns_503_when_unhealthy(client) -> None:
+    """
+    Integration test: /health/ returns HTTP 503 when status is unhealthy.
+
+    Contract: unhealthy indicates a critical dependency outage (e.g. DB/cache)
+    and should fail hard for uptime monitors.
+    """
+    with patch("sum_core.ops.views.get_health_status") as mock_get_status:
+        mock_get_status.return_value = {
+            "status": "unhealthy",
             "version": {"git_sha": "test", "build": "test"},
             "checks": {
                 "db": {"status": "fail", "detail": "Connection refused"},
@@ -85,4 +113,4 @@ def test_health_endpoint_returns_503_when_degraded(client) -> None:
 
         assert response.status_code == 503
         data = response.json()
-        assert data["status"] == "degraded"
+        assert data["status"] == "unhealthy"

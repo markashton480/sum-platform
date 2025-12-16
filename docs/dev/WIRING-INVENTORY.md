@@ -306,8 +306,12 @@ urlpatterns = [
 
 - **Health endpoint**: `GET /health/`
 
-  - Returns JSON: `{"status": "healthy", "checks": {...}}`
-  - Checks: database, cache, Celery (optional)
+  - Returns JSON with an overall `status` and per-dependency `checks`.
+  - Overall status contract:
+    - `ok` -> HTTP 200
+    - `degraded` -> HTTP 200 (non-critical dependency issues, e.g. Celery down)
+    - `unhealthy` -> HTTP 503 (critical dependency outage, e.g. DB/cache down)
+  - Checks: database, cache, Celery (non-critical; skipped if not configured)
 
 - **Request correlation**: `CorrelationIdMiddleware`
 

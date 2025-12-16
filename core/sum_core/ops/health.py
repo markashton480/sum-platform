@@ -4,6 +4,17 @@ Path: core/sum_core/ops/health.py
 Purpose: Runtime health checks for monitoring (/health/).
 Family: Ops/Monitoring (Milestone 4)
 Dependencies: Django DB connection, cache backend, optional Celery app config
+
+Health contract (authoritative):
+- Overall `status` is one of: `ok`, `degraded`, `unhealthy`
+- HTTP mapping (implemented in `sum_core.ops.views.HealthCheckView`):
+  - `ok`        -> 200
+  - `degraded`  -> 200 (service is up but some non-critical dependency is down)
+  - `unhealthy` -> 503 (service cannot safely operate)
+
+Severity rules (current baseline):
+- Critical checks: DB, cache. If either fails => overall `unhealthy`.
+- Non-critical check: Celery. If it fails (and is configured) => overall `degraded`.
 """
 
 import os
@@ -100,12 +111,22 @@ def get_health_status() -> dict[str, Any]:
         "celery": check_celery(),
     }
 
-    # Determine overall status
-    is_degraded = any(r.status == "fail" for r in checks.values())
+    # Determine overall status.
+    # NOTE: checks expose "ok"/"fail", while overall status uses the broader contract:
+    # ok/degraded/unhealthy (see module docstring).
+    critical_checks = ("db", "cache")
+    non_critical_checks = ("celery",)
+
+    is_unhealthy = any(checks[name].status == "fail" for name in critical_checks)
+    is_degraded = any(checks[name].status == "fail" for name in non_critical_checks)
+
+    overall_status = (
+        "unhealthy" if is_unhealthy else "degraded" if is_degraded else "ok"
+    )
 
     # Format response
     response = {
-        "status": "degraded" if is_degraded else "ok",
+        "status": overall_status,
         "version": {
             "git_sha": os.environ.get("GIT_SHA", "unknown"),
             "build": os.environ.get("BUILD_ID", "unknown"),

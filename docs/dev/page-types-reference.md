@@ -103,7 +103,8 @@ parent_page.add_child(instance=page)
 ## HomePage
 
 **Module:** `home.models` (test project)  
-**Note:** HomePage is defined in the test project, not in `sum_core`. Client projects will define their own HomePage types.
+**Note:** HomePage is **client-owned** (it is intentionally not shipped as a core page type in `sum_core`).
+The repo includes a harness-only HomePage in `core/sum_core/test_project/home/` for local dev + CI validation, and the canonical consumer example lives in `clients/sum_client/sum_client/home/models.py`.
 
 ### Purpose
 

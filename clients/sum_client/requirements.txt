@@ -1,5 +1,8 @@
 # SUM Client Requirements
-# Install sum_core from the monorepo (editable for dev, path for deployment)
+# Install sum_core from the monorepo (editable for repo development).
+# In a real external client project, replace this with a pinned release, e.g.:
+#   sum-core==X.Y.Z
+# or a pinned git tag/commit (if distributing via git instead of PyPI).
 -e ../../core
 
 # PostgreSQL driver for production deployments

@@ -39,7 +39,8 @@ Implemented in `sum_core` today:
 - **Token-based design system** (`core/sum_core/static/sum_core/css/`) with a single template entrypoint: `sum_core/css/main.css`.
 - **Branding + SiteSettings** (Wagtail Settings → "Site settings") providing colours, fonts, logos/favicon, business info, and social links.
 - **Page types**:
-  - `HomePage` (in `core/sum_core/test_project/home/`) with "only one per site" enforcement.
+  - `HomePage` is **client-owned** (canonical example: `clients/sum_client/sum_client/home/models.py`).
+    The `core/sum_core/test_project/home/` app contains a harness-only HomePage used for local dev + CI validation of templates/blocks.
   - `StandardPage`, `ServiceIndexPage`, `ServicePage` (in `core/sum_core/pages/`).
   - Shared page metadata via `SeoFieldsMixin`, `OpenGraphMixin`, `BreadcrumbMixin`.
 - **Navigation system** (Wagtail Settings → "Header Navigation" / "Footer Navigation"): header menus (3 levels), footer sections, and a mobile sticky CTA; output is cached and invalidated on relevant changes.
@@ -100,6 +101,22 @@ Then visit:
 
 - Wagtail admin: `http://localhost:8000/admin/`
 - Django admin: `http://localhost:8000/django-admin/` (used for some non-Wagtail models)
+
+## Quick Start (Canonical Consumer: `sum_client`)
+
+`clients/sum_client/` is the recommended “real client consumer” reference project. It consumes `sum_core` the way an external client would (settings split, URL wiring, overrides), without relying on `test_project`.
+
+```bash
+cd clients/sum_client
+pip install -r requirements.txt
+python manage.py migrate
+DJANGO_SETTINGS_MODULE=sum_client.settings.local python manage.py runserver 8001
+```
+
+Then visit:
+
+- Wagtail admin: `http://localhost:8001/admin/`
+- Health check: `http://localhost:8001/health/`
 
 ## Database (Postgres fallback to Sqlite)
 
@@ -176,9 +193,10 @@ See [.env.example](.env.example) for all available environment variables includi
 
 ## Repository Layout (What's Real vs Planned)
 
-- `core/`: Installable `sum-core` package + `test_project/` (this is the product)
+- `core/`: Installable `sum-core` package (the product) + `test_project/` (harness-only dev/CI project)
 - `tests/`: Pytest suite for `sum_core`
 - `docs/dev/`: PRD, SSOT, design docs, and milestone audit trail
+- `clients/sum_client/`: Canonical consumer project (recommended “real site” reference)
 - `clients/_smoke_consumer/`: Proof-of-concept consumer project validating core package consumability
 - Placeholders today: `cli/`, `boilerplate/`, `scripts/`, `infrastructure/`
 
