@@ -64,7 +64,7 @@ The template:
 
 | Setting | Value | Notes |
 |---------|-------|-------|
-| `parent_page_types` | `["wagtailcore.Page", "home.HomePage"]` | Can be created under site root or HomePage |
+| `parent_page_types` | `["wagtailcore.Page"]` | Can be created under the site root. Client projects may additionally allow creation under their client-owned `HomePage` by restricting via their `HomePage.subpage_types`. |
 | `subpage_types` | `[]` | Leaf page – no children allowed |
 
 ### Usage Example
@@ -102,9 +102,11 @@ parent_page.add_child(instance=page)
 
 ## HomePage
 
-**Module:** `home.models` (test project)  
-**Note:** HomePage is **client-owned** (it is intentionally not shipped as a core page type in `sum_core`).
-The repo includes a harness-only HomePage in `core/sum_core/test_project/home/` for local dev + CI validation, and the canonical consumer example lives in `clients/sum_client/sum_client/home/models.py`.
+**Ownership:** HomePage is **client-owned** (it is intentionally not shipped as a core page type in `sum_core`).
+
+Reference implementations in this repo:
+- Harness-only HomePage (dev/CI fixture): `core/sum_core/test_project/home/`
+- Canonical consumer example: `clients/sum_client/sum_client/home/models.py`
 
 ### Purpose
 

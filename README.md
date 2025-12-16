@@ -32,7 +32,7 @@ This README is the main “how the repo works” entrypoint. The consolidated pr
 - **Release Reviews**: [docs/dev/reports/M4/M4_release_review.md](docs/dev/reports/M4/M4_release_review.md)
 - **CORE Audits**: [docs/dev/CM/](docs/dev/CM/)
 
-## Current Status (End of Milestone 4)
+## Current Status (End of Milestone 5)
 
 Implemented in `sum_core` today:
 
@@ -69,7 +69,7 @@ Implemented in `sum_core` today:
 
 Present but currently stubs/placeholders:
 
-- Top-level `cli/`, `boilerplate/`, `clients/`, `scripts/`, `infrastructure/`.
+- `infrastructure/` (deployment scaffolding; not part of the core package).
 
 ## Prerequisites
 

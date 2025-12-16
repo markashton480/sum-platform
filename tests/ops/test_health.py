@@ -2,7 +2,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.urls import reverse
-from sum_core.ops.health import check_cache, check_celery, check_db
+from sum_core.ops.health import (
+    CheckResult,
+    check_cache,
+    check_celery,
+    check_db,
+    get_health_status,
+)
 
 
 @pytest.mark.django_db
@@ -48,21 +54,17 @@ def test_check_cache_failure():
         assert "mismatch" in str(result.detail)
 
 
-@patch("sum_core.ops.health.app_or_default")
 @patch("sum_core.ops.health.settings")
-def test_check_celery_success(mock_settings, mock_app_or_default):
-    """Test celery check returns ok when connected."""
+@patch("sum_core.ops.health.Connection")
+def test_check_celery_success(mock_connection_cls, mock_settings):
+    """Test celery check returns ok when broker is reachable."""
     mock_settings.CELERY_BROKER_URL = "redis://localhost:6379/0"
-    mock_app = MagicMock()
-    mock_connection = MagicMock()
-
-    # Context manager mock
-    mock_app.connection_for_read.return_value.__enter__.return_value = mock_connection
-    mock_app_or_default.return_value = mock_app
+    mock_conn = MagicMock()
+    mock_connection_cls.return_value = mock_conn
 
     result = check_celery()
     assert result.status == "ok"
-    mock_connection.ensure_connection.assert_called()
+    mock_conn.connect.assert_called()
 
 
 @patch("sum_core.ops.health.settings")
@@ -72,6 +74,76 @@ def test_check_celery_skipped(mock_settings):
     result = check_celery()
     assert result.status == "ok"
     assert "Not configured" in result.detail
+
+
+@patch("sum_core.ops.health.settings")
+@patch("sum_core.ops.health.Connection")
+def test_check_celery_failure_when_configured_but_unreachable(
+    mock_connection_cls, mock_settings
+):
+    """Test celery check returns fail when broker is configured but unreachable."""
+    mock_settings.CELERY_BROKER_URL = "redis://localhost:6379/0"
+    mock_conn = MagicMock()
+    mock_conn.connect.side_effect = Exception("Broker down")
+    mock_connection_cls.return_value = mock_conn
+
+    result = check_celery()
+    assert result.status == "fail"
+    assert "Broker down" in (result.detail or "")
+
+
+def test_get_health_status_ok_when_celery_not_configured(monkeypatch):
+    """If no Celery broker is configured, celery is skipped and overall status remains ok."""
+    monkeypatch.setattr(
+        "sum_core.ops.health.check_db", lambda: CheckResult(status="ok")
+    )
+    monkeypatch.setattr(
+        "sum_core.ops.health.check_cache", lambda: CheckResult(status="ok")
+    )
+    monkeypatch.setattr(
+        "sum_core.ops.health.check_celery",
+        lambda: CheckResult(status="ok", detail="Not configured (skipped)"),
+    )
+
+    data = get_health_status()
+    assert data["status"] == "ok"
+    assert data["checks"]["celery"]["status"] == "ok"
+
+
+def test_get_health_status_degraded_when_celery_configured_but_unreachable(monkeypatch):
+    """If Celery is configured but unreachable, overall status is degraded (HTTP still 200 at view layer)."""
+    monkeypatch.setattr(
+        "sum_core.ops.health.check_db", lambda: CheckResult(status="ok")
+    )
+    monkeypatch.setattr(
+        "sum_core.ops.health.check_cache", lambda: CheckResult(status="ok")
+    )
+    monkeypatch.setattr(
+        "sum_core.ops.health.check_celery",
+        lambda: CheckResult(status="fail", detail="Connection refused"),
+    )
+
+    data = get_health_status()
+    assert data["status"] == "degraded"
+    assert data["checks"]["celery"]["status"] == "fail"
+
+
+def test_get_health_status_unhealthy_only_for_db_or_cache_failure(monkeypatch):
+    """Only DB/cache failures may trigger unhealthy."""
+    monkeypatch.setattr(
+        "sum_core.ops.health.check_db",
+        lambda: CheckResult(status="fail", detail="DB down"),
+    )
+    monkeypatch.setattr(
+        "sum_core.ops.health.check_cache", lambda: CheckResult(status="ok")
+    )
+    monkeypatch.setattr(
+        "sum_core.ops.health.check_celery",
+        lambda: CheckResult(status="fail", detail="Broker down"),
+    )
+
+    data = get_health_status()
+    assert data["status"] == "unhealthy"
 
 
 @pytest.mark.django_db

@@ -22,10 +22,10 @@ import time
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from celery.app import app_or_default
 from django.conf import settings
 from django.core.cache import cache
 from django.db import connection
+from kombu import Connection
 
 
 @dataclass
@@ -82,23 +82,14 @@ def check_celery() -> CheckResult:
         return CheckResult(status="ok", detail="Not configured (skipped)")
 
     try:
-        app = app_or_default()
-        # This is a bit heavy, but 'ping' is the standard way.
-        # app.control.ping() returns a list of responses from workers.
-        # If no workers are running, this might return empty or timeout.
-        # Use a short timeout to avoid blocking the health check too long.
-
-        # NOTE: app.control.ping(timeout=0.5) is synchronous and waits for workers.
-        # If we just want to know if the BROKER is reachable, we might need `app.connection().connect()`.
-        # However, monitoring usually wants to know if workers are consuming.
-
-        # Requirement: "If you have a broker/backend configured, do a lightweight check that the app can connect
-        # (or that the broker URL is present + a ping-style call if available)."
-
-        # Let's try a connection check first as it's lighter and tests availability.
-        with app.connection_for_read() as conn:
-            conn.ensure_connection(max_retries=1)
-
+        # Prefer a lightweight broker reachability check.
+        # This intentionally checks "broker is reachable", not "workers are running".
+        #
+        # Use kombu Connection directly with the configured broker URL so behaviour is
+        # deterministic even if a Celery app hasn't been fully configured/imported.
+        conn = Connection(broker_url, connect_timeout=0.5)
+        conn.connect()
+        conn.release()
         return CheckResult(status="ok")
     except Exception as e:
         return CheckResult(status="fail", detail=str(e))
