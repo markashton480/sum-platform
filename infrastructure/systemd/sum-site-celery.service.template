@@ -1,9 +1,7 @@
 [Unit]
 Description=SUM (__SITE_SLUG__) Celery Worker
-After=network.target
-
-# If Redis is used as broker, you may want:
-# After=redis-server.service
+After=network.target redis-server.service
+Wants=redis-server.service
 
 [Service]
 Type=simple

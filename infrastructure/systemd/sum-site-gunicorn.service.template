@@ -1,6 +1,7 @@
 [Unit]
 Description=SUM (__SITE_SLUG__) Gunicorn
 After=network.target
+Wants=redis-server.service
 
 # If using optional socket activation, uncomment:
 # Requires=sum-__SITE_SLUG__-gunicorn.socket

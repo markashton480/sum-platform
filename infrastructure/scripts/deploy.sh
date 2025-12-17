@@ -101,6 +101,16 @@ else
   die "requirements.txt not found in $APP_DIR"
 fi
 
+log "Checking Redis availability"
+if command -v redis-cli >/dev/null 2>&1; then
+  if ! redis-cli ping >/dev/null 2>&1; then
+    die "Redis check failed: 'redis-cli ping' did not succeed. Ensure Redis is running: sudo systemctl status redis-server"
+  fi
+  log "Redis is available"
+else
+  log "WARNING: redis-cli not found; skipping Redis check"
+fi
+
 log "Running migrations"
 "$PY" manage.py migrate --noinput
 

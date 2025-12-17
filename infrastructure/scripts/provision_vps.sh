@@ -56,7 +56,19 @@ if [[ "$INSTALL_PACKAGES" == "true" ]]; then
     build-essential \
     libpq-dev \
     postgresql-client \
+    redis-server \
     ufw
+
+  # Ensure Redis is enabled and started
+  log "Enabling and starting Redis"
+  systemctl enable --now redis-server
+
+  # Verify Redis is responding
+  if redis-cli ping | grep -q PONG; then
+    log "Redis is running and responding"
+  else
+    die "Redis installation failed: 'redis-cli ping' did not return PONG"
+  fi
 
   # Caddy official repo install (idempotent)
   if ! command -v caddy >/dev/null 2>&1; then

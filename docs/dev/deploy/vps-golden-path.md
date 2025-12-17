@@ -1,6 +1,6 @@
-# VPS Golden Path Deployment (Ubuntu + Caddy + systemd + Postgres + backups)
+# VPS Golden Path Deployment (Ubuntu + Caddy + systemd + Postgres + Redis + backups)
 
-This is the **boring, repeatable “golden path”** for deploying a SUM client site to a single Ubuntu VPS using **Caddy + systemd + Postgres** (and Redis only if you enable cache/Celery in production).
+This is the **boring, repeatable "golden path"** for deploying a SUM client site to a single Ubuntu VPS using **Caddy + systemd + Postgres + Redis**.
 
 ## Assumptions
 
@@ -21,16 +21,25 @@ sudo apt install -y \
   ca-certificates curl git \
   python3 python3-venv python3-pip build-essential \
   libpq-dev postgresql postgresql-contrib postgresql-client \
+  redis-server \
   ufw
 ```
 
-**Redis**:
+### Why Redis is required
 
-- In the **current SUM client boilerplate**, `settings/production.py` configures Django cache to use Redis via `REDIS_URL`, and `/health/` treats cache as **critical**—so **Redis is effectively required** for the default production stack.
-- If you intentionally customize production settings to not use Redis, you can omit it. Otherwise, install it:
+Redis is **required** for the default SUM production stack (not optional):
+
+- **Django cache**: Production settings configure Redis as the default cache backend. The application's performance and stability assumptions rely on this cache being available.
+- **Celery broker**: Even if async tasks are not critical, Celery configuration defaults to Redis as the broker. This maintains the option to enable async tasks without infrastructure changes.
+- **Health check dependency**: The `/health/` endpoint treats cache as **critical** by default. If Redis is unavailable, health checks will fail (503 status), which will trigger alerting and may prevent deployments.
+
+**Security baseline**: Redis is configured to **only listen on localhost** (`127.0.0.1` and `::1`) and is **not exposed to the internet**. The firewall (UFW) does not allow port 6379 from external sources. This is sufficient security for a single-server deployment. Do not expose Redis publicly; if you need remote access, stop and redesign your architecture.
+
+After installation, verify Redis is running:
 
 ```bash
-sudo apt install -y redis-server
+sudo systemctl enable --now redis-server
+redis-cli ping  # Should return: PONG
 ```
 
 ### Caddy install (official repo)
@@ -153,10 +162,10 @@ DJANGO_MEDIA_ROOT=/srv/sum/<site_slug>/media
 # Optional: for deploy script smoke checks
 SITE_DOMAIN=example.com
 
-# Redis/Celery only if used in production
-# REDIS_URL=redis://localhost:6379/0
-# CELERY_BROKER_URL=redis://localhost:6379/0
-# CELERY_RESULT_BACKEND=redis://localhost:6379/0
+# Redis/Celery (required for default production stack)
+REDIS_URL=redis://localhost:6379/0
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
 ```
 
 ## 7) systemd units (gunicorn + optional socket + optional celery)
@@ -361,4 +370,44 @@ Caddy logs:
 sudo journalctl -u caddy -f --no-pager
 ```
 
+## 13) Ops smoke checklist
 
+Use this checklist to verify the deployment is healthy:
+
+### Redis
+
+```bash
+# Verify Redis is running
+sudo systemctl status redis-server
+
+# Test Redis connectivity
+redis-cli ping
+# Expected output: PONG
+
+# Optional: Check Redis binding (should be localhost only)
+sudo netstat -tlnp | grep 6379
+# Expected: 127.0.0.1:6379 and ::1:6379 (not 0.0.0.0)
+```
+
+### Application health
+
+```bash
+# Health endpoint (should return 200 for ok/degraded, 503 only for unhealthy)
+curl -i "https://${DOMAIN}/health/"
+
+# Verify site is serving correctly
+curl -I "https://${DOMAIN}/"
+```
+
+### Service status
+
+```bash
+# Gunicorn service
+sudo systemctl status "sum-${SITE_SLUG}-gunicorn.service"
+
+# Celery service (if enabled)
+sudo systemctl status "sum-${SITE_SLUG}-celery.service" 2>/dev/null || echo "Celery not enabled"
+
+# Caddy
+sudo systemctl status caddy
+```
