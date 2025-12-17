@@ -27,11 +27,15 @@ sudo apt install -y \
 
 ### Why Redis is required
 
+> **Redis is part of the baseline SUM runtime.**
+> All production deployments assume Redis is installed, running, and reachable.
+> If Redis is unavailable, the runtime is considered broken.
+
 Redis is **required** for the default SUM production stack (not optional):
 
 - **Django cache**: Production settings configure Redis as the default cache backend. The application's performance and stability assumptions rely on this cache being available.
-- **Celery broker**: Even if async tasks are not critical, Celery configuration defaults to Redis as the broker. This maintains the option to enable async tasks without infrastructure changes.
-- **Health check dependency**: The `/health/` endpoint treats cache as **critical** by default. If Redis is unavailable, health checks will fail (503 status), which will trigger alerting and may prevent deployments.
+- **Celery broker**: **Celery is an optional feature; Redis is not.** If Celery is enabled, it depends on Redis as the broker, but Redis is required for the baseline runtime regardless of whether Celery is enabled. This maintains the option to enable async tasks without infrastructure changes.
+- **Health check dependency**: The `/health/` endpoint treats cache as **critical** by default. **Redis failure results in `/health/` reporting `unhealthy` (HTTP 503).** This reflects a broken baseline runtime, not a degraded feature. If Redis is unavailable, health checks will fail, which will trigger alerting and may prevent deployments.
 
 **Security baseline**: Redis is configured to **only listen on localhost** (`127.0.0.1` and `::1`) and is **not exposed to the internet**. The firewall (UFW) does not allow port 6379 from external sources. This is sufficient security for a single-server deployment. Do not expose Redis publicly; if you need remote access, stop and redesign your architecture.
 

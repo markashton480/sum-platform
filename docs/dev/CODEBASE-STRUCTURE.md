@@ -104,7 +104,7 @@ The **installable `sum-core` package** (import path: `sum_core`). This is the ma
 - **`sum_core/integrations/`**: External service integrations (Zapier webhooks with retries and status tracking)
 - **`sum_core/leads/`**: Lead persistence ("no lost leads" invariant), attribution capture (UTM, referrer, landing page), Wagtail admin UI, CSV export
 - **`sum_core/navigation/`**: Navigation system (header menus 3-level deep, footer sections, mobile sticky CTA), cached output with invalidation
-- **`sum_core/ops/`**: Operations and observability (`/health/` endpoint, Sentry integration, structured JSON logging with correlation IDs)
+- **`sum_core/ops/`**: Operations and observability (`/health/` endpoint, Sentry integration, structured JSON logging with correlation IDs). **Health endpoint semantics:** Redis is baseline-critical; failure results in `unhealthy` (503) status.
 - **`sum_core/pages/`**: Page type models (`StandardPage`, `ServiceIndexPage`, `ServicePage`), SEO mixins (`SeoFieldsMixin`, `OpenGraphMixin`, `BreadcrumbMixin`)
 - **`sum_core/seo/`**: Technical SEO (`/sitemap.xml`, `/robots.txt`, SEO template tags, JSON-LD structured data)
 - **`sum_core/static/sum_core/css/`**: Design system CSS (tokens, main.css entrypoint)
@@ -204,6 +204,7 @@ Repository-level utility scripts:
 ### Client Projects
 
 Client projects consume `sum_core` as an installed package and:
+
 - Define their own `HomePage` model (client-owned)
 - Override templates in `templates/overrides/`
 - Configure settings in their own `settings/` module
@@ -230,4 +231,3 @@ Client projects consume `sum_core` as an installed package and:
 - **SSOT**: `docs/dev/master-docs/SUM-PLATFORM-SSOT.md` - Complete platform specification
 - **Wiring Guide**: `docs/dev/WIRING-INVENTORY.md` - How to wire `sum_core` into projects
 - **Agent Guide**: `docs/dev/AGENT-ORIENTATION.md` - Platform vs test harness distinction
-

@@ -8,13 +8,13 @@
 
 ## Quick Reference
 
-| Item | Value |
-|------|-------|
-| **Project Code** | `sum-platform` |
-| **Target** | 20 client websites in 12 months |
-| **Deployment Time** | 2-3 days per new client site |
-| **Phase 1 Completion** | March 2026 (12 weeks from December 2025) |
-| **Total Estimated Hours** | 185-240 hours |
+| Item                      | Value                                    |
+| ------------------------- | ---------------------------------------- |
+| **Project Code**          | `sum-platform`                           |
+| **Target**                | 20 client websites in 12 months          |
+| **Deployment Time**       | 2-3 days per new client site             |
+| **Phase 1 Completion**    | March 2026 (12 weeks from December 2025) |
+| **Total Estimated Hours** | 185-240 hours                            |
 
 ---
 
@@ -55,49 +55,49 @@ Build a scalable website deployment platform enabling Straight Up Marketing to d
 
 ### 1.3 Target Users
 
-| User | Role | Technical Level |
-|------|------|-----------------|
-| **Internal Dev Team** | Create, deploy, maintain sites | Django/Wagtail proficient |
-| **Client Content Editors** | Update content, view leads | Limited technical expertise |
-| **Website Visitors** | Research and contact businesses | General public, mobile-first |
+| User                       | Role                            | Technical Level              |
+| -------------------------- | ------------------------------- | ---------------------------- |
+| **Internal Dev Team**      | Create, deploy, maintain sites  | Django/Wagtail proficient    |
+| **Client Content Editors** | Update content, view leads      | Limited technical expertise  |
+| **Website Visitors**       | Research and contact businesses | General public, mobile-first |
 
 ### 1.4 Success Metrics
 
-| Metric | Target | Phase |
-|--------|--------|-------|
-| New site deployment time | ≤3 days | Phase 1 |
-| Core package test coverage | ≥80% | Phase 1 |
-| Lighthouse Performance | ≥90 (reference pages) | Phase 1 |
-| Page load (4G mobile) | <3 seconds | Phase 1 |
-| Lighthouse Accessibility | ≥90 | Phase 1 |
-| Lighthouse SEO | ≥90 | Phase 1 |
-| Platform uptime | ≥99.5% | Phase 1 |
+| Metric                     | Target                | Phase   |
+| -------------------------- | --------------------- | ------- |
+| New site deployment time   | ≤3 days               | Phase 1 |
+| Core package test coverage | ≥80%                  | Phase 1 |
+| Lighthouse Performance     | ≥90 (reference pages) | Phase 1 |
+| Page load (4G mobile)      | <3 seconds            | Phase 1 |
+| Lighthouse Accessibility   | ≥90                   | Phase 1 |
+| Lighthouse SEO             | ≥90                   | Phase 1 |
+| Platform uptime            | ≥99.5%                | Phase 1 |
 
 ---
 
 ## 2. Technology Stack
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Language | Python | 3.12.x |
-| Framework | Django (LTS) | 5.2.x |
-| CMS | Wagtail (LTS) | 7.0.x |
-| Database | PostgreSQL | 17.x |
-| Cache/Broker | Redis | 7.x/8.x |
-| Task Queue | Celery | 5.6.x |
-| Frontend Build | Node.js (LTS) | 24.x |
-| Web Server | Nginx | Latest |
-| App Server | Gunicorn | Latest |
-| CSS | Token-based system (no Tailwind in templates) | — |
+| Component      | Technology                                    | Version |
+| -------------- | --------------------------------------------- | ------- |
+| Language       | Python                                        | 3.12.x  |
+| Framework      | Django (LTS)                                  | 5.2.x   |
+| CMS            | Wagtail (LTS)                                 | 7.0.x   |
+| Database       | PostgreSQL                                    | 17.x    |
+| Cache/Broker   | Redis                                         | 7.x/8.x |
+| Task Queue     | Celery                                        | 5.6.x   |
+| Frontend Build | Node.js (LTS)                                 | 24.x    |
+| Web Server     | Nginx                                         | Latest  |
+| App Server     | Gunicorn                                      | Latest  |
+| CSS            | Token-based system (no Tailwind in templates) | —       |
 
 ### 2.1 Development vs Production
 
-| Environment | Stack |
-|-------------|-------|
-| **Local Dev** | Docker Compose (Django, PostgreSQL, Redis, Node.js) |
-| **CI** | Docker (GitHub Actions) |
-| **Staging** | Host-based (venv + Gunicorn + Nginx + systemd) |
-| **Production** | Host-based (venv + Gunicorn + Nginx + systemd) |
+| Environment    | Stack                                               |
+| -------------- | --------------------------------------------------- |
+| **Local Dev**  | Docker Compose (Django, PostgreSQL, Redis, Node.js) |
+| **CI**         | Docker (GitHub Actions)                             |
+| **Staging**    | Host-based (venv + Gunicorn + Nginx + systemd)      |
+| **Production** | Host-based (venv + Gunicorn + Nginx + systemd)      |
 
 > **Decision:** Docker is for local dev and CI only. Production uses host-based deployment.
 
@@ -170,15 +170,15 @@ sum-platform/
 
 ### 3.1 Key File Paths
 
-| Purpose | Path |
-|---------|------|
-| Core package | `core/sum_core/` |
-| Boilerplate | `boilerplate/` |
-| Client projects | `clients/<client-name>/` |
-| CLI tool | `cli/sum_cli/` |
-| CSS tokens | `core/sum_core/static/sum_core/css/tokens.css` |
-| Base templates | `core/sum_core/templates/sum_core/` |
-| Block templates | `core/sum_core/templates/sum_core/blocks/` |
+| Purpose         | Path                                           |
+| --------------- | ---------------------------------------------- |
+| Core package    | `core/sum_core/`                               |
+| Boilerplate     | `boilerplate/`                                 |
+| Client projects | `clients/<client-name>/`                       |
+| CLI tool        | `cli/sum_cli/`                                 |
+| CSS tokens      | `core/sum_core/static/sum_core/css/tokens.css` |
+| Base templates  | `core/sum_core/templates/sum_core/`            |
+| Block templates | `core/sum_core/templates/sum_core/blocks/`     |
 
 ---
 
@@ -217,6 +217,10 @@ Gunicorn (Django + Wagtail app)
   ├── Redis (cache + Celery broker)
   └── Celery workers (email, webhooks, retention)
 ```
+
+**Redis Baseline:** Redis is **part of the baseline runtime** for all production deployments. It is **not optional**. Celery is an optional feature; Redis is not. If Celery is enabled, it depends on Redis, but Redis is required regardless of whether Celery is enabled.
+
+**Health Semantics:** Redis failure results in `/health/` reporting `unhealthy` (HTTP 503), reflecting a broken baseline runtime (not a degraded feature).
 
 ### 4.3 Multisite Strategy
 
@@ -259,17 +263,17 @@ sum_core/
 
 ### 6.1 Block Catalogue
 
-| Category | Blocks | Priority |
-|----------|--------|----------|
-| **Hero** | `HeroImageBlock`, `HeroGradientBlock` | P0 |
-| **Services** | `ServiceCardsBlock` | P0 |
-| **Testimonials** | `TestimonialsBlock` | P0 |
-| **CTA** | `CTAInlineBlock`, `CTAFullWidthBlock` | P0 |
-| **Trust** | `TrustStripBlock`, `StatsBlock` | P0 |
-| **Process/FAQ** | `ProcessStepsBlock`, `FAQBlock` | P0 |
-| **Gallery** | `GalleryBlock` | P0 |
-| **Content** | `RichTextBlock`, `QuoteBlock`, `ButtonGroupBlock`, `SpacerBlock`, `DividerBlock`, `ImageBlock` | P0 |
-| **Forms** | `ContactFormBlock`, `QuoteRequestFormBlock` | P0 |
+| Category         | Blocks                                                                                         | Priority |
+| ---------------- | ---------------------------------------------------------------------------------------------- | -------- |
+| **Hero**         | `HeroImageBlock`, `HeroGradientBlock`                                                          | P0       |
+| **Services**     | `ServiceCardsBlock`                                                                            | P0       |
+| **Testimonials** | `TestimonialsBlock`                                                                            | P0       |
+| **CTA**          | `CTAInlineBlock`, `CTAFullWidthBlock`                                                          | P0       |
+| **Trust**        | `TrustStripBlock`, `StatsBlock`                                                                | P0       |
+| **Process/FAQ**  | `ProcessStepsBlock`, `FAQBlock`                                                                | P0       |
+| **Gallery**      | `GalleryBlock`                                                                                 | P0       |
+| **Content**      | `RichTextBlock`, `QuoteBlock`, `ButtonGroupBlock`, `SpacerBlock`, `DividerBlock`, `ImageBlock` | P0       |
+| **Forms**        | `ContactFormBlock`, `QuoteRequestFormBlock`                                                    | P0       |
 
 ### 6.2 Block File Structure
 
@@ -291,64 +295,77 @@ sum_core/blocks/
 ### 6.3 Block Specifications
 
 #### HeroImageBlock
+
 - Full-width image background with configurable overlay opacity
 - Fields: headline (required), subheadline (optional), CTA buttons (0-2)
 - Image with required alt text
 
 #### HeroGradientBlock
+
 - Gradient background using brand colours
 - Same fields as HeroImageBlock
 
 #### ServiceCardsBlock
+
 - Grid: 3-column desktop, 2-column tablet, 1-column mobile
 - Each card: icon (SVG/image), title, description (rich text), link (optional)
 - Min 1, Max 12 cards
 
 #### TestimonialsBlock
+
 - Card-based layout with configurable display count
 - Each testimonial: quote (required), author (required), company (optional), photo (optional), rating (1-5 stars, optional)
 
 #### CTAInlineBlock / CTAFullWidthBlock
+
 - Headline, description (optional), up to 2 buttons
 - Button styles: primary, secondary, outline
 - Full-width variant supports background image with overlay
 
 #### TrustStripBlock
+
 - Horizontal row of logos/badges (2-8 items)
 - Each item: image, optional link
 
 #### StatsBlock
+
 - Number statistics (2-4 items)
 - Each: number, label, optional prefix/suffix
 
 #### ProcessStepsBlock
+
 - Numbered timeline (3-8 steps)
 - Each: number (auto/manual), title, description
 - Visual connector lines
 
 #### FAQBlock
+
 - Accordion-style (1-20 items)
 - Each: question, answer (rich text)
 - Configurable: multiple open or single open
 - Generates FAQ schema (P1)
 
 #### GalleryBlock
+
 - Responsive grid (1-20 images)
 - Each: image (required), alt text (required), caption (optional)
 - Images lazy-loaded
 - Lightbox zoom (P1)
 
 #### ContactFormBlock
+
 - Fields: name, email, phone, message
 - Creates Lead record on submission
 
 #### QuoteRequestFormBlock
+
 - Configurable fields: project type, budget range, timeline, service area
 - Creates Lead record on submission
 
 ### 6.4 Block Design Rules
 
 **CRITICAL - All blocks MUST:**
+
 - Use design tokens exclusively (no hardcoded values)
 - Use `var(--token-name)` format for all CSS values
 - Follow BEM naming convention
@@ -406,19 +423,19 @@ class SumBasePage(
 
 ### 7.4 Page Specifications
 
-| Page Type | Key Fields | Allowed Blocks | Parent/Child Rules |
-|-----------|------------|----------------|-------------------|
-| `HomePage` | StreamField body | All blocks | Only one per site |
-| `ServiceIndexPage` | Intro area | Content blocks | Parent of ServicePage |
-| `ServicePage` | Featured image, short desc, body | All blocks | Child of ServiceIndexPage |
-| `StandardPage` | StreamField body | Content, CTA, FAQ, Gallery | Any parent |
-| `ContactPage` | Business info, form selector | Contact form blocks | Any parent |
-| `BlogIndexPage` | Intro content | Content blocks | Parent of BlogPostPage |
-| `BlogPostPage` | Author, date, featured image, body | Content blocks | Child of BlogIndexPage |
-| `PortfolioIndexPage` | Intro content | Content blocks | Parent of PortfolioPage |
-| `PortfolioPage` | Gallery, description | Gallery, content | Child of PortfolioIndexPage |
-| `ServiceAreaPage` | Location-specific content | All blocks | Any parent |
-| `LandingPage` | Streamlined for campaigns | Hero, CTA, Form | Any parent, noindex default |
+| Page Type            | Key Fields                         | Allowed Blocks             | Parent/Child Rules          |
+| -------------------- | ---------------------------------- | -------------------------- | --------------------------- |
+| `HomePage`           | StreamField body                   | All blocks                 | Only one per site           |
+| `ServiceIndexPage`   | Intro area                         | Content blocks             | Parent of ServicePage       |
+| `ServicePage`        | Featured image, short desc, body   | All blocks                 | Child of ServiceIndexPage   |
+| `StandardPage`       | StreamField body                   | Content, CTA, FAQ, Gallery | Any parent                  |
+| `ContactPage`        | Business info, form selector       | Contact form blocks        | Any parent                  |
+| `BlogIndexPage`      | Intro content                      | Content blocks             | Parent of BlogPostPage      |
+| `BlogPostPage`       | Author, date, featured image, body | Content blocks             | Child of BlogIndexPage      |
+| `PortfolioIndexPage` | Intro content                      | Content blocks             | Parent of PortfolioPage     |
+| `PortfolioPage`      | Gallery, description               | Gallery, content           | Child of PortfolioIndexPage |
+| `ServiceAreaPage`    | Location-specific content          | All blocks                 | Any parent                  |
+| `LandingPage`        | Streamlined for campaigns          | Hero, CTA, Form            | Any parent, noindex default |
 
 ---
 
@@ -435,7 +452,7 @@ class Lead(models.Model):
     message = models.TextField()
     form_type = models.CharField(max_length=50)  # 'contact', 'quote'
     form_data = models.JSONField(default=dict)   # Dynamic fields
-    
+
     # Attribution
     utm_source = models.CharField(max_length=100, blank=True)
     utm_medium = models.CharField(max_length=100, blank=True)
@@ -445,11 +462,11 @@ class Lead(models.Model):
     landing_page_url = models.URLField(blank=True)
     page_url = models.URLField()
     referrer_url = models.URLField(blank=True)
-    
+
     # Derived source
     lead_source = models.CharField(max_length=50)  # google_ads, seo, direct, etc.
     lead_source_detail = models.TextField(blank=True)
-    
+
     # Status workflow
     status = models.CharField(
         max_length=20,
@@ -462,7 +479,7 @@ class Lead(models.Model):
         ],
         default='new'
     )
-    
+
     # Metadata
     source_page = models.ForeignKey(Page, on_delete=models.SET_NULL, null=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
@@ -471,16 +488,16 @@ class Lead(models.Model):
 
 ### 8.2 Lead Source Attribution Rules
 
-| Condition | Derived Source |
-|-----------|----------------|
-| utm_source=google + utm_medium=cpc | `google_ads` |
-| utm_source=facebook/instagram + utm_medium=cpc | `meta_ads` |
-| utm_source=bing + utm_medium=cpc | `bing_ads` |
-| referrer contains google.com + no utm | `seo` |
-| No referrer + no utm | `direct` |
-| Has referrer + no utm | `referral` |
-| utm_source starts with offline | `offline` |
-| All else | `unknown` |
+| Condition                                      | Derived Source |
+| ---------------------------------------------- | -------------- |
+| utm_source=google + utm_medium=cpc             | `google_ads`   |
+| utm_source=facebook/instagram + utm_medium=cpc | `meta_ads`     |
+| utm_source=bing + utm_medium=cpc               | `bing_ads`     |
+| referrer contains google.com + no utm          | `seo`          |
+| No referrer + no utm                           | `direct`       |
+| Has referrer + no utm                          | `referral`     |
+| utm_source starts with offline                 | `offline`      |
+| All else                                       | `unknown`      |
 
 ### 8.3 Form Submission Flow
 
@@ -505,7 +522,7 @@ class Lead(models.Model):
        │
        ├──► send_lead_notification
        └──► send_lead_webhook (if configured)
-       
+
 6. Return success response
 ```
 
@@ -550,16 +567,16 @@ class SiteSettings(BaseSiteSetting):
     color_accent = models.CharField(max_length=7)
     color_background = models.CharField(max_length=7)
     color_text = models.CharField(max_length=7)
-    
+
     # Typography
     font_heading = models.CharField(max_length=100)     # Google Font name
     font_body = models.CharField(max_length=100)
-    
+
     # Logos
     logo_header = models.ForeignKey(Image, ...)
     logo_footer = models.ForeignKey(Image, ...)
     favicon = models.ForeignKey(Image, ...)
-    
+
     # Business Info
     company_name = models.CharField(max_length=200)
     tagline = models.CharField(max_length=200, blank=True)
@@ -567,7 +584,7 @@ class SiteSettings(BaseSiteSetting):
     email = models.EmailField()
     address = models.TextField()
     business_hours = models.TextField(blank=True)
-    
+
     # Social Links
     facebook_url = models.URLField(blank=True)
     instagram_url = models.URLField(blank=True)
@@ -575,11 +592,11 @@ class SiteSettings(BaseSiteSetting):
     twitter_url = models.URLField(blank=True)
     youtube_url = models.URLField(blank=True)
     tiktok_url = models.URLField(blank=True)
-    
+
     # Analytics
     ga_measurement_id = models.CharField(max_length=20, blank=True)
     gtm_container_id = models.CharField(max_length=20, blank=True)
-    
+
     # Integrations
     zapier_webhook_url = models.URLField(blank=True)
     lead_notification_email = models.EmailField()
@@ -613,15 +630,15 @@ class SiteSettings(BaseSiteSetting):
   --color-border: #e5e7eb;
   --color-error: #ef4444;
   --color-success: #10b981;
-  
+
   /* Typography */
-  --font-heading: 'Montserrat', system-ui, sans-serif;
-  --font-body: 'Open Sans', system-ui, sans-serif;
+  --font-heading: "Montserrat", system-ui, sans-serif;
+  --font-body: "Open Sans", system-ui, sans-serif;
   --font-bold: 700;
   --font-semibold: 600;
   --font-medium: 500;
   --font-normal: 400;
-  
+
   /* Font Sizes */
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
@@ -632,28 +649,28 @@ class SiteSettings(BaseSiteSetting):
   --text-3xl: 1.875rem;
   --text-4xl: 2.25rem;
   --text-5xl: 3rem;
-  
+
   /* Spacing Scale */
-  --space-1: 0.25rem;   /* 4px */
-  --space-2: 0.5rem;    /* 8px */
-  --space-3: 0.75rem;   /* 12px */
-  --space-4: 1rem;      /* 16px */
-  --space-5: 1.25rem;   /* 20px */
-  --space-6: 1.5rem;    /* 24px */
-  --space-8: 2rem;      /* 32px */
-  --space-10: 2.5rem;   /* 40px */
-  --space-12: 3rem;     /* 48px */
-  --space-16: 4rem;     /* 64px */
-  --space-20: 5rem;     /* 80px */
-  --space-24: 6rem;     /* 96px */
-  
+  --space-1: 0.25rem; /* 4px */
+  --space-2: 0.5rem; /* 8px */
+  --space-3: 0.75rem; /* 12px */
+  --space-4: 1rem; /* 16px */
+  --space-5: 1.25rem; /* 20px */
+  --space-6: 1.5rem; /* 24px */
+  --space-8: 2rem; /* 32px */
+  --space-10: 2.5rem; /* 40px */
+  --space-12: 3rem; /* 48px */
+  --space-16: 4rem; /* 64px */
+  --space-20: 5rem; /* 80px */
+  --space-24: 6rem; /* 96px */
+
   /* Border Radius */
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
   --radius-xl: 0.75rem;
   --radius-full: 9999px;
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
@@ -665,6 +682,7 @@ class SiteSettings(BaseSiteSetting):
 ### 9.4 Design System Rules
 
 **CRITICAL - NEVER:**
+
 - Use hex colors (use `var(--color-*)`)
 - Use `font-family:` declarations (use `var(--font-*)`)
 - Use raw font-size values (use `var(--text-*)`)
@@ -672,6 +690,7 @@ class SiteSettings(BaseSiteSetting):
 - Add inline `style=""` attributes
 
 **ALWAYS:**
+
 - Use typography classes (`.heading-xl`, `.text-body`, etc.)
 - Use section wrapper pattern (`.section` + `.container`)
 - Use HSL token format: `hsla(var(--primary), 1)`
@@ -679,13 +698,13 @@ class SiteSettings(BaseSiteSetting):
 
 ### 9.5 Theme Presets (Internal Admin Tool)
 
-| Preset | Primary | Secondary | Accent | Heading Font | Body Font |
-|--------|---------|-----------|--------|--------------|-----------|
-| Premium Trade | #1e3a5f | #0f172a | #f59e0b | Montserrat | Open Sans |
-| Professional Blue | #2563eb | #1e40af | #f97316 | Poppins | Inter |
-| Modern Green | #059669 | #064e3b | #fbbf24 | DM Sans | Source Sans 3 |
-| Warm Earth | #92400e | #78350f | #dc2626 | Playfair Display | Lato |
-| Clean Slate | #374151 | #1f2937 | #6366f1 | Work Sans | Roboto |
+| Preset            | Primary | Secondary | Accent  | Heading Font     | Body Font     |
+| ----------------- | ------- | --------- | ------- | ---------------- | ------------- |
+| Premium Trade     | #1e3a5f | #0f172a   | #f59e0b | Montserrat       | Open Sans     |
+| Professional Blue | #2563eb | #1e40af   | #f97316 | Poppins          | Inter         |
+| Modern Green      | #059669 | #064e3b   | #fbbf24 | DM Sans          | Source Sans 3 |
+| Warm Earth        | #92400e | #78350f   | #dc2626 | Playfair Display | Lato          |
+| Clean Slate       | #374151 | #1f2937   | #6366f1 | Work Sans        | Roboto        |
 
 > These are starting points. Every client site receives custom branding.
 
@@ -702,6 +721,7 @@ class SiteSettings(BaseSiteSetting):
 ```
 
 **Priority Logic:**
+
 1. If GTM Container ID present → inject GTM
 2. Else if GA4 Measurement ID present → inject GA4
 3. Neither present → no scripts
@@ -709,6 +729,7 @@ class SiteSettings(BaseSiteSetting):
 ### 10.2 Event Tracking
 
 Events pushed to dataLayer:
+
 - `form_submission` - form_type, page_url
 - `phone_click` - phone number
 - `email_click` - email address
@@ -726,6 +747,7 @@ Events pushed to dataLayer:
 ### 10.4 SEO Fields on Pages
 
 All pages include:
+
 - `seo_title` (default: page title + site name)
 - `seo_description` (character count indicators)
 - `og_image` (fallback chain: page → featured → site default)
@@ -734,13 +756,13 @@ All pages include:
 
 ### 10.5 Structured Data Schemas
 
-| Schema | Applied To |
-|--------|-----------|
-| LocalBusiness | HomePage, ContactPage |
-| Article | BlogPostPage |
-| Service | ServicePage (P1) |
-| FAQ | Pages with FAQBlock (P1) |
-| BreadcrumbList | All pages (P1) |
+| Schema         | Applied To               |
+| -------------- | ------------------------ |
+| LocalBusiness  | HomePage, ContactPage    |
+| Article        | BlogPostPage             |
+| Service        | ServicePage (P1)         |
+| FAQ            | Pages with FAQBlock (P1) |
+| BreadcrumbList | All pages (P1)           |
 
 ### 10.6 Technical SEO
 
@@ -758,6 +780,7 @@ All pages include:
 **Configuration:** `SiteSettings.zapier_webhook_url`
 
 **Payload Schema:**
+
 ```json
 {
   "lead_id": 123,
@@ -781,6 +804,7 @@ All pages include:
 ### 11.2 Email Delivery
 
 **Configuration:** Environment variables
+
 ```bash
 EMAIL_HOST=smtp.sendgrid.net
 EMAIL_PORT=587
@@ -831,6 +855,7 @@ sum check <project-path>
 ### 12.3 Server Infrastructure
 
 **Per-Client Setup:**
+
 - Nginx vhost (SSL via certbot)
 - Gunicorn systemd service
 - Celery worker systemd service
@@ -840,6 +865,10 @@ sum check <project-path>
 
 **Health Check:** `GET /health/` returns JSON with DB/Redis/Celery status
 
+- **HTTP 200** when all baseline checks (DB + Redis) are healthy
+- **HTTP 503** (`unhealthy`) when any baseline check fails (including Redis)
+- Redis is a **baseline-critical** dependency; failure is not treated as "degraded"
+
 ---
 
 ## 13. Implementation Milestones
@@ -847,6 +876,7 @@ sum check <project-path>
 ### Milestone 0: Repository & Foundation (15-20 hours)
 
 **Deliverables:**
+
 - Monorepo with prescribed directory structure
 - Docker Compose configuration
 - Pre-commit hooks (Black, isort, flake8/ruff)
@@ -856,6 +886,7 @@ sum check <project-path>
 - README with quickstart
 
 **Done When:**
+
 - `docker-compose up` → Wagtail admin at localhost:8000
 - `make lint` and `make test` execute successfully
 - `pip install -e ./core` succeeds
@@ -864,6 +895,7 @@ sum check <project-path>
 ### Milestone 1: Design System & Base Templates (25-35 hours)
 
 **Deliverables:**
+
 - CSS token system (colours, typography, spacing, shadows, radii)
 - Component CSS using tokens
 - `SiteSettings` model
@@ -872,6 +904,7 @@ sum check <project-path>
 - Theme preset system
 
 **Done When:**
+
 - Test project shows styled base site
 - Changing SiteSettings reflects immediately
 - All CSS uses `var(--token-name)` format
@@ -880,6 +913,7 @@ sum check <project-path>
 ### Milestone 2: StreamField Blocks (40-50 hours)
 
 **Deliverables:**
+
 - All hero, service, testimonial, CTA, trust, process/FAQ, gallery blocks
 - All content blocks
 - All form blocks
@@ -887,6 +921,7 @@ sum check <project-path>
 - Unit tests for all blocks
 
 **Done When:**
+
 - All blocks render in Wagtail admin preview
 - Blocks use tokens exclusively
 - Validation enforces min/max items
@@ -896,6 +931,7 @@ sum check <project-path>
 ### Milestone 3: Page Types & Lead Management (50-60 hours)
 
 **Deliverables:**
+
 - All page types with StreamField integration
 - Page mixins (SEO, OG, Breadcrumb)
 - Lead model with attribution
@@ -907,6 +943,7 @@ sum check <project-path>
 - Celery tasks
 
 **Done When:**
+
 - All page types creatable with correct hierarchy
 - Form submissions create Lead records with attribution
 - Spam protection works
@@ -918,6 +955,7 @@ sum check <project-path>
 ### Milestone 4: Analytics, SEO & Integrations (30-40 hours)
 
 **Deliverables:**
+
 - Analytics template tags
 - Event tracking JavaScript
 - SEO template tags
@@ -928,6 +966,7 @@ sum check <project-path>
 - Health check endpoint
 
 **Done When:**
+
 - GA4/GTM scripts inject correctly
 - Events fire on form submit, CTA click, phone/email click
 - Meta tags, OG tags render correctly
@@ -940,6 +979,7 @@ sum check <project-path>
 ### Milestone 5: CLI, Boilerplate & Deployment (25-35 hours)
 
 **Deliverables:**
+
 - `sum init` and `sum check` commands
 - Client boilerplate with settings split
 - `.env.example`
@@ -951,6 +991,7 @@ sum check <project-path>
 - VPS setup documentation
 
 **Done When:**
+
 - `sum init test-client` creates valid project
 - `sum check` passes validations
 - Client project runs with runserver
@@ -991,42 +1032,45 @@ Repository Setup → Core Package → Design System/CSS Tokens → Base Template
 
 ### 15.1 Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Python packages | `snake_case` | `sum_core`, `sum_cli` |
-| Django apps | `snake_case` | `leads`, `branding` |
-| Templates | `snake_case.html` | `home_page.html` |
-| CSS classes | `kebab-case` (BEM) | `hero-section__title` |
-| JavaScript files | `kebab-case` | `form-handler.js` |
-| Client directories | `kebab-case` | `acme-kitchens` |
-| Environment variables | `SCREAMING_SNAKE_CASE` | `DATABASE_URL` |
-| Models | `PascalCase` | `Lead`, `ServicePage` |
-| Block classes | `PascalCase` + Block | `HeroImageBlock` |
+| Type                  | Convention             | Example               |
+| --------------------- | ---------------------- | --------------------- |
+| Python packages       | `snake_case`           | `sum_core`, `sum_cli` |
+| Django apps           | `snake_case`           | `leads`, `branding`   |
+| Templates             | `snake_case.html`      | `home_page.html`      |
+| CSS classes           | `kebab-case` (BEM)     | `hero-section__title` |
+| JavaScript files      | `kebab-case`           | `form-handler.js`     |
+| Client directories    | `kebab-case`           | `acme-kitchens`       |
+| Environment variables | `SCREAMING_SNAKE_CASE` | `DATABASE_URL`        |
+| Models                | `PascalCase`           | `Lead`, `ServicePage` |
+| Block classes         | `PascalCase` + Block   | `HeroImageBlock`      |
 
 ### 15.2 Canonical Vocabulary
 
-| Concept | Use This | NOT This |
-|---------|----------|----------|
-| Form submission | `Lead` | Enquiry, Contact, Submission |
-| Lead origin | `LeadSource` | Source, Origin, Channel |
-| Service listing | `ServiceIndexPage` | ServicesPage, ServiceListPage |
-| Individual service | `ServicePage` | ServiceDetailPage |
-| Site configuration | `SiteSettings` | SiteConfig, Settings |
+| Concept            | Use This           | NOT This                      |
+| ------------------ | ------------------ | ----------------------------- |
+| Form submission    | `Lead`             | Enquiry, Contact, Submission  |
+| Lead origin        | `LeadSource`       | Source, Origin, Channel       |
+| Service listing    | `ServiceIndexPage` | ServicesPage, ServiceListPage |
+| Individual service | `ServicePage`      | ServiceDetailPage             |
+| Site configuration | `SiteSettings`     | SiteConfig, Settings          |
 
 ### 15.3 Git Conventions
 
 **Branch Naming:**
+
 - `feature/<scope>-<description>` → `feature/blocks-hero-section`
 - `fix/<scope>-<description>` → `fix/leads-email-notification`
 - `hotfix/<description>` → `hotfix/xss-vulnerability`
 - `chore/<description>` → `chore/update-wagtail-7.1`
 
 **Commit Messages (Conventional Commits):**
+
 ```
 <type>(<scope>): <short description>
 
 [optional body]
 ```
+
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `ci`
 
 ### 15.4 Environment Variables
@@ -1080,24 +1124,28 @@ SENTRY_DSN=https://xxx@sentry.io/xxx
 ### 16.2 Milestone Definition of Done
 
 **Milestone 0:**
+
 - [ ] Monorepo matches structure
 - [ ] `pip install -e ./core` succeeds
 - [ ] `docker-compose up` → Wagtail admin accessible
 - [ ] CI pipeline runs lint + test
 
 **Milestone 1:**
+
 - [ ] Token system complete
 - [ ] SiteSettings model works
 - [ ] Base templates render
 - [ ] Branding changes reflect immediately
 
 **Milestone 2:**
+
 - [ ] All 15+ blocks implemented
 - [ ] Blocks use tokens only
 - [ ] Validation works
 - [ ] 80%+ test coverage
 
 **Milestone 3:**
+
 - [ ] All page types creatable
 - [ ] Forms capture to Lead model
 - [ ] Attribution works
@@ -1105,12 +1153,14 @@ SENTRY_DSN=https://xxx@sentry.io/xxx
 - [ ] Notifications send
 
 **Milestone 4:**
+
 - [ ] GA4/GTM working
 - [ ] SEO tags rendering
 - [ ] Schema validates
 - [ ] Webhooks sending
 
 **Milestone 5:**
+
 - [ ] CLI commands work
 - [ ] Deployment tested
 - [ ] Backup/restore tested
@@ -1125,29 +1175,25 @@ SENTRY_DSN=https://xxx@sentry.io/xxx
 ```html
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    {% include "sum_core/includes/meta_tags.html" %}
-    {% branding_css %}
-    <link rel="stylesheet" href="{% static 'sum_core/css/main.css' %}">
-    {% branding_fonts %}
-    {% analytics_head %}
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    {% include "sum_core/includes/meta_tags.html" %} {% branding_css %}
+    <link rel="stylesheet" href="{% static 'sum_core/css/main.css' %}" />
+    {% branding_fonts %} {% analytics_head %}
+  </head>
+  <body>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     {% include "sum_core/includes/header.html" %}
-    
-    <main id="main-content">
-        {% block content %}{% endblock %}
-    </main>
-    
+
+    <main id="main-content">{% block content %}{% endblock %}</main>
+
     {% include "sum_core/includes/footer.html" %}
-    
+
     <script src="{% static 'sum_core/js/main.js' %}" defer></script>
     {% analytics_body %}
-</body>
+  </body>
 </html>
 ```
 
@@ -1155,20 +1201,18 @@ SENTRY_DSN=https://xxx@sentry.io/xxx
 
 ```html
 <section class="section section--{{ variant }}">
-    <div class="container">
-        {% if section_heading %}
-        <header class="section__header">
-            <h2 class="section__title">{{ section_heading }}</h2>
-            {% if section_subtitle %}
-            <p class="section__subtitle">{{ section_subtitle }}</p>
-            {% endif %}
-        </header>
-        {% endif %}
-        
-        <div class="section__content">
-            {{ content }}
-        </div>
-    </div>
+  <div class="container">
+    {% if section_heading %}
+    <header class="section__header">
+      <h2 class="section__title">{{ section_heading }}</h2>
+      {% if section_subtitle %}
+      <p class="section__subtitle">{{ section_subtitle }}</p>
+      {% endif %}
+    </header>
+    {% endif %}
+
+    <div class="section__content">{{ content }}</div>
+  </div>
 </section>
 ```
 
@@ -1176,37 +1220,37 @@ Section modifiers: `.section--light`, `.section--dark`, `.section--primary`
 
 ### Appendix C: Typography Classes
 
-| Design Element | CSS Class |
-|----------------|-----------|
-| Hero headline | `.heading-display` |
-| Page/section title | `.heading-xl` |
-| Section heading | `.heading-lg` |
-| Card/item title | `.heading-md` |
-| Minor heading | `.heading-sm` |
-| Lead paragraph | `.text-lg` |
-| Body copy | `.text-body` |
-| Small text | `.text-sm` |
-| Meta/timestamps | `.text-xs` |
-| Eyebrow/kicker | `.section__eyebrow` |
-| Muted text | `.text-muted` |
+| Design Element     | CSS Class           |
+| ------------------ | ------------------- |
+| Hero headline      | `.heading-display`  |
+| Page/section title | `.heading-xl`       |
+| Section heading    | `.heading-lg`       |
+| Card/item title    | `.heading-md`       |
+| Minor heading      | `.heading-sm`       |
+| Lead paragraph     | `.text-lg`          |
+| Body copy          | `.text-body`        |
+| Small text         | `.text-sm`          |
+| Meta/timestamps    | `.text-xs`          |
+| Eyebrow/kicker     | `.section__eyebrow` |
+| Muted text         | `.text-muted`       |
 
 ### Appendix D: Priority Definitions
 
-| Priority | Definition | Impact |
-|----------|------------|--------|
-| **P0** | Must-have for Phase 1 | Blocks release |
-| **P1** | Should-have, can slip to Phase 1.1 | Desirable |
-| **P2** | Nice-to-have, Phase 2+ | Deferred |
+| Priority | Definition                         | Impact         |
+| -------- | ---------------------------------- | -------------- |
+| **P0**   | Must-have for Phase 1              | Blocks release |
+| **P1**   | Should-have, can slip to Phase 1.1 | Desirable      |
+| **P2**   | Nice-to-have, Phase 2+             | Deferred       |
 
 ### Appendix E: Effort Sizing
 
-| Size | Hours | Examples |
-|------|-------|----------|
-| XS | 1-2h | Config change, simple fix |
-| S | 2-3h | Single component, simple feature |
-| M | 3-5h | Multi-file feature, integration |
-| L | 5-7h | Complex feature, major component |
-| XL | 8+h | Large system, multiple integrations |
+| Size | Hours | Examples                            |
+| ---- | ----- | ----------------------------------- |
+| XS   | 1-2h  | Config change, simple fix           |
+| S    | 2-3h  | Single component, simple feature    |
+| M    | 3-5h  | Multi-file feature, integration     |
+| L    | 5-7h  | Complex feature, major component    |
+| XL   | 8+h   | Large system, multiple integrations |
 
 ### Appendix F: Quick Command Reference
 
@@ -1232,11 +1276,12 @@ sum check ./clients/acme  # Validate project
 
 ## Document Control
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0 | December 14, 2025 | Initial consolidated document |
+| Version | Date              | Changes                       |
+| ------- | ----------------- | ----------------------------- |
+| 1.0     | December 14, 2025 | Initial consolidated document |
 
 **Source Documents:**
+
 - PRD v1.1 (December 7, 2025)
 - Project Initiation Packet v1.1 (December 7, 2025)
 - Technical Specification v0.2
@@ -1244,4 +1289,4 @@ sum check ./clients/acme  # Validate project
 
 ---
 
-*This Single Source of Truth consolidates all SUM Platform planning documents. For implementation, reference this document. Update this document when architectural decisions change.*
+_This Single Source of Truth consolidates all SUM Platform planning documents. For implementation, reference this document. Update this document when architectural decisions change._
