@@ -1,32 +1,72 @@
-# **SUM Platform — Post-MVP Expansion PRD (v2)**
+# **SUM Platform — Post-MVP Expansion PRD (v4.1)**
 
-**Status:** Revised Draft  
-**Version:** 2.0  
-**Date:** December 16, 2025  
+**Status:** Final Pre-M6  
+**Version:** 4.1  
+**Date:** December 17, 2025  
 **Applies after:** Milestone 5 (Platform Factory)  
 **Audience:** Platform maintainer + AI agents  
 **Purpose:** Define controlled expansion of SUM Platform after MVP freeze, without destabilising core guarantees.
 
 ---
 
-## Document Changes from v1
+## Document Changes from v4.0
 
 | Change | Category | Impact |
 |--------|----------|--------|
-| CSS transition strategy defined | Architecture | Prevents M5 destabilization |
-| Theme/branding contract clarified | Architecture | Prevents system collision |
-| LINTEL migration strategy added | Practice | Enables real-world validation |
-| Feature freeze policy defined | Stability | Prevents moving target |
-| Version mapping added | Operations | Enables confident pinning |
-| Caddy locked as web server | Infrastructure | Nginx → Caddy |
-| CRM naming clarified | Vocabulary | Removes ambiguity |
-| Runbook templates added | Operations | Reduces deployment friction |
-| Multi-version testing policy | Quality | Sustainable maintenance |
-| AI layer scope tightened | Focus | Prevents distraction |
+| **P0.1: Blog category locked to FK** | Critical | Removes CharField option, eliminates decision contradiction |
+| **P0.2: Zero-downtime upgrades clarified** | Critical | Realistic pre-1.0 standard, defers blue/green to post-1.0 |
+| **P1.1: Cross-reference fixed** | Documentation | Blog CTA reference corrected (6.1.1 → 7.1.1) |
+| **P1.2: Per-client DB clarified** | Architecture | Operator default vs platform requirement explicit |
+| **P1.3: File retention mechanism defined** | Operations | Policy-only in v1, automated cleanup deferred |
+| **P1.4: Staging admin protection added** | Security | Admin exposure baseline for preview sites |
+| **P1.5: Sage & Stone dual role clarified** | Practice | Consumer vs demo distinction preserved |
 
 ---
 
-## 1. Context & Motivation
+## 0. Naming & Roles Clarification
+
+**Understanding the Distinction:**
+
+- **SUM** is the platform name. It does **not** stand for anything.
+- `sum_core` is the core package within the SUM platform repository.
+- **LINTEL Digital** is the company/operator that uses SUM to deliver websites and marketing services to clients.
+- Client sites (e.g., Sage & Stone, LINTEL's own marketing site, future client sites) are **consumers of SUM**, not part of the platform itself.
+
+**Why This Matters:**
+
+This distinction prevents conflation between:
+- **Platform roadmap concerns** (SUM capabilities, features, stability)
+- **Operator/agency concerns** (LINTEL Digital's business operations, sales tooling, client delivery)
+
+**Clear Conceptual Boundary:**
+```
+SUM = Platform (the product we're building)
+LINTEL Digital = Operator (the company using SUM)
+Sage & Stone, LINTEL's site, etc. = Consumers (sites built with SUM)
+```
+
+When discussing roadmap, features, and technical decisions, we're talking about **SUM**. When discussing deployment to clients, marketing, or sales processes, we're talking about **LINTEL Digital's operations**.
+
+---
+
+## 1. Critical Correction: LINTEL Launch Reality
+
+### ❌ Previous Assumption (WRONG)
+- "LINTEL-v1 exists now on M5 stack"
+- "LINTEL-v1 serves as rollback reference"
+- "LINTEL-v2 migrates from LINTEL-v1"
+
+### ✅ Reality
+- **LINTEL is not launched yet** (no production site exists)
+- Therefore: **no v1 → v2 migration path**
+- Therefore: **no existing rollback reference site**
+
+### Impact on Plan
+This correction eliminates false dependency chains and imaginary rollback baselines. The plan now reflects actual sequencing and uses a different site as the first real consumer.
+
+---
+
+## 2. Context & Motivation
 
 Milestone 5 delivered a **stable, repeatable platform** capable of:
 
@@ -44,50 +84,50 @@ Milestone 5 delivered a **stable, repeatable platform** capable of:
 
 Post-MVP work must **preserve this stability** while allowing:
 
-* feature growth (blog, forms, CRM)
+* feature growth (blog, forms, lead management)
 * design evolution (themes)
 * operational confidence (deploy & upgrade practice)
 * AI-assisted review (read-only, not automation)
 
 ---
 
-## 2. Guiding Principles (Non-Negotiable)
+## 3. Guiding Principles (Non-Negotiable)
 
-### 2.1 Core Stability First
+### 3.1 Core Stability First
 
 * `sum_core@0.5.x` remains installable, versioned, and **frozen** for feature work
 * Security and critical fixes only for 0.5.x line
 * No feature may "only work" in a harness or demo project
 * New features ship in new minor versions (0.6.x, 0.7.x, etc.)
 
-### 2.2 Real Consumers Only
+### 3.2 Real Consumers Only
 
 * New features are exercised via **real client projects** scaffolded with `sum init`
 * "Real" means: actual business entity, production-grade content, real traffic intent
-* May be internal (LINTEL) or external clients
+* **First real consumer is Sage & Stone Kitchens** (not LINTEL)
 * No bespoke test projects or synthetic demos
 
-### 2.3 Practice Before Promises
+### 3.3 Practice Before Promises
 
 * At least **3–4 full deploy + upgrade cycles** completed before onboarding external paying clients
 * Each cycle must include: deploy, content updates, core upgrade, verification
 * Rollback procedure rehearsed at least once per site
 * "What broke last time" notes maintained
 
-### 2.4 AI is an Auditor First
+### 3.4 AI is an Auditor First
 
 * AI integrations start as **read-only reviewers**, not content mutators
 * Draft-only write actions may be added later, explicitly and narrowly
 * Never auto-publish, never schema mutation, never silent edits
 
-### 2.5 Themes are Fixed Per Site
+### 3.5 Themes are Fixed Per Site
 
 * Theme selection happens at `sum init` time
 * No Wagtail admin theme switching
 * Changing a theme is a developer action (requires project setup change)
 * Themes remain stable once selected
 
-### 2.6 Breaking Changes Policy
+### 3.6 Breaking Changes Policy
 
 * Breaking changes ONLY at major versions (0.x → 1.0, etc.)
 * Minor version bumps (0.5.x → 0.6.0) may introduce incompatibilities if documented heavily
@@ -97,7 +137,151 @@ Post-MVP work must **preserve this stability** while allowing:
 
 ---
 
-## 3. Post-MVP Milestones Overview
+## 4. Loop Sites Model (Replaces LINTEL v1/v2 Narrative)
+
+### 4.1 The Problem with Previous Plan
+
+The v2 plan incorrectly assumed LINTEL-v1 was live and could serve as a rollback reference. This created a false dependency chain and imaginary migration path.
+
+### 4.2 Loop Sites Strategy
+
+**Purpose:** Validate end-to-end pipeline through real consumer sites in controlled sequence.
+
+---
+
+### Loop Site A: Sage & Stone Kitchens (FIRST REAL CONSUMER)
+
+**Purpose:** First site to receive Wagtail + Theme + Blog + Dynamic Forms treatment.
+
+**Why First:**
+- Real business with real content requirements
+- Validates the complete pipeline: theme wiring, blog UI, dynamic forms, deploy, backups, upgrade paths
+- Lower stakes than LINTEL (internal client vs showcase site)
+- Designed UI artifacts already exist (blog_list.html, blog_article.html)
+
+**Important:** Sage & Stone is treated as a **real consumer site for platform validation**, regardless of whether it is later reused as a **sales demo concept**. This ensures Loop Sites model remains stable and validation genuine.
+
+**Deliverables from Sage & Stone Loop:**
+- [ ] Theme A proven with real content
+- [ ] Blog listing + article pages working
+- [ ] Dynamic Forms in multiple placements (homepage CTA, newsletter, callback, quote)
+- [ ] First successful deploy cycle
+- [ ] First successful upgrade cycle (0.6.0 → 0.6.1)
+- [ ] Rollback rehearsal completed
+- [ ] Documentation of "what broke" and resolutions
+
+**Gate to Loop Site C:** Must complete minimum 2 deploy + upgrade cycles successfully.
+
+---
+
+### Loop Site B: test_project v2 (HARNESS ONLY — NOT A REAL CONSUMER)
+
+**Purpose:** Fast validation of integration wiring in CI/development.
+
+**Explicitly NOT:**
+- A real site
+- A rollback reference
+- A consumer for practice purposes
+
+**Why Separate:** Keeps test harness distinct from real consumer validation.
+
+**Usage:**
+- CI integration tests
+- Local development
+- Quick validation of new blocks/pages
+- Never deployed as a real site
+
+---
+
+### Loop Site C: LINTEL (LAUNCH LAST)
+
+**Purpose:** Internal showcase site, built after pipeline is proven boring.
+
+**Why Last:**
+- Benefits from hardened theming/blog/forms patterns learned from Sage & Stone
+- No false v1/v2 migration narrative
+- Higher stakes (showcase vs internal client) means higher quality bar
+
+**Prerequisites:**
+- [ ] Sage & Stone completed minimum 2 successful upgrade cycles
+- [ ] Theme system validated as stable
+- [ ] Blog system validated as stable
+- [ ] Dynamic Forms validated in production
+- [ ] Performance targets consistently met
+- [ ] Deploy/upgrade process is boring (not stressful)
+
+**Gate:** LINTEL does not launch until operational confidence is high.
+
+---
+
+### 4.3 Version Naming Clarification
+
+**Design/Wireframe Iterations:**
+- Use "wireframe v1", "wireframe v2", "design iteration 3"
+- These are design artifacts, not released sites
+
+**Released Site Versions:**
+- Reserve "v1", "v2" for actual production launches
+- Example: "LINTEL v1" only applies after LINTEL is launched
+- Before launch, refer to "LINTEL project" or "LINTEL build"
+
+**Rationale:** Prevents "wireframe v2" from becoming "production v2" by linguistic drift.
+
+---
+
+### 4.4 Environment & Domain Conventions
+
+**Purpose:** Lock in shared mental model for deployment environments.
+
+**Convention Tiers:**
+
+| Environment | Domain Pattern | Purpose | Security |
+|-------------|----------------|---------|----------|
+| **Company/Public Site** | `linteldigital.com` | LINTEL Digital's marketing site | Public |
+| **Client Preview/Staging** | `clientname.lintel.site` | Auth-protected client previews | Auth + noindex |
+| **Internal Dev/Experiments** | `*.lintel.live` | Development and testing | Never client-facing |
+| **Production Client Sites** | Client-owned domains | Final production sites | Client-controlled |
+
+**Key Properties:**
+
+**Client Preview (`*.lintel.site`):**
+- HTTP Basic Auth protected
+- `<meta name="robots" content="noindex, nofollow">`
+- Disposable (can be torn down and rebuilt)
+- Used for client review and approval
+- May share infrastructure with other preview sites
+- **Wagtail admin must not be publicly exposed without protection** (basic auth, IP allowlist, VPN, or equivalent)
+
+**Internal Dev (`*.lintel.live`):**
+- Developer access only
+- Never shown to clients
+- Used for experimental features, testing, CI/CD
+- Can be unstable
+
+**Note:** These conventions support the SUM platform workflow but are **not hard platform requirements**. They represent LINTEL Digital's operational choices as the platform operator.
+
+---
+
+### 4.5 Demo Site Scope Clarification
+
+**Important Boundary:**
+
+A **"live demo site"** where prospects can log into Wagtail, edit content, with periodic resets is planned.
+
+**However:**
+- This is **LINTEL Digital Ops / Sales tooling**
+- It is **out of scope** for the SUM platform Post-MVP roadmap
+- SUM will enable it (as it enables any site), but does not explicitly deliver it as a platform milestone
+
+**Why This Matters:**
+
+Agency sales tooling should not leak into platform scope. SUM's job is to provide the capabilities; LINTEL Digital's job is to use those capabilities for sales, marketing, and client delivery.
+
+**Platform enablement ≠ Platform deliverable**
+
+---
+
+## 5. Post-MVP Milestones Overview
 
 ### Milestone 6 — Themes & Delivery Pipeline
 
@@ -105,11 +289,12 @@ Post-MVP work must **preserve this stability** while allowing:
 
 **Core Deliverables:**
 * Theme system v1 (Tailwind-first, init-time selection)
-* Theme A (reference theme)
-* Blog v1 (first vertical slice feature)
+* Theme A (reference theme, powers Sage & Stone)
+* Blog v1 (first vertical slice feature, satisfies Sage & Stone UI contract)
+* Dynamic Forms v1 (rapid iteration, multi-placement)
 * Caddy deployment golden-path
 * Staging + production workflow
-* LINTEL-v2 site deployed "for real"
+* **Sage & Stone deployed "for real"** (first consumer loop)
 
 **Version:** `sum_core@0.6.x`
 
@@ -120,31 +305,30 @@ Post-MVP work must **preserve this stability** while allowing:
 **Goal:** Build confidence through repetition and controlled feature expansion.
 
 **Core Deliverables:**
-* Dynamic Forms v1 (backwards compatible with lead capture)
 * Theme B + Theme C (prove multi-theme architecture)
-* Core upgrade propagation across multiple live sites (minimum 2 sites, 2 upgrades each)
+* Core upgrade propagation across Sage & Stone (minimum 2 upgrades)
 * Lead Management v1 (pipeline, status, notes) — later in milestone
+* **LINTEL project initiated** (if Sage & Stone proven)
 
 **Version:** `sum_core@0.7.x`
 
 ---
 
-### Milestone 8 — AI-Assisted Audit Layer (Optional)
+### Milestone 8 — LINTEL Launch & AI Audit (Optional)
 
-**Goal:** Add AI as a correctness and completeness assistant, not a CMS replacement.
+**Goal:** Launch showcase site and optionally add AI audit layer.
 
-**Scope (if pursued):**
-* Read-only introspection API
-* Custom GPT auditor using OpenAPI actions
-* Phase 3 (draft writes) explicitly deferred beyond client-ready
+**Core Deliverables:**
+* LINTEL launched to production (after proven patterns)
+* AI-Assisted Audit Layer (optional) - read-only introspection
 
 **Version:** `sum_core@0.8.x` (optional)
 
 ---
 
-## 4. Architecture & Transition Strategy
+## 6. Architecture & Transition Strategy
 
-### 4.1 CSS Transition Strategy
+### 6.1 CSS Transition Strategy
 
 **Current State (M5):**
 - Token-based CSS system in `sum_core/static/sum_core/css/tokens.css`
@@ -161,11 +345,11 @@ Post-MVP work must **preserve this stability** while allowing:
 ✓ M5 stack (token CSS) is legacy + stable + FROZEN
 ✓ New Tailwind themes are greenfield only (Theme A+)
 ✓ No retrofitting existing M5 templates into Tailwind during M6
-✓ M5 sites remain on 0.5.x; new sites use 0.6.x with themes
+✓ No M5 sites exist yet; new sites in M6+ use themes
 ✓ Rollback plan: if Tailwind fails perf/a11y gates, Theme A is dropped or reworked without touching M5 CSS
 ```
 
-**Why this matters:** Guarantees M5 remains shippable while you experiment with theme infrastructure.
+**Why this matters:** Guarantees M5 remains shippable while experimenting with theme infrastructure.
 
 **Performance Gate:** Tailwind-based Theme A must meet same Lighthouse targets as M5:
 - Performance: ≥90
@@ -175,7 +359,7 @@ Post-MVP work must **preserve this stability** while allowing:
 
 ---
 
-### 4.2 Theme vs Branding Contract
+### 6.2 Theme vs Branding Contract
 
 **Problem Solved:** Prevent collision between "theme selection at init" and "branding in SiteSettings".
 
@@ -217,104 +401,188 @@ sum_core/themes/theme_a/
 
 ---
 
-### 4.3 Version → Capability Mapping
+### 6.3 Codebase Structure Alignment
+
+**Critical Constraint:** All Post-MVP additions must fit existing repo layout from `CODEBASE-STRUCTURE.md`.
+
+**Where Features Live:**
+
+| Feature | Location | Notes |
+|---------|----------|-------|
+| **Blog Pages** | `sum_core/pages/` | BlogIndexPage, BlogPostPage models |
+| **Blog Templates** | `sum_core/templates/sum_core/pages/` | blog_index_page.html, blog_post_page.html |
+| **Dynamic Forms Model** | `sum_core/forms/` | FormDefinition as Wagtail Snippet |
+| **DynamicFormBlock** | `sum_core/blocks/` | StreamField block for form placement |
+| **Theme Templates** | `sum_core/themes/theme_a/templates/` | Theme-specific layouts |
+| **Theme Styles** | `sum_core/themes/theme_a/static/` | Tailwind builds |
+
+**Forbidden:**
+- ❌ New top-level packages like `sum_blog` or `sum_forms_dynamic`
+- ❌ Parallel directory structures that duplicate existing concerns
+- ❌ Feature-specific apps outside `sum_core/` structure
+
+**Rationale:** Prevents architectural drift and maintains coherent codebase evolution.
+
+---
+
+### 6.4 Version → Capability Mapping
 
 | Version | Capabilities | Status | Notes |
 |---------|-------------|--------|-------|
 | **0.5.x** | MVP platform factory (M0–M5) | FROZEN | Token CSS, static forms, core pages only |
-| **0.6.x** | Theme system + Blog v1 | Active | First deploy practice loops |
-| **0.7.x** | Dynamic Forms v1 | Planned | Backwards compatible with lead capture |
+| **0.6.x** | Theme system + Blog v1 + Dynamic Forms v1 | Active | Sage & Stone launch, first deploy practice loops |
+| **0.7.x** | Multi-theme validation + Lead Management v1 | Planned | LINTEL initiated if gates passed |
+| **0.8.x** | LINTEL launch + AI Audit (optional) | Future | After proven patterns |
 | **1.0.0** | Client-ready declaration | Future | After repeated deploy+upgrade cycles proven |
 
 **Core Stability Contract:**
 - `0.5.x` = frozen; only security/critical fixes
-- `0.6.x` = new features allowed (themes, blog)
-- `0.7.x` = new features allowed (forms)
+- `0.6.x` = new features allowed (themes, blog, dynamic forms)
+- `0.7.x` = feature refinement (multi-theme, lead management)
 - No feature backports to older lines unless explicitly approved (rare)
 - Anything experimental ships behind a flag or in a new minor line, not in patch releases
 
 ---
 
-### 4.4 LINTEL Strategy
+## 7. Feature Roadmap (Post-MVP)
 
-**Purpose:** Use LINTEL as real-world validation without destabilizing reference implementation.
-
-**Approach:**
-
-```
-LINTEL-v1 (exists now)
-├─ Stays on M5 stack (sum_core@0.5.x)
-├─ Token CSS, existing branding, static forms
-├─ Purpose: rollback reference + "M5 is stable" proof
-└─ Not migrated until LINTEL-v2 proven
-
-LINTEL-v2 (new in M6)
-├─ Scaffolded via CLI using M6+ stack
-├─ Theme A + Tailwind + Blog v1
-├─ sum_core@0.6.x
-├─ Purpose: dogfood new stack end-to-end
-└─ Must complete 2+ upgrade cycles before LINTEL-v1 migration considered
-```
-
-**Decision Gate:** LINTEL-v1 is not migrated to new stack until:
-- [ ] LINTEL-v2 has completed at least 2 successful upgrade cycles
-- [ ] Theme system proven stable
-- [ ] Performance targets met or exceeded
-- [ ] No regressions in lead capture or SEO
-
-This preserves "themes at init" principle while enabling real rehearsal.
-
----
-
-## 5. Feature Roadmap (Post-MVP)
-
-### 5.1 Blog v1 (First Vertical Slice)
+### 7.1 Blog v1 (First Vertical Slice)
 
 **Rationale:** Chosen first because it exercises the full templating + theme system with minimal business-critical risk, allowing the theme architecture to stabilize before touching lead capture.
 
-**Scope:**
+**UI Contract (Sage & Stone HTML Artifacts):**
+
+Must support these UI elements from compiled HTML design:
+
+**Listing UI (blog_list.html):**
+- [ ] Category label/badge on cards (single-level taxonomy)
+- [ ] Published date displayed on cards
+- [ ] Reading time displayed on cards
+- [ ] Title, excerpt/summary on cards
+- [ ] Featured image on cards
+- [ ] Pagination controls
+
+**Article UI (blog_article.html):**
+- [ ] Featured image/hero section
+- [ ] Title rendering
+- [ ] Published date display
+- [ ] Category label display
+- [ ] Reading time display
+- [ ] Body content (StreamField)
+- [ ] CTA placements (using DynamicFormBlock — see Section 7.1.1)
+
+**Data Model:**
 - `BlogIndexPage` (listing with pagination)
 - `BlogPostPage` (individual posts)
-- Category/tagging (minimal, single taxonomy)
-- SEO metadata (reuses existing `sum_core/seo/`)
-- RSS feed (optional)
-- Sitemap integration
+- **Category:** ForeignKey to Category snippet (single-level only; no parent/child hierarchy)
+- Published date (DateTimeField)
+- Reading time (IntegerField, calculated or stored)
+- Featured image (ImageField)
+- Excerpt/summary (TextField, optional, fallback to first N chars of body)
+- Body (StreamField, reuses existing blocks)
 
-**Technical Notes:**
-- Uses existing SEO system from M4 (no new SEO infrastructure)
-- Templates in theme layer (Theme A responsibility)
-- Blog pages reuse StreamField blocks from M2
-- No editorial workflow automation in v1
-- No AI content generation in v1
+**Technical Implementation:**
+- Pages live in `sum_core/pages/blog_index_page.py`, `sum_core/pages/blog_post_page.py`
+- Templates in `sum_core/templates/sum_core/pages/`
+- Reading time can be calculated on save or computed property
+- Reuses existing SEO system from M4 (no new SEO infrastructure)
+- RSS feed via Wagtail contrib (optional)
+- Sitemap integration automatic via existing system
 
-**Non-Goals:**
+**Non-Goals for v1:**
 - Multi-author support
 - Comment system
 - Editorial calendar
 - Content versioning beyond Wagtail default
+- Hierarchical categories
+- Tag system beyond single category
 
 **Definition of Done:**
 - [ ] Blog pages creatable in Wagtail admin
 - [ ] Listing pagination works
-- [ ] Category filtering works
-- [ ] RSS feed validates
-- [ ] SEO tags render correctly
+- [ ] Category filtering works (if implemented)
+- [ ] Featured images display correctly
+- [ ] Reading time displays correctly
+- [ ] SEO tags render correctly (reuses existing system)
 - [ ] Lighthouse targets met (≥90 across all metrics)
-- [ ] Deployed to LINTEL-v2 and used for real blog posts
+- [ ] Deployed to Sage & Stone and used for real blog posts
+- [ ] Templates match Sage & Stone UI contract
 
 ---
 
-### 5.2 Dynamic Forms v1
+#### 7.1.1 Blog CTAs Must Use Dynamic Forms
 
-**Rationale:** Removes reliance on static forms, critical for real client usage where form requirements vary.
+**Critical Constraint:** Blog pages embed CTAs (newsletter/waitlist, callback, quote requests) using **DynamicFormBlock selecting FormDefinition**, not blog-specific form code.
+
+**Rationale:**
+- Avoids fragmentation
+- Keeps lead capture consistent across platform
+- One forms system serves all placements (homepage, blog, service pages, etc.)
+
+**Implementation:**
+- BlogPostPage.body includes DynamicFormBlock as one of its available blocks
+- DynamicFormBlock selects from available FormDefinitions (site-scoped)
+- No special "blog form" model or handling
+- All blog form submissions follow same Lead capture pipeline
+
+---
+
+### 7.2 Dynamic Forms v1 (Enhanced Scope)
+
+**Rationale:** Removes reliance on static forms; enables rapid iteration across multiple form placements per site. Critical for real client usage where form requirements vary and evolve.
+
+**Driver:** Rapid iteration — add/remove/reorder questions and sections based on feedback without code changes.
+
+**Use Cases (Multiple Placements Per Site):**
+- Homepage CTA form
+- Newsletter/waitlist signup
+- Callback request
+- Quote request
+- Service-specific inquiry forms
+- Blog newsletter signup
+- Footer contact form
 
 **Scope:**
-- Form builder UI (minimal, Wagtail admin)
-- Field types: text, email, phone, textarea, select, checkbox, file upload
-- Form submissions storage
+
+**FormDefinition Model** (Wagtail Snippet, site-scoped):
+- Name (for admin reference)
+- Form fields (StreamField of field blocks)
+- Success message
+- Email notification settings
+- Webhook settings
+- Active/inactive toggle
+- Created/modified timestamps
+
+**Field Types (StreamField Blocks):**
+- Text input (single line)
+- Email input (with validation)
+- Phone input (with optional formatting)
+- Textarea (multi-line)
+- Select/dropdown
+- Checkbox (single)
+- Checkbox group (multiple)
+- Radio buttons
+- File upload (basic, with size limits)
+- Section heading (for organization)
+- Help text block (for instructions)
+
+**First-Class v1 Capabilities (Elevated):**
+- [ ] **Clone/Duplicate FormDefinition** — Copy existing form as template for new one
+- [ ] **Active toggle** — Deactivate forms without deleting (audit trail)
+- [ ] **Multiple forms on same page** — No technical limitation on placement count
+- [ ] **Form versioning** — Keep old definitions for audit/rollback (via active toggle + timestamps)
+
+**Rendering:**
+- Runtime Django Form generation (always current; no codegen)
+- Forms rendered via DynamicFormBlock in page StreamFields
+- DynamicFormBlock selects FormDefinition + local presentation config (inline, modal, sidebar, etc.)
+
+**Submission Handling:**
+- Writes to same Lead model (no Lead schema change in v1)
+- Attribution captured (UTM, referrer, landing page)
 - Email notifications (to admin + optional auto-reply)
-- Admin review interface
-- Export to CSV
+- Webhook firing (Zapier, HubSpot)
+- Admin review interface (reuses existing Lead admin)
 
 **Backwards Compatibility Contract:**
 ```
@@ -322,34 +590,42 @@ This preserves "themes at init" principle while enabling real rehearsal.
 ✓ Dynamic Forms v1 writes to the same Lead model (no Lead schema change in v1)
 ✓ Form builder creates new form types only
 ✓ Migration of existing forms is out of scope for v1
+✓ Static forms and dynamic forms coexist peacefully
 ```
 
 **Technical Notes:**
-- Uses `wagtail.contrib.forms` as foundation
-- Extends Lead model with polymorphic pattern if needed (investigate)
+- FormDefinition as Wagtail Snippet (site-scoped, reusable)
+- Lives in `sum_core/forms/models.py` (alongside existing form handling)
+- DynamicFormBlock lives in `sum_core/blocks/forms.py`
+- Uses `wagtail.contrib.forms` patterns as foundation
 - Email sending via existing `sum_core/integrations/email.py`
-- Webhook integration preserved (Zapier, HubSpot)
+- Webhook integration preserved (existing infrastructure)
 
-**Non-Goals:**
+**Non-Goals for v1:**
 - Multi-step forms
-- Conditional logic
+- Conditional logic (show field X if field Y = value)
 - Payment integration
-- CAPTCHA (consider for v1.1)
+- Advanced CAPTCHA (consider for v1.1, basic honeypot/rate limit sufficient)
 - A/B testing
+- Heavy UI form builder (StreamField provides editor-friendly UX)
 
 **Definition of Done:**
-- [ ] Form builder accessible in Wagtail admin
-- [ ] All field types work
+- [ ] FormDefinition creatable as Wagtail Snippet
+- [ ] All field types work and validate
+- [ ] DynamicFormBlock selectable in page StreamFields
 - [ ] Submissions save to Lead model
 - [ ] Email notifications send
 - [ ] Webhooks fire correctly
-- [ ] CSV export works
+- [ ] Clone/duplicate form works
+- [ ] Active toggle works (forms can be deactivated)
+- [ ] Multiple forms on same page tested
 - [ ] Backwards compatible with existing static forms
-- [ ] Deployed to at least 2 client sites
+- [ ] Deployed to Sage & Stone with at least 3 distinct form placements
+- [ ] Used in blog (via DynamicFormBlock)
 
 ---
 
-### 5.3 Lead Management v1 (Deferred to Late M7)
+### 7.3 Lead Management v1 (Deferred to Late M7)
 
 **Rationale:** Higher complexity, more surface area. Implement only after deploy/upgrade confidence is high.
 
@@ -367,43 +643,42 @@ This preserves "themes at init" principle while enabling real rehearsal.
 - Calendar integration
 - Deal tracking
 
-**Previous Naming Confusion:** Was called "CRM v2" in v1 draft.
-
 **Corrected Roadmap Labels:**
 ```
-✓ Lead Capture (MVP) = M3 deliverable, working now
-✓ Lead Capture Enhancement = Dynamic Forms v1 (M7)
+✓ Lead Capture (MVP) = M3 deliverable, working now (static forms)
+✓ Lead Capture Enhancement = Dynamic Forms v1 (M6)
 ✓ Lead Management v1 = Status pipeline, notes (late M7)
 ✓ Lead Management v2 = Future, TBD
 ```
 
 ---
 
-## 6. Deployment & Upgrade Practice
+## 8. Deployment & Upgrade Practice
 
-### 6.1 Practice Requirements
+### 8.1 Practice Requirements
 
 Before onboarding external **paying clients**:
 
 **Minimum Practice Requirements:**
-- [ ] At least **two live sites** running (LINTEL-v2 + one other)
-- [ ] Each site undergoes **minimum 2 core upgrades** (0.6.0 → 0.6.1 → 0.6.2, etc.)
+- [ ] Sage & Stone site running (Loop Site A)
+- [ ] Sage & Stone undergoes **minimum 2 core upgrades** (0.6.0 → 0.6.1 → 0.6.2, etc.)
 - [ ] All migrations apply cleanly (zero data loss)
-- [ ] Rollback procedure rehearsed at least once per site
+- [ ] Rollback procedure rehearsed at least once on Sage & Stone
 - [ ] "What broke last time" notes maintained and reviewed
 - [ ] Runbooks proven and updated after each cycle
+- [ ] At least **one additional site** launched (LINTEL or another client) before external paying clients
 
 **Each Deploy/Upgrade Cycle Must Include:**
 1. Pre-deployment checklist completion
 2. Database backup
 3. Deployment execution
-4. Smoke tests (health, homepage, admin login)
+4. Smoke tests (health, homepage, admin login, form submission)
 5. Verification checklist
 6. Post-deployment notes (what went well, what didn't)
 
 ---
 
-### 6.2 Infrastructure Updates
+### 8.2 Infrastructure Updates
 
 **Web Server:** Caddy (locked decision)
 - Replaces Nginx from SSOT
@@ -426,9 +701,13 @@ Gunicorn (Django + Wagtail app)
   └── Celery workers (email, webhooks, retention)
 ```
 
+**Database Policy:** LINTEL Digital Ops uses **one database per site by default** for isolation, but SUM as a platform supports either **per-site database** or **shared database** deployments. The platform is agnostic; database strategy is an operator choice.
+
+**Infrastructure Location:** `infrastructure/caddy/`, `infrastructure/systemd/`, `infrastructure/scripts/`
+
 ---
 
-### 6.3 Required Operational Artifacts
+### 8.3 Required Operational Artifacts
 
 **Before M6 Complete:**
 
@@ -455,7 +734,7 @@ Gunicorn (Django + Wagtail app)
 
 ---
 
-### 6.4 Multi-Version Testing Policy
+### 8.4 Multi-Version Testing Policy
 
 **Current Line (e.g., 0.6.x during M6):**
 - Full test suite (unit + integration)
@@ -465,9 +744,9 @@ Gunicorn (Django + Wagtail app)
 **Older Lines (e.g., 0.5.x after M6 ships):**
 - Weekly smoke checks:
   - Health endpoint returns 200
-  - Homepage renders without errors
+  - Test project homepage renders without errors
   - Admin login works
-  - Lead submission works
+  - Lead submission works (if applicable)
 - Security patches applied within 7 days
 - No new feature work
 - Release-check gate mandatory for any patch
@@ -476,9 +755,45 @@ Gunicorn (Django + Wagtail app)
 
 ---
 
-## 7. AI-Assisted Audit Layer (Optional — M8)
+## 9. Workflow: Static HTML Wireframes are Design Artifacts
 
-### 7.1 Purpose
+**Critical Clarification:** Static HTML wireframes (produced via builder/Jinja/any tool) are **design references**, not conversion targets.
+
+**Workflow:**
+
+```
+1. Design Phase
+   ├─ Create static HTML wireframes (Jinja, builder, hand-coded, etc.)
+   ├─ These are design artifacts showing layout, content, interactions
+   └─ Purpose: visual reference, client approval, content structure
+
+2. Wagtailification Phase
+   ├─ Implement directly in Django/Wagtail templates
+   ├─ Reference HTML design artifacts (like referencing Figma)
+   ├─ No requirement to "convert Jinja → Django"
+   └─ Build templates against the design reference
+```
+
+**No Conversion Requirement:**
+- Wireframes may use Jinja, static site generators, page builders, or any prototyping tool
+- Wagtail templates are **direct implementation** against the HTML reference
+- Conversions are optional convenience, not a required plan step
+
+**Rationale:**
+- Keeps prototyping lightweight
+- Avoids costly translation work that doesn't create product value
+- Same approach as designing in Figma then implementing in React
+
+**Example (Sage & Stone):**
+- `blog_list.html` and `blog_article.html` are design artifacts (compiled HTML)
+- Wagtail templates (`blog_index_page.html`, `blog_post_page.html`) implement the design
+- No Jinja → Django conversion; just reference the HTML for layout/structure
+
+---
+
+## 10. AI-Assisted Audit Layer (Optional — M8)
+
+### 10.1 Purpose
 
 Provide a **pre-publish and pre-deploy safety net** to answer:
 
@@ -492,7 +807,7 @@ Provide a **pre-publish and pre-deploy safety net** to answer:
 
 ---
 
-### 7.2 Minimal Viable Scope (If Pursued)
+### 10.2 Minimal Viable Scope (If Pursued)
 
 **Phase 1: Read-Only Introspection API**
 
@@ -573,14 +888,17 @@ If pursued (future):
 
 ---
 
-## 8. Risk Management
+## 11. Risk Management
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
 | **Platform drift** | Medium | High | Core frozen at 0.5.x, release checklist enforced |
 | **Theme instability** | Medium | Medium | One reference theme first, others derive; performance gates |
-| **M5 destabilization** | Low | Critical | No retrofitting; M5 frozen; LINTEL-v1 stays on M5 |
+| **M5 destabilization** | Low | Critical | No retrofitting; M5 frozen; no live M5 sites to break |
 | **Tailwind bundle bloat** | Medium | Medium | PurgeCSS mandatory, bundle size budget, performance gates |
+| **Sage & Stone delays** | Medium | High | Start parallel work on test_project; LINTEL can absorb delays |
+| **Dynamic Forms scope creep** | Medium | Medium | Strict v1 scope; defer conditional logic, multi-step, A/B testing |
+| **Blog UI contract mismatch** | Low | Medium | Explicit checklist from HTML artifacts; validation before launch |
 | **AI overreach** | Low | Medium | Read-only first, explicit scopes, optional feature |
 | **Upgrade fear** | High | High | Repeated practice with live sites, runbooks, rollback rehearsals |
 | **Over-engineering** | Medium | Medium | Features added only after real usage, strict scope discipline |
@@ -589,12 +907,13 @@ If pursued (future):
 
 ---
 
-## 9. Definition of "Client-Ready"
+## 12. Definition of "Client-Ready"
 
 SUM Platform is considered **client-ready for external paying clients** when:
 
 **Technical Gates:**
-- [ ] 2+ sites deployed and upgraded successfully (minimum 2 upgrades per site)
+- [ ] Sage & Stone deployed and upgraded successfully (minimum 2 upgrades)
+- [ ] LINTEL deployed (or second client site, if LINTEL delayed)
 - [ ] Blog + Dynamic Forms proven in production
 - [ ] Themes system used by at least 2 sites
 - [ ] Performance targets met consistently (Lighthouse ≥90 across all metrics)
@@ -613,12 +932,12 @@ SUM Platform is considered **client-ready for external paying clients** when:
 - [ ] You have recent example of successful recovery from failure
 
 **Minimum Timeline:** 
-- No earlier than 8 weeks after M7 completion
+- No earlier than 8 weeks after M6 completion (Sage & Stone launch)
 - No exceptions for "special" clients
 
 ---
 
-## 10. Out of Scope (Explicit)
+## 13. Out of Scope (Explicit)
 
 These are **deliberately deferred** beyond client-ready declaration:
 
@@ -638,47 +957,91 @@ These are **deliberately deferred** beyond client-ready declaration:
 
 ---
 
-## 11. Open Questions / Decision Points
+## 14. Resolved Decisions & Remaining Questions
 
-### 🟡 Needs Decision Before M6 Start:
+### ✅ DECIDED (Locked for M6):
 
-1. **Tailwind PurgeCSS Strategy:**
-   - Which purge mode? (production only vs always)
-   - Which files to scan for class usage?
-   - Safelist patterns for dynamic classes?
+**1. Tailwind PurgeCSS Strategy**
 
-2. **Theme Distribution Method:**
-   - Themes as part of sum_core package? (current assumption)
-   - OR themes as separate packages (sum_theme_a, sum_theme_b)?
-   - Affects init command and versioning
+**Decision:**
+- Purge in **production builds only**
+- Scan all Django templates (including themes) and any JS that contains class strings
+- Use a **minimal safelist** only where dynamic class generation is unavoidable
 
-3. **Blog Category Depth:**
-   - Single-level categories only? (simpler)
-   - OR hierarchical categories? (more flexible)
-   - Impacts data model
-
-4. **Form File Upload Storage:**
-   - Where do uploaded files go?
-   - Size limits per file?
-   - Retention policy?
-
-### 🟢 Can Decide During Implementation:
-
-5. **Dynamic Forms Field Validation:**
-   - Use Wagtail's built-in validation?
-   - OR custom validation rules system?
-
-6. **AI Introspection API Authentication:**
-   - API keys stored where? (env vars? database?)
-   - Key rotation policy?
-
-7. **Lead Management Status Pipeline:**
-   - Fixed statuses or customizable per client?
-   - Status change notifications?
+**Rationale:** Keeps development experience fast while ensuring production bundle is optimized.
 
 ---
 
-## 12. Success Metrics (Post-MVP)
+**2. Theme Distribution Method**
+
+**Decision:**
+- Themes ship **inside `sum_core`** for versions 0.6.x–0.7.x
+- Location: `sum_core/themes/theme_a/`, `sum_core/themes/theme_b/`, etc.
+- Revisit separate theme packages only once multiple themes exist and real friction is felt
+
+**Rationale:** Simpler distribution and versioning; avoids premature abstraction.
+
+---
+
+**3. Blog Category Implementation**
+
+**Decision:**
+- Use a **single-level Category snippet** (FK to Category model)
+- No hierarchical categories in v1
+- Category model: name, slug, description (optional)
+
+**Rationale:** Flexible enough for real use; simple enough to ship quickly.
+
+---
+
+**4. Form File Upload Storage (Dynamic Forms v1)**
+
+**Decision:**
+- Store under `MEDIA_ROOT/form-uploads/`
+- Default **5MB per file limit**
+- Max **3 files per submission** (configurable)
+- Default **90-day retention**, configurable via settings
+- Admin warning text when viewing old submissions past retention period
+
+**Retention Enforcement (v1):** Retention is a **documented policy** in v1; automated cleanup (via Celery beat or cron) is explicitly **deferred** to post-v1. Manual cleanup can be performed via Django management command if needed.
+
+**Rationale:** Balances utility with storage management; clear expectations for users. Automated cleanup adds complexity; policy-first approach keeps v1 scope tight.
+
+---
+
+**5. Reading Time Calculation**
+
+**Decision:**
+- **Compute on save** and store as integer (minutes)
+- Recompute automatically when article body changes (via save signal)
+- Based on 200 words per minute (configurable via settings)
+
+**Rationale:** Fast rendering; negligible staleness risk; simple implementation.
+
+---
+
+### 🟢 CAN DECIDE DURING IMPLEMENTATION:
+
+**6. Dynamic Forms Field Validation**
+- Use Wagtail's built-in validation?
+- OR custom validation rules system?
+- **Decision:** Implementation-time based on Wagtail patterns discovered
+
+**7. AI Introspection API Authentication**
+- API keys stored where? (env vars? database?)
+- Key rotation policy?
+- **Decision:** Implementation-time based on security requirements
+
+**8. Lead Management Status Pipeline**
+- Fixed statuses or customizable per client?
+- Status change notifications?
+- **Decision:** Implementation-time based on real client needs
+
+**Rationale:** These are implementation details that don't block M6 start and benefit from seeing the code context.
+
+---
+
+## 15. Success Metrics (Post-MVP)
 
 | Metric | Target | Measurement |
 |--------|--------|-------------|
@@ -686,13 +1049,17 @@ These are **deliberately deferred** beyond client-ready declaration:
 | **Core upgrade time** | ≤1 hour | Full upgrade including testing |
 | **Theme performance** | ≥90 Lighthouse | All metrics, mobile |
 | **Rollback time** | ≤30 minutes | From detection to restored |
-| **Zero-downtime upgrades** | 100% | Via blue-green or similar |
+| **Upgrade experience (pre-1.0)** | Predictable and low-risk | Brief restarts acceptable (<30-60s); near-zero perceived downtime where feasible |
 | **Failed deployments** | <5% | Across all upgrade attempts |
 | **Client satisfaction** | ≥4.5/5 | Post-delivery survey (when applicable) |
+| **Forms per site** | 3-5 average | Multiple placements working |
+| **Blog adoption** | 100% | All sites use blog feature |
+
+**Note on Zero-Downtime:** True zero-downtime (blue/green deployments) is explicitly **deferred until post-1.0** unless a specific client requirement forces it. Pre-1.0 focus is on predictable, low-risk upgrades with clear rollback/runbook steps.
 
 ---
 
-## 13. Final Principle
+## 16. Final Principle
 
 > **Confidence comes from repetition, not architecture.**
 
@@ -709,26 +1076,36 @@ This plan optimizes for:
 
 ## Appendix A: Compatibility Matrix
 
-| Feature | 0.5.x (M5) | 0.6.x (M6) | 0.7.x (M7) |
-|---------|------------|------------|------------|
-| Token CSS | ✅ | ❌ | ❌ |
-| Tailwind Themes | ❌ | ✅ | ✅ |
-| Theme System | ❌ | ✅ | ✅ |
-| Static Forms | ✅ | ✅ | ✅ |
-| Dynamic Forms | ❌ | ❌ | ✅ |
-| Blog | ❌ | ✅ | ✅ |
-| Lead Management Pipeline | ❌ | ❌ | ✅ (late) |
-| Core Pages | ✅ | ✅ | ✅ |
-| StreamField Blocks | ✅ | ✅ | ✅ |
-| Lead Capture | ✅ | ✅ | ✅ |
-| SEO System | ✅ | ✅ | ✅ |
-| Analytics | ✅ | ✅ | ✅ |
+| Feature | 0.5.x (M5) | 0.6.x (M6) | 0.7.x (M7) | 0.8.x (M8) |
+|---------|------------|------------|------------|------------|
+| Token CSS | ✅ Active | 🟡 Legacy | 🟡 Legacy | 🟡 Legacy |
+| Tailwind Themes | ❌ | ✅ | ✅ | ✅ |
+| Theme System | ❌ | ✅ | ✅ | ✅ |
+| Static Forms | ✅ | ✅ | ✅ | ✅ |
+| Dynamic Forms | ❌ | ✅ | ✅ | ✅ |
+| Blog | ❌ | ✅ | ✅ | ✅ |
+| Lead Management Pipeline | ❌ | ❌ | ✅ | ✅ |
+| AI Audit API | ❌ | ❌ | ❌ | ✅ (opt) |
+| Core Pages | ✅ | ✅ | ✅ | ✅ |
+| StreamField Blocks | ✅ | ✅ | ✅ | ✅ |
+| Lead Capture | ✅ | ✅ | ✅ | ✅ |
+| SEO System | ✅ | ✅ | ✅ | ✅ |
+| Analytics | ✅ | ✅ | ✅ | ✅ |
 
-**Key:**
-- ✅ = Available and supported
+**Legend:**
+- ✅ = Available and actively used
+- 🟡 = Available but legacy (not used for new themes; kept for compatibility)
 - ❌ = Not available
 - 🚧 = In development
-- ⚠️ = Deprecated
+- ⚠️ = Deprecated (will be removed)
+- (opt) = Optional feature
+
+**Token CSS Status:**
+- **0.5.x:** Active and used by all templates
+- **0.6.x+:** Legacy/available but not used by Tailwind themes
+- Tailwind theme output is canonical for Theme A+
+- Token CSS remains in codebase for backward compatibility
+- No deletion planned; simply not used for new work
 
 ---
 
@@ -764,7 +1141,7 @@ This plan optimizes for:
 - [ ] Health endpoint returns 200: `curl https://[domain]/health/`
 - [ ] Homepage loads without errors
 - [ ] Admin login works
-- [ ] Lead form submission works
+- [ ] Form submission works (test one form)
 - [ ] Check Sentry for new errors
 
 ## Post-Deployment
@@ -818,6 +1195,7 @@ If deployment fails:
 - [ ] Admin accessible
 - [ ] Key pages render correctly
 - [ ] Forms still submit
+- [ ] Blog pages load (if applicable)
 - [ ] No console errors
 
 ## Post-Upgrade
@@ -909,21 +1287,64 @@ If upgrade fails:
 
 ---
 
-## Appendix C: Frozen Components (Do Not Touch During M6-M7)
+## Appendix C: Stability Guarantees & Additive Evolution
 
-During M6-M7 feature development, the following remain **untouched** unless security-critical:
+**The Stability Contract:**
 
-### Frozen in sum_core@0.5.x:
-- [ ] `sum_core/leads/` — Lead model, forms, admin
-- [ ] `sum_core/pages/` — Page type models (HomePage, ServicePage, etc.)
-- [ ] `sum_core/blocks/` — All StreamField blocks
-- [ ] `sum_core/seo/` — SEO mixins and meta tag generation
-- [ ] `sum_core/analytics/` — GA4/GTM integration
-- [ ] Token CSS system — Legacy, stable, do not modify
-- [ ] Base templates (unless new theme system requires hooks)
+### The 0.5.x Line is Frozen:
+- The **`sum_core@0.5.x` release line** is in maintenance mode
+- Only security and critical bug fixes
+- No new features
+- No breaking changes
+- No refactors
 
-### Rationale: 
-Moving targets kill confidence. Features ship in new versions; core stays stable.
+**Why:** Sites pinned to 0.5.x must remain stable indefinitely.
+
+---
+
+### The 0.6.x+ Lines Support Additive Evolution:
+
+The **0.6.x and later** release lines **may add new modules** under existing directories as long as:
+
+✅ **Existing behavior does not change retroactively**
+✅ **New code is additive, not mutative**
+✅ **No breaking changes to existing APIs**
+
+**Examples of Allowed Additive Work in 0.6.x+:**
+
+| Directory | Frozen (0.5.x) | Additive (0.6.x+) |
+|-----------|----------------|-------------------|
+| `sum_core/pages/` | StandardPage, ServicePage (untouched) | BlogIndexPage, BlogPostPage (new models) |
+| `sum_core/blocks/` | Existing blocks (untouched) | DynamicFormBlock (new block) |
+| `sum_core/forms/` | Existing form handling (untouched) | FormDefinition model (new feature) |
+| `sum_core/themes/` | N/A | New directory (additive) |
+
+**Examples of Forbidden Work:**
+
+❌ Changing StandardPage field names  
+❌ Modifying existing block schemas  
+❌ Removing or renaming existing methods  
+❌ Changing base template structure that breaks client overrides
+
+---
+
+### What This Means in Practice:
+
+**For M6-M7 Development:**
+- You **CAN** add new page types to `sum_core/pages/`
+- You **CAN** add new blocks to `sum_core/blocks/`
+- You **CAN** add new models to `sum_core/forms/`
+- You **CANNOT** modify existing 0.5.x page types, blocks, or models
+- You **CANNOT** delete or rename anything from 0.5.x
+
+**Rationale:**
+
+This approach provides:
+- **Stability** for sites on 0.5.x (they never break)
+- **Evolution** for new features in 0.6.x+ (additive growth)
+- **Confidence** that upgrades are safe (backward compatible)
+
+**Moving targets kill confidence. Additive evolution builds it.**
 
 ---
 
@@ -936,22 +1357,81 @@ Moving targets kill confidence. Features ship in new versions; core stays stable
 0.5.1  # Security fix
 0.5.2  # Bug fix (Lead email notification)
 
-0.6.0  # Theme system + Blog (M6)
-0.6.1  # Theme A refinements
-0.6.2  # Blog pagination fix
+0.6.0  # Theme system + Blog + Dynamic Forms (M6)
+0.6.1  # Theme A refinements + blog UI fixes
+0.6.2  # Dynamic Forms clone feature + form validation improvements
 
-0.7.0  # Dynamic Forms (M7)
-0.7.1  # Form validation improvements
+0.7.0  # Multi-theme validation + Lead Management v1 (M7)
+0.7.1  # Lead Management improvements
 0.7.2  # Security update
+
+0.8.0  # LINTEL launch + AI Audit (optional) (M8)
 
 1.0.0  # Client-ready declaration
 ```
 
 **Tagging Rules:**
-- Every release gets a git tag: `git tag -a v0.6.0 -m "Release 0.6.0: Theme system + Blog"`
+- Every release gets a git tag: `git tag -a v0.6.0 -m "Release 0.6.0: Theme system + Blog + Dynamic Forms"`
 - Tag message includes changelog summary
 - Tags pushed to remote: `git push origin v0.6.0`
 - Releases published on GitHub with full changelog
+
+---
+
+## Appendix E: Loop Sites Progression Checklist
+
+### Sage & Stone (Loop Site A) — First Consumer
+
+**Phase 1: Initial Launch**
+- [ ] Project scaffolded via `sum init sage-and-stone`
+- [ ] Theme A applied
+- [ ] Blog pages created (minimum 3 posts)
+- [ ] Dynamic Forms in 3+ placements (homepage, blog, footer)
+- [ ] Content migrated from wireframes
+- [ ] SEO configured
+- [ ] Analytics wired
+- [ ] Staging deployed
+- [ ] Production deployed
+
+**Phase 2: First Upgrade Cycle**
+- [ ] Pre-upgrade backup taken
+- [ ] Upgrade 0.6.0 → 0.6.1 completed
+- [ ] Verification checklist passed
+- [ ] "What broke" documented
+- [ ] Rollback rehearsed (optional, but recommended once)
+
+**Phase 3: Second Upgrade Cycle**
+- [ ] Pre-upgrade backup taken
+- [ ] Upgrade 0.6.1 → 0.6.2 completed
+- [ ] Verification checklist passed
+- [ ] "What broke" documented
+- [ ] Lessons from first upgrade applied
+
+**Gate Passed:** After Phase 3, Sage & Stone is validated consumer. LINTEL can begin.
+
+---
+
+### LINTEL (Loop Site C) — Launch Last
+
+**Prerequisites (Must All Be True):**
+- [ ] Sage & Stone completed Phase 3
+- [ ] Theme system validated as stable
+- [ ] Blog system validated as stable
+- [ ] Dynamic Forms validated in production
+- [ ] Performance targets consistently met on Sage & Stone
+- [ ] Deploy/upgrade process is boring (not stressful)
+- [ ] Runbooks proven and updated
+
+**Launch Phases:**
+- [ ] Project scaffolded via `sum init lintel`
+- [ ] Theme selection (A, B, or C based on design)
+- [ ] Content creation
+- [ ] Staging deployment
+- [ ] Production deployment
+- [ ] First upgrade cycle
+- [ ] Second upgrade cycle
+
+**Result:** LINTEL benefits from proven patterns, launches with confidence.
 
 ---
 
@@ -961,31 +1441,86 @@ Moving targets kill confidence. Features ship in new versions; core stays stable
 |---------|------|---------|
 | 1.0 | [Original date] | Initial post-MVP expansion draft |
 | 2.0 | December 16, 2025 | Comprehensive revision with patch corrections |
+| 3.0 | December 17, 2025 | Critical corrections: LINTEL launch sequence, Loop Sites model, Dynamic Forms scope, Blog UI contract, workflow clarification, repo structure alignment |
+| **4.0** | **December 17, 2025** | **Final alignment: Naming clarification, environment conventions, resolved decisions, fixed contradictions** |
+| **4.1** | **December 17, 2025** | **Precision tightening: Fixed contradictions, clarified aspirations, locked decision consistency** |
 
-**Changelog (v2.0):**
-- Added CSS transition strategy (prevents M5 destabilization)
-- Clarified theme/branding architecture contract
-- Added LINTEL migration strategy
-- Defined feature freeze policy and version mapping
-- Added multi-version testing policy
-- Updated infrastructure (Caddy vs Nginx)
-- Clarified CRM/Lead Management naming
-- Added comprehensive runbook templates
-- Tightened AI layer scope (truly optional)
-- Added compatibility matrix
-- Added frozen components list
-- Added open questions section
-- Added detailed operational requirements
+**Changelog (v4.1 — Final Pre-M6):**
+- **P0.1:** Fixed blog category inconsistency — removed CharField option, locked to FK to Category snippet (Section 7.1)
+- **P0.2:** Clarified zero-downtime upgrades — changed from hard commitment to realistic pre-1.0 standard; brief restarts acceptable, blue/green deferred to post-1.0 (Section 15)
+- **P1.1:** Fixed cross-reference typo — Blog CTA section reference corrected from 6.1.1 to 7.1.1 (Section 7.1)
+- **P1.2:** Clarified per-client database as operator default vs platform requirement (Section 8.2)
+- **P1.3:** Defined file retention enforcement mechanism — policy-only in v1, automated cleanup deferred (Section 14, Q4)
+- **P1.4:** Added staging admin protection baseline — admin must not be publicly exposed on preview sites (Section 4.4)
+- **P1.5:** Clarified Sage & Stone dual role — consumer validation vs sales demo distinction preserved (Section 4.2)
+
+**Key Improvements:**
+- Eliminated all "either/or" decisions for locked questions (Q1-Q5 and blog category)
+- Realistic upgrade expectations set (no hidden blue/green infrastructure mandate)
+- Prevents agent invention on ambiguous points (retention mechanism, DB policy, admin security)
+- All cross-references accurate
+- Sage & Stone validation purpose preserved
+
+**Status:** ✅ **Final pre-M6** — No remaining contradictions or decision ambiguity
 
 ---
 
-**Review Status:** ✅ Ready for implementation planning
+**Changelog (v4.0):**
+- **Added Section 0:** Naming & Roles Clarification (SUM vs LINTEL Digital distinction)
+- **Added Section 4.4:** Environment & Domain Conventions (linteldigital.com, *.lintel.site, *.lintel.live)
+- **Added Section 4.5:** Demo Site Scope Clarification (sales tooling out of platform scope)
+- **Resolved Section 14:** All Open Questions 1-5 decided and locked for M6
+  - Q1: Tailwind PurgeCSS (production only, scan templates/JS, minimal safelist)
+  - Q2: Theme distribution (inside sum_core for 0.6-0.7)
+  - Q3: Blog categories (single-level FK to Category snippet)
+  - Q4: Form file uploads (media/form-uploads/, 5MB limit, 90-day retention)
+  - Q5: Reading time (compute on save, store as integer)
+- **Fixed Appendix C:** "Frozen Components" → "Stability Guarantees" (clarifies 0.5.x frozen, 0.6+ additive)
+- **Fixed Appendix A:** Compatibility Matrix (Token CSS shows as 🟡 Legacy in 0.6+, not ❌)
+- Renumbered all sections after inserting new Section 0
+
+**Key Improvements:**
+- Clear conceptual boundary: SUM (platform) ≠ LINTEL Digital (operator)
+- Explicit domain/environment conventions for deployment
+- All blocking decisions made; M6 can proceed without ambiguity
+- Internal contradictions resolved (additive evolution vs frozen directories)
+- Token CSS correctly shown as legacy/available, not removed
+
+---
+
+## Conflicts/Risks from v2 → v3 Changes
+
+### Low Risk Changes:
+- ✅ LINTEL sequence correction (no code impact, planning only)
+- ✅ Loop Sites model (clarifies, doesn't contradict)
+- ✅ Workflow clarification (removes false requirement)
+- ✅ Repo structure alignment (constraint, not change)
+
+### Medium Risk Changes:
+- ⚠️ Dynamic Forms scope expansion (more features in v1)
+  - **Mitigation:** All new features (clone, active toggle) are low-complexity additions
+  - **Benefit:** Higher leverage from v1, matches real operational needs
+
+- ⚠️ Blog UI contract explicit requirements (reading time, category badges)
+  - **Mitigation:** These are standard blog features, not complex
+  - **Benefit:** Prevents "technically has blog but can't satisfy UI" mismatch
+
+### No Conflicts with M5:
+- All changes are additive (M6+)
+- M5 remains frozen and untouched
+- No retroactive requirements on completed work
+
+---
+
+**Review Status:** ✅ Ready for M6 implementation
 
 **Next Steps:**
-1. Review open questions (Appendix 11) and make decisions
-2. Begin M6 planning with Theme A design
-3. Set up LINTEL-v2 project structure
-4. Create deployment scripts and runbooks from templates
+1. ~~Review Section 14 (Resolved Decisions) and make decisions~~ ✅ DONE (All Q1-Q5 locked)
+2. Begin M6 planning with Theme A design (targeting Sage & Stone UI)
+3. Set up Sage & Stone project — `sum init sage-and-stone`
+4. Identify 5 form placements for Sage & Stone (homepage CTA, newsletter, callback, quote, blog)
+5. Create deployment scripts from Appendix B templates
+6. Set up domain infrastructure (sage-and-stone.lintel.site for preview)
 
 ---
 
