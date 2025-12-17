@@ -59,3 +59,4 @@ Implemented the **M6-001 “VPS golden path”** deliverables:
 - `deploy.sh` assumes deploy user can `sudo systemctl restart sum-<slug>-gunicorn.service` (runbook includes minimal sudoers guidance).
 
 
+

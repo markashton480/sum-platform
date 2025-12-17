@@ -132,3 +132,4 @@ Test run performed (in repo `.venv`):
 - **Boilerplate sync**: the CLI bundles a boilerplate copy to work outside the monorepo. In practice, release automation should ensure this packaged boilerplate stays in sync with the canonical `/boilerplate/`.
 
 
+
