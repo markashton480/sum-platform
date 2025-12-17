@@ -8,6 +8,7 @@ Replace 'project_name' with your actual project name after copying.
 """
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 
@@ -16,6 +17,55 @@ from pathlib import Path
 # =============================================================================
 
 BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
+
+# =============================================================================
+# Theme Configuration
+# =============================================================================
+
+
+def _get_project_theme() -> str | None:
+    """
+    Read the selected theme from .sum/theme.json.
+
+    Returns:
+        Theme slug if configured, None otherwise
+    """
+    theme_file = BASE_DIR / ".sum" / "theme.json"
+    if not theme_file.exists():
+        return None
+
+    try:
+        with theme_file.open("r", encoding="utf-8") as f:
+            config = json.load(f)
+        return config.get("theme")
+    except (json.JSONDecodeError, OSError):
+        return None
+
+
+def _get_theme_template_dirs(theme_slug: str | None) -> list[Path]:
+    """
+    Get template directories for the selected theme.
+
+    Args:
+        theme_slug: Theme identifier or None
+
+    Returns:
+        List of theme template directory paths (empty if no theme)
+    """
+    if not theme_slug:
+        return []
+
+    try:
+        import sum_core.themes
+
+        theme_dir = sum_core.themes.get_theme_template_dir(theme_slug)
+        return [theme_dir]
+    except Exception:
+        # If theme system fails, degrade gracefully
+        return []
+
+
+THEME_SLUG = _get_project_theme()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Override this via environment variable in production
@@ -81,6 +131,8 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             BASE_DIR / "templates" / "overrides",
+            # Theme templates (if theme is configured)
+            *_get_theme_template_dirs(THEME_SLUG),
         ],
         "APP_DIRS": True,
         "OPTIONS": {

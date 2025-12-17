@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import importlib.resources
 import importlib.resources.abc
+import json
 import os
 import shutil
+import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 from sum_cli.util import (
@@ -68,11 +71,54 @@ def _create_env_from_example(project_root: Path) -> None:
         shutil.copy2(env_example, env_file)
 
 
-def run_init(project_name: str) -> int:
+def _write_theme_config(project_root: Path, theme_slug: str) -> None:
+    """
+    Write theme configuration to .sum/theme.json.
+
+    Args:
+        project_root: Root directory of the new project
+        theme_slug: Selected theme identifier
+    """
+    sum_dir = project_root / ".sum"
+    sum_dir.mkdir(parents=True, exist_ok=True)
+
+    theme_config = {
+        "theme": theme_slug,
+        "locked_at": datetime.now(UTC).isoformat(),
+    }
+
+    theme_file = sum_dir / "theme.json"
+    theme_file.write_text(
+        json.dumps(theme_config, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
+def run_init(project_name: str, theme_slug: str = "theme_a") -> int:
     try:
         naming = validate_project_name(project_name)
     except ValueError as e:
         print(f"[FAIL] {e}")
+        return 1
+
+    # Validate theme exists
+    try:
+        import sum_core.themes
+
+        sum_core.themes.get_theme(theme_slug)
+    except ImportError:
+        print("[FAIL] sum_core is not installed or not importable.", file=sys.stderr)
+        print("       Install sum_core: pip install -e ./core", file=sys.stderr)
+        return 1
+    except sum_core.themes.ThemeNotFoundError:
+        print(f"[FAIL] Theme '{theme_slug}' does not exist.")
+        print("       Run 'sum themes' to list available themes.")
+        return 1
+    except sum_core.themes.ThemeValidationError as e:
+        print(f"[FAIL] Theme '{theme_slug}' is invalid: {e}")
+        return 1
+    except Exception as e:
+        print(f"[FAIL] Failed to validate theme: {e}")
         return 1
 
     try:
@@ -114,6 +160,7 @@ def run_init(project_name: str) -> int:
         _rename_project_package_dir(target_dir, naming)
         _replace_placeholders(target_dir, naming)
         _create_env_from_example(target_dir)
+        _write_theme_config(target_dir, theme_slug)
     except Exception as e:
         print(f"[FAIL] Project created but failed to finalize rename/replace: {e}")
         print(f"       You may need to delete: {target_dir}")
@@ -121,6 +168,7 @@ def run_init(project_name: str) -> int:
 
     print("[OK] Project created.")
     print(f"     Location: {target_dir}")
+    print(f"     Theme: {theme_slug}")
     print("")
     print("Next steps:")
     print(f"  cd {target_dir}")

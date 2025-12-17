@@ -1,0 +1,13 @@
+/**
+ * Theme A Main Stylesheet
+ *
+ * This is a minimal skeleton theme that reuses the existing sum_core CSS
+ * token system. For v1, we simply import the core CSS as-is to prove
+ * the theme system works. Future themes can customize this.
+ */
+
+/* Import all core CSS from sum_core */
+@import url("/static/sum_core/css/main.css");
+
+/* Theme A specific overrides (minimal for v1) */
+/* Add theme-specific styles here in future iterations */

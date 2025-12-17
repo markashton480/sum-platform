@@ -1,0 +1,209 @@
+# **[M6-002]: Implement Theme System v1 (Platform-Level Wiring)**
+
+## **Objective**
+
+Implement the **SUM theme system v1** so that a site’s visual structure is selected **once at `sum init` time**, shipped from **`sum_core`**, and consumed cleanly by Wagtail projects — without modifying or destabilising any existing M5 (0.5.x) functionality.
+
+This task establishes the **theme contract**. It does _not_ aim to perfect a theme’s visuals — only to make themes real, selectable, and enforceable.
+
+---
+
+### **Context**
+
+#### Business Requirement (excerpt)
+
+> SUM must support reusable, opinionated themes that define layout and component structure, while allowing branding to remain site-specific and editable via Wagtail settings.
+
+#### User Story
+
+> As an operator using SUM, I want to choose a theme when initialising a project so that layout, templates, and frontend structure are consistent and repeatable across sites.
+
+#### Reference
+
+- `POST-MVP_BIG-PLAN.md` — **Milestone 6 → Themes System**
+- `SUM-PLATFORM-SSOT.md` — Platform vs Operator separation
+- `THEME-ARCHITECTURE-SPECv1.md`
+
+---
+
+### **Technical Requirements**
+
+#### Core Principles (non-negotiable)
+
+- Themes are:
+
+  - **Shipped inside `sum_core`**
+  - **Selected at project init**
+  - **Immutable post-init** (no runtime switching)
+
+- Branding remains:
+
+  - In **SiteSettings**
+  - Exposed as variables/tokens
+  - Consumed by the theme, never defined by it
+
+#### Theme Contract v1
+
+A theme must define:
+
+- Base templates (`base.html`, page scaffolding)
+- Component/layout partials
+- Tailwind build configuration scoped to that theme
+- A minimal manifest (`theme.json` or equivalent) containing:
+
+  - `slug`
+  - `name`
+  - `description`
+  - `version`
+
+Themes **must not**:
+
+- Introduce business logic
+- Modify models
+- Depend on site-specific content
+
+#### CLI Integration
+
+- `sum init` must:
+
+  - Allow theme selection (`--theme <slug>`)
+  - Validate theme existence
+  - Scaffold project with theme wired correctly
+
+- Add `sum themes list` (or equivalent) to enumerate available themes.
+
+#### Architecture Constraints
+
+- No changes to:
+
+  - Existing M5 templates
+  - Existing page models
+  - Existing CSS/token pipeline
+
+- Theme system must be **additive only** (0.6.x line).
+
+---
+
+### **Design Specifications**
+
+- No visual polish required.
+- A **minimal “Theme A (skeleton)”** is acceptable:
+
+  - Plain layout
+  - Clear structural separation
+
+- Must prove:
+
+  - Template resolution works
+  - Theme assets are isolated
+  - Branding tokens flow correctly
+
+Accessibility and responsiveness are **not evaluated** in this task (they are enforced in later Theme A work).
+
+---
+
+### **Implementation Guidelines**
+
+#### Files / Structure (indicative)
+
+```
+sum_core/
+  themes/
+    theme_a/
+      theme.json
+      templates/
+      static/
+      tailwind/
+```
+
+#### Required Header Comments (all Python files)
+
+```python
+"""
+Name: <Module Name>
+Path: <File path>
+Purpose: Theme system v1 wiring
+Family: sum_core themes
+Dependencies: sum_core, Wagtail
+"""
+```
+
+#### Coding Standards
+
+- Python:
+
+  - Type hints required
+  - No dynamic imports
+
+- CLI:
+
+  - Follow existing `sum` command patterns
+
+- Templates:
+
+  - No inline CSS
+  - No hardcoded brand values
+
+---
+
+### **Acceptance Criteria**
+
+- [ ] At least one theme exists inside `sum_core`
+- [ ] `sum init --theme <slug>` scaffolds a project using that theme
+- [ ] Theme selection is **fixed after init**
+- [ ] SiteSettings branding variables are accessible in theme templates
+- [ ] No regressions to M5 projects
+- [ ] Test project can render a page using the selected theme
+- [ ] Theme can be listed via CLI
+
+---
+
+### **Dependencies & Prerequisites**
+
+- ✅ M6-001 VPS Golden Path
+- ✅ CM-M6-02 Redis baseline correction
+- ✅ DOC-002 semantic lock
+- Frozen M5 baseline
+
+---
+
+### **Testing Requirements** (from `test-strategy-v1.1.md`)
+
+#### Unit Tests
+
+- Theme discovery
+- Theme manifest validation
+- CLI theme selection logic
+
+#### Integration Tests
+
+- `sum init` with valid theme
+- Failure on invalid theme slug
+
+#### Manual Testing
+
+- Init new project
+- Run dev server
+- Confirm template resolution
+- Confirm branding variables render
+
+#### Coverage
+
+- ≥80% on new theme system modules
+
+---
+
+### **Estimated Complexity**
+
+- **Time**: M
+- **Risk**: Medium (architectural, but isolated)
+- **Suggested Model**: **GPT-5.2** or **Claude Sonnet**
+
+---
+
+### **Notes from Lead**
+
+This task deliberately stops _before_ visual fidelity.
+If this contract is wrong, **everything after it gets painful** — take the time to make the abstraction boring, explicit, and hard to misuse.
+
+Once this lands cleanly, **Theme A proper**, **Blog v1**, and **Dynamic Forms** all snap into place naturally.
