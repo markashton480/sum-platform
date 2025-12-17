@@ -203,6 +203,28 @@ def get_theme_static_dir(slug: str) -> Path:
     return THEMES_DIR / slug / "static"
 
 
+def get_theme_dir(slug: str) -> Path:
+    """
+    Get the root directory path for a theme.
+
+    This is used by the CLI to copy theme files into the client project
+    during `sum init`.
+
+    Args:
+        slug: Theme identifier
+
+    Returns:
+        Absolute path to theme's root directory
+
+    Raises:
+        ThemeNotFoundError: If theme does not exist
+    """
+    # Validate theme exists
+    get_theme(slug)
+
+    return THEMES_DIR / slug
+
+
 __all__ = [
     "ThemeManifest",
     "ThemeNotFoundError",
@@ -212,4 +234,5 @@ __all__ = [
     "list_themes",
     "get_theme_template_dir",
     "get_theme_static_dir",
+    "get_theme_dir",
 ]

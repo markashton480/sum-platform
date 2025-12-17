@@ -71,19 +71,50 @@ def _create_env_from_example(project_root: Path) -> None:
         shutil.copy2(env_example, env_file)
 
 
-def _write_theme_config(project_root: Path, theme_slug: str) -> None:
+def _copy_theme_to_active(project_root: Path, theme_slug: str) -> None:
     """
-    Write theme configuration to .sum/theme.json.
+    Copy the selected theme from sum_core into the client's theme/active/ directory.
+
+    Per THEME-ARCHITECTURE-SPECv1, themes are copied into the client project
+    at init-time, not referenced from sum_core at runtime.
+
+    Args:
+        project_root: Root directory of the new project
+        theme_slug: Theme identifier to copy
+
+    Raises:
+        ImportError: If sum_core is not installed
+        RuntimeError: If theme copy fails
+    """
+    import sum_core.themes
+
+    theme_source_dir = sum_core.themes.get_theme_dir(theme_slug)
+    theme_target_dir = project_root / "theme" / "active"
+
+    # Copy the entire theme directory
+    shutil.copytree(theme_source_dir, theme_target_dir, dirs_exist_ok=False)
+
+
+def _write_theme_config(
+    project_root: Path, theme_slug: str, theme_version: str
+) -> None:
+    """
+    Write theme provenance to .sum/theme.json.
+
+    This file records which theme was selected and when, for provenance tracking.
+    It is NOT used for runtime loading - templates/static are served from theme/active/.
 
     Args:
         project_root: Root directory of the new project
         theme_slug: Selected theme identifier
+        theme_version: Version of the theme at init time
     """
     sum_dir = project_root / ".sum"
     sum_dir.mkdir(parents=True, exist_ok=True)
 
     theme_config = {
         "theme": theme_slug,
+        "original_version": theme_version,
         "locked_at": datetime.now(UTC).isoformat(),
     }
 
@@ -105,7 +136,7 @@ def run_init(project_name: str, theme_slug: str = "theme_a") -> int:
     try:
         import sum_core.themes
 
-        sum_core.themes.get_theme(theme_slug)
+        theme_manifest = sum_core.themes.get_theme(theme_slug)
     except ImportError:
         print("[FAIL] sum_core is not installed or not importable.", file=sys.stderr)
         print("       Install sum_core: pip install -e ./core", file=sys.stderr)
@@ -160,7 +191,8 @@ def run_init(project_name: str, theme_slug: str = "theme_a") -> int:
         _rename_project_package_dir(target_dir, naming)
         _replace_placeholders(target_dir, naming)
         _create_env_from_example(target_dir)
-        _write_theme_config(target_dir, theme_slug)
+        _copy_theme_to_active(target_dir, theme_slug)
+        _write_theme_config(target_dir, theme_slug, theme_manifest.version)
     except Exception as e:
         print(f"[FAIL] Project created but failed to finalize rename/replace: {e}")
         print(f"       You may need to delete: {target_dir}")

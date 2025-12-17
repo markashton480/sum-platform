@@ -21,11 +21,18 @@ BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
 # =============================================================================
 # Theme Configuration
 # =============================================================================
+#
+# Per THEME-ARCHITECTURE-SPECv1, themes are copied into the client project
+# at init-time. Runtime template/static resolution uses theme/active/, NOT
+# sum_core. The .sum/theme.json file is for provenance tracking only.
+#
 
 
-def _get_project_theme() -> str | None:
+def _get_project_theme_slug() -> str | None:
     """
-    Read the selected theme from .sum/theme.json.
+    Read the selected theme slug from .sum/theme.json for logging/debugging.
+
+    This is provenance only - not used for runtime loading.
 
     Returns:
         Theme slug if configured, None otherwise
@@ -42,30 +49,26 @@ def _get_project_theme() -> str | None:
         return None
 
 
-def _get_theme_template_dirs(theme_slug: str | None) -> list[Path]:
+def _get_theme_template_dirs() -> list[Path]:
     """
-    Get template directories for the selected theme.
+    Get template directories for the active theme.
 
-    Args:
-        theme_slug: Theme identifier or None
+    Per THEME-ARCHITECTURE-SPECv1, templates are resolved from:
+    1. theme/active/templates/ (client-owned theme)
+    2. templates/overrides/ (client-specific overrides)
+    3. APP_DIRS (sum_core fallback)
 
     Returns:
-        List of theme template directory paths (empty if no theme)
+        List of theme template directory paths (empty if no theme installed)
     """
-    if not theme_slug:
-        return []
-
-    try:
-        import sum_core.themes
-
-        theme_dir = sum_core.themes.get_theme_template_dir(theme_slug)
-        return [theme_dir]
-    except Exception:
-        # If theme system fails, degrade gracefully
-        return []
+    theme_templates_dir = BASE_DIR / "theme" / "active" / "templates"
+    if theme_templates_dir.exists():
+        return [theme_templates_dir]
+    return []
 
 
-THEME_SLUG = _get_project_theme()
+# Theme slug from provenance (for logging/debugging only)
+THEME_SLUG = _get_project_theme_slug()
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # Override this via environment variable in production
@@ -130,9 +133,12 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
+            # Per THEME-ARCHITECTURE-SPECv1, resolution order:
+            # 1. theme/active/templates/ (client-owned theme)
+            # 2. templates/overrides/ (client-specific overrides)
+            # 3. APP_DIRS (sum_core fallback)
+            *_get_theme_template_dirs(),
             BASE_DIR / "templates" / "overrides",
-            # Theme templates (if theme is configured)
-            *_get_theme_template_dirs(THEME_SLUG),
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -180,8 +186,31 @@ USE_TZ: bool = True
 # Static & Media Files
 # =============================================================================
 
+
+def _get_theme_static_dirs() -> list[Path]:
+    """
+    Get static directories for the active theme.
+
+    Per THEME-ARCHITECTURE-SPECv1, static files are resolved from:
+    1. theme/active/static/ (client-owned theme, highest priority)
+    2. static/ (client-specific statics)
+    3. APP_DIRS (sum_core fallback)
+
+    Returns:
+        List of theme static directory paths (empty if no theme installed)
+    """
+    theme_static_dir = BASE_DIR / "theme" / "active" / "static"
+    if theme_static_dir.exists():
+        return [theme_static_dir]
+    return []
+
+
 STATIC_URL: str = "/static/"
 STATICFILES_DIRS: list[Path] = [
+    # Per THEME-ARCHITECTURE-SPECv1, resolution order:
+    # 1. theme/active/static/ (client-owned theme, highest priority)
+    # 2. static/ (client-specific statics)
+    *_get_theme_static_dirs(),
     BASE_DIR / "static",
 ]
 STATIC_ROOT: Path = Path(os.getenv("DJANGO_STATIC_ROOT", str(BASE_DIR / "staticfiles")))
