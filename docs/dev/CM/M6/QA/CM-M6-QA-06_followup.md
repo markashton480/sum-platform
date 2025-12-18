@@ -120,8 +120,8 @@ After CI passes on the PR:
 | PR URL                       | https://github.com/markashton480/sum_platform/pull/1         |
 | CI Run URL                   | https://github.com/markashton480/sum_platform/pull/1/checks  |
 | Branch Protection Screenshot | _[optional link]_                                            |
-| Gate Proof PR (QA-07)        | _[paste QA-07 PR URL]_                                       |
-| Gate Proof CI Run (QA-07)    | _[paste QA-07 failing/passing URLs]_                         |
+| Gate Proof PR (QA-07)        | https://github.com/markashton480/sum_platform/pull/3          |
+| Gate Proof CI Run (QA-07)    | https://github.com/markashton480/sum_platform/pull/3/checks (fail) / https://github.com/markashton480/sum_platform/actions/runs/20341008807/job/58440074821?pr=3 (pass) |
 
 ---
 
