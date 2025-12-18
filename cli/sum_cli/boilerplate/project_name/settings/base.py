@@ -40,7 +40,7 @@ def _get_project_theme_slug() -> str | None:
     try:
         with theme_file.open("r", encoding="utf-8") as f:
             config = json.load(f)
-        return config.get("theme")
+        return str(config.get("theme"))
     except (json.JSONDecodeError, OSError):
         return None
 

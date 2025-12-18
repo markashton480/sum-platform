@@ -32,9 +32,11 @@ def form_time_token() -> str:
         </form>
     """
     token = generate_time_token()
-    return format_html(
-        '<input type="hidden" name="_time_token" value="{}">',
-        token,
+    return str(
+        format_html(
+            '<input type="hidden" name="_time_token" value="{}">',
+            token,
+        )
     )
 
 
@@ -88,7 +90,7 @@ def form_hidden_fields(context, form_type: str = "") -> str:
         '<input type="hidden" name="utm_content" value="" class="js-utm-content">',
     ]
 
-    return mark_safe("\n".join(fields))
+    return str(mark_safe("\n".join(fields)))
 
 
 @register.inclusion_tag("sum_core/includes/form_attribution_script.html")

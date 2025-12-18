@@ -17,10 +17,12 @@ Severity rules (current baseline):
 - Non-critical check: Celery. If it fails (and is configured) => overall `degraded`.
 """
 
+from __future__ import annotations
+
 import os
 import time
 from dataclasses import asdict, dataclass
-from typing import Any
+from typing import Any, cast
 
 from django.conf import settings
 from django.core.cache import cache
@@ -127,10 +129,11 @@ def get_health_status() -> dict[str, Any]:
     }
 
     # Clean up empty optional fields for cleaner JSON
-    for check_data in response["checks"].values():
-        if check_data["detail"] is None:
+    checks_data = cast(dict[str, dict[str, Any]], response["checks"])
+    for check_data in checks_data.values():
+        if check_data.get("detail") is None:
             del check_data["detail"]
-        if check_data["latency_ms"] is None:
+        if check_data.get("latency_ms") is None:
             del check_data["latency_ms"]
 
     return response

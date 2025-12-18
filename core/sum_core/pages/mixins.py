@@ -70,10 +70,10 @@ class SeoFieldsMixin(models.Model):
         Fallback: "{page.title} | {site_settings.company_name}" (or site hostname/name if blank).
         """
         if self.meta_title:
-            return self.meta_title
+            return str(self.meta_title)
 
         if getattr(self, "seo_title", None):
-            return self.seo_title
+            return str(self.seo_title)
 
         site_name = (site_settings.company_name or "").strip()
         if not site_name:
@@ -105,11 +105,11 @@ class SeoFieldsMixin(models.Model):
         - If request provided: absolute URL.
         - Otherwise: relative (best-effort).
         """
-        page: Page = self  # type: ignore[assignment]
+        page: Page = self
         relative = page.get_url(request=request)
         if request is None:
             return relative or ""
-        return request.build_absolute_uri(relative or "/")
+        return str(request.build_absolute_uri(relative or "/"))
 
 
 class OpenGraphMixin(models.Model):
@@ -184,7 +184,7 @@ class BreadcrumbMixin(models.Model):
 
         Each item has: {title, url, is_current}
         """
-        page: Page = self  # type: ignore[assignment]
+        page: Page = self
         ancestors = (
             page.get_ancestors(inclusive=True)
             .live()

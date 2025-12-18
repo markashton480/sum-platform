@@ -15,6 +15,7 @@ from dataclasses import dataclass
 
 from django.conf import settings
 from django.core.cache import cache
+from django.http import HttpRequest
 from sum_core.forms.models import FormConfiguration
 from wagtail.models import Site
 
@@ -243,7 +244,7 @@ def run_spam_checks(
     return SpamCheckResult(is_spam=False)
 
 
-def get_client_ip(request) -> str:
+def get_client_ip(request: HttpRequest) -> str:
     """
     Extract client IP address from request.
 
@@ -255,4 +256,4 @@ def get_client_ip(request) -> str:
         ip = x_forwarded_for.split(",")[0].strip()
     else:
         ip = request.META.get("REMOTE_ADDR", "")
-    return ip
+    return str(ip)
