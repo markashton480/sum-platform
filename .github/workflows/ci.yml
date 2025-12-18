@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Enable manual workflow dispatch for debugging/ad-hoc runs
+  workflow_dispatch:
+
+# Minimal permissions - read-only access to repository contents
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,6 +19,8 @@ concurrency:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    # Prevent hung jobs - 15 minutes should be more than enough for lint+test
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -37,6 +45,11 @@ jobs:
           pip install -e ./core[dev]
 
       - name: Clean stale artifacts
+        # Remove only known transient artifacts that can cause test pollution:
+        # - .coverage: stale coverage data from previous runs
+        # - .pytest_cache: pytest cache that may contain stale test results
+        # - clients/cli-check-*, clients/cli-theme-*: generated scaffolds from CLI tests
+        # These paths are safe to remove as they are all regenerated during test runs.
         run: |
           rm -f .coverage
           rm -rf .pytest_cache

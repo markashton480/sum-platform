@@ -45,6 +45,34 @@ The repository uses GitHub Actions to enforce the lint contract:
 
 CI runs in a clean environment and removes stale artifacts (`.coverage`, `.pytest_cache`, transient scaffold dirs) before each run to avoid flaky failures.
 
+### CI Hardening
+
+The workflow includes the following safety measures:
+
+| Setting             | Value                    | Purpose                             |
+| ------------------- | ------------------------ | ----------------------------------- |
+| `timeout-minutes`   | 15                       | Prevents hung/runaway jobs          |
+| `permissions`       | `contents: read`         | Minimal read-only access            |
+| `workflow_dispatch` | enabled                  | Allows manual CI runs for debugging |
+| `concurrency`       | cancel-in-progress: true | Cancels superseded runs             |
+
+### Branch Protection (Required Runbook)
+
+To enforce CI as a merge gate, configure branch protection for `main`:
+
+1. Go to **Settings → Branches** in the GitHub repository
+2. Click **Add rule** (or edit existing `main` rule)
+3. Set **Branch name pattern:** `main`
+4. Enable the following:
+   - ☑️ **Require a pull request before merging**
+   - ☑️ **Require status checks to pass before merging**
+     - Search and add: `lint-and-test`
+   - ☑️ **Require branches to be up to date before merging** (recommended)
+   - ☑️ **Require linear history** (optional, keeps commit graph clean)
+5. Click **Create** or **Save changes**
+
+**Check name:** The required status check is named `lint-and-test` (the job name in `ci.yml`).
+
 ---
 
 ## Verification
