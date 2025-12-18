@@ -27,8 +27,8 @@
 
 | Item | URL |
 | --- | --- |
-| PR URL | _[paste PR URL]_ |
-| Failing CI run URL (lint-and-test) | _[paste failing run URL]_ |
+| PR URL | https://github.com/markashton480/sum_platform/pull/3 |
+| Failing CI run URL (lint-and-test) | https://github.com/markashton480/sum_platform/pull/3/checks |
 | Passing CI run URL (lint-and-test) | _[paste passing run URL]_ |
 | Screenshot: merge blocked (optional) | _[paste link]_ |
 | Screenshot: merge enabled (optional) | _[paste link]_ |
