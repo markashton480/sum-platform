@@ -176,6 +176,45 @@ class TestThemeACompiledCSSValidity:
             "  npm run build\n"
         )
 
+    def test_compiled_css_contains_required_component_selectors(self) -> None:
+        """Compiled CSS must include Theme A component selectors.
+
+        Theme A templates (and some core blocks rendered within Theme A pages)
+        use semantic/component classes such as .btn, .hero--gradient, and
+        .footer__grid. These are not Tailwind utilities, so they must be defined
+        in Theme A's Tailwind input under @layer components.
+
+        This test prevents regressions where semantic selectors disappear from
+        the compiled output.
+        """
+
+        content = self._read_main_css()
+
+        required_selectors = [
+            ".btn",
+            ".btn-primary",
+            ".btn-outline",
+            ".btn--link",
+            ".hero--gradient",
+            ".hero--gradient-primary",
+            ".footer__grid",
+            ".footer__link",
+        ]
+
+        missing = [
+            selector for selector in required_selectors if selector not in content
+        ]
+        assert not missing, (
+            "Compiled Theme A CSS is missing required component selector(s):\n\n"
+            + "\n".join(f"- {s}" for s in missing)
+            + "\n\n"
+            "Fix:\n"
+            "  1. Ensure selectors are defined in static/theme_a/css/input.css under @layer components\n"
+            "  2. cd core/sum_core/themes/theme_a\n"
+            "  3. npm run build\n"
+            "  4. python -m sum_core.themes.theme_a.build_fingerprint\n"
+        )
+
     def test_no_legacy_core_css_import_statement(self) -> None:
         """Compiled CSS must NOT contain @import statements.
 
