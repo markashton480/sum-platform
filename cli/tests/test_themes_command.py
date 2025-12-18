@@ -24,4 +24,4 @@ def test_themes_list_finds_theme_a(capsys) -> None:
 
     assert exit_code == 0
     assert "theme_a" in captured.out
-    assert "Theme A (Skeleton)" in captured.out
+    assert "Sage & Stone" in captured.out

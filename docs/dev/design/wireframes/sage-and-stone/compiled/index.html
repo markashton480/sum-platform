@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sage & Stone | Rooms that remember</title>
+    <meta name="description" content="Sage & Stone curates the room your great-grandchildren will fight over. Bespoke kitchens built for generations, not trends.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: {
+                        ipad: '970px',
+                        desktop: '1200px',
+                    },
+                    colors: {
+                        sage: {
+                            black: '#1A2F23', // Obsidian Green
+                            moss: '#6B8F71',  // Moss
+                            terra: '#A0563B', // Burnished Terra
+                            oat: '#EDE8E0',   // Oat
+                            linen: '#F7F5F1', // Linen
+                            darkmoss: '#4A6350',
+
+                            // Contrast-Safe Tokens
+                            'label': '#4A5D50',
+                            'meta': '#5A6E5F',
+                            'footer-primary': '#D1D9D4',
+                            'footer-secondary': '#A3B0A8',
+                        }
+                    },
+                    fontFamily: {
+                        display: ['"Playfair Display"', 'serif'],
+                        body: ['"Lato"', 'sans-serif'],
+                        accent: ['"Crimson Text"', 'serif'],
+                    },
+                    spacing: {
+                        '128': '32rem',
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    },
+                    // Typography Config for Blog Articles
+                    typography: (theme) => ({
+                        DEFAULT: {
+                            css: {
+                                color: theme('colors.sage.black'),
+                                fontFamily: theme('fontFamily.accent'),
+                                '--tw-prose-headings': theme('colors.sage.black'),
+                                '--tw-prose-links': theme('colors.sage.terra'),
+                                h1: { fontFamily: theme('fontFamily.display') },
+                                h2: { fontFamily: theme('fontFamily.display'), fontWeight: '400' },
+                                h3: { fontFamily: theme('fontFamily.display'), fontSize: '1.5em' },
+                                blockquote: {
+                                    fontFamily: theme('fontFamily.display'),
+                                    fontStyle: 'italic',
+                                    borderLeftColor: theme('colors.sage.terra'),
+                                    backgroundColor: theme('colors.sage.linen'),
+                                    padding: '1rem',
+                                },
+                            },
+                        },
+                    }),
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body class="antialiased font-body text-sage-black selection:bg-sage-terra selection:text-white relative">
+
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[70] focus:bg-sage-terra focus:text-white focus:px-6 focus:py-3 focus:font-bold focus:shadow-lg focus:outline-none">
+        Skip to main content
+    </a>
+
+    <!-- FIXED TOP STACK -->
+<div id="top-stack" class="fixed top-0 left-0 right-0 z-50 flex flex-col w-full">
+
+    <!-- ALERT BANNER -->
+    <div id="banner-wrapper" class="banner-grid-wrapper bg-sage-terra text-white will-change-[grid-template-rows] pointer-events-auto">
+        <div class="banner-inner">
+            <div class="max-w-7xl mx-auto flex justify-between items-center relative py-3 px-4">
+                <div class="w-8 md:hidden"></div>
+                <div class="text-xs md:text-sm font-bold tracking-widest uppercase text-center flex-grow">
+                    Waitlist open for Autumn 2026 Commissions
+                </div>
+                <button id="banner-close-btn" type="button" class="ml-4 px-3 py-1 hover:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white min-h-[32px] flex items-center justify-center group" aria-label="Close announcement">
+                    <span class="hidden md:inline text-xs mr-2 font-bold tracking-wider opacity-80 group-hover:opacity-100">DISMISS</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header id="main-header" class="w-full border-b border-transparent group/header py-6 transition-[background-color,padding,backdrop-filter,box-shadow] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[background-color,padding] pointer-events-auto relative">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <!-- Logo -->
+            <a href="index.html" class="group z-50 py-2 relative">
+                <div class="font-display text-2xl md:text-3xl font-bold tracking-tight leading-none text-sage-linen group-[.scrolled]/header:text-sage-black transition-colors duration-300">
+                    SAGE & STONE
+                </div>
+                <div class="text-[10px] uppercase tracking-[0.3em] text-sage-oat group-[.scrolled]/header:text-sage-moss group-hover:text-sage-terra transition-colors duration-300">
+                    Est. 2025
+                </div>
+            </a>
+
+            <!-- Desktop Nav -->
+            <nav class="hidden desktop:flex items-center space-x-12 relative z-[60]" aria-label="Main Navigation">
+                <!-- Desktop: Nested Mega Menu Trigger -->
+<div class="relative" id="kitchens-nav">
+    <button id="kitchens-trigger"
+            class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent focus:outline-none flex items-center gap-1"
+            aria-expanded="false"
+            aria-controls="mega-menu-kitchens">
+        Kitchens
+        <svg class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+
+    <!-- Mega Menu Panel -->
+    <div id="mega-menu-kitchens" class="mega-panel hidden" role="menu" aria-hidden="true">
+        <!-- Menu Content Box -->
+        <div class="bg-sage-linen shadow-2xl border-t border-sage-black/10 mx-6 grid grid-cols-12 overflow-hidden rounded-sm">
+            <!-- Col 1: Main Categories -->
+            <div class="col-span-3 bg-sage-oat/30 p-8 border-r border-sage-black/5">
+                <span class="block text-xs font-mono text-sage-terra uppercase tracking-widest mb-6">Collections</span>
+                <ul class="space-y-4">
+                    <li><a href="#" class="block font-display text-xl text-sage-black hover:text-sage-terra transition-colors">The Heritage</a></li>
+                    <li><a href="#" class="block font-display text-xl text-sage-black/60 hover:text-sage-terra transition-colors">The Modernist</a></li>
+                    <li><a href="#" class="block font-display text-xl text-sage-black/60 hover:text-sage-terra transition-colors">The Utility</a></li>
+                </ul>
+            </div>
+            <!-- Col 2: Sub & Sub-Sub Categories -->
+            <div class="col-span-5 p-8">
+                <div class="grid grid-cols-2 gap-8">
+                    <div>
+                        <span class="block text-xs font-bold text-sage-black uppercase tracking-widest mb-4 border-b border-sage-black/10 pb-2">Fitted Joinery</span>
+                        <ul class="space-y-3 text-sm text-sage-label">
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Larder Cupboards</a></li>
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Island Units</a></li>
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Wall Cabinetry</a></li>
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Boot Room Storage</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-bold text-sage-black uppercase tracking-widest mb-4 border-b border-sage-black/10 pb-2">Freestanding</span>
+                        <ul class="space-y-3 text-sm text-sage-label">
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Prep Tables</a></li>
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Butcher Blocks</a></li>
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Dressers</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Col 3: Visual Feature -->
+            <div class="col-span-4 relative bg-sage-black overflow-hidden group/image">
+                <img src="images/delberghe-4jxGry4pXtc.jpg" alt="Featured Kitchen" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover/image:scale-105 transition-transform duration-700">
+                <div class="absolute bottom-0 left-0 p-8 w-full bg-gradient-to-t from-black/80 to-transparent">
+                    <span class="text-sage-oat font-mono text-xs uppercase tracking-widest block mb-1">Featured</span>
+                    <span class="text-white font-display text-2xl block">The Cotswold Barn</span>
+                    <a href="#" class="text-sage-terra text-xs uppercase tracking-widest mt-2 inline-block border-b border-sage-terra pb-0.5 hover:text-white hover:border-white transition-colors">Explore Case Study</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                <a href="services.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">What We Do</a>
+                <a href="about.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Who We Are</a>
+                <a href="portfolio.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Portfolio</a>
+                <a href="blog_list.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Journal</a>
+
+                <a href="index.html#contact" class="px-8 py-4 text-sm font-bold uppercase tracking-widest transition-colors duration-300
+                    text-sage-linen border border-sage-linen/30 backdrop-blur-sm
+                    hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen
+                    group-[.scrolled]/header:border-sage-black group-[.scrolled]/header:text-sage-black
+                    group-[.scrolled]/header:bg-transparent group-[.scrolled]/header:backdrop-blur-none
+                    group-[.scrolled]/header:hover:bg-sage-black group-[.scrolled]/header:hover:text-sage-linen group-[.scrolled]/header:hover:border-sage-black">
+                    Enquire
+                </a>
+            </nav>
+
+            <!-- iPad Nav (infra only; you can flesh this out later) -->
+            <nav class="hidden ipad:flex desktop:hidden items-center space-x-10 relative z-[60]" aria-label="Main Navigation">
+                <a href="portfolio.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Kitchens</a>
+                <a href="services.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">What We Do</a>
+                <a href="index.html#provenance" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Provenance</a>
+                <a href="blog_list.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Journal</a>
+
+                <a href="index.html#contact" class="px-7 py-3.5 text-sm font-bold uppercase tracking-widest transition-colors duration-300
+                    text-sage-linen border border-sage-linen/30 backdrop-blur-sm
+                    hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen
+                    group-[.scrolled]/header:border-sage-black group-[.scrolled]/header:text-sage-black
+                    group-[.scrolled]/header:bg-transparent group-[.scrolled]/header:backdrop-blur-none
+                    group-[.scrolled]/header:hover:bg-sage-black group-[.scrolled]/header:hover:text-sage-linen group-[.scrolled]/header:hover:border-sage-black">
+                    Enquire
+                </a>
+            </nav>
+
+            <!-- Mobile Actions -->
+            <div class="ipad:hidden flex items-center gap-4 relative z-[60]">
+                <a href="index.html#contact" class="px-5 py-3 text-xs font-bold uppercase tracking-widest transition-colors duration-300
+                    text-sage-linen border border-sage-linen/30 backdrop-blur-sm
+                    hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen
+                    group-[.scrolled]/header:border-sage-black group-[.scrolled]/header:text-sage-black
+                    group-[.scrolled]/header:bg-transparent group-[.scrolled]/header:backdrop-blur-none
+                    group-[.scrolled]/header:hover:bg-sage-black group-[.scrolled]/header:hover:text-sage-linen group-[.scrolled]/header:hover:border-sage-black">
+                    Enquire
+                </a>
+
+                <button id="mobile-menu-btn" type="button" class="relative w-12 h-12 flex flex-col justify-center items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-sage-terra touch-manipulation" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+                    <span class="block w-8 h-0.5 bg-sage-linen group-[.scrolled]/header:bg-sage-black transition-all duration-300 origin-center"></span>
+                    <span class="block w-8 h-0.5 bg-sage-linen group-[.scrolled]/header:bg-sage-black transition-all duration-300 origin-center"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+</div>
+<!-- Mobile Nav Overlay (Drill Down System) -->
+<!-- Kept outside the header so `position: fixed` is truly viewport-fixed (not scoped by header effects like backdrop-filter). -->
+<div id="mobile-menu" class="fixed inset-0 bg-sage-linen transform translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] z-[80] overflow-hidden pointer-events-none" aria-hidden="true" style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);">
+
+    <!-- Close Button -->
+    <button id="mobile-menu-close-btn" type="button" class="absolute top-6 right-6 z-50 w-12 h-12 flex items-center justify-center text-sage-black/60 hover:text-sage-terra transition-colors focus:outline-none focus:ring-2 focus:ring-sage-terra touch-manipulation" aria-label="Close menu">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+
+    <!-- SLIDING CONTAINER: Deterministic width (300vw) + CSS Variable transform -->
+    <div id="mobile-menu-slider" class="h-full flex transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]" style="width: 300vw; transform: translateX(var(--menu-x, 0vw));">
+
+        <!-- LEVEL 1: TOP MENU (100vw width) -->
+        <div class="h-full w-[100vw] flex-none overflow-y-auto px-6 pt-24 pb-12 flex flex-col items-center text-center space-y-8">
+            <button type="button" data-menu-level="1" class="font-display text-4xl text-sage-black hover:text-sage-terra transition-colors py-2 flex items-center gap-2 group touch-manipulation">
+                Kitchens
+                <svg class="w-6 h-6 text-sage-terra opacity-50 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+            <a href="about.html" class="font-display text-4xl text-sage-black hover:text-sage-terra transition-colors py-2" data-menu-close>About Us</a>
+            <a href="services.html" class="font-display text-4xl text-sage-black hover:text-sage-terra transition-colors py-2" data-menu-close>How We Work</a>
+            <a href="portfolio.html" class="font-display text-4xl text-sage-black hover:text-sage-terra transition-colors py-2" data-menu-close>Portfolio</a>
+            <a href="blog_list.html" class="font-display text-4xl text-sage-black hover:text-sage-terra transition-colors py-2" data-menu-close>Journal</a>
+            <a href="index.html#contact" class="font-display text-4xl text-sage-terra hover:text-sage-black transition-colors italic py-2 mt-8" data-menu-close>Begin Commission</a>
+        </div>
+
+        <!-- LEVEL 2: KITCHEN CATEGORIES (100vw width) -->
+        <div class="h-full w-[100vw] flex-none overflow-y-auto px-6 pt-24 pb-12 flex flex-col items-start">
+            <button type="button" data-menu-level="0" class="mb-12 text-xs uppercase tracking-widest text-sage-terra flex items-center gap-2 font-bold touch-manipulation">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Back to Menu
+            </button>
+            <span class="block text-xs font-mono text-sage-black/40 uppercase tracking-widest mb-6">Select Collection</span>
+
+            <button type="button" data-menu-level="2" class="w-full text-left font-display text-3xl text-sage-black border-b border-sage-black/10 py-6 flex justify-between items-center group touch-manipulation">
+                The Heritage
+                <svg class="w-5 h-5 text-sage-terra opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+            <a href="#" class="w-full text-left font-display text-3xl text-sage-black/60 border-b border-sage-black/10 py-6 flex justify-between items-center">
+                The Modernist
+            </a>
+            <a href="#" class="w-full text-left font-display text-3xl text-sage-black/60 border-b border-sage-black/10 py-6 flex justify-between items-center">
+                The Utility
+            </a>
+        </div>
+
+        <!-- LEVEL 3: HERITAGE SUB-ITEMS (100vw width) -->
+        <div class="h-full w-[100vw] flex-none overflow-y-auto px-6 pt-24 pb-12 flex flex-col items-start">
+            <button type="button" data-menu-level="1" class="mb-12 text-xs uppercase tracking-widest text-sage-terra flex items-center gap-2 font-bold touch-manipulation">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Back to Collections
+            </button>
+            <h3 class="font-display text-3xl text-sage-black mb-8">The Heritage</h3>
+
+            <div class="space-y-8 w-full">
+                <div>
+                    <span class="block text-xs font-bold text-sage-black/40 uppercase tracking-widest mb-4">Fitted Joinery</span>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="block text-lg text-sage-black hover:text-sage-terra border-l-2 border-transparent hover:border-sage-terra pl-4 -ml-4 transition-all" data-menu-close>Larder Cupboards</a></li>
+                        <li><a href="#" class="block text-lg text-sage-black hover:text-sage-terra border-l-2 border-transparent hover:border-sage-terra pl-4 -ml-4 transition-all" data-menu-close>Island Units</a></li>
+                        <li><a href="#" class="block text-lg text-sage-black hover:text-sage-terra border-l-2 border-transparent hover:border-sage-terra pl-4 -ml-4 transition-all" data-menu-close>Wall Cabinetry</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <span class="block text-xs font-bold text-sage-black/40 uppercase tracking-widest mb-4">Freestanding</span>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="block text-lg text-sage-black hover:text-sage-terra border-l-2 border-transparent hover:border-sage-terra pl-4 -ml-4 transition-all" data-menu-close>Prep Tables</a></li>
+                        <li><a href="#" class="block text-lg text-sage-black hover:text-sage-terra border-l-2 border-transparent hover:border-sage-terra pl-4 -ml-4 transition-all" data-menu-close>Butcher Blocks</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    
+<main id="main">
+    <!-- HERO SECTION -->
+    <section id="hero" class="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden bg-sage-black">
+        <!-- Background Image -->
+        <div class="absolute inset-0 z-0 overflow-hidden">
+             <!-- REPLACE: assets/hero-image.jpg -->
+             <img id="hero-image" src="images/euBmypOZUZA.jpg"
+                  alt="A dark, timeless bespoke kitchen with brass accents and shaker cabinetry"
+                  class="w-full h-[120%] object-cover object-center -translate-y-10 origin-center will-change-transform">
+            <div class="absolute inset-0 bg-black/60"></div>
+        </div>
+
+        <div class="relative z-10 text-center px-4 max-w-5xl mx-auto mt-20">
+            <p class="reveal font-accent text-sage-oat text-xl md:text-2xl italic mb-6">Trends are loud. Legacy is quiet.</p>
+            <h1 class="reveal delay-100 font-display text-5xl md:text-7xl lg:text-8xl text-sage-linen mb-8 leading-tight">
+                Rooms that <br/> <span class="italic text-sage-oat">remember.</span>
+            </h1>
+            <p class="reveal delay-200 text-sage-linen max-w-lg mx-auto mb-12 text-base md:text-lg tracking-wide font-light drop-shadow-md">
+                We don't make kitchens. We curate the cultural artifacts your great-grandchildren will fight over.
+            </p>
+
+            <div class="reveal delay-300 flex flex-col items-center gap-6">
+                <div class="flex flex-col sm:flex-row gap-6 justify-center items-center w-full">
+                    <a href="#contact" class="inline-block bg-sage-terra text-white px-12 py-5 text-base font-bold uppercase tracking-widest hover:bg-sage-black transition-colors duration-300 shadow-lg">
+                        Begin Your Commission
+                    </a>
+                    <!-- Secondary CTA -->
+                    <a href="#manifesto" class="group inline-flex items-center space-x-3 text-sage-linen border border-sage-linen/30 rounded-none px-6 py-4 transition-colors duration-300 cursor-pointer backdrop-blur-sm hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen">
+                        <span class="uppercase tracking-[0.2em] text-sm font-bold">Our Philosophy</span>
+                        <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    </a>
+                </div>
+                <!-- Micro-CTA -->
+                <button onclick="openProvenanceModal()" class="text-sage-linen/70 hover:text-sage-terra text-xs uppercase tracking-widest underline decoration-from-font underline-offset-4 transition-colors mt-2">
+                    View the Provenance Plate
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- OPERATIONAL PROOF STRIP -->
+    <div class="bg-sage-linen border-b border-sage-black/5 py-12 relative z-10">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <div class="space-y-2">
+                    <span class="block font-display text-xs text-sage-terra uppercase tracking-widest">Capacity</span>
+                    <span class="block font-display text-xl text-sage-black">12 Commissions / Year</span>
+                </div>
+                <div class="space-y-2">
+                    <span class="block font-display text-xs text-sage-terra uppercase tracking-widest">Timeline</span>
+                    <span class="block font-display text-xl text-sage-black">12–16 Week Build</span>
+                </div>
+                <div class="space-y-2">
+                    <span class="block font-display text-xs text-sage-terra uppercase tracking-widest">Origin</span>
+                    <span class="block font-display text-xl text-sage-black">Workshop: Herefordshire</span>
+                </div>
+                <div class="space-y-2">
+                    <span class="block font-display text-xs text-sage-terra uppercase tracking-widest">Promise</span>
+                    <span class="block font-display text-xl text-sage-black">Lifetime Joinery Guarantee</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENT BLOCK: THE MANIFESTO -->
+    <section id="manifesto" class="py-24 md:py-32 bg-sage-linen">
+        <div class="max-w-3xl mx-auto px-6 text-center">
+            <span class="block text-sage-terra font-accent italic text-2xl mb-6 reveal">The Manifesto</span>
+            <h2 class="font-display text-4xl md:text-5xl text-sage-black mb-10 leading-tight reveal">
+                Good kitchens don't age.<br>They <span class="italic text-sage-moss">season.</span>
+            </h2>
+            <div class="prose prose-lg text-sage-black mx-auto font-light leading-relaxed reveal">
+                <p class="mb-6">
+                    In a market saturated with disposable luxury and greenwashed mediocrity, Sage & Stone stands as a quiet rebellion. We are pivoting from Consumption to Conservation.
+                </p>
+                <p>
+                    Our customers don't want their neighbors' kitchen. They want a kitchen that feels like it has always been there. They want the oak to have a biography. They want the brass to patina. They want a space that serves as a backdrop for family history, not just Instagram posts.
+                </p>
+                <div class="border-t border-sage-black/10 pt-8 mt-8">
+                    <p class="font-accent italic text-xl text-sage-darkmoss">
+                        "We build with solid timber, repairable joinery, and finishes designed to patina — not peel."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVICES / OFFERING -->
+    <section id="services" class="py-20 bg-sage-oat/30">
+        <h2 class="sr-only">Our Craft & Offerings</h2>
+
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-sage-black/10">
+
+                <!-- Service 1 (Primary) -->
+                <div class="md:col-span-2 group relative border-b md:border-b-0 md:border-r border-sage-black/10 flex flex-col justify-between p-12 hover:bg-white transition-colors duration-500 reveal min-h-[400px]">
+                    <div class="mb-8">
+                        <span class="block text-xs font-bold uppercase tracking-widest text-sage-moss mb-4">Featured Service</span>
+                        <h3 class="font-display text-4xl text-sage-black mb-2 group-hover:text-sage-terra transition-colors">The Commission</h3>
+                        <span class="block font-display text-xs text-sage-black/60 mb-6">Typically £35k – £80k</span>
+                        <p class="text-sage-black font-light leading-relaxed text-lg max-w-xl">
+                            Full architectural bespoke kitchen design. From the felling of the timber to the final brass screw. We design for the specific proportions of your home and the rhythm of your life.
+                        </p>
+                    </div>
+                    <div>
+                        <a href="#" class="inline-flex items-center text-xs font-bold uppercase tracking-widest border-b-2 border-sage-black/20 pb-2 hover:border-sage-terra hover:text-sage-terra transition-colors py-2">
+                            Explore Process
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="group relative border-b md:border-b-0 border-sage-black/10 flex flex-col justify-between p-12 hover:bg-white transition-colors duration-500 reveal min-h-[400px]">
+                    <div class="mb-8">
+                        <span class="block text-xs font-bold uppercase tracking-widest text-sage-meta mb-4">02</span>
+                        <h3 class="font-display text-3xl text-sage-black mb-4 group-hover:text-sage-terra transition-colors">The Restoration</h3>
+                        <p class="text-sage-black font-light leading-relaxed">
+                            For period properties requiring sensitivity. We repair, restore, and reimagine existing heritage joinery.
+                        </p>
+                    </div>
+                    <div>
+                        <a href="#" class="inline-block text-xs font-bold uppercase tracking-widest border-b border-sage-black/20 pb-1 group-hover:border-sage-terra transition-colors py-2">View Restorations</a>
+                    </div>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="group relative border-b md:border-b-0 md:border-r border-sage-black/10 flex flex-col justify-between p-12 hover:bg-white transition-colors duration-500 reveal min-h-[400px]">
+                    <div class="mb-8">
+                        <span class="block text-xs font-bold uppercase tracking-widest text-sage-meta mb-4">03</span>
+                        <h3 class="font-display text-3xl text-sage-black mb-4 group-hover:text-sage-terra transition-colors">The Larder</h3>
+                        <p class="text-sage-black font-light leading-relaxed">
+                            Freestanding architectural furniture. Pantries, islands, and dressers designed to move with you.
+                        </p>
+                    </div>
+                    <div>
+                        <a href="#" class="inline-block text-xs font-bold uppercase tracking-widest border-b border-sage-black/20 pb-1 group-hover:border-sage-terra transition-colors py-2">See Furniture</a>
+                    </div>
+                </div>
+
+                <!-- Image Block -->
+                <div class="md:col-span-2 relative overflow-hidden min-h-[400px] reveal">
+                    <!-- REPLACE: assets/services-detail.jpg -->
+                    <img src="images/Az9uF9Q85qc.jpg" alt="Close up detail of hand-carved joinery and brass hardware" class="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 hover:scale-105">
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SIGNATURE EXPERIENCE: PROVENANCE -->
+    <section id="provenance" class="py-24 md:py-32 bg-sage-black text-sage-linen overflow-hidden">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center gap-16">
+
+                <!-- Interactive Plate Graphic -->
+                <div class="w-full md:w-1/2 relative reveal group cursor-pointer" onclick="openProvenanceModal()" aria-label="View Provenance Details" role="button" tabindex="0">
+                    <div id="plate-graphic" class="aspect-[4/3] bg-[#8B7355] relative shadow-2xl flex items-center justify-center p-8 border-4 border-[#6e5a40] transition-transform duration-500 group-hover:scale-[1.02] group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] will-change-transform">
+                        <div class="absolute top-4 left-4 w-3 h-3 rounded-full bg-[#5c4a33] flex items-center justify-center"><div class="w-full h-0.5 bg-[#4a3b29] rotate-45"></div></div>
+                        <div class="absolute top-4 right-4 w-3 h-3 rounded-full bg-[#5c4a33] flex items-center justify-center"><div class="w-full h-0.5 bg-[#4a3b29] rotate-45"></div></div>
+                        <div class="absolute bottom-4 left-4 w-3 h-3 rounded-full bg-[#5c4a33] flex items-center justify-center"><div class="w-full h-0.5 bg-[#4a3b29] rotate-45"></div></div>
+                        <div class="absolute bottom-4 right-4 w-3 h-3 rounded-full bg-[#5c4a33] flex items-center justify-center"><div class="w-full h-0.5 bg-[#4a3b29] rotate-45"></div></div>
+
+                        <div class="text-center text-[#3d3021] font-serif tracking-widest space-y-4">
+                            <div class="text-xs uppercase opacity-70">Maker</div>
+                            <div class="text-lg font-bold">THOMAS J. WRIGHT</div>
+                            <div class="w-12 h-px bg-[#3d3021] mx-auto opacity-30"></div>
+                            <div class="text-xs uppercase opacity-70">Source</div>
+                            <div class="text-sm font-mono">52.056° N, 2.716° W<br>HEREFORDSHIRE, UK</div>
+                            <div class="w-12 h-px bg-[#3d3021] mx-auto opacity-30"></div>
+                            <div class="text-xs uppercase opacity-70">Completion</div>
+                            <div class="text-lg font-bold">OCTOBER 14, 2025</div>
+                        </div>
+
+                        <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent opacity-30 pointer-events-none"></div>
+
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <span class="bg-sage-linen text-sage-black px-6 py-3 uppercase text-xs font-bold tracking-widest transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">Inspect Artifact</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full md:w-1/2 reveal">
+                    <span class="text-sage-moss font-bold tracking-widest uppercase text-xs mb-4 block">The Signature Experience</span>
+                    <h2 class="font-display text-4xl md:text-5xl mb-6">The Provenance Plate</h2>
+                    <p class="text-sage-linen text-lg leading-relaxed font-light mb-8">
+                        Every Sage & Stone kitchen includes a discrete brass plate installed on the frame. It is the ultimate proof of value. It's not a receipt; it's a birth certificate.
+                    </p>
+                    <ul class="space-y-4 mb-10">
+                        <li class="flex items-start">
+                            <span class="text-sage-terra mr-4 font-serif italic text-xl" aria-hidden="true">1.</span>
+                            <span class="text-sage-linen">The name of the Maker who crafted it.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-sage-terra mr-4 font-serif italic text-xl" aria-hidden="true">2.</span>
+                            <span class="text-sage-linen">The GPS coordinates of the timber source.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-sage-terra mr-4 font-serif italic text-xl" aria-hidden="true">3.</span>
+                            <span class="text-sage-linen">The exact date of completion.</span>
+                        </li>
+                    </ul>
+                    <button onclick="openProvenanceModal()" class="inline-block border-b-2 border-sage-terra text-sage-terra pb-1 hover:text-white transition-colors uppercase text-sm font-bold tracking-widest py-2">
+                        Inspect the Artifact
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- PORTFOLIO / CASE FILES -->
+    <section id="gallery" class="py-24 bg-sage-linen">
+        <div class="max-w-7xl mx-auto px-6 mb-12 flex justify-between items-end">
+            <div>
+                <span class="text-sage-terra font-accent italic text-2xl block mb-2">Portfolio</span>
+                <h2 class="font-display text-4xl text-sage-black">Case Files</h2>
+            </div>
+            <a href="#" class="hidden md:block text-xs font-bold uppercase tracking-widest border-b border-sage-black/20 pb-1 hover:border-sage-terra transition-colors py-2">View Full Archive</a>
+        </div>
+
+        <div class="relative">
+            <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-sage-linen to-transparent pointer-events-none md:hidden z-10"></div>
+
+            <div class="flex overflow-x-auto md:grid md:grid-cols-3 gap-8 px-6 md:px-0 md:max-w-7xl md:mx-auto pb-8 md:pb-0 no-scrollbar snap-x snap-mandatory">
+
+                <!-- Case File 1 -->
+                <a href="#" class="block min-w-[85vw] md:min-w-0 relative group cursor-pointer snap-center reveal focus:outline-none focus:ring-4 focus:ring-sage-terra">
+                    <div class="aspect-[4/3] overflow-hidden bg-sage-oat mb-6">
+                        <!-- REPLACE: assets/case-study-1.jpg -->
+                        <img src="images/3hEGHI4b4gg.jpg" alt="The Kensington Commission kitchen view" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    </div>
+                    <div class="border-t border-sage-black/20 pt-4">
+                        <h3 class="font-display text-2xl text-sage-black mb-2 group-hover:text-sage-terra transition-colors">The Kensington Commission</h3>
+                        <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs font-display text-sage-black/70">
+                            <span>Constraint:</span> <span class="text-sage-black">Grade II Listed</span>
+                            <span>Material:</span> <span class="text-sage-black">Fumed Oak</span>
+                            <span>Outcome:</span> <span class="text-sage-black">Zero Alterations</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Case File 2 -->
+                <a href="#" class="block min-w-[85vw] md:min-w-0 relative group cursor-pointer snap-center reveal delay-100 focus:outline-none focus:ring-4 focus:ring-sage-terra">
+                    <div class="aspect-[4/3] overflow-hidden bg-sage-oat mb-6">
+                        <!-- REPLACE: assets/case-study-2.jpg -->
+                        <img src="images/Cw5_evbWyI.jpg" alt="The Cotswold Barn rustic kitchen" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    </div>
+                    <div class="border-t border-sage-black/20 pt-4">
+                        <h3 class="font-display text-2xl text-sage-black mb-2 group-hover:text-sage-terra transition-colors">The Cotswold Barn</h3>
+                        <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs font-display text-sage-black/70">
+                            <span>Constraint:</span> <span class="text-sage-black">Uneven Stone</span>
+                            <span>Material:</span> <span class="text-sage-black">Reclaimed Elm</span>
+                            <span>Outcome:</span> <span class="text-sage-black">Scribed to Fit</span>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Case File 3 -->
+                <a href="#" class="block min-w-[85vw] md:min-w-0 relative group cursor-pointer snap-center reveal delay-200 focus:outline-none focus:ring-4 focus:ring-sage-terra">
+                    <div class="aspect-[4/3] overflow-hidden bg-sage-oat mb-6">
+                        <!-- REPLACE: assets/case-study-3.jpg -->
+                        <img src="images/VgyN_CWXQVM.jpg" alt="The Georgian Townhouse minimalistic kitchen" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                    </div>
+                    <div class="border-t border-sage-black/20 pt-4">
+                        <h3 class="font-display text-2xl text-sage-black mb-2 group-hover:text-sage-terra transition-colors">The Georgian Townhouse</h3>
+                        <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-xs font-display text-sage-black/70">
+                            <span>Constraint:</span> <span class="text-sage-black">Awkward Chimney</span>
+                            <span>Material:</span> <span class="text-sage-black">Painted Poplar</span>
+                            <span>Outcome:</span> <span class="text-sage-black">Seamless Wrap</span>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURED STORY / CASE STUDY -->
+    <section class="py-24 bg-sage-oat/20 border-y border-sage-black/5">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+                <!-- Image Side (Visual Proof) -->
+                <div class="relative reveal group cursor-pointer">
+                    <div class="aspect-[4/5] overflow-hidden bg-sage-black/5 relative shadow-xl">
+                         <!-- REPLACE: assets/featured-story.jpg -->
+                         <img src="images/FqIffctHI.jpg"
+                              alt="The Surrey Commission interior detail"
+                              class="object-cover w-full h-full transition-transform duration-1000 group-hover:scale-105">
+
+                         <!-- Project Badge -->
+                         <div class="absolute bottom-0 left-0 bg-white/95 backdrop-blur-md px-6 py-4 border-t border-r border-sage-black/10">
+                            <span class="block font-mono text-[10px] text-sage-terra uppercase tracking-widest mb-1">Project 042</span>
+                            <span class="block font-display text-lg text-sage-black">The Surrey Commission</span>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Story Side (Substance) -->
+                <div class="reveal delay-100 pl-0 lg:pl-10">
+                     <svg class="w-12 h-12 text-sage-terra/40 mb-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.017 21L14.017 18C14.017 16.0547 15.192 15.125 16.643 15.125C17.653 15.125 18.257 15.4687 18.257 16.5C18.257 17.5 17.519 18.5 16.643 18.5C15.936 18.5 15.463 18.0625 15.463 18.0625L15.362 19.5312C15.362 19.5312 16.299 21 18.29 21C20.682 21 22 18.6562 22 16.0312C22 13.0625 19.66 11 16.744 11C13.896 11 12 13.0937 12 16.375C12 18.8437 12.876 21 14.017 21ZM5.01699 21L5.01699 18C5.01699 16.0547 6.19199 15.125 7.64299 15.125C8.65299 15.125 9.25699 15.4687 9.25699 16.5C9.25699 17.5 8.51899 18.5 7.64299 18.5C6.93599 18.5 6.46299 18.0625 6.46299 18.0625L6.36199 19.5312C6.36199 19.5312 7.29899 21 9.28999 21C11.682 21 13 18.6562 13 16.0312C13 13.0625 10.66 11 7.74399 11C4.89599 11 2.99999 13.0937 2.99999 16.375C2.99999 18.8437 3.87599 21 5.01699 21Z"/></svg>
+
+                     <blockquote class="font-display text-3xl md:text-4xl text-sage-black leading-tight mb-10">
+                        "Sage & Stone didn't just build a kitchen. They uncovered the heart of our home that we didn't know was missing."
+                     </blockquote>
+
+                     <div class="border-l-2 border-sage-terra/30 pl-6 mb-10 space-y-6">
+                        <div>
+                            <strong class="block text-sage-terra text-xs uppercase tracking-widest mb-1">The Challenge</strong>
+                            <p class="text-sage-label leading-relaxed font-light">
+                                A Grade II listed farmhouse with uneven flagstone floors and strict preservation orders forbidding wall attachments.
+                            </p>
+                        </div>
+                        <div>
+                            <strong class="block text-sage-terra text-xs uppercase tracking-widest mb-1">The Outcome</strong>
+                            <p class="text-sage-label leading-relaxed font-light">
+                                Hand-scribed freestanding cabinetry that floats above the original stone, creating a seamless dialogue between 1650 and 2025.
+                            </p>
+                        </div>
+                     </div>
+
+                     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-t border-sage-black/10 pt-8">
+                         <div>
+                            <cite class="not-italic block font-bold text-sm text-sage-black">Eleanor & James</cite>
+                            <span class="block text-xs text-sage-meta mt-1">Haslemere, UK</span>
+                         </div>
+
+                         <a href="#" class="group inline-flex items-center text-xs font-bold uppercase tracking-widest border-b-2 border-sage-black pb-2 hover:text-sage-terra hover:border-sage-terra transition-colors">
+                            View Full Case Study
+                            <svg class="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                         </a>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<!-- END PORTFOLIO -->
+
+<!-- BEGIN FAQ -->
+<section class="py-24 md:py-32 bg-sage-linen relative">
+    <div class="max-w-4xl mx-auto px-6">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 border-b-2 border-sage-black/10 pb-6 reveal">
+            <div>
+                <span class="font-accent italic text-2xl text-sage-terra mb-2 block">The Methodology</span>
+                <h2 class="font-display text-4xl md:text-5xl text-sage-black">Commission Protocols</h2>
+            </div>
+            <span class="font-mono text-xs uppercase tracking-widest text-sage-black/40 mt-4 md:mt-0">Ref: 2025-OP-V4</span>
+        </div>
+        <div class="divide-y divide-sage-black/10 border-b border-sage-black/10">
+            
+            <div class="group reveal">
+                <button class="w-full text-left flex items-start justify-between py-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-terra focus-visible:ring-inset"
+                        onclick="toggleAccordion('faq1')"
+                        aria-expanded="false"
+                        aria-controls="faq1"
+                        id="btn-faq1">
+                    <div class="flex items-baseline gap-6 md:gap-10">
+                        <span class="font-mono text-xs text-sage-terra font-bold shrink-0">01.</span>
+                        <span class="font-display text-2xl md:text-3xl text-sage-black group-hover:text-sage-terra transition-colors pr-4">Timeline & Pacing</span>
+                    </div>
+                    <span id="icon-faq1" class="font-display text-3xl font-light text-sage-black/30 transition-all duration-500 shrink-0 origin-center" aria-hidden="true">+</span>
+                </button>
+                
+                <div id="faq1" class="accordion-grid-wrapper" role="region" aria-labelledby="btn-faq1">
+                    <div class="accordion-inner pl-0 md:pl-[4.5rem]">
+                        <p class="pb-8 font-accent text-xl text-sage-label leading-relaxed italic max-w-2xl">
+                            "Speed is the enemy of legacy. We require a minimum of 14 weeks from the drying of the timber to the final polish. We do not rush the seasoning process, nor do we apologize for the time it takes to achieve perfection."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group reveal">
+                <button class="w-full text-left flex items-start justify-between py-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-terra focus-visible:ring-inset"
+                        onclick="toggleAccordion('faq2')"
+                        aria-expanded="false"
+                        aria-controls="faq2"
+                        id="btn-faq2">
+                    <div class="flex items-baseline gap-6 md:gap-10">
+                        <span class="font-mono text-xs text-sage-terra font-bold shrink-0">02.</span>
+                        <span class="font-display text-2xl md:text-3xl text-sage-black group-hover:text-sage-terra transition-colors pr-4">Material Provenance</span>
+                    </div>
+                    <span id="icon-faq2" class="font-display text-3xl font-light text-sage-black/30 transition-all duration-500 shrink-0 origin-center" aria-hidden="true">+</span>
+                </button>
+                
+                <div id="faq2" class="accordion-grid-wrapper" role="region" aria-labelledby="btn-faq2">
+                    <div class="accordion-inner pl-0 md:pl-[4.5rem]">
+                        <p class="pb-8 font-accent text-xl text-sage-label leading-relaxed italic max-w-2xl">
+                            "Specific provenance is our promise. We don't just say 'European Oak.' We provide the GPS coordinates of the specific felled tree in Herefordshire. We prioritize sustainable, local timber that has acclimated to the British climate."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="group reveal">
+                <button class="w-full text-left flex items-start justify-between py-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-terra focus-visible:ring-inset"
+                        onclick="toggleAccordion('faq3')"
+                        aria-expanded="false"
+                        aria-controls="faq3"
+                        id="btn-faq3">
+                    <div class="flex items-baseline gap-6 md:gap-10">
+                        <span class="font-mono text-xs text-sage-terra font-bold shrink-0">03.</span>
+                        <span class="font-display text-2xl md:text-3xl text-sage-black group-hover:text-sage-terra transition-colors pr-4">International Works</span>
+                    </div>
+                    <span id="icon-faq3" class="font-display text-3xl font-light text-sage-black/30 transition-all duration-500 shrink-0 origin-center" aria-hidden="true">+</span>
+                </button>
+                
+                <div id="faq3" class="accordion-grid-wrapper" role="region" aria-labelledby="btn-faq3">
+                    <div class="accordion-inner pl-0 md:pl-[4.5rem]">
+                        <p class="pb-8 font-accent text-xl text-sage-label leading-relaxed italic max-w-2xl">
+                            "While our workshop remains in Herefordshire, we accept a limited number of international commissions annually. In these instances, our own installation team travels with the joinery to ensure our standards are maintained globally."
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+<!-- END FAQ -->
+
+<!-- BEGIN FOOTER CTA / CONTACT FORM -->
+<section id="contact" class="py-24 md:py-32 bg-sage-black text-sage-linen relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]"></div>
+
+    <div class="max-w-6xl mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+        
+        <div class="reveal pt-8">
+            <span class="text-sage-terra font-mono text-xs uppercase tracking-widest mb-6 block">Commission Availability: Limited</span>
+            <h2 class="font-display text-5xl md:text-6xl lg:text-7xl text-sage-linen mb-8 leading-none">
+                Begin the <br/><span class="italic text-sage-moss">conversation.</span>
+            </h2>
+            <p class="font-accent text-xl md:text-2xl text-sage-oat/70 leading-relaxed max-w-md mb-12">
+                We accept 12 commissions per year to ensure absolute focus. To discuss your project, please detail your requirements.
+            </p>
+            
+            <div class="py-8 border-t border-sage-linen/10">
+                <p class="font-mono text-xs uppercase tracking-widest text-sage-terra mb-2">Studio Direct Line</p>
+                <a href="tel:+442012345678" class="font-display text-2xl hover:text-sage-terra transition-colors">+44 (0) 20 1234 5678</a>
+            </div>
+        </div>
+
+        <div class="reveal delay-100">
+            <form id="enquiry-form" class="space-y-8 md:space-y-12" novalidate>
+                
+                <div class="relative group z-0">
+                    <input type="text" id="name" name="name" required placeholder=" " 
+                           aria-describedby="name-error" aria-invalid="false"
+                           class="peer block w-full bg-transparent border-0 border-b-2 border-sage-linen/20 py-4 text-2xl font-display text-sage-linen focus:outline-none focus:border-sage-terra focus:ring-0 transition-colors placeholder-transparent">
+                    <label for="name" 
+                           class="absolute text-sage-linen/40 text-sm uppercase tracking-widest duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-sage-terra peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 cursor-text">
+                        Your Name
+                    </label>
+                    <p id="name-error" class="hidden text-sage-terra text-xs mt-2 font-mono uppercase tracking-widest" role="alert">Please enter your name.</p>
+                </div>
+
+                <div class="relative group z-0">
+                    <input type="email" id="email" name="email" required placeholder=" " 
+                           aria-describedby="email-error" aria-invalid="false"
+                           class="peer block w-full bg-transparent border-0 border-b-2 border-sage-linen/20 py-4 text-2xl font-display text-sage-linen focus:outline-none focus:border-sage-terra focus:ring-0 transition-colors placeholder-transparent">
+                    <label for="email" 
+                           class="absolute text-sage-linen/40 text-sm uppercase tracking-widest duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-sage-terra peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 cursor-text">
+                        Email Address
+                    </label>
+                    <p id="email-error" class="hidden text-sage-terra text-xs mt-2 font-mono uppercase tracking-widest" role="alert">Please enter a valid email.</p>
+                </div>
+
+                <div class="relative group z-0">
+                   <label for="interest" class="block text-xs uppercase tracking-widest text-sage-linen/40 mb-2">I am interested in</label>
+                   <select id="interest" name="interest" class="w-full bg-sage-black border-0 border-b-2 border-sage-linen/20 py-3 text-xl font-display text-sage-linen focus:outline-none focus:border-sage-terra focus:ring-0 transition-colors cursor-pointer hover:text-sage-terra">
+                        <option>Full Kitchen Commission</option>
+                        <option>Restoration Project</option>
+                        <option>Freestanding Furniture</option>
+                        <option>Press / Other</option>
+                   </select>
+                </div>
+
+                <div class="relative group z-0">
+                    <textarea id="message" name="message" rows="3" required placeholder=" " 
+                              aria-describedby="message-error" aria-invalid="false"
+                              class="peer block w-full bg-transparent border-0 border-b-2 border-sage-linen/20 py-4 text-xl font-body font-light text-sage-linen focus:outline-none focus:border-sage-terra focus:ring-0 transition-colors placeholder-transparent resize-none"></textarea>
+                    <label for="message" 
+                           class="absolute text-sage-linen/40 text-sm uppercase tracking-widest duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:left-0 peer-focus:text-sage-terra peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 cursor-text">
+                        Project Details
+                    </label>
+                    <p id="message-error" class="hidden text-sage-terra text-xs mt-2 font-mono uppercase tracking-widest" role="alert">Please provide some details.</p>
+                </div>
+
+                <div class="pt-8">
+                    <button type="submit" class="w-full md:w-auto group relative inline-flex items-center justify-center px-10 py-5 overflow-hidden font-bold text-sage-black transition-all duration-300 bg-sage-linen hover:bg-white focus:outline-none focus:ring-2 focus:ring-sage-terra focus:ring-offset-2 focus:ring-offset-sage-black">
+                        <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-white rounded-full group-hover:w-80 group-hover:h-80 opacity-20"></span>
+                        <span class="relative uppercase tracking-[0.2em] text-xs">Submit Request</span>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</section>
+
+</main>
+
+
+    <!-- FOOTER -->
+<footer class="bg-sage-black text-sage-linen pt-20 pb-10 border-t border-sage-moss/20">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+            <!-- Brand -->
+            <div class="col-span-1 md:col-span-1">
+                <div class="font-display text-2xl font-bold tracking-tight text-white mb-6">
+                    SAGE & STONE
+                </div>
+                <!-- Contrast Fix: text-sage-footer-primary -->
+                <p class="text-sage-footer-primary text-sm font-light leading-relaxed mb-6">
+                    We curate the room your great-grandchildren will fight over. <br>Building against trends since 2025.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-sage-footer-primary hover:text-white transition-colors p-2" aria-label="Follow us on Instagram">
+                         <!-- Simple generic social icon -->
+                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Nav 1 -->
+            <div>
+                <h4 class="text-white text-xs uppercase tracking-widest mb-6">Explore</h4>
+                <!-- Contrast Fix: text-sage-footer-primary -->
+                <ul class="space-y-3 text-sm text-sage-footer-primary">
+                    <li><a href="about.html" class="hover:text-sage-terra transition-colors py-1 block">Who We Are</a></li>
+                    <li><a href="services.html" class="hover:text-sage-terra transition-colors py-1 block">What We Do</a></li>
+                    <li><a href="blog_list.html" class="hover:text-sage-terra transition-colors py-1 block">Journal</a></li>
+                    <li><a href="portfolio.html" class="hover:text-sage-terra transition-colors py-1 block">Our Portfolio</a></li>
+                </ul>
+            </div>
+
+            <!-- Nav 2 -->
+            <div>
+                <h4 class="text-white text-xs uppercase tracking-widest mb-6">Legal</h4>
+                <ul class="space-y-3 text-sm text-sage-footer-primary">
+                    <li><a href="terms.html" class="hover:text-sage-terra transition-colors py-1 block">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-sage-terra transition-colors py-1 block">Terms of Service</a></li>
+                    <li><a href="terms.html" class="hover:text-sage-terra transition-colors py-1 block">Accessibility</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact -->
+            <div>
+                <h4 class="text-white text-xs uppercase tracking-widest mb-6">Studio</h4>
+                <address class="text-sm text-sage-footer-primary not-italic space-y-2">
+                    <p>The Old Joinery, Unit 4</p>
+                    <p>Herefordshire, HR4 9AB</p>
+                    <p class="pt-4"><a href="mailto:hello@sageandstone.com" class="hover:text-white transition-colors py-1 inline-block">hello@sageandstone.com</a></p>
+                    <p><a href="tel:+442012345678" class="hover:text-white transition-colors py-1 inline-block">+44 (0) 20 1234 5678</a></p>
+                </address>
+            </div>
+        </div>
+
+        <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-sage-footer-secondary">
+            <p>&copy; 2025 Sage & Stone. All rights reserved.</p>
+            <p class="mt-2 md:mt-0">Design Pattern: Guardian V1.4 (Atelier)</p>
+        </div>
+    </div>
+</footer>
+
+<!-- PROVENANCE MODAL OVERLAY -->
+<div id="provenance-modal" class="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300" aria-hidden="true" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div id="provenance-modal-backdrop" class="absolute inset-0 bg-sage-black/80 backdrop-blur-sm transition-opacity duration-300" onclick="closeProvenanceModal()"></div>
+
+    <!-- Modal Content -->
+    <div id="provenance-modal-content" class="relative bg-sage-linen max-w-2xl w-full mx-4 shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
+        <div class="grid grid-cols-1 md:grid-cols-2">
+            <!-- Visual Side -->
+            <div class="bg-sage-oat p-8 flex items-center justify-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cardboard-flat.png')] opacity-10 mix-blend-multiply"></div>
+                <!-- Plate Graphic (Mini) -->
+                <div class="aspect-[4/3] w-full bg-[#8B7355] relative shadow-lg flex items-center justify-center p-4 border-2 border-[#6e5a40]">
+                    <div class="absolute top-2 left-2 w-2 h-2 rounded-full bg-[#5c4a33]"></div>
+                    <div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#5c4a33]"></div>
+                    <div class="absolute bottom-2 left-2 w-2 h-2 rounded-full bg-[#5c4a33]"></div>
+                    <div class="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-[#5c4a33]"></div>
+                    <div class="text-center text-[#3d3021] font-serif tracking-widest space-y-2 scale-90">
+                        <div class="text-[10px] uppercase opacity-70">Maker</div>
+                        <div class="text-sm font-bold">THOMAS J. WRIGHT</div>
+                        <div class="w-8 h-px bg-[#3d3021] mx-auto opacity-30"></div>
+                        <div class="text-[10px] uppercase opacity-70">Source</div>
+                        <div class="text-[10px] font-mono">52.056° N, 2.716° W</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Side -->
+            <div class="p-8">
+                <div class="flex justify-between items-start mb-6">
+                    <h3 class="font-display text-2xl text-sage-black">Artifact Dossier</h3>
+                    <button onclick="closeProvenanceModal()" class="text-sage-black/50 hover:text-sage-terra transition-colors focus:outline-none focus:ring-2 focus:ring-sage-terra rounded">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="space-y-6 font-mono text-sm text-sage-black/80">
+                    <div>
+                        <span class="block text-xs uppercase tracking-widest text-sage-terra mb-1">Maker Profile</span>
+                        <p class="font-sans">Thomas J. Wright</p>
+                        <p class="text-xs text-sage-black/60">Master Joiner, 28 years exp.</p>
+                    </div>
+                    <div>
+                        <span class="block text-xs uppercase tracking-widest text-sage-terra mb-1">Material Source</span>
+                        <p class="font-sans">Herefordshire Estate (Fallen Oak)</p>
+                        <p class="text-xs text-sage-black/60">Salvaged: Oct 2024</p>
+                    </div>
+                    <div>
+                        <span class="block text-xs uppercase tracking-widest text-sage-terra mb-1">Guarantee ID</span>
+                        <p class="font-sans">#S&S-2025-014-LDN</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-sage-black/10">
+                    <a href="#contact" onclick="closeProvenanceModal()" class="block w-full text-center bg-sage-black text-sage-linen py-3 uppercase text-xs font-bold tracking-widest hover:bg-sage-terra transition-colors">
+                        Request Sample Dossier
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="static/script.js"></script>
+</body>
+</html>

@@ -37,7 +37,7 @@ def test_get_theme_returns_valid_manifest() -> None:
 
     assert isinstance(theme, ThemeManifest)
     assert theme.slug == "theme_a"
-    assert theme.name == "Theme A (Skeleton)"
+    assert theme.name == "Sage & Stone"
     assert theme.description
     assert theme.version == "1.0.0"
 

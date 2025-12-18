@@ -108,7 +108,7 @@ def test_service_index_page_can_be_created_with_intro_content() -> None:
 
 def test_service_index_page_template_path() -> None:
     """ServiceIndexPage uses the correct template path."""
-    assert ServiceIndexPage.template == "sum_core/service_index_page.html"
+    assert ServiceIndexPage.template == "theme/service_index_page.html"
 
 
 def test_service_index_page_subpage_types() -> None:
@@ -350,7 +350,7 @@ def test_service_page_can_be_created_with_body_content() -> None:
 
 def test_service_page_template_path() -> None:
     """ServicePage uses the correct template path."""
-    assert ServicePage.template == "sum_core/service_page.html"
+    assert ServicePage.template == "theme/service_page.html"
 
 
 def test_service_page_has_hero_block_returns_false_when_no_body() -> None:

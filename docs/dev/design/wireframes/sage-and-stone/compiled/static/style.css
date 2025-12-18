@@ -1,0 +1,163 @@
+/* Custom Utilities */
+body {
+    background-color: #F7F5F1; /* Linen */
+    color: #1A2F23; /* Obsidian Green */
+}
+
+/* Updated Reveal Animation: Slower timing (0.8s) for more weight */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    outline: 3px solid #A0563B;
+    outline-offset: 2px;
+    border-color: #A0563B;
+}
+
+input[aria-invalid="true"], textarea[aria-invalid="true"], select[aria-invalid="true"] {
+    border-color: #A0563B;
+    border-width: 2px;
+    background-color: #fff5f5;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Banner Grid Animation */
+.banner-grid-wrapper {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.banner-grid-wrapper.closed {
+    grid-template-rows: 0fr;
+}
+.banner-inner {
+    overflow: hidden;
+}
+
+/* MEGA MENU INTERACTIONS */
+.mega-panel {
+    position: absolute;
+    top: 100%; /* Starts exactly at bottom of trigger */
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    width: 100vw;
+    max-width: 80rem;
+    opacity: 0;
+    pointer-events: none; /* Ignore mouse when hidden */
+    transition: opacity 200ms ease-out, transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 100; /* Ensure on top */
+    padding-top: 1.5rem; /* THE BRIDGE: Invisible padding connects trigger to content */
+}
+
+.mega-panel[data-open="true"] {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto; /* Enable mouse when open */
+}
+
+/* MOBILE MENU SLIDE TRANSITIONS */
+.menu-level {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Parallax helper for hero media (actual parallax is applied via JS) */
+.attachment-fixed {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Blog Typography Overrides (Optional refinement) */
+.prose blockquote p:first-of-type::before {
+    content: none;
+}
+.prose blockquote p:last-of-type::after {
+    content: none;
+}
+
+/* New: Hover effects limited to desktop (pointer: fine) to prevent sticky hover on mobile */
+@media (hover: hover) and (pointer: fine) {
+    .img-zoom-container img {
+        transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .group:hover .img-zoom-container img {
+        transform: scale(1.05);
+    }
+}
+
+/* New: Accessibility Focus Indicators */
+button:focus-visible, a:focus-visible {
+    outline: 2px solid #A0563B; /* sage-terra */
+    outline-offset: 4px;
+    border-radius: 2px;
+}
+
+/* New: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .reveal {
+        transition: none;
+        opacity: 1;
+        transform: none;
+    }
+    .img-zoom-container img {
+        transition: none;
+    }
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ACCORDION/FAQ STYLES */
+
+/* The Accordion Physics Engine */
+.accordion-grid-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* The Open State */
+.accordion-grid-wrapper.open {
+    grid-template-rows: 1fr;
+}
+
+/* The Content Container (Must be overflow-hidden for the trick to work) */
+.accordion-inner {
+    overflow: hidden !important;
+    min-height: 0 !important;
+    visibility: hidden;
+    transition: visibility 0.5s;
+}
+
+.accordion-grid-wrapper.open .accordion-inner {
+    visibility: visible;
+}

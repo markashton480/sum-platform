@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About The Guardians | Sage & Stone</title>
+    <meta name="description" content="Sage & Stone curates the room your great-grandchildren will fight over. Bespoke kitchens built for generations, not trends.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: {
+                        ipad: '970px',
+                        desktop: '1200px',
+                    },
+                    colors: {
+                        sage: {
+                            black: '#1A2F23', // Obsidian Green
+                            moss: '#6B8F71',  // Moss
+                            terra: '#A0563B', // Burnished Terra
+                            oat: '#EDE8E0',   // Oat
+                            linen: '#F7F5F1', // Linen
+                            darkmoss: '#4A6350',
+
+                            // Contrast-Safe Tokens
+                            'label': '#4A5D50',
+                            'meta': '#5A6E5F',
+                            'footer-primary': '#D1D9D4',
+                            'footer-secondary': '#A3B0A8',
+                        }
+                    },
+                    fontFamily: {
+                        display: ['"Playfair Display"', 'serif'],
+                        body: ['"Lato"', 'sans-serif'],
+                        accent: ['"Crimson Text"', 'serif'],
+                    },
+                    spacing: {
+                        '128': '32rem',
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    },
+                    // Typography Config for Blog Articles
+                    typography: (theme) => ({
+                        DEFAULT: {
+                            css: {
+                                color: theme('colors.sage.black'),
+                                fontFamily: theme('fontFamily.accent'),
+                                '--tw-prose-headings': theme('colors.sage.black'),
+                                '--tw-prose-links': theme('colors.sage.terra'),
+                                h1: { fontFamily: theme('fontFamily.display') },
+                                h2: { fontFamily: theme('fontFamily.display'), fontWeight: '400' },
+                                h3: { fontFamily: theme('fontFamily.display'), fontSize: '1.5em' },
+                                blockquote: {
+                                    fontFamily: theme('fontFamily.display'),
+                                    fontStyle: 'italic',
+                                    borderLeftColor: theme('colors.sage.terra'),
+                                    backgroundColor: theme('colors.sage.linen'),
+                                    padding: '1rem',
+                                },
+                            },
+                        },
+                    }),
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body class="antialiased font-body text-sage-black selection:bg-sage-terra selection:text-white relative">
+
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[70] focus:bg-sage-terra focus:text-white focus:px-6 focus:py-3 focus:font-bold focus:shadow-lg focus:outline-none">
+        Skip to main content
+    </a>
+
+    <!-- FIXED TOP STACK -->
+<div id="top-stack" class="fixed top-0 left-0 right-0 z-50 flex flex-col w-full">
+
+    <!-- ALERT BANNER -->
+    <div id="banner-wrapper" class="banner-grid-wrapper bg-sage-terra text-white will-change-[grid-template-rows] pointer-events-auto">
+        <div class="banner-inner">
+            <div class="max-w-7xl mx-auto flex justify-between items-center relative py-3 px-4">
+                <div class="w-8 md:hidden"></div>
+                <div class="text-xs md:text-sm font-bold tracking-widest uppercase text-center flex-grow">
+                    Waitlist open for Autumn 2026 Commissions
+                </div>
+                <button id="banner-close-btn" type="button" class="ml-4 px-3 py-1 hover:bg-white/20 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white min-h-[32px] flex items-center justify-center group" aria-label="Close announcement">
+                    <span class="hidden md:inline text-xs mr-2 font-bold tracking-wider opacity-80 group-hover:opacity-100">DISMISS</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header id="main-header" class="w-full border-b border-transparent group/header py-6 transition-[background-color,padding,backdrop-filter,box-shadow] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[background-color,padding] pointer-events-auto relative">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+            <!-- Logo -->
+            <a href="index.html" class="group z-50 py-2 relative">
+                <div class="font-display text-2xl md:text-3xl font-bold tracking-tight leading-none text-sage-linen group-[.scrolled]/header:text-sage-black transition-colors duration-300">
+                    SAGE & STONE
+                </div>
+                <div class="text-[10px] uppercase tracking-[0.3em] text-sage-oat group-[.scrolled]/header:text-sage-moss group-hover:text-sage-terra transition-colors duration-300">
+                    Est. 2025
+                </div>
+            </a>
+
+            <!-- Desktop Nav -->
+            <nav class="hidden desktop:flex items-center space-x-12 relative z-[60]" aria-label="Main Navigation">
+                <!-- Desktop: Nested Mega Menu Trigger -->
+<div class="relative" id="kitchens-nav">
+    <button id="kitchens-trigger"
+            class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent focus:outline-none flex items-center gap-1"
+            aria-expanded="false"
+            aria-controls="mega-menu-kitchens">
+        Kitchens
+        <svg class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+    </button>
+
+    <!-- Mega Menu Panel -->
+    <div id="mega-menu-kitchens" class="mega-panel hidden" role="menu" aria-hidden="true">
+        <!-- Menu Content Box -->
+        <div class="bg-sage-linen shadow-2xl border-t border-sage-black/10 mx-6 grid grid-cols-12 overflow-hidden rounded-sm">
+            <!-- Col 1: Main Categories -->
+            <div class="col-span-3 bg-sage-oat/30 p-8 border-r border-sage-black/5">
+                <span class="block text-xs font-mono text-sage-terra uppercase tracking-widest mb-6">Collections</span>
+                <ul class="space-y-4">
+                    <li><a href="#" class="block font-display text-xl text-sage-black hover:text-sage-terra transition-colors">The Heritage</a></li>
+                    <li><a href="#" class="block font-display text-xl text-sage-black/60 hover:text-sage-terra transition-colors">The Modernist</a></li>
+                    <li><a href="#" class="block font-display text-xl text-sage-black/60 hover:text-sage-terra transition-colors">The Utility</a></li>
+                </ul>
+            </div>
+            <!-- Col 2: Sub & Sub-Sub Categories -->
+            <div class="col-span-5 p-8">
+                <div class="grid grid-cols-2 gap-8">
+                    <div>
+                        <span class="block text-xs font-bold text-sage-black uppercase tracking-widest mb-4 border-b border-sage-black/10 pb-2">Fitted Joinery</span>
+                        <ul class="space-y-3 text-sm text-sage-label">
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Larder Cupboards</a></li>
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Island Units</a></li>
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Wall Cabinetry</a></li>
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Boot Room Storage</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <span class="block text-xs font-bold text-sage-black uppercase tracking-widest mb-4 border-b border-sage-black/10 pb-2">Freestanding</span>
+                        <ul class="space-y-3 text-sm text-sage-label">
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Prep Tables</a></li>
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Butcher Blocks</a></li>
+                            <li><a href="#" class="hover:text-sage-terra hover:underline decoration-1 underline-offset-4 transition-all">Dressers</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Col 3: Visual Feature -->
+            <div class="col-span-4 relative bg-sage-black overflow-hidden group/image">
+                <img src="images/delberghe-4jxGry4pXtc.jpg" alt="Featured Kitchen" class="absolute inset-0 w-full h-full object-cover opacity-80 group-hover/image:scale-105 transition-transform duration-700">
+                <div class="absolute bottom-0 left-0 p-8 w-full bg-gradient-to-t from-black/80 to-transparent">
+                    <span class="text-sage-oat font-mono text-xs uppercase tracking-widest block mb-1">Featured</span>
+                    <span class="text-white font-display text-2xl block">The Cotswold Barn</span>
+                    <a href="#" class="text-sage-terra text-xs uppercase tracking-widest mt-2 inline-block border-b border-sage-terra pb-0.5 hover:text-white hover:border-white transition-colors">Explore Case Study</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                <a href="services.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">What We Do</a>
+                <a href="about.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Who We Are</a>
+                <a href="portfolio.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Portfolio</a>
+                <a href="blog_list.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Journal</a>
+
+                <a href="index.html#contact" class="px-8 py-4 text-sm font-bold uppercase tracking-widest transition-colors duration-300
+                    text-sage-linen border border-sage-linen/30 backdrop-blur-sm
+                    hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen
+                    group-[.scrolled]/header:border-sage-black group-[.scrolled]/header:text-sage-black
+                    group-[.scrolled]/header:bg-transparent group-[.scrolled]/header:backdrop-blur-none
+                    group-[.scrolled]/header:hover:bg-sage-black group-[.scrolled]/header:hover:text-sage-linen group-[.scrolled]/header:hover:border-sage-black">
+                    Enquire
+                </a>
+            </nav>
+
+            <!-- iPad Nav (infra only; you can flesh this out later) -->
+            <nav class="hidden ipad:flex desktop:hidden items-center space-x-10 relative z-[60]" aria-label="Main Navigation">
+                <a href="portfolio.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Kitchens</a>
+                <a href="services.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">What We Do</a>
+                <a href="index.html#provenance" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Provenance</a>
+                <a href="blog_list.html" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">Journal</a>
+
+                <a href="index.html#contact" class="px-7 py-3.5 text-sm font-bold uppercase tracking-widest transition-colors duration-300
+                    text-sage-linen border border-sage-linen/30 backdrop-blur-sm
+                    hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen
+                    group-[.scrolled]/header:border-sage-black group-[.scrolled]/header:text-sage-black
+                    group-[.scrolled]/header:bg-transparent group-[.scrolled]/header:backdrop-blur-none
+                    group-[.scrolled]/header:hover:bg-sage-black group-[.scrolled]/header:hover:text-sage-linen group-[.scrolled]/header:hover:border-sage-black">
+                    Enquire
+                </a>
+            </nav>
+
+            <!-- Mobile Actions -->
+            <div class="ipad:hidden flex items-center gap-4 relative z-[60]">
+                <a href="index.html#contact" class="px-5 py-3 text-xs font-bold uppercase tracking-widest transition-colors duration-300
+                    text-sage-linen border border-sage-linen/30 backdrop-blur-sm
+                    hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen
+                    group-[.scrolled]/header:border-sage-black group-[.scrolled]/header:text-sage-black
+                    group-[.scrolled]/header:bg-transparent group-[.scrolled]/header:backdrop-blur-none
+                    group-[.scrolled]/header:hover:bg-sage-black group-[.scrolled]/header:hover:text-sage-linen group-[.scrolled]/header:hover:border-sage-black">
+                    Enquire
+                </a>
+
+                <button id="mobile-menu-btn" type="button" class="relative w-12 h-12 flex flex-col justify-center items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-sage-terra touch-manipulation" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+                    <span class="block w-8 h-0.5 bg-sage-linen group-[.scrolled]/header:bg-sage-black transition-all duration-300 origin-center"></span>
+                    <span class="block w-8 h-0.5 bg-sage-linen group-[.scrolled]/header:bg-sage-black transition-all duration-300 origin-center"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+</div>
+<!-- Mobile Nav Overlay (Drill Down System) -->
+<!-- Kept outside the header so `position: fixed` is truly viewport-fixed (not scoped by header effects like backdrop-filter). -->
+<div id="mobile-menu" class="fixed inset-0 bg-sage-linen transform translate-x-full transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] z-[80] overflow-hidden pointer-events-none" aria-hidden="true" style="padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom);">
+
+    <!-- Close Button -->
+    <button id="mobile-menu-close-btn" type="button" class="absolute top-6 right-6 z-50 w-12 h-12 flex items-center justify-center text-sage-black/60 hover:text-sage-terra transition-colors focus:outline-none focus:ring-2 focus:ring-sage-terra touch-manipulation" aria-label="Close menu">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+    </button>
+
+    <!-- SLIDING CONTAINER: Deterministic width (300vw) + CSS Variable transform -->
+    <div id="mobile-menu-slider" class="h-full flex transition-transform duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]" style="width: 300vw; transform: translateX(var(--menu-x, 0vw));">
+
+        <!-- LEVEL 1: TOP MENU (100vw width) -->
+        <div class="h-full w-[100vw] flex-none overflow-y-auto px-6 pt-24 pb-12 flex flex-col items-center text-center space-y-8">
+            <button type="button" data-menu-level="1" class="font-display text-4xl text-sage-black hover:text-sage-terra transition-colors py-2 flex items-center gap-2 group touch-manipulation">
+                Kitchens
+                <svg class="w-6 h-6 text-sage-terra opacity-50 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+            <a href="about.html" class="font-display text-4xl text-sage-black hover:text-sage-terra transition-colors py-2" data-menu-close>About Us</a>
+            <a href="services.html" class="font-display text-4xl text-sage-black hover:text-sage-terra transition-colors py-2" data-menu-close>How We Work</a>
+            <a href="portfolio.html" class="font-display text-4xl text-sage-black hover:text-sage-terra transition-colors py-2" data-menu-close>Portfolio</a>
+            <a href="blog_list.html" class="font-display text-4xl text-sage-black hover:text-sage-terra transition-colors py-2" data-menu-close>Journal</a>
+            <a href="index.html#contact" class="font-display text-4xl text-sage-terra hover:text-sage-black transition-colors italic py-2 mt-8" data-menu-close>Begin Commission</a>
+        </div>
+
+        <!-- LEVEL 2: KITCHEN CATEGORIES (100vw width) -->
+        <div class="h-full w-[100vw] flex-none overflow-y-auto px-6 pt-24 pb-12 flex flex-col items-start">
+            <button type="button" data-menu-level="0" class="mb-12 text-xs uppercase tracking-widest text-sage-terra flex items-center gap-2 font-bold touch-manipulation">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Back to Menu
+            </button>
+            <span class="block text-xs font-mono text-sage-black/40 uppercase tracking-widest mb-6">Select Collection</span>
+
+            <button type="button" data-menu-level="2" class="w-full text-left font-display text-3xl text-sage-black border-b border-sage-black/10 py-6 flex justify-between items-center group touch-manipulation">
+                The Heritage
+                <svg class="w-5 h-5 text-sage-terra opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+            <a href="#" class="w-full text-left font-display text-3xl text-sage-black/60 border-b border-sage-black/10 py-6 flex justify-between items-center">
+                The Modernist
+            </a>
+            <a href="#" class="w-full text-left font-display text-3xl text-sage-black/60 border-b border-sage-black/10 py-6 flex justify-between items-center">
+                The Utility
+            </a>
+        </div>
+
+        <!-- LEVEL 3: HERITAGE SUB-ITEMS (100vw width) -->
+        <div class="h-full w-[100vw] flex-none overflow-y-auto px-6 pt-24 pb-12 flex flex-col items-start">
+            <button type="button" data-menu-level="1" class="mb-12 text-xs uppercase tracking-widest text-sage-terra flex items-center gap-2 font-bold touch-manipulation">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                Back to Collections
+            </button>
+            <h3 class="font-display text-3xl text-sage-black mb-8">The Heritage</h3>
+
+            <div class="space-y-8 w-full">
+                <div>
+                    <span class="block text-xs font-bold text-sage-black/40 uppercase tracking-widest mb-4">Fitted Joinery</span>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="block text-lg text-sage-black hover:text-sage-terra border-l-2 border-transparent hover:border-sage-terra pl-4 -ml-4 transition-all" data-menu-close>Larder Cupboards</a></li>
+                        <li><a href="#" class="block text-lg text-sage-black hover:text-sage-terra border-l-2 border-transparent hover:border-sage-terra pl-4 -ml-4 transition-all" data-menu-close>Island Units</a></li>
+                        <li><a href="#" class="block text-lg text-sage-black hover:text-sage-terra border-l-2 border-transparent hover:border-sage-terra pl-4 -ml-4 transition-all" data-menu-close>Wall Cabinetry</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <span class="block text-xs font-bold text-sage-black/40 uppercase tracking-widest mb-4">Freestanding</span>
+                    <ul class="space-y-4">
+                        <li><a href="#" class="block text-lg text-sage-black hover:text-sage-terra border-l-2 border-transparent hover:border-sage-terra pl-4 -ml-4 transition-all" data-menu-close>Prep Tables</a></li>
+                        <li><a href="#" class="block text-lg text-sage-black hover:text-sage-terra border-l-2 border-transparent hover:border-sage-terra pl-4 -ml-4 transition-all" data-menu-close>Butcher Blocks</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    
+<main id="main">
+    <a href="#founder-letter" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-sage-terra focus:text-white focus:font-bold focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-white">
+        Skip to main content
+    </a>
+
+    <section class="bg-sage-black text-sage-linen pt-40 pb-24 border-b border-sage-linen/10 relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-10 mix-blend-overlay pointer-events-none"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-sage-black/80 pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-end">
+                <div class="lg:col-span-8">
+                    <span class="block text-sage-terra font-accent italic text-xl mb-6 reveal">The Guardians</span>
+                    <h1 class="font-display text-5xl md:text-7xl lg:text-8xl text-sage-linen leading-[0.9] mb-8 reveal delay-100">
+                        Craftsmanship built on <br>
+                        <span class="italic text-sage-moss">obsession.</span>
+                    </h1>
+                </div>
+                <div class="lg:col-span-4 lg:pb-4 reveal delay-200">
+                    <p class="font-light text-lg leading-relaxed text-sage-linen/95 mb-8">
+                        We are not just builders; we are guests in your sanctuary. Sage & Stone was founded on a simple rebellion: that a kitchen should be built to outlive its owner.
+                    </p>
+                    
+                    <a href="#team" 
+                       class="inline-block border border-sage-linen/50 text-sage-linen px-10 py-5 text-sm font-bold uppercase tracking-widest hover:bg-sage-linen hover:text-sage-black transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-terra focus-visible:ring-offset-2 focus-visible:ring-offset-sage-black">
+                        Meet the Makers
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="founder-letter" class="py-24 bg-sage-linen relative">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 items-center">
+                
+                <div class="lg:col-span-5 order-2 lg:order-1 relative group reveal">
+                    <div class="aspect-[4/5] overflow-hidden relative bg-sage-oat border border-sage-black/5">
+                        <img src="images/photo-1556157382-97eda2d62296.avif" 
+                             alt="Thomas J. Wright, Founder of Sage & Stone, inspecting raw oak timber in the Herefordshire workshop" 
+                             class="w-full h-full object-cover hover:scale-105 transition-transform duration-1000">
+                        
+                        <div class="absolute bottom-6 left-6 bg-sage-linen/95 backdrop-blur-md px-6 py-4 border-l-2 border-sage-terra shadow-lg">
+                            <span class="block font-display text-xl text-sage-black">Thomas J. Wright</span>
+                            <span class="block font-mono text-sm uppercase tracking-widest text-sage-label mt-1">Master Joiner & Founder</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 order-1 lg:order-2 reveal delay-100">
+                    <svg class="w-10 h-10 text-sage-terra mb-8 opacity-80" fill="currentColor" viewBox="0 0 24 24" role="img" aria-label="Quote icon"><path d="M14.017 21L14.017 18C14.017 16.0547 15.192 15.125 16.643 15.125C17.653 15.125 18.257 15.4687 18.257 16.5C18.257 17.5 17.519 18.5 16.643 18.5C15.936 18.5 15.463 18.0625 15.463 18.0625L15.362 19.5312C15.362 19.5312 16.299 21 18.29 21C20.682 21 22 18.6562 22 16.0312C22 13.0625 19.66 11 16.744 11C13.896 11 12 13.0937 12 16.375C12 18.8437 12.876 21 14.017 21ZM5.01699 21L5.01699 18C5.01699 16.0547 6.19199 15.125 7.64299 15.125C8.65299 15.125 9.25699 15.4687 9.25699 16.5C9.25699 17.5 8.51899 18.5 7.64299 18.5C6.93599 18.5 6.46299 18.0625 6.46299 18.0625L6.36199 19.5312C6.36199 19.5312 7.29899 21 9.28999 21C11.682 21 13 18.6562 13 16.0312C13 13.0625 10.66 11 7.74399 11C4.89599 11 2.99999 13.0937 2.99999 16.375C2.99999 18.8437 3.87599 21 5.01699 21Z"/></svg>
+                    
+                    <h2 class="font-display text-4xl lg:text-5xl text-sage-black mb-8 leading-tight">
+                        "I was tired of seeing kitchens designed to last a warranty, not a lifetime."
+                    </h2>
+                    
+                    <div class="prose prose-lg text-sage-black font-light leading-relaxed mb-8">
+                        <p>
+                            Twenty years ago, I walked onto a job site in London. I saw "luxury" cabinets being unloaded—they were stapled MDF wrapped in a veneer that would peel before the decade was out. They were expensive, but they weren't valuable.
+                        </p>
+                        <p>
+                            I started Sage & Stone to fight the disposable culture of our industry. We don't chase trends because good design doesn't expire. We build the way they used to: with solid timber, proper joinery, and an obsessive attention to the parts you <em>don't</em> see.
+                        </p>
+                        <p>
+                            When we hand over the keys, I put my name on the frame. That isn't branding. That is a personal guarantee that this room will serve your great-grandchildren.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-4">
+                        <span class="font-accent italic text-2xl text-sage-terra">Thomas J. Wright</span>
+                        <div class="h-px w-24 bg-sage-black/40"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-sage-black text-sage-linen border-y border-sage-moss/20">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-3xl mx-auto mb-16 reveal">
+                <span class="block text-sage-moss font-bold uppercase tracking-widest text-xs mb-4">Etiquette & Standards</span>
+                <h2 class="font-display text-3xl md:text-5xl mb-6">Respect for the Sanctuary</h2>
+                <p class="text-sage-linen/90 font-light text-lg leading-relaxed">
+                    We understand that we are working in your home, not just a building site. Our reputation is built on how we leave the room, not just how we build it.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+                <div class="text-center px-4 reveal delay-100 border-b md:border-b-0 md:border-r border-sage-linen/10 pb-12 md:pb-0">
+                    <span class="block font-mono text-3xl text-sage-terra mb-6">01.</span>
+                    <h3 class="font-display text-2xl mb-4">The Invisible Tradesmen</h3>
+                    <p class="text-sage-linen/90 font-light leading-relaxed text-base">
+                        Noise is managed. Music is forbidden. We aim to be felt in the quality of the finish, but not heard during the process. We interact politely with neighbors and ensure parking is discreet.
+                    </p>
+                </div>
+
+                <div class="text-center px-4 reveal delay-200 border-b md:border-b-0 md:border-r border-sage-linen/10 pb-12 md:pb-0">
+                    <span class="block font-mono text-3xl text-sage-terra mb-6">02.</span>
+                    <h3 class="font-display text-2xl mb-4">Obsessive Cleanliness</h3>
+                    <p class="text-sage-linen/90 font-light leading-relaxed text-base">
+                        We don't leave a mess for "tomorrow." The site is cleaned down every single evening. You should never come home to dust. We treat your floors and art with the same care we treat our timber.
+                    </p>
+                </div>
+
+                <div class="text-center px-4 reveal delay-300">
+                    <span class="block font-mono text-3xl text-sage-terra mb-6">03.</span>
+                    <h3 class="font-display text-2xl mb-4">Vetted & Permanent</h3>
+                    <p class="text-sage-linen/90 font-light leading-relaxed text-base">
+                        We do not pick up subcontractors on the morning of the job. Every member of the Sage & Stone team is fully employed, vetted, and trained in our specific code of conduct. You will know their names.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="team" class="py-24 bg-sage-linen">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+                <div class="reveal">
+                    <span class="block text-sage-terra font-accent italic text-xl mb-2">The Artisans</span>
+                    <h2 class="font-display text-4xl text-sage-black">Meet the Makers</h2>
+                </div>
+                <div class="reveal delay-100 mt-4 md:mt-0">
+                    <span class="text-sage-black font-mono text-sm uppercase tracking-widest bg-sage-oat/50 px-4 py-2 rounded-sm">
+                        Combined Experience: 142 Years
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
+                
+                <div class="reveal">
+                    <div class="aspect-[4/5] overflow-hidden bg-sage-oat mb-6 relative shadow-sm">
+                        <img src="images/photo-1581092921461-eab62e97a78e.avif" alt="Portrait of James E, Head of Installation" class="w-full h-full object-cover">
+                        <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-sage-black/90 to-transparent p-4">
+                            <span class="text-white text-sm font-light italic">"Measure twice, cut once."</span>
+                        </div>
+                    </div>
+                    <h3 class="font-display text-3xl text-sage-black mb-1">James E.</h3>
+                    <span class="block text-sm uppercase tracking-widest text-sage-terra font-bold mb-3">Head of Installation</span>
+                    <p class="text-base text-sage-black font-light leading-relaxed">With Sage & Stone for 12 years. Specialist in listed building fitting.</p>
+                </div>
+
+                <div class="reveal delay-100">
+                    <div class="aspect-[4/5] overflow-hidden bg-sage-oat mb-6 relative shadow-sm">
+                        <img src="images/photo-1590642916589-592bca10dfbf.avif" alt="Portrait of Sarah M, Finishing Specialist" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="font-display text-3xl text-sage-black mb-1">Sarah M.</h3>
+                    <span class="block text-sm uppercase tracking-widest text-sage-terra font-bold mb-3">Finishing Specialist</span>
+                    <p class="text-base text-sage-black font-light leading-relaxed">Restoration expert. Can color-match a 200-year-old beam perfectly.</p>
+                </div>
+
+                <div class="reveal delay-200">
+                    <div class="aspect-[4/5] overflow-hidden bg-sage-oat mb-6 relative shadow-sm">
+                        <img src="images/photo-1535713875002-d1d0cf377fde.avif" alt="Portrait of David R, Master Joiner" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="font-display text-3xl text-sage-black mb-1">David R.</h3>
+                    <span class="block text-sm uppercase tracking-widest text-sage-terra font-bold mb-3">Master Joiner</span>
+                    <p class="text-base text-sage-black font-light leading-relaxed">3rd Generation carpenter. Specializes in dovetail drawer construction.</p>
+                </div>
+
+                <div class="reveal delay-300">
+                    <div class="aspect-[4/5] overflow-hidden bg-sage-oat mb-6 relative shadow-sm">
+                        <img src="images/photo-1633332755192-727a05c4013d.avif" alt="Portrait of Marcus T, Project Director" class="w-full h-full object-cover">
+                    </div>
+                    <h3 class="font-display text-3xl text-sage-black mb-1">Marcus T.</h3>
+                    <span class="block text-sm uppercase tracking-widest text-sage-terra font-bold mb-3">Project Director</span>
+                    <p class="text-base text-sage-black font-light leading-relaxed">Your single point of contact. Ensures timelines are met, not just suggested.</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-24 bg-sage-oat/30 border-t border-sage-black/5">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                
+                <div class="order-2 md:order-1 reveal">
+                    <span class="block text-sage-terra font-accent italic text-xl mb-4">The Workshop</span>
+                    <h2 class="font-display text-3xl md:text-4xl text-sage-black mb-6">
+                        From Herefordshire to Your Home.
+                    </h2>
+                    <p class="text-sage-black font-light text-lg mb-6 leading-relaxed">
+                        We are proud of our local roots. Our workshop is located in the heart of Herefordshire, surrounded by the very forests that supply much of our oak.
+                    </p>
+                    <ul class="space-y-4 mb-10">
+                        <li class="flex items-start text-sage-label text-base">
+                            <span class="w-2 h-2 bg-sage-terra rounded-full mr-4 mt-2 flex-shrink-0"></span>
+                            Serving the South East & Home Counties for 20 years.
+                        </li>
+                        <li class="flex items-start text-sage-label text-base">
+                            <span class="w-2 h-2 bg-sage-terra rounded-full mr-4 mt-2 flex-shrink-0"></span>
+                            Open workshop policy - clients are welcome to view their kitchen being made.
+                        </li>
+                        <li class="flex items-start text-sage-label text-base">
+                            <span class="w-2 h-2 bg-sage-terra rounded-full mr-4 mt-2 flex-shrink-0"></span>
+                            Deep relationships with local sawmills and stone yards.
+                        </li>
+                    </ul>
+                    <a href="portfolio.html" class="inline-block border-b-2 border-sage-black text-sage-black py-3 hover:text-sage-terra hover:border-sage-terra transition-colors uppercase text-sm font-bold tracking-widest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage-terra focus-visible:ring-offset-2 focus-visible:ring-offset-sage-oat">
+                        See Our Work in the Area
+                    </a>
+                </div>
+
+                <div class="order-1 md:order-2 relative reveal delay-100">
+                    <div class="aspect-square md:aspect-[4/3] bg-sage-black overflow-hidden relative shadow-2xl">
+                         <img src="images/photo-1617103996702-96ff29b1c467.avif" alt="The Sage & Stone Workshop interior" class="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-1000">
+                         
+                         <div class="absolute top-0 right-0 bg-white p-6 border-b border-l border-sage-black/10">
+                            <div class="text-center border border-sage-black/20 p-2">
+                                <span class="block text-[10px] uppercase tracking-widest text-sage-black/60 font-bold">Est.</span>
+                                <span class="block font-display text-2xl text-sage-black">2005</span>
+                            </div>
+                         </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section class="py-32 bg-sage-linen relative overflow-hidden">
+        <div class="max-w-4xl mx-auto px-6 text-center relative z-10 reveal">
+            <svg class="w-12 h-12 text-sage-terra mx-auto mb-8 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            
+            <h2 class="font-display text-3xl md:text-5xl text-sage-black mb-8 leading-tight">
+                "We treat your home as if it were our own—<br><span class="italic text-sage-terra">perhaps even better.</span>"
+            </h2>
+            
+            <p class="text-sage-label font-light mb-12 max-w-lg mx-auto text-lg">
+                Ready to meet the team? We offer a complimentary site consultation to assess the space and discuss feasibility.
+            </p>
+
+            <a href="index.html#contact" class="bg-sage-terra text-white px-12 py-5 text-sm uppercase tracking-[0.2em] font-bold hover:bg-sage-black transition-colors duration-300 shadow-xl inline-block focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sage-terra/50 focus-visible:ring-offset-2">
+                Request a Site Visit
+            </a>
+        </div>
+    </section>
+
+</main>
+
+
+    <!-- FOOTER -->
+<footer class="bg-sage-black text-sage-linen pt-20 pb-10 border-t border-sage-moss/20">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+            <!-- Brand -->
+            <div class="col-span-1 md:col-span-1">
+                <div class="font-display text-2xl font-bold tracking-tight text-white mb-6">
+                    SAGE & STONE
+                </div>
+                <!-- Contrast Fix: text-sage-footer-primary -->
+                <p class="text-sage-footer-primary text-sm font-light leading-relaxed mb-6">
+                    We curate the room your great-grandchildren will fight over. <br>Building against trends since 2025.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-sage-footer-primary hover:text-white transition-colors p-2" aria-label="Follow us on Instagram">
+                         <!-- Simple generic social icon -->
+                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Nav 1 -->
+            <div>
+                <h4 class="text-white text-xs uppercase tracking-widest mb-6">Explore</h4>
+                <!-- Contrast Fix: text-sage-footer-primary -->
+                <ul class="space-y-3 text-sm text-sage-footer-primary">
+                    <li><a href="about.html" class="hover:text-sage-terra transition-colors py-1 block">Who We Are</a></li>
+                    <li><a href="services.html" class="hover:text-sage-terra transition-colors py-1 block">What We Do</a></li>
+                    <li><a href="blog_list.html" class="hover:text-sage-terra transition-colors py-1 block">Journal</a></li>
+                    <li><a href="portfolio.html" class="hover:text-sage-terra transition-colors py-1 block">Our Portfolio</a></li>
+                </ul>
+            </div>
+
+            <!-- Nav 2 -->
+            <div>
+                <h4 class="text-white text-xs uppercase tracking-widest mb-6">Legal</h4>
+                <ul class="space-y-3 text-sm text-sage-footer-primary">
+                    <li><a href="terms.html" class="hover:text-sage-terra transition-colors py-1 block">Privacy Policy</a></li>
+                    <li><a href="terms.html" class="hover:text-sage-terra transition-colors py-1 block">Terms of Service</a></li>
+                    <li><a href="terms.html" class="hover:text-sage-terra transition-colors py-1 block">Accessibility</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact -->
+            <div>
+                <h4 class="text-white text-xs uppercase tracking-widest mb-6">Studio</h4>
+                <address class="text-sm text-sage-footer-primary not-italic space-y-2">
+                    <p>The Old Joinery, Unit 4</p>
+                    <p>Herefordshire, HR4 9AB</p>
+                    <p class="pt-4"><a href="mailto:hello@sageandstone.com" class="hover:text-white transition-colors py-1 inline-block">hello@sageandstone.com</a></p>
+                    <p><a href="tel:+442012345678" class="hover:text-white transition-colors py-1 inline-block">+44 (0) 20 1234 5678</a></p>
+                </address>
+            </div>
+        </div>
+
+        <div class="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-sage-footer-secondary">
+            <p>&copy; 2025 Sage & Stone. All rights reserved.</p>
+            <p class="mt-2 md:mt-0">Design Pattern: Guardian V1.4 (Atelier)</p>
+        </div>
+    </div>
+</footer>
+
+<!-- PROVENANCE MODAL OVERLAY -->
+<div id="provenance-modal" class="fixed inset-0 z-[100] flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300" aria-hidden="true" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div id="provenance-modal-backdrop" class="absolute inset-0 bg-sage-black/80 backdrop-blur-sm transition-opacity duration-300" onclick="closeProvenanceModal()"></div>
+
+    <!-- Modal Content -->
+    <div id="provenance-modal-content" class="relative bg-sage-linen max-w-2xl w-full mx-4 shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300">
+        <div class="grid grid-cols-1 md:grid-cols-2">
+            <!-- Visual Side -->
+            <div class="bg-sage-oat p-8 flex items-center justify-center relative overflow-hidden">
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cardboard-flat.png')] opacity-10 mix-blend-multiply"></div>
+                <!-- Plate Graphic (Mini) -->
+                <div class="aspect-[4/3] w-full bg-[#8B7355] relative shadow-lg flex items-center justify-center p-4 border-2 border-[#6e5a40]">
+                    <div class="absolute top-2 left-2 w-2 h-2 rounded-full bg-[#5c4a33]"></div>
+                    <div class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#5c4a33]"></div>
+                    <div class="absolute bottom-2 left-2 w-2 h-2 rounded-full bg-[#5c4a33]"></div>
+                    <div class="absolute bottom-2 right-2 w-2 h-2 rounded-full bg-[#5c4a33]"></div>
+                    <div class="text-center text-[#3d3021] font-serif tracking-widest space-y-2 scale-90">
+                        <div class="text-[10px] uppercase opacity-70">Maker</div>
+                        <div class="text-sm font-bold">THOMAS J. WRIGHT</div>
+                        <div class="w-8 h-px bg-[#3d3021] mx-auto opacity-30"></div>
+                        <div class="text-[10px] uppercase opacity-70">Source</div>
+                        <div class="text-[10px] font-mono">52.056° N, 2.716° W</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Side -->
+            <div class="p-8">
+                <div class="flex justify-between items-start mb-6">
+                    <h3 class="font-display text-2xl text-sage-black">Artifact Dossier</h3>
+                    <button onclick="closeProvenanceModal()" class="text-sage-black/50 hover:text-sage-terra transition-colors focus:outline-none focus:ring-2 focus:ring-sage-terra rounded">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <div class="space-y-6 font-mono text-sm text-sage-black/80">
+                    <div>
+                        <span class="block text-xs uppercase tracking-widest text-sage-terra mb-1">Maker Profile</span>
+                        <p class="font-sans">Thomas J. Wright</p>
+                        <p class="text-xs text-sage-black/60">Master Joiner, 28 years exp.</p>
+                    </div>
+                    <div>
+                        <span class="block text-xs uppercase tracking-widest text-sage-terra mb-1">Material Source</span>
+                        <p class="font-sans">Herefordshire Estate (Fallen Oak)</p>
+                        <p class="text-xs text-sage-black/60">Salvaged: Oct 2024</p>
+                    </div>
+                    <div>
+                        <span class="block text-xs uppercase tracking-widest text-sage-terra mb-1">Guarantee ID</span>
+                        <p class="font-sans">#S&S-2025-014-LDN</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-sage-black/10">
+                    <a href="#contact" onclick="closeProvenanceModal()" class="block w-full text-center bg-sage-black text-sage-linen py-3 uppercase text-xs font-bold tracking-widest hover:bg-sage-terra transition-colors">
+                        Request Sample Dossier
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="static/script.js"></script>
+</body>
+</html>

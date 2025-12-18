@@ -212,7 +212,7 @@ def test_standard_page_has_hero_block_returns_true_for_hero_gradient() -> None:
 
 def test_standard_page_template_path() -> None:
     """StandardPage uses the correct template path."""
-    assert StandardPage.template == "sum_core/standard_page.html"
+    assert StandardPage.template == "theme/standard_page.html"
 
 
 def test_standard_page_is_leaf_page() -> None:
@@ -229,7 +229,7 @@ def test_standard_page_parent_page_types() -> None:
 
 
 def test_standard_page_template_uses_sum_core_base() -> None:
-    """StandardPage template extends sum_core/base.html."""
+    """theme/standard_page.html renders via sum_core fallback base."""
     root = Page.get_first_root_node()
     standard_page = StandardPage(title="Template Test", slug="template-test")
     root.add_child(instance=standard_page)
@@ -240,7 +240,7 @@ def test_standard_page_template_uses_sum_core_base() -> None:
 
     request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
     template = Template(
-        "{% extends 'sum_core/standard_page.html' %}"
+        "{% extends 'theme/standard_page.html' %}"
         "{% block content %}<p>Test Content</p>{% endblock %}"
     )
     rendered = template.render(RequestContext(request, {"page": standard_page}))

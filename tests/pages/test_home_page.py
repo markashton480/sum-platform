@@ -53,6 +53,7 @@ def test_home_page_cannot_create_second_homepage() -> None:
 
 
 def test_home_page_template_uses_sum_core_base() -> None:
+    """theme/home_page.html renders via sum_core fallback base."""
     root = Page.get_first_root_node()
     homepage = HomePage(title="Test Home", slug="test-home-template")
     root.add_child(instance=homepage)
@@ -63,7 +64,7 @@ def test_home_page_template_uses_sum_core_base() -> None:
 
     request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
     template = Template(
-        "{% extends 'sum_core/home_page.html' %}"
+        "{% extends 'theme/home_page.html' %}"
         "{% block content %}<p>Content</p>{% endblock %}"
     )
     rendered = template.render(RequestContext(request, {"page": homepage}))
@@ -98,7 +99,7 @@ def test_home_page_renders_streamfield_content() -> None:
     site.save()
 
     request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
-    template = Template("{% extends 'sum_core/home_page.html' %}")
+    template = Template("{% extends 'theme/home_page.html' %}")
     rendered = template.render(RequestContext(request, {"page": homepage}))
 
     # Check that the page renders without errors
@@ -165,7 +166,7 @@ def test_home_page_renders_service_cards() -> None:
     site.save()
 
     request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
-    template = Template("{% extends 'sum_core/home_page.html' %}")
+    template = Template("{% extends 'theme/home_page.html' %}")
     rendered = template.render(RequestContext(request, {"page": homepage}))
 
     # Check content

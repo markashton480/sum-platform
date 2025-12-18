@@ -55,7 +55,8 @@ class HomePage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         "sum_core_pages.ServiceIndexPage",
     ]
 
-    template: str = "sum_core/home_page.html"
+    # v0.6 rendering contract: themes own page templates under theme/
+    template: str = "theme/home_page.html"
 
     class Meta:
         verbose_name = "Home Page"

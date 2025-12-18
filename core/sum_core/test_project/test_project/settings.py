@@ -110,10 +110,17 @@ MIDDLEWARE: list[str] = [
 
 ROOT_URLCONF: str = "test_project.urls"
 
+THEME_TEMPLATES_DIR: Path = BASE_DIR / "theme" / "active" / "templates"
+CLIENT_OVERRIDES_DIR: Path = BASE_DIR / "templates" / "overrides"
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        # Per v0.6 theme-owned rendering contract:
+        # 1. theme/active/templates (client-owned theme)
+        # 2. templates/overrides (client overrides)
+        # 3. APP_DIRS fallback (sum_core/templates/theme)
+        "DIRS": [THEME_TEMPLATES_DIR, CLIENT_OVERRIDES_DIR],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -196,11 +203,20 @@ for directory in [BASE_DIR, *BASE_DIR.parents]:
     if (directory / ".git").exists():
         _REPO_ROOT = directory
         break
+
 MEDIA_ROOT: Path = Path(
     os.getenv("SUM_MEDIA_ROOT", str((_REPO_ROOT or Path.cwd()) / "media"))
 )
 
 STATIC_URL: str = "/static/"
+
+STATICFILES_DIRS: list[Path] = [
+    # Per v0.6 theme-owned rendering contract: client-owned theme statics first.
+    BASE_DIR
+    / "theme"
+    / "active"
+    / "static",
+]
 
 DEFAULT_AUTO_FIELD: str = "django.db.models.BigAutoField"
 

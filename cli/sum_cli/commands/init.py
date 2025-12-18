@@ -19,6 +19,9 @@ from sum_cli.util import (
 
 BoilerplateSource = Path | importlib.resources.abc.Traversable
 
+MIN_COMPILED_CSS_BYTES = 5 * 1024
+LEGACY_CORE_CSS_REF = "/static/sum_core/css/main.css"
+
 
 def _resolve_boilerplate_source() -> BoilerplateSource:
     """
@@ -71,7 +74,47 @@ def _create_env_from_example(project_root: Path) -> None:
         shutil.copy2(env_example, env_file)
 
 
-def _copy_theme_to_active(project_root: Path, theme_slug: str) -> None:
+def _theme_contract_errors(theme_root: Path, theme_slug: str) -> list[str]:
+    errors: list[str] = []
+
+    manifest_path = theme_root / "theme.json"
+    if not manifest_path.is_file():
+        errors.append(f"Missing theme manifest: {manifest_path}")
+
+    base_template = theme_root / "templates" / "theme" / "base.html"
+    if not base_template.is_file():
+        errors.append(f"Missing theme base template: {base_template}")
+
+    compiled_css = theme_root / "static" / theme_slug / "css" / "main.css"
+    if not compiled_css.is_file():
+        errors.append(f"Missing compiled CSS: {compiled_css}")
+    else:
+        try:
+            size = compiled_css.stat().st_size
+        except OSError as e:
+            errors.append(f"Could not stat compiled CSS: {compiled_css} ({e})")
+        else:
+            if size <= MIN_COMPILED_CSS_BYTES:
+                errors.append(
+                    f"Compiled CSS is unexpectedly small ({size} bytes): {compiled_css}"
+                )
+
+        try:
+            css_text = compiled_css.read_text(encoding="utf-8", errors="ignore")
+        except OSError as e:
+            errors.append(f"Could not read compiled CSS: {compiled_css} ({e})")
+        else:
+            if LEGACY_CORE_CSS_REF in css_text:
+                errors.append(
+                    f"Compiled CSS references legacy core stylesheet ({LEGACY_CORE_CSS_REF}): {compiled_css}"
+                )
+
+    return errors
+
+
+def _copy_theme_to_active(
+    project_root: Path, theme_source_dir: Path, theme_slug: str
+) -> None:
     """
     Copy the selected theme from sum_core into the client's theme/active/ directory.
 
@@ -83,16 +126,39 @@ def _copy_theme_to_active(project_root: Path, theme_slug: str) -> None:
         theme_slug: Theme identifier to copy
 
     Raises:
-        ImportError: If sum_core is not installed
         RuntimeError: If theme copy fails
     """
-    import sum_core.themes
-
-    theme_source_dir = sum_core.themes.get_theme_dir(theme_slug)
     theme_target_dir = project_root / "theme" / "active"
+    theme_parent_dir = theme_target_dir.parent
+    theme_parent_dir.mkdir(parents=True, exist_ok=True)
 
-    # Copy the entire theme directory
-    shutil.copytree(theme_source_dir, theme_target_dir, dirs_exist_ok=False)
+    if theme_target_dir.exists():
+        raise RuntimeError(f"Theme target directory already exists: {theme_target_dir}")
+
+    tmp_dir = (
+        theme_parent_dir
+        / f".active_tmp_{theme_slug}_{datetime.now(UTC).timestamp():.0f}"
+    )
+    if tmp_dir.exists():
+        raise RuntimeError(
+            f"Refusing to overwrite temporary theme directory: {tmp_dir}"
+        )
+
+    try:
+        ignore = shutil.ignore_patterns("node_modules")
+        shutil.copytree(theme_source_dir, tmp_dir, dirs_exist_ok=False, ignore=ignore)
+
+        errors = _theme_contract_errors(tmp_dir, theme_slug)
+        if errors:
+            raise RuntimeError(
+                "Theme copy validation failed:\n  - " + "\n  - ".join(errors)
+            )
+
+        tmp_dir.rename(theme_target_dir)
+    except Exception:
+        if tmp_dir.exists():
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+        raise
 
 
 def _write_theme_config(
@@ -137,6 +203,7 @@ def run_init(project_name: str, theme_slug: str = "theme_a") -> int:
         import sum_core.themes
 
         theme_manifest = sum_core.themes.get_theme(theme_slug)
+        theme_source_dir = sum_core.themes.get_theme_dir(theme_slug)
     except ImportError:
         print("[FAIL] sum_core is not installed or not importable.", file=sys.stderr)
         print("       Install sum_core: pip install -e ./core", file=sys.stderr)
@@ -150,6 +217,14 @@ def run_init(project_name: str, theme_slug: str = "theme_a") -> int:
         return 1
     except Exception as e:
         print(f"[FAIL] Failed to validate theme: {e}")
+        return 1
+
+    contract_errors = _theme_contract_errors(theme_source_dir, theme_slug)
+    if contract_errors:
+        print(f"[FAIL] Theme '{theme_slug}' is missing required files:")
+        for err in contract_errors:
+            print(f"       - {err}")
+        print("       Fix the theme files in sum_core before running init.")
         return 1
 
     try:
@@ -191,11 +266,15 @@ def run_init(project_name: str, theme_slug: str = "theme_a") -> int:
         _rename_project_package_dir(target_dir, naming)
         _replace_placeholders(target_dir, naming)
         _create_env_from_example(target_dir)
-        _copy_theme_to_active(target_dir, theme_slug)
+        _copy_theme_to_active(target_dir, theme_source_dir, theme_slug)
         _write_theme_config(target_dir, theme_slug, theme_manifest.version)
     except Exception as e:
-        print(f"[FAIL] Project created but failed to finalize rename/replace: {e}")
-        print(f"       You may need to delete: {target_dir}")
+        print(f"[FAIL] Project created but failed to finalize init: {e}")
+        try:
+            shutil.rmtree(target_dir)
+            print(f"       Cleaned up partial project: {target_dir}")
+        except Exception:
+            print(f"       You may need to delete: {target_dir}")
         return 1
 
     print("[OK] Project created.")

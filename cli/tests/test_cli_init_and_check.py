@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 import sys
 import time
@@ -138,3 +139,69 @@ def test_check_standalone_mode_fails_with_friendly_message(
         )
     finally:
         sys.path = original_path
+
+
+def test_check_fails_when_theme_compiled_css_missing(monkeypatch, capsys) -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+
+    unique_suffix = int(time.time() * 1000) % 100000
+    project_name = f"cli-theme-check-{unique_suffix}"
+
+    monkeypatch.chdir(repo_root)
+    project_root = repo_root / "clients" / project_name
+
+    try:
+        assert run_init(project_name) == 0
+
+        css_path = (
+            project_root
+            / "theme"
+            / "active"
+            / "static"
+            / "theme_a"
+            / "css"
+            / "main.css"
+        )
+        assert css_path.exists()
+        css_path.unlink()
+
+        monkeypatch.chdir(project_root)
+        exit_code = run_check()
+        captured = capsys.readouterr()
+
+        assert exit_code == 1
+        assert "Theme compiled CSS" in captured.out
+    finally:
+        if project_root.exists():
+            shutil.rmtree(project_root)
+
+
+def test_check_fails_when_theme_slug_mismatch(monkeypatch, capsys) -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+
+    unique_suffix = int(time.time() * 1000) % 100000
+    project_name = f"cli-theme-mismatch-{unique_suffix}"
+
+    monkeypatch.chdir(repo_root)
+    project_root = repo_root / "clients" / project_name
+
+    try:
+        assert run_init(project_name) == 0
+
+        # Break provenance to simulate a bad/partial theme install
+        theme_provenance = project_root / ".sum" / "theme.json"
+        config = json.loads(theme_provenance.read_text(encoding="utf-8"))
+        config["theme"] = "theme_b"
+        theme_provenance.write_text(
+            json.dumps(config, indent=2) + "\n", encoding="utf-8"
+        )
+
+        monkeypatch.chdir(project_root)
+        exit_code = run_check()
+        captured = capsys.readouterr()
+
+        assert exit_code == 1
+        assert "Theme slug match" in captured.out
+    finally:
+        if project_root.exists():
+            shutil.rmtree(project_root)

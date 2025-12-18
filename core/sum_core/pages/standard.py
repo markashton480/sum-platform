@@ -49,7 +49,8 @@ class StandardPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
     # StandardPage is a leaf content page - no child pages allowed
     subpage_types: list[str] = []
 
-    template: str = "sum_core/standard_page.html"
+    # v0.6 rendering contract: themes own page templates under theme/
+    template: str = "theme/standard_page.html"
 
     class Meta:
         verbose_name = "Standard Page"

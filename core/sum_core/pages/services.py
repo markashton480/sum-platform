@@ -50,7 +50,8 @@ class ServiceIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
     # Only allow ServicePage children
     subpage_types: list[str] = ["sum_core_pages.ServicePage"]
 
-    template: str = "sum_core/service_index_page.html"
+    # v0.6 rendering contract: themes own page templates under theme/
+    template: str = "theme/service_index_page.html"
 
     class Meta:
         verbose_name = "Service Index Page"
@@ -116,7 +117,8 @@ class ServicePage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
     # ServicePage is a leaf page - no children allowed
     subpage_types: list[str] = []
 
-    template: str = "sum_core/service_page.html"
+    # v0.6 rendering contract: themes own page templates under theme/
+    template: str = "theme/service_page.html"
 
     class Meta:
         verbose_name = "Service Page"

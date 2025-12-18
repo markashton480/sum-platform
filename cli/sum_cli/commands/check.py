@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 import importlib.util
+import json
 import os
 import re
 import sys
@@ -15,6 +16,9 @@ class CheckItem:
     ok: bool
     details: str = ""
 
+
+MIN_COMPILED_CSS_BYTES = 5 * 1024
+LEGACY_CORE_CSS_REF = "/static/sum_core/css/main.css"
 
 ENV_KEY_RE = re.compile(r"^([A-Z][A-Z0-9_]*)=(.*)$")
 SETDEFAULT_RE = re.compile(
@@ -65,6 +69,185 @@ def _infer_settings_module(project_dir: Path) -> str | None:
             return m.group(1).strip()
 
     return None
+
+
+def _read_json_file(path: Path) -> tuple[dict[str, object] | None, str]:
+    """
+    Read and parse a JSON file.
+
+    Returns:
+        (data, error) where data is None if parsing failed.
+    """
+    if not path.exists():
+        return None, f"Missing file: {path}"
+    try:
+        return json.loads(path.read_text(encoding="utf-8")), ""
+    except Exception as e:
+        return None, f"Invalid JSON in {path}: {e}"
+
+
+def _check_theme_contract(project_root: Path) -> list[CheckItem]:
+    results: list[CheckItem] = []
+
+    provenance_path = project_root / ".sum" / "theme.json"
+    provenance, provenance_err = _read_json_file(provenance_path)
+    expected_slug: str | None = None
+    if provenance is None:
+        results.append(
+            CheckItem(
+                name="Theme provenance",
+                ok=False,
+                details=f"{provenance_err} (expected from `sum init --theme <slug> ...`)",
+            )
+        )
+    else:
+        theme_value = provenance.get("theme")
+        if isinstance(theme_value, str) and theme_value.strip():
+            expected_slug = theme_value.strip()
+            results.append(
+                CheckItem(
+                    name="Theme provenance",
+                    ok=True,
+                    details=f".sum/theme.json ({expected_slug})",
+                )
+            )
+        else:
+            results.append(
+                CheckItem(
+                    name="Theme provenance",
+                    ok=False,
+                    details="Missing `theme` field in .sum/theme.json",
+                )
+            )
+
+    theme_root = project_root / "theme" / "active"
+    if not theme_root.is_dir():
+        results.append(
+            CheckItem(
+                name="Theme directory",
+                ok=False,
+                details=f"Missing {theme_root} (expected active theme install)",
+            )
+        )
+        return results
+    results.append(CheckItem(name="Theme directory", ok=True, details=str(theme_root)))
+
+    manifest_path = theme_root / "theme.json"
+    manifest, manifest_err = _read_json_file(manifest_path)
+    manifest_slug: str | None = None
+    if manifest is None:
+        results.append(CheckItem(name="Theme manifest", ok=False, details=manifest_err))
+    else:
+        slug_value = manifest.get("slug")
+        if isinstance(slug_value, str) and slug_value.strip():
+            manifest_slug = slug_value.strip()
+            if expected_slug and manifest_slug != expected_slug:
+                results.append(
+                    CheckItem(
+                        name="Theme slug match",
+                        ok=False,
+                        details=f".sum says '{expected_slug}' but theme/active says '{manifest_slug}'",
+                    )
+                )
+            else:
+                results.append(
+                    CheckItem(
+                        name="Theme slug match",
+                        ok=True,
+                        details=manifest_slug,
+                    )
+                )
+        else:
+            results.append(
+                CheckItem(
+                    name="Theme manifest",
+                    ok=False,
+                    details="Missing `slug` field in theme/active/theme.json",
+                )
+            )
+
+    base_template = theme_root / "templates" / "theme" / "base.html"
+    if base_template.is_file():
+        results.append(CheckItem(name="Theme base template", ok=True))
+    else:
+        results.append(
+            CheckItem(
+                name="Theme base template",
+                ok=False,
+                details=f"Missing {base_template}",
+            )
+        )
+
+    css_slug = expected_slug or manifest_slug
+    if not css_slug:
+        results.append(
+            CheckItem(
+                name="Theme compiled CSS",
+                ok=False,
+                details="Could not determine theme slug for static path (check .sum/theme.json and theme/active/theme.json)",
+            )
+        )
+        return results
+
+    compiled_css = theme_root / "static" / css_slug / "css" / "main.css"
+    if not compiled_css.is_file():
+        results.append(
+            CheckItem(
+                name="Theme compiled CSS",
+                ok=False,
+                details=f"Missing {compiled_css}",
+            )
+        )
+        return results
+
+    try:
+        size = compiled_css.stat().st_size
+    except OSError as e:
+        results.append(
+            CheckItem(
+                name="Theme compiled CSS",
+                ok=False,
+                details=f"Could not stat {compiled_css}: {e}",
+            )
+        )
+        return results
+
+    if size <= MIN_COMPILED_CSS_BYTES:
+        results.append(
+            CheckItem(
+                name="Theme compiled CSS",
+                ok=False,
+                details=f"File too small ({size} bytes): {compiled_css}",
+            )
+        )
+        return results
+
+    try:
+        css_text = compiled_css.read_text(encoding="utf-8", errors="ignore")
+    except OSError as e:
+        results.append(
+            CheckItem(
+                name="Theme compiled CSS",
+                ok=False,
+                details=f"Could not read {compiled_css}: {e}",
+            )
+        )
+        return results
+
+    if LEGACY_CORE_CSS_REF in css_text:
+        results.append(
+            CheckItem(
+                name="Theme compiled CSS",
+                ok=False,
+                details=f"References legacy stylesheet ({LEGACY_CORE_CSS_REF})",
+            )
+        )
+        return results
+
+    results.append(
+        CheckItem(name="Theme compiled CSS", ok=True, details=str(compiled_css))
+    )
+    return results
 
 
 def _urlconf_has_health_wiring(urlconf_module: str) -> tuple[bool, str]:
@@ -189,6 +372,8 @@ def run_check(project_dir: Path | None = None) -> int:
         _print_results(results)
         return 1
     results.append(CheckItem(name="Project root", ok=True, details=str(root)))
+
+    results.extend(_check_theme_contract(root))
 
     # Env vars: required keys come from .env.example assignments
     env_example_path = root / ".env.example"

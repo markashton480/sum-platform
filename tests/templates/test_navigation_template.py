@@ -47,7 +47,7 @@ class TestHeaderWiring:
 
         request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
         template = Template(
-            "{% extends 'sum_core/home_page.html' %}"
+            "{% extends 'theme/home_page.html' %}"
             "{% block content %}<p>Content</p>{% endblock %}"
         )
         rendered = template.render(RequestContext(request, {"page": homepage}))
@@ -98,7 +98,7 @@ class TestHeaderWiring:
 
         header_html = Template(
             "{% load branding_tags navigation_tags %}"
-            "{% include 'sum_core/includes/header.html' %}"
+            "{% include 'theme/includes/header.html' %}"
         ).render(context)
 
         assert "About" in header_html
@@ -118,7 +118,7 @@ class TestHeaderWiring:
 
         header_html = Template(
             "{% load branding_tags navigation_tags %}"
-            "{% include 'sum_core/includes/header.html' %}"
+            "{% include 'theme/includes/header.html' %}"
         ).render(context)
 
         assert 'id="menuBtn"' in header_html
@@ -175,7 +175,7 @@ class TestHeaderWiring:
 
         header_html = Template(
             "{% load branding_tags navigation_tags %}"
-            "{% include 'sum_core/includes/header.html' %}"
+            "{% include 'theme/includes/header.html' %}"
         ).render(context)
 
         assert "mobile-group" in header_html
@@ -205,7 +205,7 @@ class TestHeaderWiring:
 
         header_html = Template(
             "{% load branding_tags navigation_tags %}"
-            "{% include 'sum_core/includes/header.html' %}"
+            "{% include 'theme/includes/header.html' %}"
         ).render(context)
 
         assert "Get Quote" in header_html
@@ -226,7 +226,7 @@ class TestHeaderWiring:
 
         header_html = Template(
             "{% load branding_tags navigation_tags %}"
-            "{% include 'sum_core/includes/header.html' %}"
+            "{% include 'theme/includes/header.html' %}"
         ).render(context)
 
         # Fallback should show Home link
