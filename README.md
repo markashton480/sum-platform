@@ -4,6 +4,14 @@ SUM Platform is a Django/Wagtail foundation for quickly launching lead-focused w
 
 This README is the main “how the repo works” entrypoint. The consolidated product/implementation spec lives in `docs/dev/SUM-PLATFORM-SSOT.md`.
 
+## How We Work (Git)
+
+- Default integration branch is `develop`.
+- For code changes, create branches from `develop` (PR back into `develop` is recommended).
+- `develop` accepts direct pushes (used for CM tickets / transcripts / work reports).
+- Promote releases via PR `develop` → `main` (main is protected; CI check `lint-and-test` is required).
+- Hotfixes land in `main` first, then get backported to `develop`.
+
 ## Where to Start (Documentation)
 
 ### For Understanding the Platform
