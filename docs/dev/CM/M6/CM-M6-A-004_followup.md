@@ -60,12 +60,28 @@ Solution: explicitly `safelist` those variants.
   - Revert Theme A changes in the Theme A CSS input/config and rebuild. Specifically revert the commits on this branch.
 
 ## Evidence (Git)
-(Will be filled after commits.)
 
-- `git status`:
-  - (pending)
-- `git log -n 5 --oneline`:
-  - (pending)
+### git status
+
+```
+On branch fix/cm-m6-a-004-theme-a-component-css
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+        clients/acme/
+        docs/dev/M6/Screenshot 2025-12-18 181358.png
+
+nothing added to commit but untracked files present (use "git add" to track)
+```
+
+### git log -n 5 --oneline
+
+```
+ffd4c1f (HEAD -> fix/cm-m6-a-004-theme-a-component-css) fix(theme_a): [CM-M6-A-004] restore missing component selectors
+6887a45 (origin/develop, develop) Merge pull request #4 from markashton480/chore/CM-M6-QA-08-ci-on-develop
+27412d3 (chore/CM-M6-QA-08-ci-on-develop) docs: clarify develop is unprotected
+fa9af94 docs: document develop workflow
+e83b8db chore: run CI on develop
+```
 
 ## Files Touched
 - `core/sum_core/themes/theme_a/static/theme_a/css/input.css`
