@@ -90,7 +90,7 @@ make test    # Run tests
 ## Dependencies
 
 - **No ad-hoc `pip install`**: All dependencies must be declared in `pyproject.toml`.
-- **No `types-requests`**: Use modern stubs or `mypy` configuration if needed, but avoid ad-hoc type packages if possible.
+- **Type stubs**: `types-requests` is included in dev dependencies for mypy compatibility.
 
 ---
 
