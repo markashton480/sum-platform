@@ -5,6 +5,7 @@ Purpose: Prevent compiled Tailwind CSS drift and regressions
 Family: Themes / Toolchain
 Dependencies: filesystem, hashlib, pytest
 """
+
 from __future__ import annotations
 
 import sys
@@ -31,7 +32,7 @@ class TestThemeABuildFingerprint:
     def _get_fingerprint_path() -> Path:
         """Get path to the committed fingerprint file."""
         theme_root = get_theme_a_root()
-        return theme_root / "static" / "theme_a" / "css" / ".build_fingerprint"
+        return Path(theme_root / "static" / "theme_a" / "css" / ".build_fingerprint")
 
     @staticmethod
     def _read_committed_fingerprint() -> str:
@@ -103,7 +104,7 @@ class TestThemeACompiledCSSValidity:
     def _get_main_css_path() -> Path:
         """Get path to Theme A's compiled main.css."""
         theme_root = get_theme_a_root()
-        return theme_root / "static" / "theme_a" / "css" / "main.css"
+        return Path(theme_root / "static" / "theme_a" / "css" / "main.css")
 
     @staticmethod
     def _read_main_css() -> str:

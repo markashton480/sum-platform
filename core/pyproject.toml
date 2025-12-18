@@ -22,6 +22,7 @@ dev = [
   "pytest-django",
   "pytest-cov",
   "mypy",
+  "types-requests>=2.31,<3.0",
   "ruff",
   "black",
   "isort",

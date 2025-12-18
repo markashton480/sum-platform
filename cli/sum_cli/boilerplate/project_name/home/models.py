@@ -11,6 +11,7 @@ Features:
 - Breadcrumb support via BreadcrumbMixin
 - Only one HomePage allowed per site
 """
+
 from __future__ import annotations
 
 from django.core.exceptions import ValidationError
@@ -73,7 +74,7 @@ class HomePage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         This is used by Wagtail admin UI, but also helps prevent programmatic
         misuse when callers respect the standard Wagtail create APIs.
         """
-        return parent.is_root() and super().can_create_at(parent)
+        return bool(parent.is_root() and super().can_create_at(parent))
 
     def clean(self) -> None:
         """

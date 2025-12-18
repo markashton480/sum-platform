@@ -51,9 +51,9 @@ def build_lead_notification_context(lead: Lead) -> dict:
         "page_url": lead.page_url,
         "referrer_url": lead.referrer_url,
         "lead_source": lead.lead_source,
-        "lead_source_display": lead.get_lead_source_display()
-        if lead.lead_source
-        else "",
+        "lead_source_display": (
+            lead.get_lead_source_display() if lead.lead_source else ""
+        ),
         "lead_source_detail": lead.lead_source_detail,
         "utm_source": lead.utm_source,
         "utm_medium": lead.utm_medium,

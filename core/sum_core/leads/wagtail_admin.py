@@ -37,10 +37,12 @@ class LeadStatusColumn(Column):
             Lead.Status.LOST: "#dc2626",  # red
         }
         color = status_colors.get(obj.status, "#64748b")
-        return format_html(
-            '<span style="color: {}; font-weight: 600;">{}</span>',
-            color,
-            obj.get_status_display(),
+        return str(
+            format_html(
+                '<span style="color: {}; font-weight: 600;">{}</span>',
+                color,
+                obj.get_status_display(),
+            )
         )
 
 
@@ -169,7 +171,7 @@ class LeadViewSet(ModelViewSet):
     def get_urlpatterns(self) -> list:
         """Add CSV export URL pattern."""
         urlpatterns = super().get_urlpatterns()
-        return urlpatterns + [
+        return list(urlpatterns) + [
             path("export/", self.export_csv_view, name="export"),
         ]
 
@@ -234,8 +236,10 @@ class LeadPermissionPolicy(ModelPermissionPolicy):
 
         if action == "change":
             # Users with change permission can edit status/archive.
-            return user.has_perm(
-                f"{self.model._meta.app_label}.change_{self.model._meta.model_name}"
+            return bool(
+                user.has_perm(
+                    f"{self.model._meta.app_label}.change_{self.model._meta.model_name}"
+                )
             )
 
         if action == "delete":
@@ -244,12 +248,14 @@ class LeadPermissionPolicy(ModelPermissionPolicy):
 
         if action == "export":
             # Only users with export_lead can export
-            return user.has_perm(
-                f"{self.model._meta.app_label}.export_{self.model._meta.model_name}"
+            return bool(
+                user.has_perm(
+                    f"{self.model._meta.app_label}.export_{self.model._meta.model_name}"
+                )
             )
 
         # For index/inspect, allow if user has view or change permission
-        return super().user_has_permission(user, action)
+        return bool(super().user_has_permission(user, action))
 
 
 # Register the viewset

@@ -5,6 +5,7 @@ Purpose: Validate ServiceIndexPage and ServicePage models, hierarchy enforcement
 Family: Part of the page-level test suite exercising the page types.
 Dependencies: Wagtail Site & Page models, sum_core.pages.services, home.HomePage.
 """
+
 from __future__ import annotations
 
 import pytest

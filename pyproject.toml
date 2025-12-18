@@ -23,7 +23,7 @@ dev = [
 [tool.black]
 line-length = 88
 target-version = ["py312"]
-include = '\\.pyi?$'
+include = "\\.pyi?$"
 extend-exclude = '''
 /(
   # directories
@@ -38,6 +38,8 @@ extend-exclude = '''
   | buck-out
   | build
   | dist
+  | boilerplate
+  | clients
 )/
 '''
 
@@ -49,11 +51,13 @@ include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
-skip_glob = ["*/migrations/*", "*/venv/*", "*/.venv/*"]
+skip_glob = ["*/migrations/*", "*/venv/*", "*/.venv/*", "boilerplate/*", "clients/*"]
 
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -67,7 +71,7 @@ ignore = [
     "I001",  # isort handled separately
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # Allow unused imports in __init__.py
 
 [tool.pytest.ini_options]
@@ -102,6 +106,8 @@ omit = [
     "*/venv/*",
     "*/.venv/*",
     "*/migrations/*",
+    "boilerplate/*",
+    "clients/*",
 ]
 
 [tool.coverage.report]
@@ -127,7 +133,10 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 ignore_missing_imports = true
+# Use explicit_package_bases to avoid duplicate module errors in monorepo
+explicit_package_bases = true
 exclude = [
     "/(build|dist|\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|venv|_build|buck-out)/",
     "^boilerplate/",
+    "^clients/",
 ]

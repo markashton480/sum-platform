@@ -15,11 +15,13 @@ install-dev:
 	pre-commit install
 
 
-lint: ## Run linting checks (no changes)
-	ruff check .
-	mypy . || true
-	black --check .
-	isort --check-only --diff .
+lint: ## Run all linting and typechecking (strict)
+	ruff check . --config pyproject.toml
+	mypy core cli tests
+	black --check core cli tests
+	isort --check-only core cli tests
+
+lint-strict: lint
 
 format: ## Auto-format code
 	black .

@@ -4,6 +4,7 @@ Local development settings.
 This file contains settings for local development only.
 Uses SQLite and in-memory services for simplicity.
 """
+
 from __future__ import annotations
 
 from sum_core.ops.logging import get_logging_config

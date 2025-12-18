@@ -8,6 +8,7 @@ import shutil
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import cast
 
 from sum_cli.util import (
     ProjectNaming,
@@ -42,7 +43,7 @@ def _resolve_boilerplate_source() -> BoilerplateSource:
         return cwd_bp
 
     packaged = get_packaged_boilerplate()
-    return packaged
+    return cast(BoilerplateSource, packaged)
 
 
 def _replace_placeholders(project_root: Path, naming: ProjectNaming) -> None:

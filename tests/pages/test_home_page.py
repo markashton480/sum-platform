@@ -5,6 +5,7 @@ Purpose: Validate the test project's HomePage type and its integration with the 
 Family: Part of the page-level test suite exercising the design system.
 Dependencies: Wagtail Site & Page models, home.HomePage, sum_core templates.
 """
+
 from __future__ import annotations
 
 import pytest

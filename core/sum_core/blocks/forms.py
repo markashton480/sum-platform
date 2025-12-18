@@ -6,7 +6,6 @@ Family: SUM Platform – StreamField Blocks
 Dependencies: Wagtail core blocks, PageStreamBlock, templates in sum_core/blocks
 """
 
-
 from wagtail.blocks import (
     BooleanBlock,
     CharBlock,

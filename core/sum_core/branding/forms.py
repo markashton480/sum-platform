@@ -44,7 +44,7 @@ class SiteSettingsAdminForm(WagtailAdminModelForm):
         # NOTE: WagtailAdminModelForm + fields="__all__" does not play nicely
         # with construct_instance; using exclude = [] ensures all model fields
         # are included and cleaned_data is applied correctly.
-        exclude = []
+        exclude: list[str] = []
         # Explicitly set Wagtail's image chooser widgets for ForeignKey image fields
         widgets = {
             "header_logo": AdminImageChooser,

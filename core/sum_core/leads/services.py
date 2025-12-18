@@ -16,6 +16,7 @@ from typing import Any
 
 from django.contrib.auth.models import AbstractBaseUser
 from django.db.models import QuerySet
+from django.http import HttpRequest
 from sum_core.leads.attribution import derive_lead_source
 from sum_core.leads.models import Lead
 from wagtail.models import Page
@@ -219,4 +220,19 @@ def can_user_export_leads(user: AbstractBaseUser | None) -> bool:
     if user is None or not user.is_authenticated:
         return False
 
-    return user.has_perm("sum_core_leads.export_lead")
+    return bool(user.has_perm("sum_core_leads.export_lead"))
+
+
+def get_client_ip(request: HttpRequest) -> str:
+    """
+    Extract client IP address from request.
+
+    Handles X-Forwarded-For header for proxied requests.
+    """
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+    if x_forwarded_for:
+        # Take the first IP in the chain (original client)
+        ip = x_forwarded_for.split(",")[0].strip()
+    else:
+        ip = request.META.get("REMOTE_ADDR", "")
+    return str(ip)

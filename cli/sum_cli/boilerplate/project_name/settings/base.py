@@ -6,6 +6,7 @@ Environment-specific settings should be placed in local.py or production.py.
 
 Replace 'project_name' with your actual project name after copying.
 """
+
 from __future__ import annotations
 
 import json
@@ -39,7 +40,7 @@ def _get_project_theme_slug() -> str | None:
     try:
         with theme_file.open("r", encoding="utf-8") as f:
             config = json.load(f)
-        return config.get("theme")
+        return str(config.get("theme"))
     except (json.JSONDecodeError, OSError):
         return None
 

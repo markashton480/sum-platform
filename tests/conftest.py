@@ -26,7 +26,7 @@ if str(TEST_PROJECT_DIR) not in sys.path:
 
 @pytest.fixture(scope="session")
 def _session_media_root(tmp_path_factory) -> Path:
-    return tmp_path_factory.mktemp("django-media")
+    return Path(tmp_path_factory.mktemp("django-media"))
 
 
 @pytest.fixture(autouse=True)

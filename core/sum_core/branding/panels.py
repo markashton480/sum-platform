@@ -24,7 +24,7 @@ class FormFieldPanel(FieldPanel):
     """
 
     def clone_kwargs(self) -> dict[str, Any]:
-        kwargs = super().clone_kwargs()
+        kwargs: dict[str, Any] = super().clone_kwargs()
         return kwargs
 
     class BoundPanel(FieldPanel.BoundPanel):

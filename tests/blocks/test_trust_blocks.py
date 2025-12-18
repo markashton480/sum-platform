@@ -5,6 +5,7 @@ Purpose: Unit tests for TrustStripBlock (logos) and StatsBlock.
 Family: Part of the blocks-level test suite.
 Dependencies: sum_core.blocks.trust module, Wagtail blocks.
 """
+
 from sum_core.blocks.trust import (
     StatItemBlock,
     StatsBlock,

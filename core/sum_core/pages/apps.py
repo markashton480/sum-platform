@@ -5,6 +5,7 @@ Purpose: Django AppConfig for the sum_core pages module containing reusable page
 Family: SUM Platform – Page Types
 Dependencies: django.apps.AppConfig
 """
+
 from __future__ import annotations
 
 from django.apps import AppConfig
@@ -17,4 +18,3 @@ class PagesConfig(AppConfig):
     name: str = "sum_core.pages"
     label: str = "sum_core_pages"
     verbose_name: str = "SUM Core Pages"
-

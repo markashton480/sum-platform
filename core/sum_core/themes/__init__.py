@@ -5,6 +5,7 @@ Purpose: Theme discovery, validation, and registry for SUM Platform theme system
 Family: sum_core themes
 Dependencies: sum_core, pathlib, json
 """
+
 from __future__ import annotations
 
 import json

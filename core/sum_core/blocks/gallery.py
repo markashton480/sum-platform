@@ -17,12 +17,12 @@ class GalleryImageBlock(blocks.StructBlock):
     alt_text = blocks.CharBlock(
         required=False,
         max_length=255,
-        help_text="For screen readers. If blank, the image title will be used."
+        help_text="For screen readers. If blank, the image title will be used.",
     )
     caption = blocks.CharBlock(
         required=False,
         max_length=255,
-        help_text="Short caption, e.g. location or project type."
+        help_text="Short caption, e.g. location or project type.",
     )
 
     class Meta:
@@ -41,22 +41,19 @@ class GalleryBlock(blocks.StructBlock):
     eyebrow = blocks.CharBlock(
         required=False,
         max_length=80,
-        help_text="Small text above heading, e.g. 'Selected Works'."
+        help_text="Small text above heading, e.g. 'Selected Works'.",
     )
     heading = blocks.RichTextBlock(
         required=False,
-        features=['bold', 'italic'],
-        help_text="Main section heading. Use italics for accent styling."
+        features=["bold", "italic"],
+        help_text="Main section heading. Use italics for accent styling.",
     )
-    intro = blocks.TextBlock(
-        required=False,
-        help_text="Optional supporting text."
-    )
+    intro = blocks.TextBlock(required=False, help_text="Optional supporting text.")
     images = blocks.ListBlock(
         GalleryImageBlock(),
         min_num=1,
         max_num=24,
-        help_text="Add 1–24 images to the gallery."
+        help_text="Add 1–24 images to the gallery.",
     )
 
     class Meta:

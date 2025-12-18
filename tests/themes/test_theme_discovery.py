@@ -5,6 +5,7 @@ Purpose: Unit tests for theme discovery and validation
 Family: sum_core tests
 Dependencies: sum_core.themes, pytest
 """
+
 from __future__ import annotations
 
 import json

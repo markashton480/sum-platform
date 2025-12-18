@@ -116,10 +116,12 @@ class TestGalleryRendering(WagtailPageTests):
 
         # Header content
         eyebrow = section.select_one(".section__eyebrow")
-        assert eyebrow and "Our Work" in eyebrow.text
+        assert eyebrow is not None
+        assert "Our Work" in eyebrow.text
 
         heading = section.select_one(".section__heading")
-        assert heading and "Selected Projects" in heading.text
+        assert heading is not None
+        assert "Selected Projects" in heading.text
 
         intro = section.select_one(".section__intro")
         assert intro and "Check out our latest installations." in intro.text
@@ -130,7 +132,9 @@ class TestGalleryRendering(WagtailPageTests):
 
         # First item content
         item1 = items[0]
-        assert "Project One" in item1.select_one(".gallery__title").text
+        title_tag = item1.select_one(".gallery__title")
+        assert title_tag is not None
+        assert "Project One" in title_tag.text
 
         meta = item1.select_one(".gallery__meta")
         assert meta is not None
@@ -147,6 +151,8 @@ class TestGalleryRendering(WagtailPageTests):
 
         # Second item (minimal)
         item2 = items[1]
-        assert "Project Two" in item2.select_one(".gallery__title").text
+        title_tag = item2.select_one(".gallery__title")
+        assert title_tag is not None
+        assert "Project Two" in title_tag.text
         assert item2.select_one(".gallery__meta") is None
         assert item2.select_one("a.gallery__link") is None

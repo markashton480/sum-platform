@@ -5,6 +5,7 @@ Purpose: Integration tests for sum init --theme functionality
 Family: sum_cli tests
 Dependencies: sum_cli, sum_core.themes
 """
+
 from __future__ import annotations
 
 import json

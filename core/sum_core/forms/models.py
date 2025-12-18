@@ -77,8 +77,10 @@ class FormConfiguration(models.Model):
         Returns the existing configuration or a new instance with defaults.
         The returned instance is always saved to the database.
         """
+        from typing import cast
+
         config, _created = cls.objects.get_or_create(site=site)
-        return config
+        return cast(FormConfiguration, config)
 
     @classmethod
     def get_defaults(cls) -> dict:

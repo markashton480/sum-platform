@@ -5,6 +5,7 @@ Purpose: ServiceIndexPage and ServicePage models for service content organizatio
 Family: SUM Platform – Page Types
 Dependencies: Wagtail Page model, sum_core.blocks.base.PageStreamBlock
 """
+
 from __future__ import annotations
 
 from django.db import models

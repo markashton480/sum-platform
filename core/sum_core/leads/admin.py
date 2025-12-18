@@ -109,11 +109,11 @@ class LeadAdmin(admin.ModelAdmin):
     @admin.display(description="Form data")
     def formatted_form_data(self, obj: Lead) -> str:
         pretty = json.dumps(obj.form_data or {}, indent=2, sort_keys=True)
-        return format_html("<pre style='white-space: pre-wrap'>{}</pre>", pretty)
+        return str(format_html("<pre style='white-space: pre-wrap'>{}</pre>", pretty))
 
     @admin.display(description="Message")
     def short_message(self, obj: Lead) -> str:
-        return Truncator(obj.message).chars(60)
+        return str(Truncator(obj.message).chars(60))
 
 
 @admin.register(LeadSourceRule)

@@ -6,6 +6,7 @@ Purpose: Automated tests proving Theme A has compiled Tailwind CSS and no legacy
 Family: sum_core tests
 Dependencies: sum_core.themes, pathlib
 """
+
 from __future__ import annotations
 
 from pathlib import Path

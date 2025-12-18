@@ -42,14 +42,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = _build_parser().parse_args(list(argv) if argv is not None else None)
 
     if args.command == "init":
-        return run_init(
-            project_name=str(args.project_name),
-            theme_slug=str(args.theme),
+        return int(
+            run_init(
+                project_name=str(args.project_name),
+                theme_slug=str(args.theme),
+            )
         )
     if args.command == "check":
-        return run_check()
+        return int(run_check())
     if args.command == "themes":
-        return run_themes_list()
+        return int(run_themes_list())
 
     # Defensive: argparse required=True should prevent this.
     print("Unknown command.", file=sys.stderr)
