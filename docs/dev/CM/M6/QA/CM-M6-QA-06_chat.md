@@ -400,3 +400,111 @@ The GitHub CLI auth was rate-limited repeatedly. The following must be done in b
 ---
 
 The follow-up report is at: [docs/dev/CM/M6/QA/CM-M6-QA-06_followup.md](cci:7://file:///home/mark/workspaces/sum-platform/docs/dev/CM/M6/QA/CM-M6-QA-06_followup.md:0:0-0:0)
+
+*Edited relevant file*
+
+*Edited relevant file*
+
+### User Input
+
+Okay I opened a PR and we're getting the following at checks:@[/home/mark/workspaces/sum-platform/docs/dev/CM/M6/QA/CM-M6-QA-06_followup.md:L139-L155] 
+
+### Planner Response
+
+The CI environment is missing `types-requests`. This works locally because you likely have it installed, but it's not in the project's dev dependencies. Let me fix this:
+
+*Grep searched codebase*
+
+*Viewed [pyproject.toml](file:///home/mark/workspaces/sum-platform/core/pyproject.toml) *
+
+### Planner Response
+
+I see the issue. The hygiene doc says "avoid ad-hoc type packages if possible" but the project uses `requests` and mypy needs type stubs for it. The clean fix is to add `types-requests` to the dev dependencies, since `requests` is a core dependency and we want type safety.
+
+*Edited relevant file*
+
+### Planner Response
+
+Now let me also update the hygiene doc since we ARE using types-requests now (it's a legitimate dependency, not ad-hoc):
+
+*Viewed [hygiene.md](file:///home/mark/workspaces/sum-platform/docs/dev/hygiene.md) *
+
+*Edited relevant file*
+
+### Planner Response
+
+Now let me verify locally and commit:
+
+*User accepted the command `source .venv/bin/activate && pip install -e ./core[dev] && make lint`*
+
+*Checked command status*
+
+### Planner Response
+
+Lint passes. Now commit and push:
+
+*User accepted the command `git add core/pyproject.toml docs/dev/hygiene.md && git commit -m "fix: add types-requests to dev dependencies for CI mypy
+
+The CI environment doesn't have types-requests installed, causing
+mypy to fail on imports from the requests library. This adds it as
+a declared dev dependency rather than ad-hoc installation.
+
+Updates hygiene.md to reflect this is now a proper dependency."`*
+
+*User accepted the command `git push`*
+
+### Planner Response
+
+**Pushed!** ✅
+
+The fix adds `types-requests>=2.31,<3.0` to the dev dependencies in [core/pyproject.toml](cci:7://file:///home/mark/workspaces/sum-platform/core/pyproject.toml:0:0-0:0). This ensures the CI environment has the type stubs needed for mypy to pass.
+
+The PR should now re-run CI automatically. Check https://github.com/markashton480/sum_platform/pull/1/checks for the new run.
+
+*User accepted the command `git checkout main`*
+
+### User Input
+
+Perfect, please can you update the _followup work report to reflect these changes. 
+
+*Viewed [CM-M6-QA-06_followup.md](file:///home/mark/workspaces/sum-platform/docs/dev/CM/M6/QA/CM-M6-QA-06_followup.md) *
+
+### User Input
+
+You were hanging, continue 
+
+*Edited relevant file*
+
+### Planner Response
+
+Now let me commit and push the updated follow-up report:
+
+*User accepted the command `git add docs/dev/CM/M6/QA/CM-M6-QA-06_followup.md && git commit -m "docs: update follow-up report with types-requests fix details"`*
+
+*User accepted the command `git push`*
+
+*Checked command status*
+
+*Checked command status*
+
+*Checked command status*
+
+### Planner Response
+
+**Done!** ✅
+
+The follow-up report has been updated with:
+
+1. **CI Fix section** documenting the `types-requests` issue, root cause, and resolution
+2. Clean formatting replacing the raw error output
+3. Commit reference (`4d33e2c`) for traceability
+
+All changes pushed to the branch. The PR should now show the updated CI run. Check https://github.com/markashton480/sum_platform/pull/1/checks to verify the CI passes.
+
+**Summary of commits on this branch:**
+| Commit | Description |
+|--------|-------------|
+| `f21c316` | chore: harden CI workflow and add branch protection runbook |
+| `ef18600` | docs: add CM-M6-QA-06 task and follow-up report |
+| `4d33e2c` | fix: add types-requests to dev dependencies for CI mypy |
+| `966e1a9` | docs: update follow-up report with types-requests fix details |

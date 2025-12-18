@@ -115,13 +115,13 @@ After CI passes on the PR:
 
 ## Evidence URLs (To Be Completed)
 
-| Item                         | URL                                |
-| ---------------------------- | ---------------------------------- |
-| PR URL                       | _[paste merged PR URL]_             |
-| CI Run URL                   | _[paste passing run URL]_           |
-| Branch Protection Screenshot | _[optional link]_                   |
-| Gate Proof PR (QA-07)        | _[paste QA-07 PR URL]_              |
-| Gate Proof CI Run (QA-07)    | _[paste QA-07 failing/passing URLs]_ |
+| Item                         | URL                                                         |
+| ---------------------------- | ----------------------------------------------------------- |
+| PR URL                       | https://github.com/markashton480/sum_platform/pull/1         |
+| CI Run URL                   | https://github.com/markashton480/sum_platform/pull/1/checks  |
+| Branch Protection Screenshot | _[optional link]_                                            |
+| Gate Proof PR (QA-07)        | _[paste QA-07 PR URL]_                                       |
+| Gate Proof CI Run (QA-07)    | _[paste QA-07 failing/passing URLs]_                         |
 
 ---
 
@@ -139,3 +139,31 @@ After CI passes on the PR:
 - [ ] Evidence URLs filled
 
 **Contract status: ENFORCED** once manual steps are complete.
+
+## CI Fix: Missing `types-requests`
+
+### Issue
+
+Initial CI run failed with mypy errors:
+
+```
+core/sum_core/leads/tasks.py:14: error: Library stubs not installed for "requests" [import-untyped]
+core/sum_core/integrations/zapier.py:15: error: Library stubs not installed for "requests" [import-untyped]
+tests/leads/test_zapier.py:11: error: Library stubs not installed for "requests" [import-untyped]
+tests/leads/test_notification_tasks.py:11: error: Library stubs not installed for "requests" [import-untyped]
+Found 4 errors in 4 files (checked 225 source files)
+```
+
+**Root cause:** The `requests` library is a core dependency, but `types-requests` (its type stubs) was not declared in dev dependencies. It worked locally because it was installed ad-hoc previously.
+
+### Fix Applied
+
+1. Added `types-requests>=2.31,<3.0` to `core/pyproject.toml` dev dependencies
+2. Updated `docs/dev/hygiene.md` to reflect this is now a proper declared dependency
+
+**Commit:** `4d33e2c` — `fix: add types-requests to dev dependencies for CI mypy`
+
+### Result
+
+- ✅ Local `make lint` passes
+- ⏳ CI re-run triggered on push
