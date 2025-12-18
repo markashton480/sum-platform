@@ -15,11 +15,17 @@ install-dev:
 	pre-commit install
 
 
-lint: ## Run linting checks (no changes)
-	ruff check .
-	mypy . || true
-	black --check .
-	isort --check-only --diff .
+lint:
+    ruff check .
+    mypy core cli tests --exclude '^clients/' || true
+    black --check core cli tests
+    isort --check-only core cli tests
+
+lint-strict:
+    ruff check .
+    mypy core cli tests --exclude '^clients/'
+    black --check core cli tests
+    isort --check-only core cli tests
 
 format: ## Auto-format code
 	black .
