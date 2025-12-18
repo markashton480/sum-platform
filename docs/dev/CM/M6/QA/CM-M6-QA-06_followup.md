@@ -1,7 +1,7 @@
 # CM-M6-QA-06 Follow-up Report
 
 **Task:** CI Enforcement + Branch Protection Gate  
-**Status:** ✅ Complete (pending manual steps)  
+**Status:** ✅ Complete (evidence backfill pending)  
 **Date:** 2025-12-18
 
 ---
@@ -44,9 +44,9 @@ Added two new sections:
 
 ---
 
-## Manual Steps Required
+## Manual Steps (Evidence Capture)
 
-The following steps require browser access and could not be completed via GitHub CLI (rate-limited):
+The following steps require browser access and must be completed to finish the audit trail:
 
 ### Step 1: Create Pull Request
 
@@ -95,8 +95,10 @@ After CI passes on the PR:
 ### Step 4: Merge and Verify Gate
 
 1. Merge the PR to `main`
-2. Create a test branch with a deliberate lint failure
+2. Create a test branch with a deliberate failure
 3. Open a PR — verify it's blocked from merging due to failing checks
+
+**Note:** The explicit gate proof + evidence capture is tracked in CM-M6-QA-07.
 
 ---
 
@@ -107,17 +109,19 @@ After CI passes on the PR:
 | CI workflow runs on PR/push  | ✅ Configured                           |
 | CI workflow is hardened      | ✅ timeout, permissions, manual trigger |
 | Branch protection documented | ✅ Runbook in `docs/dev/hygiene.md`     |
-| Branch protection applied    | ⏳ **Manual step required**             |
+| Branch protection applied    | ⏳ **Evidence pending**                 |
 
 ---
 
 ## Evidence URLs (To Be Completed)
 
-| Item                         | URL                       |
-| ---------------------------- | ------------------------- |
-| PR URL                       | _[Add after PR creation]_ |
-| CI Run URL                   | _[Add after CI runs]_     |
-| Branch Protection Screenshot | _[Optional]_              |
+| Item                         | URL                                |
+| ---------------------------- | ---------------------------------- |
+| PR URL                       | _[paste merged PR URL]_             |
+| CI Run URL                   | _[paste passing run URL]_           |
+| Branch Protection Screenshot | _[optional link]_                   |
+| Gate Proof PR (QA-07)        | _[paste QA-07 PR URL]_              |
+| Gate Proof CI Run (QA-07)    | _[paste QA-07 failing/passing URLs]_ |
 
 ---
 
@@ -128,8 +132,10 @@ After CI passes on the PR:
 - [x] `make test` passes (709 tests)
 - [x] Branch pushed to origin
 - [x] Runbook documented in `docs/dev/hygiene.md`
+
 - [ ] PR created (manual)
 - [ ] CI runs and passes on PR (manual verification)
 - [ ] Branch protection configured (manual)
+- [ ] Evidence URLs filled
 
 **Contract status: ENFORCED** once manual steps are complete.

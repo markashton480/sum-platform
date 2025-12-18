@@ -56,7 +56,7 @@ jobs:
           rm -rf clients/cli-check-* clients/cli-theme-*
 
       - name: Run lint checks
-        run: make lint
+        run: make lint && false
 
       - name: Run tests
         run: make test
