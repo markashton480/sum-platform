@@ -316,4 +316,31 @@ echo "Smoke tests passed."
 
 ---
 
+### 7. QA Tooling Sanity
+
+**Purpose:** Verify QA tools are actually checking files (not no-ops).
+
+**Test:**
+
+```bash
+# 1. Verify Black finds files
+black --check core cli tests 2>&1 | grep -v "No Python files are present"
+
+# 2. Verify make lint is honest (should fail if errors exist)
+# (In dev, we know 32 errors exist currently)
+make lint
+```
+
+**✅ Pass if:**
+
+- Black reports checking >0 files.
+- `make lint` fails when errors are known to exist (or passes only when code is perfect).
+
+**❌ STOP if:**
+
+- Black says "No Python files are present".
+- `make lint` passes while errors are visible in output.
+
+---
+
 **END OF CHECKLIST**

@@ -5,6 +5,7 @@ Purpose: Validate StandardPage template rendering with various blocks.
 Family: Part of the template test suite exercising page rendering.
 Dependencies: Django test client, Wagtail models, sum_core.pages.StandardPage.
 """
+
 from __future__ import annotations
 
 import pytest

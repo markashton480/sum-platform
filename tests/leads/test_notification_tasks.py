@@ -74,10 +74,13 @@ class TestEmailNotificationTask:
     def test_email_retry_on_failure(self, lead):
         """Task retries on SMTP failure and eventually marks FAILED."""
         # Patch send method of EmailMultiAlternatives
-        with patch(
-            "django.core.mail.EmailMultiAlternatives.send",
-            side_effect=Exception("SMTP Down"),
-        ), patch("sum_core.leads.tasks.MAX_RETRIES", 0):
+        with (
+            patch(
+                "django.core.mail.EmailMultiAlternatives.send",
+                side_effect=Exception("SMTP Down"),
+            ),
+            patch("sum_core.leads.tasks.MAX_RETRIES", 0),
+        ):
             # With MAX_RETRIES=0, it should fail immediately, update DB, and NOT raise exception (caught in task)
             send_lead_notification(lead.id)
 
@@ -120,8 +123,9 @@ class TestWebhookNotificationTask:
     @override_settings(ZAPIER_WEBHOOK_URL="https://hooks.zapier.com/test")
     def test_webhook_retry_on_failure(self, lead):
         """Task retries on 500 response and eventually marks FAILED."""
-        with patch("requests.post") as mock_post, patch(
-            "sum_core.leads.tasks.MAX_RETRIES", 0
+        with (
+            patch("requests.post") as mock_post,
+            patch("sum_core.leads.tasks.MAX_RETRIES", 0),
         ):
             mock_post.return_value.ok = False
             mock_post.return_value.status_code = 500
@@ -138,9 +142,12 @@ class TestWebhookNotificationTask:
     @override_settings(ZAPIER_WEBHOOK_URL="https://hooks.zapier.com/test")
     def test_webhook_retry_on_timeout(self, lead):
         """Task retries on timeout and eventually marks FAILED."""
-        with patch(
-            "requests.post", side_effect=requests.Timeout("Connection timed out")
-        ), patch("sum_core.leads.tasks.MAX_RETRIES", 0):
+        with (
+            patch(
+                "requests.post", side_effect=requests.Timeout("Connection timed out")
+            ),
+            patch("sum_core.leads.tasks.MAX_RETRIES", 0),
+        ):
             send_lead_webhook(lead.id)
 
             lead.refresh_from_db()

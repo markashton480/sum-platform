@@ -5,6 +5,7 @@ Purpose: Configure the test project's home app for Wagtail.
 Family: Used only by the sum_core.test_project for development and testing.
 Dependencies: Django, Wagtail.
 """
+
 from __future__ import annotations
 
 from django.apps import AppConfig

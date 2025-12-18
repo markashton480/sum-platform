@@ -5,6 +5,7 @@ Purpose: Validate the StandardPage model and its integration with PageStreamBloc
 Family: Part of the page-level test suite exercising the page types.
 Dependencies: Wagtail Site & Page models, sum_core.pages.StandardPage, sum_core.blocks.
 """
+
 from __future__ import annotations
 
 import pytest

@@ -4,6 +4,7 @@ Path: core/sum_core/blocks/content.py
 Purpose: Define StructBlocks for rich content sections (Hero, Features, Portfolio, etc.).
 Family: Used by StreamFields in pages.
 """
+
 from wagtail import blocks
 from wagtail.images.blocks import ImageChooserBlock
 
@@ -12,10 +13,13 @@ class ButtonBlock(blocks.StructBlock):
     label = blocks.CharBlock(required=True)
     link = blocks.URLBlock(required=False)
     page = blocks.PageChooserBlock(required=False)
-    style = blocks.ChoiceBlock(choices=[
-        ('btn-primary', 'Primary'),
-        ('btn-outline', 'Outline'),
-    ], default='btn-primary')
+    style = blocks.ChoiceBlock(
+        choices=[
+            ("btn-primary", "Primary"),
+            ("btn-outline", "Outline"),
+        ],
+        default="btn-primary",
+    )
 
     class Meta:
         template = "sum_core/blocks/button.html"
@@ -23,13 +27,20 @@ class ButtonBlock(blocks.StructBlock):
 
 
 class HeroBlock(blocks.StructBlock):
-    status_text = blocks.CharBlock(required=False, help_text="e.g. Available for Q1 2025")
-    title = blocks.TextBlock(required=True, help_text="Main heading. Use html tags like <span class='italic-accent'> for styling.")
+    status_text = blocks.CharBlock(
+        required=False, help_text="e.g. Available for Q1 2025"
+    )
+    title = blocks.TextBlock(
+        required=True,
+        help_text="Main heading. Use html tags like <span class='italic-accent'> for styling.",
+    )
     description = blocks.TextBlock(required=True)
     primary_cta = ButtonBlock(required=False)
     secondary_cta = ButtonBlock(required=False)
     image = ImageChooserBlock(required=True)
-    float_card_label = blocks.CharBlock(required=False, help_text="e.g. Est. Annual Savings")
+    float_card_label = blocks.CharBlock(
+        required=False, help_text="e.g. Est. Annual Savings"
+    )
     float_card_value = blocks.CharBlock(required=False, help_text="e.g. £2,450")
 
     class Meta:
@@ -75,7 +86,9 @@ class FeaturesListBlock(blocks.StructBlock):
 
 
 class ComparisonBlock(blocks.StructBlock):
-    accent_text = blocks.CharBlock(required=False, help_text="Small italic text above title")
+    accent_text = blocks.CharBlock(
+        required=False, help_text="Small italic text above title"
+    )
     title = blocks.CharBlock(required=True)
     description = blocks.TextBlock(required=True)
     image_before = ImageChooserBlock(required=True, help_text="Background/Before image")
@@ -93,7 +106,9 @@ class PortfolioItemBlock(blocks.StructBlock):
     title = blocks.CharBlock(required=True)
     location = blocks.CharBlock(required=False, help_text="e.g. Kensington, London")
     services = blocks.CharBlock(required=False, help_text="e.g. Solar • Battery")
-    link_url = blocks.URLBlock(required=False, help_text="Link to full project case study")
+    link_url = blocks.URLBlock(
+        required=False, help_text="Link to full project case study"
+    )
 
     class Meta:
         icon = "image"
@@ -105,7 +120,7 @@ class PortfolioBlock(blocks.StructBlock):
     heading = blocks.RichTextBlock(
         required=True,
         features=["bold", "italic"],
-        help_text="Main heading. Use italics for accent styling."
+        help_text="Main heading. Use italics for accent styling.",
     )
     intro = blocks.TextBlock(required=False, help_text="Short lead text")
     items = blocks.ListBlock(PortfolioItemBlock(), min_num=1, max_num=12)
@@ -118,24 +133,24 @@ class PortfolioBlock(blocks.StructBlock):
 
 # --- M2-008 New Content Blocks ---
 
+
 class RichTextContentBlock(blocks.StructBlock):
     """
     A flexible block for general content sections.
     """
-    align = blocks.ChoiceBlock(choices=[
-        ('left', 'Left'),
-        ('center', 'Center'),
-    ], default='left', required=False)
+
+    align = blocks.ChoiceBlock(
+        choices=[
+            ("left", "Left"),
+            ("center", "Center"),
+        ],
+        default="left",
+        required=False,
+    )
 
     body = blocks.RichTextBlock(
-        features=[
-            "h2", "h3", "h4",
-            "bold", "italic",
-            "link",
-            "ol", "ul",
-            "hr"
-        ],
-        required=True
+        features=["h2", "h3", "h4", "bold", "italic", "link", "ol", "ul", "hr"],
+        required=True,
     )
 
     class Meta:
@@ -148,17 +163,22 @@ class EditorialHeaderBlock(blocks.StructBlock):
     """
     A text-heavy header for editorial pages/blog posts.
     """
-    align = blocks.ChoiceBlock(choices=[
-        ('left', 'Left'),
-        ('center', 'Center'),
-    ], default='center', required=False)
+
+    align = blocks.ChoiceBlock(
+        choices=[
+            ("left", "Left"),
+            ("center", "Center"),
+        ],
+        default="center",
+        required=False,
+    )
 
     eyebrow = blocks.CharBlock(required=False, help_text="e.g. Case Study")
 
     heading = blocks.RichTextBlock(
         required=True,
-        features=['italic', 'bold'],
-        help_text="Main title. Use italics for accent styling."
+        features=["italic", "bold"],
+        help_text="Main title. Use italics for accent styling.",
     )
 
     class Meta:
@@ -171,14 +191,13 @@ class QuoteBlock(blocks.StructBlock):
     """
     Editorial quote / pull-quote block.
     """
+
     quote = blocks.TextBlock(
-        label="Quote Text",
-        help_text="Short editorial quote (1-3 sentences)."
+        label="Quote Text", help_text="Short editorial quote (1-3 sentences)."
     )
     author = blocks.CharBlock(required=False)
     role = blocks.CharBlock(
-        required=False,
-        help_text="Role/description, e.g. Property Owner"
+        required=False, help_text="Role/description, e.g. Property Owner"
     )
 
     class Meta:
@@ -191,16 +210,14 @@ class ImageBlock(blocks.StructBlock):
     """
     Cinematic image block with caption.
     """
+
     image = ImageChooserBlock(required=True)
     alt_text = blocks.CharBlock(required=True, max_length=255)
     caption = blocks.CharBlock(
-        required=False,
-        help_text="Short caption under the image."
+        required=False, help_text="Short caption under the image."
     )
     full_width = blocks.BooleanBlock(
-        required=False,
-        default=False,
-        help_text="Stretch to full-width container."
+        required=False, default=False, help_text="Stretch to full-width container."
     )
 
     class Meta:
@@ -213,12 +230,16 @@ class ContentButtonBlock(blocks.StructBlock):
     """
     Single button definition for use in ButtonGroupBlock.
     """
+
     label = blocks.CharBlock()
     url = blocks.URLBlock()
-    style = blocks.ChoiceBlock(choices=[
-        ('primary', 'Primary'),
-        ('secondary', 'Secondary'),
-    ], default='primary')
+    style = blocks.ChoiceBlock(
+        choices=[
+            ("primary", "Primary"),
+            ("secondary", "Secondary"),
+        ],
+        default="primary",
+    )
 
     class Meta:
         icon = "link"
@@ -229,11 +250,15 @@ class ButtonGroupBlock(blocks.StructBlock):
     """
     Group of buttons (CTAs).
     """
-    alignment = blocks.ChoiceBlock(choices=[
-        ('left', 'Left'),
-        ('center', 'Center'),
-        ('right', 'Right'),
-    ], default='left')
+
+    alignment = blocks.ChoiceBlock(
+        choices=[
+            ("left", "Left"),
+            ("center", "Center"),
+            ("right", "Right"),
+        ],
+        default="left",
+    )
 
     buttons = blocks.ListBlock(ContentButtonBlock(), min_num=1, max_num=3)
 
@@ -247,12 +272,16 @@ class SpacerBlock(blocks.StructBlock):
     """
     Vertical spacer for rhythm.
     """
-    size = blocks.ChoiceBlock(choices=[
-        ('small', 'Small (24px)'),
-        ('medium', 'Medium (40px)'),
-        ('large', 'Large (64px)'),
-        ('xlarge', 'X-Large (96px)'),
-    ], default='medium')
+
+    size = blocks.ChoiceBlock(
+        choices=[
+            ("small", "Small (24px)"),
+            ("medium", "Medium (40px)"),
+            ("large", "Large (64px)"),
+            ("xlarge", "X-Large (96px)"),
+        ],
+        default="medium",
+    )
 
     class Meta:
         icon = "horizontalrule"
@@ -264,14 +293,17 @@ class DividerBlock(blocks.StructBlock):
     """
     Horizontal divider line.
     """
-    style = blocks.ChoiceBlock(choices=[
-        ('muted', 'Muted'),
-        ('strong', 'Strong'),
-        ('accent', 'Accent'),
-    ], default='muted')
+
+    style = blocks.ChoiceBlock(
+        choices=[
+            ("muted", "Muted"),
+            ("strong", "Strong"),
+            ("accent", "Accent"),
+        ],
+        default="muted",
+    )
 
     class Meta:
         icon = "horizontalrule"
         label = "Divider"
         template = "sum_core/blocks/content_divider.html"
-

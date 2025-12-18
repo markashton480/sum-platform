@@ -50,7 +50,7 @@ These documents are:
 5. **[smoke-tests.md](smoke-tests.md)** — 10–15 minute post-deploy sanity checks
 6. **[full-verification.md](full-verification.md)** — 30–60 minute comprehensive verification
 
-### Tracking \& Record-Keeping
+### Tracking & Record-Keeping
 
 7. **[loop-sites-matrix.md](loop-sites-matrix.md)** — Track deployed sites and versions
 8. **[what-broke-last-time.md](what-broke-last-time.md)** — Append-only incident log

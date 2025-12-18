@@ -5,6 +5,7 @@ Purpose: Integration tests proving Theme A (Sage & Stone) renders correctly with
 Family: sum_core tests
 Dependencies: sum_core.themes, pytest, wagtail, django
 """
+
 from __future__ import annotations
 
 import shutil

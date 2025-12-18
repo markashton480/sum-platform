@@ -16,16 +16,16 @@ install-dev:
 
 
 lint:
-    ruff check .
-    mypy core cli tests --exclude '^clients/' || true
-    black --check core cli tests
-    isort --check-only core cli tests
+	ruff check . --config pyproject.toml
+	$(if $(MYPY_SOFT),mypy core cli tests --exclude '^clients/' || true,mypy core cli tests --exclude '^clients/')
+	black --check core cli tests
+	isort --check-only core cli tests
 
 lint-strict:
-    ruff check .
-    mypy core cli tests --exclude '^clients/'
-    black --check core cli tests
-    isort --check-only core cli tests
+	ruff check .
+	mypy core cli tests --exclude '^clients/'
+	black --check core cli tests
+	isort --check-only core cli tests
 
 format: ## Auto-format code
 	black .

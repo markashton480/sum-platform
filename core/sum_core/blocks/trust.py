@@ -15,16 +15,15 @@ class TrustStripItemBlock(blocks.StructBlock):
 
     logo = ImageChooserBlock(
         required=True,
-        help_text="Logo image for a certification, association, or partner."
+        help_text="Logo image for a certification, association, or partner.",
     )
     alt_text = blocks.CharBlock(
         required=True,
         max_length=255,
-        help_text="Descriptive alt text for the logo (accessibility)."
+        help_text="Descriptive alt text for the logo (accessibility).",
     )
     url = blocks.URLBlock(
-        required=False,
-        help_text="Optional URL to link to (e.g. association website)."
+        required=False, help_text="Optional URL to link to (e.g. association website)."
     )
 
     class Meta:
@@ -43,13 +42,13 @@ class TrustStripBlock(blocks.StructBlock):
     eyebrow = blocks.CharBlock(
         required=False,
         max_length=100,
-        help_text="Small text above logos, e.g. 'Trusted by' or 'Certified by'."
+        help_text="Small text above logos, e.g. 'Trusted by' or 'Certified by'.",
     )
     items = blocks.ListBlock(
         TrustStripItemBlock(),
         min_num=2,
         max_num=8,
-        help_text="2-8 logo items for the trust strip."
+        help_text="2-8 logo items for the trust strip.",
     )
 
     class Meta:
@@ -64,22 +63,22 @@ class StatItemBlock(blocks.StructBlock):
     value = blocks.CharBlock(
         required=True,
         max_length=50,
-        help_text="The numeric value, e.g. '500+', '15', '98%'."
+        help_text="The numeric value, e.g. '500+', '15', '98%'.",
     )
     label = blocks.CharBlock(
         required=True,
         max_length=100,
-        help_text="Short description, e.g. 'Projects Completed', 'Years Experience'."
+        help_text="Short description, e.g. 'Projects Completed', 'Years Experience'.",
     )
     prefix = blocks.CharBlock(
         required=False,
         max_length=10,
-        help_text="Optional prefix before value, e.g. '>' or '£'."
+        help_text="Optional prefix before value, e.g. '>' or '£'.",
     )
     suffix = blocks.CharBlock(
         required=False,
         max_length=10,
-        help_text="Optional suffix after value, e.g. '+', 'yrs', '%'."
+        help_text="Optional suffix after value, e.g. '+', 'yrs', '%'.",
     )
 
     class Meta:
@@ -98,17 +97,13 @@ class StatsBlock(blocks.StructBlock):
     eyebrow = blocks.CharBlock(
         required=False,
         max_length=100,
-        help_text="Small text above stats, e.g. 'By the Numbers'."
+        help_text="Small text above stats, e.g. 'By the Numbers'.",
     )
     intro = blocks.TextBlock(
-        required=False,
-        help_text="Optional introductory text below the eyebrow."
+        required=False, help_text="Optional introductory text below the eyebrow."
     )
     items = blocks.ListBlock(
-        StatItemBlock(),
-        min_num=2,
-        max_num=4,
-        help_text="2-4 statistics to display."
+        StatItemBlock(), min_num=2, max_num=4, help_text="2-4 statistics to display."
     )
 
     class Meta:

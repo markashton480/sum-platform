@@ -5,6 +5,7 @@ Purpose: List available themes from sum_core
 Family: sum_cli commands
 Dependencies: sum_core.themes
 """
+
 from __future__ import annotations
 
 import sys

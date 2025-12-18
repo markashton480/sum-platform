@@ -5,6 +5,7 @@ Purpose: Unit tests for PageStreamBlock and its constituent blocks.
 Family: Part of the blocks-level test suite.
 Dependencies: sum_core.blocks module, Wagtail blocks.
 """
+
 from __future__ import annotations
 
 import pytest

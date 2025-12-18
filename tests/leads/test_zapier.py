@@ -201,9 +201,10 @@ class TestSendZapierWebhookTask:
 
     def test_webhook_retry_on_failure(self, lead, site, site_settings):
         """Task retries on failure and eventually marks FAILED."""
-        with patch(
-            "sum_core.integrations.zapier.send_zapier_request"
-        ) as mock_request, patch("sum_core.leads.tasks.ZAPIER_MAX_RETRIES", 0):
+        with (
+            patch("sum_core.integrations.zapier.send_zapier_request") as mock_request,
+            patch("sum_core.leads.tasks.ZAPIER_MAX_RETRIES", 0),
+        ):
             mock_request.return_value = ZapierResult(
                 success=False, status_code=500, error_message="Server Error"
             )
@@ -287,9 +288,10 @@ class TestLeadExistsRegardlessOfWebhookOutcome:
 
     def test_lead_exists_after_webhook_failure(self, lead, site, site_settings):
         """Lead persists even when webhook fails permanently."""
-        with patch(
-            "sum_core.integrations.zapier.send_zapier_request"
-        ) as mock_request, patch("sum_core.leads.tasks.ZAPIER_MAX_RETRIES", 0):
+        with (
+            patch("sum_core.integrations.zapier.send_zapier_request") as mock_request,
+            patch("sum_core.leads.tasks.ZAPIER_MAX_RETRIES", 0),
+        ):
             mock_request.return_value = ZapierResult(
                 success=False, status_code=500, error_message="Permanent failure"
             )

@@ -78,4 +78,3 @@ def get_theme_preset_choices() -> list[tuple[str, str]]:
     choices: list[tuple[str, str]] = [("", "---------")]
     choices.extend((preset.key, preset.label) for preset in THEME_PRESETS.values())
     return choices
-

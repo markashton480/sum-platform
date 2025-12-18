@@ -1,6 +1,6 @@
 # CM-M6-QA-01 — QA Tooling Contract Investigation (Lint / Format / Typecheck)
 
-**Status**: Open
+**Status**: Complete
 **Milestone**: M6
 **Category**: QA / Tooling
 **Type**: Investigation (No Fixes)

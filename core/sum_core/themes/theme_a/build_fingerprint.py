@@ -5,6 +5,7 @@ Purpose: Prevent compiled Tailwind CSS drift and regressions
 Family: Themes / Toolchain
 Dependencies: filesystem, hashlib, pytest
 """
+
 from __future__ import annotations
 
 import hashlib

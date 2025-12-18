@@ -44,7 +44,17 @@
 
 ## Log Entries
 
-_(No entries yet — append below as issues occur)_
+## Site: sum-platform (Core)
+
+**Date:** 2025-12-18  
+**Version:** v0.7.0-dev  
+**Symptom:** `make lint` reported success despite 32 type errors and Zero Python files checked by Black.  
+**Fix:** Restored Black `include` regex; updated `Makefile` to enforce root Ruff config and make Mypy failure gating; implemented `MYPY_SOFT=1` mode.  
+**Follow-up:** Tools now truthfully fail. Ensure "QA Tooling Sanity" check is part of future toolchain audits.
+
+---
+
+_(No further entries)_
 
 ---
 

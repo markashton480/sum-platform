@@ -6,6 +6,7 @@ Purpose: Define UniversalLinkBlock - a reusable link primitive supporting page,
 Family: Foundation block for navigation, CTAs, and any link-based content.
 Dependencies: wagtail.blocks, django.core.exceptions, sum_core.utils
 """
+
 import re
 from urllib.parse import urlparse
 

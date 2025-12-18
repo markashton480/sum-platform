@@ -33,10 +33,11 @@ git status
 
 ```bash
 # Run release checks (lint + test + boilerplate drift)
+# Note: make lint must provide a TRUTHFUL signal (no masked errors).
 make release-check
 ```
 
-**Stop if:** any check fails. Fix issues before proceeding.
+**Stop if:** any check fails. Fix issues before proceeding. For non-blocking type debt, use `MYPY_SOFT=1 make release-check` only if explicitly approved for the release.
 
 ---
 

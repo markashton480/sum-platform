@@ -5,6 +5,7 @@ Purpose: Register page models for Django model discovery.
 Family: SUM Platform – Page Types
 Dependencies: sum_core.pages.standard.StandardPage, sum_core.pages.services
 """
+
 from __future__ import annotations
 
 from sum_core.pages.services import ServiceIndexPage, ServicePage

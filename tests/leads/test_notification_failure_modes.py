@@ -93,12 +93,15 @@ class TestNotificationQueueFailures:
             "form_type": "contact",
         }
 
-        with patch(
-            "sum_core.leads.tasks.send_lead_notification.delay",
-            side_effect=Exception("Error 1"),
-        ), patch(
-            "sum_core.leads.tasks.send_lead_webhook.delay",
-            side_effect=Exception("Error 2"),
+        with (
+            patch(
+                "sum_core.leads.tasks.send_lead_notification.delay",
+                side_effect=Exception("Error 1"),
+            ),
+            patch(
+                "sum_core.leads.tasks.send_lead_webhook.delay",
+                side_effect=Exception("Error 2"),
+            ),
         ):
             response = client.post("/forms/submit/", data)
 

@@ -5,6 +5,7 @@ Purpose: Provide a HomePage type with StreamField body, SEO fields, and one-per-
 Family: Used only by sum_core.test_project; client projects will define their own page types later.
 Dependencies: Wagtail Page model, sum_core.pages.mixins, sum_core.blocks.base.PageStreamBlock, sum_core base template.
 """
+
 from __future__ import annotations
 
 from django.core.exceptions import ValidationError

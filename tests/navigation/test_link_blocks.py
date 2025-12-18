@@ -5,6 +5,7 @@ Purpose: Unit tests for UniversalLinkBlock and related link components.
 Family: SUM Platform Navigation System - Tests
 Dependencies: pytest, wagtail, sum_core.blocks.links
 """
+
 from unittest.mock import MagicMock
 
 import pytest

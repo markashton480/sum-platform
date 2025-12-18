@@ -5,6 +5,7 @@ Purpose: A reusable general-purpose content page using StreamField with PageStre
 Family: SUM Platform – Page Types
 Dependencies: Wagtail Page model, sum_core.blocks.base.PageStreamBlock
 """
+
 from __future__ import annotations
 
 from sum_core.blocks.base import PageStreamBlock
