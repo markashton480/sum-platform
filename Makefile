@@ -15,17 +15,13 @@ install-dev:
 	pre-commit install
 
 
-lint:
+lint: ## Run all linting and typechecking (strict)
 	ruff check . --config pyproject.toml
-	$(if $(MYPY_SOFT),mypy core cli tests --exclude '^clients/' || true,mypy core cli tests --exclude '^clients/')
+	mypy core cli tests
 	black --check core cli tests
 	isort --check-only core cli tests
 
-lint-strict:
-	ruff check .
-	mypy core cli tests --exclude '^clients/'
-	black --check core cli tests
-	isort --check-only core cli tests
+lint-strict: lint
 
 format: ## Auto-format code
 	black .
