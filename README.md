@@ -7,8 +7,9 @@ This README is the main “how the repo works” entrypoint. The consolidated pr
 ## How We Work (Git)
 
 - Default integration branch is `develop`.
-- Create branches from `develop` and open PRs back into `develop` (CI check `lint-and-test` must pass).
-- Promote releases via PR `develop` → `main`.
+- For code changes, create branches from `develop` (PR back into `develop` is recommended).
+- `develop` accepts direct pushes (used for CM tickets / transcripts / work reports).
+- Promote releases via PR `develop` → `main` (main is protected; CI check `lint-and-test` is required).
 - Hotfixes land in `main` first, then get backported to `develop`.
 
 ## Where to Start (Documentation)

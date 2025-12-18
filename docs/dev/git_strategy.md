@@ -27,7 +27,8 @@
    * `git checkout -b feat/CM-M6-QA-08-develop-workflow`
 
 3. Open a PR **into `develop`**.
-   * CI (`lint-and-test`) must pass before merge.
+  * Recommended for code changes.
+  * CI (`lint-and-test`) will run, but `develop` does not enforce checks.
 
 ### Releases (promotion to main)
 
@@ -42,7 +43,9 @@
 
 ### Notes on protections
 
-Branch protections/rulesets should ensure `lint-and-test` runs and blocks merges where required. If direct pushes to `develop` are allowed for maintainers, treat them as the exception (e.g. quick docs/admin-only maintenance) rather than the default workflow.
+* `main` is protected and should only receive changes via PR (typically `develop` → `main`).
+* `develop` is intentionally **unprotected** to allow direct pushes (e.g. CM tickets, transcripts, work reports).
+  * CI may still run on `develop` for visibility, but it is not a merge/push gate.
 
 | Type | Pattern | Example |
 |------|---------|---------|
