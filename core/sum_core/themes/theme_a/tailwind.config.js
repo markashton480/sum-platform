@@ -12,6 +12,20 @@ module.exports = {
   content: [
     // Theme A templates
     './templates/**/*.html',
+
+    // Core templates rendered within Theme A pages (e.g. StreamField blocks)
+    // Without this, Tailwind JIT may tree-shake @layer component selectors
+    // that are only referenced by core block templates.
+    '../../templates/**/*.html',
+  ],
+
+  // Classes composed dynamically in templates won't be discovered by the
+  // content scanner. Safelist them so the associated @layer component
+  // selectors are retained in the compiled CSS.
+  safelist: [
+    'hero--gradient-primary',
+    'hero--gradient-secondary',
+    'hero--gradient-accent',
   ],
   theme: {
     extend: {
