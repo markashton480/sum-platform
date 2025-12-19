@@ -29,19 +29,18 @@
     {% endif %}
 
     <!-- HEADER -->
-    <header id="main-header" class="w-full border-b border-transparent group/header py-6 transition-[background-color,padding,backdrop-filter,box-shadow] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[background-color,padding] pointer-events-auto relative">
+    <header id="main-header"
+            data-transparent-at-top="{{ has_hero|yesno:'true,false' }}"
+            class="w-full border-b border-transparent group/header py-6 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)] will-change-[background-color,padding] pointer-events-auto relative {% if not has_hero %}bg-sage-linen/95 backdrop-blur-md shadow-sm scrolled{% endif %}">
         <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
             <!-- Logo -->
             <a href="/" class="group z-50 py-2 relative">
                 {% if site_settings.header_logo %}
                     {% image site_settings.header_logo height-40 as header_logo %}
-                    <img class="header-logo group-[.scrolled]/header:brightness-100" src="{{ header_logo.url }}" alt="{{ site_name }}">
+                    <img class="header-logo group-[.scrolled]/header:invert-0 transition-all duration-300" src="{{ header_logo.url }}" alt="{{ site_name }}">
                 {% else %}
-                    <div class="font-display text-2xl md:text-3xl font-bold tracking-tight leading-none text-sage-linen group-[.scrolled]/header:text-sage-black transition-colors duration-300">
+                    <div class="header-logo-text font-display text-2xl md:text-3xl font-bold tracking-tight leading-none {% if has_hero %}text-sage-linen group-[.scrolled]/header:text-sage-black{% else %}text-sage-black{% endif %} transition-colors duration-300">
                         {{ site_name|upper }}
-                    </div>
-                    <div class="text-[10px] uppercase tracking-[0.3em] text-sage-oat group-[.scrolled]/header:text-sage-moss group-hover:text-sage-terra transition-colors duration-300">
-                        Est. {{ site_settings.established_year|default:"2025" }}
                     </div>
                 {% endif %}
             </a>
@@ -52,22 +51,22 @@
                     {% for item in nav.menu_items %}
                         {% if item.has_children %}
                             <!-- Mega Menu Trigger -->
-                            <div class="relative" id="{% if forloop.first %}kitchens-nav{% else %}nav-{{ forloop.counter }}{% endif %}">
-                                <button id="{% if forloop.first %}kitchens-trigger{% else %}trigger-{{ forloop.counter }}{% endif %}"
-                                        class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent focus:outline-none flex items-center gap-1"
+                            <div class="relative" id="nav-{{ forloop.counter }}">
+                                <button id="trigger-{{ forloop.counter }}"
+                                        class="nav-link text-sm uppercase tracking-widest {% if has_hero %}text-sage-linen group-[.scrolled]/header:text-sage-black{% else %}text-sage-black{% endif %} hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent focus:outline-none flex items-center gap-1"
                                         aria-expanded="false"
-                                        aria-controls="{% if forloop.first %}mega-menu-kitchens{% else %}mega-menu-{{ forloop.counter }}{% endif %}">
+                                        aria-controls="mega-menu-{{ forloop.counter }}">
                                     {{ item.label }}
                                     <svg class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </button>
 
                                 <!-- Mega Menu Panel -->
-                                <div id="{% if forloop.first %}mega-menu-kitchens{% else %}mega-menu-{{ forloop.counter }}{% endif %}" class="mega-panel hidden" role="menu" aria-hidden="true">
+                                <div id="mega-menu-{{ forloop.counter }}" class="mega-panel hidden" role="menu" aria-hidden="true">
                                     <div class="bg-sage-linen shadow-2xl border-t border-sage-black/10 mx-6 grid grid-cols-12 overflow-hidden rounded-sm">
                                         <!-- Categories Column -->
-                                        <div class="col-span-4 bg-sage-oat/30 p-8 border-r border-sage-black/5">
+                                        <div class="col-span-12 p-8">
                                             <span class="block text-xs font-mono text-sage-terra uppercase tracking-widest mb-6">{{ item.label }}</span>
-                                            <ul class="space-y-4">
+                                            <ul class="grid grid-cols-3 gap-4">
                                                 {% for child in item.children %}
                                                     <li>
                                                         <a href="{{ child.href }}" class="block font-display text-xl text-sage-black hover:text-sage-terra transition-colors{% if child.is_active %} text-sage-terra{% endif %}">
@@ -77,28 +76,25 @@
                                                 {% endfor %}
                                             </ul>
                                         </div>
-                                        <!-- Filler column for visual balance -->
-                                        <div class="col-span-8 p-8"></div>
                                     </div>
                                 </div>
                             </div>
                         {% else %}
                             <a href="{{ item.href }}"
-                               class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent{% if item.is_active %} border-sage-terra{% endif %}"
+                               class="nav-link text-sm uppercase tracking-widest {% if has_hero %}text-sage-linen group-[.scrolled]/header:text-sage-black{% else %}text-sage-black{% endif %} hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent{% if item.is_active %} border-sage-terra{% endif %}"
                                {% if item.is_current %}aria-current="page"{% endif %}
                                {% for k, v in item.attrs.items %} {{ k }}="{{ v|escape }}"{% endfor %}>
                                 {{ item.label }}
                             </a>
                         {% endif %}
                     {% empty %}
-                        <a href="/" class="nav-link text-sm uppercase tracking-widest text-sage-linen group-[.scrolled]/header:text-sage-black hover:text-sage-terra transition-colors duration-300 py-4">Home</a>
+                        <a href="/" class="nav-link text-sm uppercase tracking-widest {% if has_hero %}text-sage-linen group-[.scrolled]/header:text-sage-black{% else %}text-sage-black{% endif %} hover:text-sage-terra transition-colors duration-300 py-4">Home</a>
                     {% endfor %}
 
                     {% if nav.header_cta.enabled %}
                         <a href="{{ nav.header_cta.href }}"
                            class="px-8 py-4 text-sm font-bold uppercase tracking-widest transition-colors duration-300
-                                  text-sage-linen border border-sage-linen/30 backdrop-blur-sm
-                                  hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen
+                                  {% if has_hero %}text-sage-linen border-sage-linen/30 backdrop-blur-sm hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen{% else %}text-sage-black border-sage-black/30 hover:bg-sage-black hover:text-sage-linen hover:border-sage-black{% endif %}
                                   group-[.scrolled]/header:border-sage-black group-[.scrolled]/header:text-sage-black
                                   group-[.scrolled]/header:bg-transparent group-[.scrolled]/header:backdrop-blur-none
                                   group-[.scrolled]/header:hover:bg-sage-black group-[.scrolled]/header:hover:text-sage-linen group-[.scrolled]/header:hover:border-sage-black"
@@ -114,18 +110,15 @@
                 {% if nav.header_cta.enabled %}
                     <a href="{{ nav.header_cta.href }}"
                        class="px-5 py-3 text-xs font-bold uppercase tracking-widest transition-colors duration-300
-                              text-sage-linen border border-sage-linen/30 backdrop-blur-sm
-                              hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen
-                              group-[.scrolled]/header:border-sage-black group-[.scrolled]/header:text-sage-black
-                              group-[.scrolled]/header:bg-transparent group-[.scrolled]/header:backdrop-blur-none
-                              group-[.scrolled]/header:hover:bg-sage-black group-[.scrolled]/header:hover:text-sage-linen group-[.scrolled]/header:hover:border-sage-black">
+                              text-sage-black border border-sage-black/30
+                              hover:bg-sage-black hover:text-sage-linen hover:border-sage-black">
                         {{ nav.header_cta.text }}
                     </a>
                 {% endif %}
 
                 <button id="mobile-menu-btn" type="button" class="relative w-12 h-12 flex flex-col justify-center items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-sage-terra touch-manipulation" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
-                    <span class="block w-8 h-0.5 bg-sage-linen group-[.scrolled]/header:bg-sage-black transition-all duration-300 origin-center"></span>
-                    <span class="block w-8 h-0.5 bg-sage-linen group-[.scrolled]/header:bg-sage-black transition-all duration-300 origin-center"></span>
+                    <span class="block w-8 h-0.5 {% if has_hero %}bg-sage-linen group-[.scrolled]/header:bg-sage-black{% else %}bg-sage-black{% endif %} transition-all duration-300 origin-center"></span>
+                    <span class="block w-8 h-0.5 {% if has_hero %}bg-sage-linen group-[.scrolled]/header:bg-sage-black{% else %}bg-sage-black{% endif %} transition-all duration-300 origin-center"></span>
                 </button>
             </div>
         </div>

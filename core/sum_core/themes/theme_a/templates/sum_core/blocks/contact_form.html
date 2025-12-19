@@ -1,0 +1,139 @@
+{% load wagtailcore_tags form_tags %}
+<section class="py-24 bg-sage-oat">
+  <div class="container mx-auto px-4">
+    <div class="grid lg:grid-cols-12 gap-16 items-start">
+      <!-- Header Column -->
+      <div class="lg:col-span-5 reveal">
+        <header>
+          {% if self.eyebrow %}
+            <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-sage-label mb-6">
+              {{ self.eyebrow }}
+            </div>
+          {% endif %}
+          <div class="font-display text-4xl md:text-5xl text-sage-black mb-8">
+            {{ self.heading|richtext }}
+          </div>
+          {% if self.intro %}
+            <div class="text-lg text-sage-black/70 leading-relaxed font-body max-w-md">
+              {{ self.intro|richtext }}
+            </div>
+          {% endif %}
+        </header>
+      </div>
+
+      <!-- Form Column -->
+      <div class="lg:col-span-7 reveal delay-100">
+        <form action="/forms/submit/" method="post" novalidate class="bg-sage-linen rounded-sm p-10 md:p-12 shadow-sm border border-sage-black/5" data-form-type="contact" id="contact-form"
+              data-success-message="{{ self.success_message|default:"Thanks, we'll be in touch shortly."|escapejs }}"
+              data-error-message="Something went wrong. Please try again.">
+          {% csrf_token %}
+
+          <!-- Hidden fields for attribution and spam protection -->
+          {% form_hidden_fields form_type="contact" %}
+
+          <!-- Honeypot field (visually hidden) -->
+          <div class="sr-only" aria-hidden="true">
+            <label for="form-company-field">Company</label>
+            <input type="text" name="company" id="form-company-field" tabindex="-1" autocomplete="off">
+          </div>
+
+          {% if form %}
+            {% for field in form %}
+              <div class="mb-8 {% if field.errors %}has-error{% endif %}">
+                <label for="{{ field.id_for_label }}" class="block text-[11px] font-bold uppercase tracking-widest text-sage-label mb-3">
+                  {{ field.label }}
+                </label>
+                <div class="relative">
+                    {{ field }}
+                </div>
+                {% if field.help_text %}
+                  <span class="text-[11px] text-sage-black/40 mt-2 block italic">{{ field.help_text }}</span>
+                {% endif %}
+                {% if field.errors %}
+                  <span class="text-[11px] text-sage-moss mt-2 block font-bold" id="{{ field.auto_id }}_errors">
+                    {{ field.errors.0 }}
+                  </span>
+                {% endif %}
+              </div>
+            {% endfor %}
+
+            {% if form.non_field_errors %}
+              <div class="mb-8 p-4 bg-sage-moss/5 rounded-sm border border-sage-moss/20">
+                {% for error in form.non_field_errors %}
+                  <p class="text-sm text-sage-moss font-bold">{{ error }}</p>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+          {% else %}
+            <!-- Working form fields for frontend use -->
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <label for="contact-name" class="block text-[11px] font-bold uppercase tracking-widest text-sage-label mb-3">Full Name</label>
+                    <input type="text" id="contact-name" name="name" class="w-full px-0 py-3 bg-transparent border-b border-sage-black/10 text-sage-black focus:outline-none focus:border-sage-moss transition-colors font-body" placeholder="James Sterling" required>
+                </div>
+                <div>
+                    <label for="contact-email" class="block text-[11px] font-bold uppercase tracking-widest text-sage-label mb-3">Email Address</label>
+                    <input type="email" id="contact-email" name="email" class="w-full px-0 py-3 bg-transparent border-b border-sage-black/10 text-sage-black focus:outline-none focus:border-sage-moss transition-colors font-body" placeholder="name@example.com" required>
+                </div>
+            </div>
+            <div class="mb-8">
+                <label for="contact-phone" class="block text-[11px] font-bold uppercase tracking-widest text-sage-label mb-3">Phone (Optional)</label>
+                <input type="tel" id="contact-phone" name="phone" class="w-full px-0 py-3 bg-transparent border-b border-sage-black/10 text-sage-black focus:outline-none focus:border-sage-moss transition-colors font-body" placeholder="+44 ...">
+            </div>
+            <div class="mb-12">
+                <label for="contact-message" class="block text-[11px] font-bold uppercase tracking-widest text-sage-label mb-3">How can we help?</label>
+                <textarea id="contact-message" name="message" class="w-full px-0 py-3 bg-transparent border-b border-sage-black/10 text-sage-black focus:outline-none focus:border-sage-moss transition-colors font-body min-h-[120px] resize-none" placeholder="Tell us about your project..."></textarea>
+            </div>
+          {% endif %}
+
+          <!-- Form messages -->
+          <div role="alert" aria-live="polite" class="mb-8"></div>
+
+          <div>
+            <button type="submit" class="btn btn-primary w-full md:w-auto md:px-12">
+              {{ self.submit_label|default:"Send enquiry" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% form_attribution_script %}
+
+<script>
+(function() {
+  'use strict';
+
+  var form = document.getElementById('contact-form');
+  if (!form) return;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var formData = new FormData(form);
+    var messagesContainer = form.querySelector('[role="alert"]');
+
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+      if (data.success) {
+        messagesContainer.innerHTML = '<div class="p-4 bg-sage-moss/20 text-sage-black rounded-lg">' + form.dataset.successMessage + '</div>';
+        form.reset();
+      } else {
+        messagesContainer.innerHTML = '<div class="p-4 bg-primary/20 text-sage-black rounded-lg">' + form.dataset.errorMessage + '</div>';
+      }
+    })
+    .catch(function() {
+      messagesContainer.innerHTML = '<div class="p-4 bg-primary/20 text-sage-black rounded-lg">' + form.dataset.errorMessage + '</div>';
+    });
+  });
+})();
+</script>

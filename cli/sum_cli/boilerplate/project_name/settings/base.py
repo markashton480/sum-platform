@@ -6,7 +6,6 @@ Environment-specific settings should be placed in local.py or production.py.
 
 Replace 'project_name' with your actual project name after copying.
 """
-
 from __future__ import annotations
 
 import json
@@ -22,6 +21,11 @@ BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
 # =============================================================================
 # Theme Configuration
 # =============================================================================
+#
+# Per THEME-ARCHITECTURE-SPECv1, themes are copied into the client project
+# at init-time. Runtime template/static resolution uses theme/active/, NOT
+# sum_core. The .sum/theme.json file is for provenance tracking only.
+#
 
 
 def _get_project_theme_slug() -> str | None:
@@ -40,7 +44,7 @@ def _get_project_theme_slug() -> str | None:
     try:
         with theme_file.open("r", encoding="utf-8") as f:
             config = json.load(f)
-        return str(config.get("theme"))
+        return config.get("theme")
     except (json.JSONDecodeError, OSError):
         return None
 
@@ -55,7 +59,7 @@ def _get_theme_template_dirs() -> list[Path]:
     3. APP_DIRS (sum_core fallback)
 
     Returns:
-        List of theme template directory paths (empty if no theme)
+        List of theme template directory paths (empty if no theme installed)
     """
     theme_templates_dir = BASE_DIR / "theme" / "active" / "templates"
     if theme_templates_dir.exists():
@@ -63,6 +67,7 @@ def _get_theme_template_dirs() -> list[Path]:
     return []
 
 
+# Theme slug from provenance (for logging/debugging only)
 THEME_SLUG = _get_project_theme_slug()
 
 # SECURITY WARNING: keep the secret key used in production secret!

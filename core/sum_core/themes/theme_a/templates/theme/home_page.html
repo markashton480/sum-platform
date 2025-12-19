@@ -1,6 +1,8 @@
 {% extends "theme/base.html" %}
 {% load wagtailcore_tags %}
 
+{% block main_class %}{% if page.has_hero_block %}pt-0{% else %}pt-24{% endif %}{% endblock %}
+
 {% block content %}
   {% if not page.has_hero_block %}
     <section class="section section--hero">

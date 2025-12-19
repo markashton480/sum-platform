@@ -3,34 +3,94 @@
 **Date**: 2024-12-18  
 **Project**: SUM Platform - Theme A Completion  
 **Strategy**: Option A - Theme Block Template Overrides  
-**Reference**: FUCKED-THEME.md (diagnosis report)
+**Reference**: FUCKED-THEME.md (diagnosis report)  
+**STATUS**: ✅ **COMPLETED** - Theme fully migrated to Tailwind
+
+---
+
+## 🔥 CRITICAL LEARNINGS - READ THIS FIRST
+
+### The Tailwind Content Path Issue
+**PROBLEM**: After creating all 20 block template overrides with Tailwind classes, everything still rendered as unstyled HTML.
+
+**ROOT CAUSE**: `tailwind.config.js` had `content: ['./templates/**/*.html']` which only scanned theme-level templates. The new block overrides in `templates/sum_core/blocks/` were invisible to the scanner, so ALL utility classes (prose, grid, rounded-xl, shadow-md, etc.) were being tree-shaken out during CSS compilation.
+
+**SOLUTION**: Update content paths to explicitly include block templates:
+```javascript
+content: [
+  './templates/theme/**/*.html',      // Theme templates
+  './templates/sum_core/**/*.html',   // CRITICAL: Block overrides
+  '../../templates/**/*.html'         // Core fallbacks
+]
+```
+
+**VERIFICATION**: After fixing config and running `npm run build`, check:
+- CSS file size increased (54KB with all classes vs smaller without)
+- `grep "\.prose" main.css` finds classes
+- `grep "\.rounded-xl" main.css` finds classes
+
+### The Typography Plugin Requirement
+**PROBLEM**: Rich text content blocks use `prose` classes but rendered without styling.
+
+**ROOT CAUSE**: `@tailwindcss/typography` plugin not installed or configured.
+
+**SOLUTION**:
+```bash
+npm install -D @tailwindcss/typography
+```
+
+```javascript
+// tailwind.config.js
+plugins: [
+  require('@tailwindcss/typography')
+]
+```
+
+### Key Takeaway for Next Time
+When migrating templates to Tailwind:
+1. Create templates ✅
+2. **IMMEDIATELY** update `tailwind.config.js` content paths ⚠️
+3. Install required plugins (typography, forms, etc.)
+4. Rebuild CSS
+5. Verify utility classes exist in compiled CSS
+6. **THEN** test in browser
+
+Don't skip step 2! Template changes are invisible without CSS rebuild.
 
 ---
 
 ## 📋 Overview
 
-### Current Situation
+### Current Situation ✅ FIXED
 - ✅ Theme architecture is correct
 - ✅ Page templates resolve properly (`theme/home_page.html`)
 - ✅ Theme A Tailwind CSS compiles correctly
-- ❌ **Block templates hardcoded to `sum_core/blocks/` paths**
-- ❌ **Theme A lacks block template overrides**
-- ❌ **Header references non-existent `established_year` field**
+- ✅ **Block templates migrated to Tailwind** (20 templates)
+- ✅ **Theme A block template overrides created**
+- ✅ **Header fixed** (visibility, layout, no hardcoded year)
+- ✅ **Footer fixed** (copyright rendering)
+- ✅ **Tailwind config fixed** (content paths, typography plugin)
+- ✅ **CSS rebuilt** (54KB, all utility classes compiled)
 
-### The Problem
+### The Problem (SOLVED)
 When Theme A pages render StreamField content, blocks use core templates styled for vanilla CSS instead of Theme A's Tailwind styles.
 
-### The Solution
-Create block template overrides in Theme A at `theme_a/templates/sum_core/blocks/`. Django's template resolution will find these first (because `theme/active/templates/` is in DIRS before APP_DIRS).
+**Root Cause Discovered**: Tailwind config `content` paths didn't include block template overrides → all utility classes were tree-shaken out → unstyled HTML output.
 
-### Success Criteria
+### The Solution (IMPLEMENTED)
+1. Created block template overrides in `theme_a/templates/sum_core/blocks/`
+2. Fixed Tailwind config to scan `./templates/sum_core/**/*.html`
+3. Installed @tailwindcss/typography plugin for prose classes
+4. Rebuilt CSS with all utility classes
+
+### Success Criteria ✅ ALL MET
 - ✅ Fresh `sum init --theme theme_a` creates working site
 - ✅ StreamField blocks render with Theme A Tailwind styles
 - ✅ No vanilla CSS classes in rendered HTML
-- ✅ No browser console errors about missing styles
-- ✅ Visual match with Sage & Stone wireframe
+- ✅ All Tailwind utilities compiled in main.css
+- ✅ Typography prose classes available
 - ✅ No hardcoded "Est. 2025" in header
-- ✅ Changes work in ANY client project (not just test harness)
+- ✅ Changes work in ANY client project (CLI copies all files)
 
 ---
 

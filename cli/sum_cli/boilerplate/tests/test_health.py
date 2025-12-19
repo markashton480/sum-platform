@@ -4,7 +4,6 @@ Integration tests for the /health/ endpoint.
 This test verifies that sum_core endpoints are correctly wired into this client project.
 It validates the actual health check contract without mocking core internals.
 """
-
 from __future__ import annotations
 
 import pytest

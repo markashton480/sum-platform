@@ -876,6 +876,14 @@ def footer_nav(context: dict[str, Any]) -> dict[str, Any]:
             "{company_name}", footer_settings.company_name
         )
 
+        # Clean up extra spaces when company_name is empty
+        # e.g., "© 2025 . All rights" -> "© 2025. All rights"
+        import re
+
+        copyright_rendered = re.sub(r"\s+\.", ".", copyright_rendered)
+        copyright_rendered = re.sub(r"\s+,", ",", copyright_rendered)
+        copyright_rendered = re.sub(r"\s{2,}", " ", copyright_rendered).strip()
+
         return {
             "tagline": footer_settings.tagline,
             "link_sections": link_sections,

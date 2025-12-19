@@ -28,6 +28,11 @@
     --color-sage-moss: 85 111 97;     /* #556F61 Moss */
     --color-sage-terra: 160 86 59;    /* #A0563B Terra */
     --color-sage-stone: 143 141 136;  /* #8F8D88 Stone */
+    --color-sage-darkmoss: 74 99 80;
+    --color-sage-label: 74 93 80;
+    --color-sage-meta: 90 110 95;
+    --color-sage-footer-primary: 209 217 212;
+    --color-sage-footer-secondary: 163 176 168;
 
     /* Semantic colour aliases */
     --color-primary: 160 86 59;       /* Terra accent */
@@ -44,6 +49,21 @@
         background-color: #F7F5F1; /* Linen */
         color: #1A2F23; /* Obsidian Green */
     }
+
+    /* Custom scrollbar for Theme A */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #F7F5F1;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #E3DED4;
+        border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #8F8D88;
+    }
 }
 
 
@@ -51,6 +71,48 @@
    SECTION 3: COMPONENTS LAYER
    ============================================================= */
 @layer components {
+    /* Banner Grid Wrapper (for smooth height transition) */
+    .banner-grid-wrapper {
+        display: grid;
+        grid-template-rows: 1fr;
+        transition: grid-template-rows 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .banner-grid-wrapper.closed {
+        grid-template-rows: 0fr;
+    }
+    .banner-inner {
+        overflow: hidden;
+    }
+
+    /* Mega Menu Panel */
+    .mega-panel {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(10px);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .mega-panel.active {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+    }
+
+    /* Header Scrolled State */
+    #main-header.scrolled {
+        @apply bg-sage-linen/95 backdrop-blur-md shadow-sm py-4 border-sage-black/10;
+    }
+    #main-header.scrolled .nav-link {
+        @apply text-sage-black;
+    }
+    #main-header.scrolled .header-logo-text {
+        @apply text-sage-black;
+    }
+
     /* Screen-reader only utility */
     .sr-only {
         position: absolute;
@@ -79,6 +141,23 @@
        and must always be present in compiled CSS.
        ========================================================= */
 
+    /* Reveal Animations */
+    .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: opacity, transform;
+    }
+    .reveal.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .delay-100 { transition-delay: 100ms; }
+    .delay-200 { transition-delay: 200ms; }
+    .delay-300 { transition-delay: 300ms; }
+    .delay-400 { transition-delay: 400ms; }
+    .delay-500 { transition-delay: 500ms; }
+
     /* Layout primitives */
     .section {
         @apply py-12 md:py-16;
@@ -96,47 +175,67 @@
         @apply mt-6;
     }
 
-    /* Typography primitives */
-    .heading-xl {
-        @apply font-display text-4xl md:text-5xl leading-tight text-sage-black;
-    }
-    .text-body {
-        @apply text-sage-black/80 text-lg leading-relaxed;
-    }
-
     /* Buttons */
     .btn {
-        @apply inline-flex items-center justify-center gap-3 px-6 py-3 rounded-md font-body font-bold text-sm uppercase tracking-wider transition duration-200 ease-expo-out;
+        @apply inline-flex items-center justify-center gap-3 px-8 py-4 rounded-sm font-body font-bold text-[11px] uppercase tracking-[0.2em] transition-all duration-500 ease-expo-out;
         @apply border border-transparent no-underline;
         @apply focus:outline-none;
     }
     .btn-primary {
-        @apply bg-primary text-sage-linen border-primary;
+        @apply bg-sage-moss text-sage-linen border-sage-moss;
     }
     .btn-primary:hover {
-        @apply bg-primary/90;
+        @apply bg-sage-darkmoss border-sage-darkmoss shadow-lg shadow-sage-moss/20 -translate-y-0.5;
     }
     .btn-outline,
     .btn-secondary {
-        @apply bg-transparent text-sage-black border-sage-black/25;
+        @apply bg-transparent text-sage-black border-sage-black/20;
     }
     .btn-outline:hover,
     .btn-secondary:hover {
-        @apply bg-sage-black text-sage-linen border-sage-black;
+        @apply bg-sage-black text-sage-linen border-sage-black shadow-lg shadow-sage-black/10 -translate-y-0.5;
     }
     .btn--link {
-        @apply inline-flex items-center gap-2 p-0 border-0 bg-transparent rounded-none;
-        @apply font-body font-bold text-sm uppercase tracking-wider text-primary;
-        @apply transition-colors duration-200 ease-expo-out;
+        @apply inline-flex items-center gap-3 p-0 border-0 bg-transparent rounded-none;
+        @apply font-body font-bold text-[11px] uppercase tracking-[0.2em] text-sage-moss;
+        @apply transition-all duration-300 ease-expo-out;
     }
     .btn--link:hover {
-        @apply text-primary/80;
+        @apply text-sage-darkmoss;
     }
     .btn--link span {
-        @apply inline-block transition-transform duration-200 ease-expo-out;
+        @apply inline-block transition-transform duration-300 ease-expo-out;
     }
     .btn--link:hover span {
-        transform: translateX(4px);
+        transform: translateX(6px);
+    }
+
+    /* Typography primitives */
+    .heading-xl {
+        @apply font-display text-4xl md:text-5xl lg:text-6xl leading-tight text-sage-black tracking-tight;
+    }
+    .text-body {
+        @apply text-sage-black/70 text-lg leading-relaxed font-body;
+    }
+
+    /* Prose Overrides */
+    .prose-sage {
+        --tw-prose-body: theme('colors.sage.black / 80%');
+        --tw-prose-headings: theme('colors.sage.black');
+        --tw-prose-lead: theme('colors.sage.black / 70%');
+        --tw-prose-links: theme('colors.sage.moss');
+        --tw-prose-bold: theme('colors.sage.black');
+        --tw-prose-counters: theme('colors.sage.moss');
+        --tw-prose-bullets: theme('colors.sage.moss');
+        --tw-prose-hr: theme('colors.sage.black / 10%');
+        --tw-prose-quotes: theme('colors.sage.black');
+        --tw-prose-quote-borders: theme('colors.sage.moss / 30%');
+        --tw-prose-captions: theme('colors.sage.label');
+        --tw-prose-code: theme('colors.sage.black');
+        --tw-prose-pre-code: theme('colors.sage.linen');
+        --tw-prose-pre-bg: theme('colors.sage.darkmoss');
+        --tw-prose-th-borders: theme('colors.sage.black / 20%');
+        --tw-prose-td-borders: theme('colors.sage.black / 10%');
     }
 
     /* Hero gradient block */
@@ -240,84 +339,88 @@
 
     /* Footer */
     .footer {
-        @apply bg-sage-black text-sage-linen;
-        @apply pt-16 pb-10;
+        @apply bg-sage-darkmoss text-sage-linen;
+        @apply pt-24 pb-12;
     }
     .footer__grid {
-        @apply grid gap-12 lg:grid-cols-12;
+        @apply grid gap-16 lg:grid-cols-12;
     }
     .footer__brand {
         @apply lg:col-span-4;
     }
     .footer__brand-name {
-        @apply font-display text-2xl tracking-tight;
+        @apply font-display text-3xl tracking-tight text-sage-linen;
     }
     .footer__tagline {
-        @apply mt-3 text-sage-linen/75 leading-relaxed;
+        @apply mt-6 text-sage-linen/60 leading-relaxed font-body text-lg;
     }
     .footer__social {
-        @apply mt-6 flex flex-wrap gap-3;
+        @apply mt-10 flex flex-wrap gap-4;
     }
     .footer__social-link {
-        @apply inline-flex items-center justify-center w-10 h-10 rounded-full;
-        @apply bg-sage-linen/10 text-sage-linen;
-        @apply transition-colors duration-200 ease-expo-out;
+        @apply inline-flex items-center justify-center w-12 h-12 rounded-sm;
+        @apply bg-sage-linen/5 text-sage-linen border border-sage-linen/10;
+        @apply transition-all duration-300 ease-expo-out;
     }
     .footer__social-link:hover {
-        @apply bg-sage-linen/20;
+        @apply bg-sage-moss text-sage-linen border-sage-moss -translate-y-1;
     }
     .footer__links {
         @apply lg:col-span-8;
-        @apply grid gap-10 sm:grid-cols-2 lg:grid-cols-3;
+        @apply grid gap-12 sm:grid-cols-2 lg:grid-cols-3;
     }
     .footer__section-title {
-        @apply text-sm font-bold uppercase tracking-wider text-sage-linen/80;
-        @apply mb-4;
+        @apply text-[11px] font-bold uppercase tracking-[0.2em] text-sage-moss;
+        @apply mb-8;
     }
     .footer__link-list {
-        @apply space-y-3;
+        @apply space-y-4;
     }
     .footer__text {
-        @apply text-sage-linen/75;
+        @apply text-sage-linen/60 font-body;
     }
     .footer__text--spaced {
-        @apply mb-3;
+        @apply mb-4;
     }
     .footer__text--address {
-        @apply whitespace-pre-line;
+        @apply whitespace-pre-line leading-relaxed;
     }
     .footer__link {
-        @apply text-sage-linen/75 hover:text-sage-linen;
-        @apply transition-colors duration-200 ease-expo-out;
+        @apply text-sage-linen/60 hover:text-sage-moss font-body;
+        @apply transition-colors duration-300 ease-expo-out;
     }
     .footer__bottom {
-        @apply mt-12 pt-6 border-t border-sage-linen/10;
+        @apply mt-24 pt-8 border-t border-sage-linen/5 flex flex-col md:flex-row justify-between items-center gap-6;
     }
     .footer__copyright {
-        @apply text-sm text-sage-linen/60;
+        @apply text-[11px] font-bold uppercase tracking-widest text-sage-linen/30;
     }
 
     /* Sticky CTA */
     .sticky-cta {
-        @apply fixed bottom-6 right-6 z-50 flex items-stretch;
-        @apply rounded-full overflow-hidden;
-        @apply bg-sage-linen border border-sage-black/10 shadow-lg;
+        @apply fixed bottom-8 right-8 z-50 flex items-stretch;
+        @apply rounded-sm overflow-hidden;
+        @apply bg-sage-linen border border-sage-black/5 shadow-2xl;
+        @apply transition-transform duration-500 ease-expo-out;
+    }
+    .sticky-cta:hover {
+        @apply -translate-y-1;
     }
     .sticky-cta__phone {
-        @apply flex items-center gap-2 px-4 py-3 text-sage-black;
-        @apply transition-colors duration-200 ease-expo-out;
+        @apply flex items-center gap-3 px-6 py-4 text-sage-black border-r border-sage-black/5;
+        @apply transition-colors duration-300 ease-expo-out;
     }
     .sticky-cta__phone:hover {
         @apply bg-sage-oat;
     }
     .sticky-cta__icon {
-        @apply text-sage-black;
+        @apply text-sage-moss;
     }
     .sticky-cta__phone-text {
-        @apply font-bold text-sm uppercase tracking-wider;
+        @apply font-bold text-[11px] uppercase tracking-widest;
     }
     .sticky-cta__button.btn {
-        @apply rounded-none border-0;
+        @apply rounded-none border-0 py-4 px-8;
     }
 }
 

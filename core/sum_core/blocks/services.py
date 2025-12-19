@@ -56,6 +56,10 @@ class ServiceCardsBlock(blocks.StructBlock):
         help_text="Section heading. Use Italic for accent color.",
     )
     intro = blocks.TextBlock(required=False, help_text="Short supporting paragraph.")
+    view_all_link = blocks.URLBlock(required=False, label="View All Link")
+    view_all_label = blocks.CharBlock(
+        required=False, max_length=50, label="View All Label"
+    )
     cards = blocks.ListBlock(ServiceCardItemBlock(), min_num=1, max_num=12)
     layout_style = blocks.ChoiceBlock(
         choices=[("default", "Default"), ("tight", "Tight spacing")],

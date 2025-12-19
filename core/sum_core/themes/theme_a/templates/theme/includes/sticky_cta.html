@@ -2,7 +2,11 @@
 {% sticky_cta as cta %}
 {# Theme A include (v0.6 theme-owned rendering contract) #}
 
-{% if cta.enabled %}
+{% comment %}
+Only show sticky CTA if it's enabled AND has actual configured content
+(phone number OR button with a real link, not just "#")
+{% endcomment %}
+{% if cta.enabled and cta.phone_number or cta.button_enabled and cta.button_href != "#" %}
 <div class="sticky-cta" id="stickyCta" aria-label="Quick actions">
     {% if cta.phone_enabled and cta.phone_number %}
         <a href="{{ cta.phone_href }}" class="sticky-cta__phone" aria-label="Call {{ cta.phone_number }}">

@@ -10,12 +10,13 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    // Theme A templates
-    './templates/**/*.html',
+    // Theme A templates (page layouts, includes)
+    './templates/theme/**/*.html',
 
-    // Core templates rendered within Theme A pages (e.g. StreamField blocks)
-    // Without this, Tailwind JIT may tree-shake @layer component selectors
-    // that are only referenced by core block templates.
+    // Theme A block template overrides (CRITICAL - our Tailwind-styled blocks!)
+    './templates/sum_core/**/*.html',
+
+    // Core templates (fallback for any blocks not overridden)
     '../../templates/**/*.html',
   ],
 
@@ -48,6 +49,11 @@ module.exports = {
           'moss': 'rgb(var(--color-sage-moss, 85 111 97) / <alpha-value>)',         // #556F61 Moss
           'terra': 'rgb(var(--color-sage-terra, 160 86 59) / <alpha-value>)',       // #A0563B Terra
           'stone': 'rgb(var(--color-sage-stone, 143 141 136) / <alpha-value>)',     // #8F8D88 Stone
+          'darkmoss': 'rgb(var(--color-sage-darkmoss, 74 99 80) / <alpha-value>)',
+          'label': 'rgb(var(--color-sage-label, 74 93 80) / <alpha-value>)',
+          'meta': 'rgb(var(--color-sage-meta, 90 110 95) / <alpha-value>)',
+          'footer-primary': 'rgb(var(--color-sage-footer-primary, 209 217 212) / <alpha-value>)',
+          'footer-secondary': 'rgb(var(--color-sage-footer-secondary, 163 176 168) / <alpha-value>)',
         },
         // Semantic aliases (using CSS variables for branding override)
         'primary': 'rgb(var(--color-primary, 160 86 59) / <alpha-value>)',
@@ -65,7 +71,23 @@ module.exports = {
         'expo-out': 'cubic-bezier(0.16, 1, 0.3, 1)',
         'smooth': 'cubic-bezier(0.25, 1, 0.5, 1)',
       },
+
+      // Typography (prose) configuration
+      typography: {
+        DEFAULT: {
+          css: {
+            '--tw-prose-body': 'rgb(26 47 35 / 0.9)',
+            '--tw-prose-headings': 'rgb(26 47 35)',
+            '--tw-prose-links': 'rgb(160 86 59)',
+            '--tw-prose-bold': 'rgb(26 47 35)',
+            '--tw-prose-quotes': 'rgb(26 47 35 / 0.9)',
+            maxWidth: 'none',
+          },
+        },
+      },
     },
   },
-  plugins: [],
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 };

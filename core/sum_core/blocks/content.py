@@ -123,6 +123,10 @@ class PortfolioBlock(blocks.StructBlock):
         help_text="Main heading. Use italics for accent styling.",
     )
     intro = blocks.TextBlock(required=False, help_text="Short lead text")
+    view_all_link = blocks.URLBlock(required=False, label="View All Link")
+    view_all_label = blocks.CharBlock(
+        required=False, max_length=50, label="View All Label"
+    )
     items = blocks.ListBlock(PortfolioItemBlock(), min_num=1, max_num=12)
 
     class Meta:

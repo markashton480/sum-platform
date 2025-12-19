@@ -4,7 +4,6 @@ Production settings.
 This file contains settings for production deployments.
 All sensitive values must be provided via environment variables.
 """
-
 from __future__ import annotations
 
 import os

@@ -55,33 +55,6 @@ function toggleAccordion(id) {
     }
 }
 
-// --- Modal Functions (called via onclick) ---
-function openProvenanceModal() {
-    const modal = document.getElementById('provenance-modal');
-    const backdrop = document.getElementById('provenance-modal-backdrop');
-    const content = document.getElementById('provenance-modal-content');
-    if (!modal) return;
-    modal.classList.remove('pointer-events-none', 'opacity-0');
-    modal.classList.add('pointer-events-auto');
-    if (backdrop) backdrop.classList.add('pointer-events-auto');
-    if (content) content.classList.add('pointer-events-auto');
-    modal.setAttribute('aria-hidden', 'false');
-    lockScroll();
-}
-
-function closeProvenanceModal() {
-    const modal = document.getElementById('provenance-modal');
-    const backdrop = document.getElementById('provenance-modal-backdrop');
-    const content = document.getElementById('provenance-modal-content');
-    if (!modal) return;
-    modal.classList.add('pointer-events-none', 'opacity-0');
-    modal.classList.remove('pointer-events-auto');
-    if (backdrop) backdrop.classList.remove('pointer-events-auto');
-    if (content) content.classList.remove('pointer-events-auto');
-    modal.setAttribute('aria-hidden', 'true');
-    unlockScroll();
-}
-
 // =============================================================
 // SECTION 2: FEATURE INITIALIZATION (wrapped in error boundaries)
 // =============================================================
@@ -120,6 +93,13 @@ try {
 
     function updateHeaderAppearance() {
         if (!header) return;
+        const isTransparentAtTop = header.dataset.transparentAtTop === 'true';
+
+        if (!isTransparentAtTop) {
+            setHeaderScrolled(true);
+            return;
+        }
+
         setHeaderScrolled(window.scrollY > 10);
     }
 
@@ -270,18 +250,6 @@ try {
     console.warn('Mobile menu failed:', e);
 }
 
-// --- Escape key for Provenance Modal ---
-try {
-    document.addEventListener('keydown', (e) => {
-        const modal = document.getElementById('provenance-modal');
-        if (!modal) return;
-        if (e.key === 'Escape' && !modal.classList.contains('opacity-0')) {
-            closeProvenanceModal();
-        }
-    });
-} catch (e) {
-    console.warn('Modal escape handler failed:', e);
-}
 
 // --- Active Navigation Highlighting ---
 try {
@@ -383,70 +351,79 @@ try {
         // Desktop-only: tablets use their own nav
         if (window.matchMedia('(max-width: 1199px)').matches) return;
 
-        const root = document.getElementById('kitchens-nav');
-        const trigger = document.getElementById('kitchens-trigger');
-        const panel = document.getElementById('mega-menu-kitchens');
-        if (!root || !trigger || !panel) return;
+        const triggers = document.querySelectorAll('[id^="trigger-"]');
 
-        let closeTimer = null;
-        let hideTimer = null;
+        triggers.forEach(trigger => {
+            const id = trigger.id.split('-')[1];
+            const root = document.getElementById(`nav-${id}`);
+            const panel = document.getElementById(`mega-menu-${id}`);
 
-        const open = () => {
-            clearTimeout(closeTimer);
-            clearTimeout(hideTimer);
-            if (panel.getAttribute('data-open') === 'true') return;
-            panel.classList.remove('hidden');
-            panel.getBoundingClientRect(); // Force reflow
-            panel.setAttribute('data-open', 'true');
-            panel.setAttribute('aria-hidden', 'false');
-            trigger.setAttribute('aria-expanded', 'true');
-        };
+            if (!root || !trigger || !panel) return;
 
-        const close = (delay = 120) => {
-            clearTimeout(closeTimer);
-            closeTimer = setTimeout(() => {
-                if (panel.getAttribute('data-open') !== 'true') return;
-                panel.setAttribute('data-open', 'false');
-                panel.setAttribute('aria-hidden', 'true');
-                trigger.setAttribute('aria-expanded', 'false');
+            let closeTimer = null;
+            let hideTimer = null;
+
+            const open = () => {
+                clearTimeout(closeTimer);
                 clearTimeout(hideTimer);
-                hideTimer = setTimeout(() => {
-                    if (panel.getAttribute('data-open') !== 'true') {
-                        panel.classList.add('hidden');
-                    }
-                }, 200);
-            }, delay);
-        };
+                if (panel.getAttribute('data-open') === 'true') return;
+                panel.classList.remove('hidden');
+                panel.getBoundingClientRect(); // Force reflow
+                panel.setAttribute('data-open', 'true');
+                panel.setAttribute('aria-hidden', 'false');
+                trigger.setAttribute('aria-expanded', 'true');
+            };
 
-        // Hover handlers for trigger and panel
-        trigger.addEventListener('pointerenter', open);
-        panel.addEventListener('pointerenter', open);
+            const close = (delay = 120) => {
+                clearTimeout(closeTimer);
+                closeTimer = setTimeout(() => {
+                    if (panel.getAttribute('data-open') !== 'true') return;
+                    panel.setAttribute('data-open', 'false');
+                    panel.setAttribute('aria-hidden', 'true');
+                    trigger.setAttribute('aria-expanded', 'false');
+                    clearTimeout(hideTimer);
+                    hideTimer = setTimeout(() => {
+                        if (panel.getAttribute('data-open') !== 'true') {
+                            panel.classList.add('hidden');
+                        }
+                    }, 200);
+                }, delay);
+            };
 
-        trigger.addEventListener('pointerleave', (e) => {
-            if (panel.contains(e.relatedTarget)) return;
-            close(180);
+            // Hover handlers for trigger and panel
+            trigger.addEventListener('pointerenter', open);
+            panel.addEventListener('pointerenter', open);
+
+            trigger.addEventListener('pointerleave', (e) => {
+                if (panel.contains(e.relatedTarget)) return;
+                close(180);
+            });
+
+            panel.addEventListener('pointerleave', (e) => {
+                if (trigger.contains(e.relatedTarget)) return;
+                close(180);
+            });
+
+            // Keyboard support
+            trigger.addEventListener('focus', open);
+            panel.addEventListener('focusin', open);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && panel.getAttribute('data-open') === 'true') {
+                    close(0);
+                    trigger.focus();
+                }
+            });
+
+            // Click outside closes
+            document.addEventListener('pointerdown', (e) => {
+                if (!root.contains(e.target)) close(0);
+            }, { passive: true });
         });
-
-        panel.addEventListener('pointerleave', (e) => {
-            if (trigger.contains(e.relatedTarget)) return;
-            close(180);
-        });
-
-        // Keyboard support
-        trigger.addEventListener('focus', open);
-        panel.addEventListener('focusin', open);
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && panel.getAttribute('data-open') === 'true') {
-                close(0);
-                trigger.focus();
-            }
-        });
-
-        // Click outside closes
-        document.addEventListener('pointerdown', (e) => {
-            if (!root.contains(e.target)) close(0);
-        }, { passive: true });
+    })();
+} catch (e) {
+    console.warn('Mega menu failed:', e);
+}
     })();
 } catch (e) {
     console.warn('Mega menu failed:', e);

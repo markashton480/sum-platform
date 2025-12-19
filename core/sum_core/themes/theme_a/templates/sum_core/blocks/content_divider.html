@@ -1,0 +1,9 @@
+{% comment %}
+Divider block - horizontal rule with different styles
+Style options: muted (light), bold (dark)
+{% endcomment %}
+<div class="py-8">
+  <div class="container max-w-4xl mx-auto px-6">
+    <hr class="{% if self.style == 'bold' %}border-t-2 border-sage-black{% else %}border-t border-sage-black/20{% endif %}">
+  </div>
+</div>

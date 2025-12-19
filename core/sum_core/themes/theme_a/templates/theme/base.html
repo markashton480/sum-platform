@@ -43,9 +43,9 @@
     <!-- THEME: theme_a -->
 
     {% analytics_body %}
-    {% include "theme/includes/header.html" %}
+    {% include "theme/includes/header.html" with has_hero=page.has_hero_block %}
 
-    <main id="main">{% block content %}{% endblock %}</main>
+    <main id="main" class="{% block main_class %}{% if not page.has_hero_block %}pt-24{% endif %}{% endblock %}">{% block content %}{% endblock %}</main>
 
     {% include "theme/includes/footer.html" %}
 
