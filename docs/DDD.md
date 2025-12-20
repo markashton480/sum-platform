@@ -15,7 +15,9 @@ The SUM Platform has extensive documentation scattered across multiple directori
 
 ```
 docs/
+├── HANDBOOK.md                        # The master guide (Start here!)
 ├── DDD.md                              # This document
+├── ROUTER.md                           # Quick operational links
 └── dev/                               # All development documentation
     ├── master-docs/                   # Core strategic documents
     ├── [individual reference files]   # Implementation guides

@@ -14,6 +14,8 @@ This README is the main “how the repo works” entrypoint. The consolidated pr
 
 ## Where to Start (Documentation)
 
+- **[The SUM Platform Handbook](docs/HANDBOOK.md)** — **Start here!** The unified guide to the entire platform.
+
 ### For Understanding the Platform
 
 - **Product + Architecture SSOT**: [docs/dev/SUM-PLATFORM-SSOT.md](docs/dev/SUM-PLATFORM-SSOT.md) — Single source of truth for the entire platform

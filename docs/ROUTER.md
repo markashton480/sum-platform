@@ -141,7 +141,11 @@ When troubleshooting or researching **"why did we decide X?"** or **"what change
 
 ## 📖 Complete Documentation Map
 
-For a comprehensive index of all documentation:
+For the definitive guide to the entire platform:
+
+**[The SUM Platform Handbook](HANDBOOK.md)** — **Start here!**
+
+For a comprehensive inventory of every document:
 
 **[DDD.md (Documentation Documentation Document)](DDD.md)**
 
