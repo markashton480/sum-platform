@@ -104,24 +104,75 @@ def _build_css_variables(site_settings: SiteSettings) -> list[str]:
     # If no primary color set, we do NOT inject defaults here.
     # We rely on main.css :root variables to provide the default "Gold" theme.
 
-    # Also inject other specific colors if needed, but the system relies on HSL
-    # We can inject them as overrides if we want, or just stick to the design system logic.
-    # For now, let's inject the provided secondary/accent as simple hex variables
-    # in case we want to use them directly, but the main theme will drive off brand-h/s/l.
-
+    # -------------------------------------------------------------------------
+    # 2) Secondary Colour
+    # -------------------------------------------------------------------------
     if site_settings.secondary_color:
         variables.append(
             f"    --color-secondary-custom: {site_settings.secondary_color};"
         )
+        secondary_hsl = _hex_to_hsl(site_settings.secondary_color)
+        if secondary_hsl:
+            variables.extend(
+                [
+                    f"    --secondary-h: {secondary_hsl[0]};",
+                    f"    --secondary-s: {secondary_hsl[1]}%;",
+                    f"    --secondary-l: {secondary_hsl[2]}%;",
+                ]
+            )
 
+    # -------------------------------------------------------------------------
+    # 3) Accent Colour
+    # -------------------------------------------------------------------------
     if site_settings.accent_color:
         variables.append(f"    --color-accent-custom: {site_settings.accent_color};")
-        # Also try to generate accent HSL if needed
         accent_hsl = _hex_to_hsl(site_settings.accent_color)
         if accent_hsl:
-            variables.append(f"    --accent-h: {accent_hsl[0]};")
-            variables.append(f"    --accent-s: {accent_hsl[1]}%;")
-            variables.append(f"    --accent-l: {accent_hsl[2]}%;")
+            variables.extend(
+                [
+                    f"    --accent-h: {accent_hsl[0]};",
+                    f"    --accent-s: {accent_hsl[1]}%;",
+                    f"    --accent-l: {accent_hsl[2]}%;",
+                ]
+            )
+
+    # -------------------------------------------------------------------------
+    # 4) Semantic Neutrals (Background, Text, Surface)
+    #    Output HSL components if configured, enabling full theme overrides.
+    # -------------------------------------------------------------------------
+
+    if site_settings.background_color:
+        bg_hsl = _hex_to_hsl(site_settings.background_color)
+        if bg_hsl:
+            variables.extend(
+                [
+                    f"    --background-h: {bg_hsl[0]};",
+                    f"    --background-s: {bg_hsl[1]}%;",
+                    f"    --background-l: {bg_hsl[2]}%;",
+                ]
+            )
+
+    if site_settings.text_color:
+        txt_hsl = _hex_to_hsl(site_settings.text_color)
+        if txt_hsl:
+            variables.extend(
+                [
+                    f"    --text-h: {txt_hsl[0]};",
+                    f"    --text-s: {txt_hsl[1]}%;",
+                    f"    --text-l: {txt_hsl[2]}%;",
+                ]
+            )
+
+    if site_settings.surface_color:
+        surf_hsl = _hex_to_hsl(site_settings.surface_color)
+        if surf_hsl:
+            variables.extend(
+                [
+                    f"    --surface-h: {surf_hsl[0]};",
+                    f"    --surface-s: {surf_hsl[1]}%;",
+                    f"    --surface-l: {surf_hsl[2]}%;",
+                ]
+            )
 
     heading_font = _format_font_value(site_settings.heading_font)
     if heading_font:

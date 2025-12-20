@@ -62,6 +62,7 @@ python manage.py seed_showroom --clear --hostname localhost --port 8000
 Under the HomePage, the command creates:
 
 - **`StandardPage`**: `showroom` → `/showroom/`
+- **`StandardPage`**: `kitchen-sink` → `/kitchen-sink/`
 - **`StandardPage`**: `contact` → `/contact/`
 - **`ServiceIndexPage`**: `services` → `/services/`
   - **`ServicePage`**: `solar-installation` → `/services/solar-installation/`
@@ -69,7 +70,7 @@ Under the HomePage, the command creates:
 
 ### Placeholder images
 
-The command generates a set of placeholder images in the Wagtail image library and assigns them to blocks that require images (hero, gallery, portfolio, comparison, trust logos, service featured images, branding logos).
+The command generates a set of placeholder images in the **"Showroom" Wagtail Collection** and assigns them to blocks that require images (hero, gallery, portfolio, comparison, trust logos, service featured images, branding logos).
 
 This requires **Pillow** (normally already installed with Wagtail). If Pillow is missing, the command fails fast with an actionable error.
 
@@ -77,7 +78,7 @@ This requires **Pillow** (normally already installed with Wagtail). If Pillow is
 
 ## Content strategy: “show all blocks, spread across pages”
 
-The authoritative list of available blocks is `sum_core.blocks.base.PageStreamBlock`. The showroom is designed to include **every block type at least once**, but distributed so no single page is overloaded.
+The authoritative list of available blocks is `sum_core.blocks.base.PageStreamBlock`. The showroom is designed to include **every block type at least once**.
 
 ### HomePage (`/`)
 
@@ -109,6 +110,10 @@ Showroom body contains:
 - **`divider`**
 - **`rich_text`** (the plain RichTextBlock)
 - **`hero`** (legacy hero block kept for compatibility)
+
+### Kitchen Sink page (`/kitchen-sink/`)
+
+Kitchen Sink body contains **every block type** available in the showroom, aggregated into a single stream. This is intended for rapid template iteration and visual regression testing without clicking through multiple pages.
 
 ### Services index (`/services/`)
 
@@ -169,15 +174,18 @@ Note: footer `tagline` and `social_*` are intentionally set blank so the footer 
 
 Re-running `seed_showroom` is safe:
 
-- It will reuse the first existing HomePage if present (HomePage is a singleton in boilerplate).
+- It will reuse the existing HomePage (if found by slug) or create a new one if missing.
 - It will create missing pages by slug under the HomePage.
 - It will overwrite the seeded pages’ bodies/settings to the showroom baseline.
 
 ### Clearing
 
-`--clear` deletes only the showroom pages by slug (and only deletes the showroom HomePage if it’s currently the default site root and has the expected slug).
+`--clear` removes seeded content safely:
 
-It does **not** attempt to delete arbitrary user-created content.
+- It identifies the specific seeded HomePage by slug (`showroom-home`).
+- It deletes all **descendants** of that page recursively.
+- It deletes the home page itself.
+- It does **not** rely on global slug deletions (safeguarding user content with similar slugs, like "contact").
 
 ---
 
@@ -189,5 +197,3 @@ It does **not** attempt to delete arbitrary user-created content.
 - **Pillow missing**:
   - Install `Pillow` (normally included with Wagtail).
   - The command must be able to generate placeholder images because many blocks require images.
-
-

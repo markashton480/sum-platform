@@ -1,0 +1,54 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+
+<section id="portfolio-{{ block.id }}" class="py-24 bg-sage-darkmoss text-sage-linen overflow-hidden">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+            <div class="max-w-2xl">
+                {% if self.eyebrow %}
+                    <span class="reveal block text-[10px] font-bold text-sage-moss uppercase tracking-[0.2em] mb-4">{{ self.eyebrow }}</span>
+                {% endif %}
+                <h2 class="reveal delay-100 font-display text-4xl md:text-5xl text-sage-linen leading-tight tracking-tight">
+                    {{ self.heading|richtext }}
+                </h2>
+            </div>
+            {% if self.view_all_link %}
+                <div class="reveal delay-200">
+                    <a href="{{ self.view_all_link }}" class="btn--link !text-sage-linen hover:!text-sage-moss">
+                        {{ self.view_all_label|default:"View Full Portfolio" }}
+                        <span>&rarr;</span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
+            {% for item in self.items %}
+                <article class="reveal delay-{{ forloop.counter0|add:1 }}00 group">
+                    <div class="relative aspect-[4/5] overflow-hidden mb-8 rounded-sm bg-sage-black/20">
+                        {% image item.image fill-1200x1500 class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt=item.alt_text %}
+                        <!-- Subtle overlay -->
+                        <div class="absolute inset-0 bg-sage-black/10 group-hover:bg-transparent transition-colors duration-700"></div>
+
+                        {% if item.link_url %}
+                            <a href="{{ item.link_url }}" class="absolute inset-0 z-10" aria-label="View Project: {{ item.title }}"></a>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex justify-between items-start gap-4">
+                        <div class="flex-1">
+                            {% if item.location %}
+                                <span class="block text-[10px] font-bold text-sage-moss uppercase tracking-[0.2em] mb-3">{{ item.location }}</span>
+                            {% endif %}
+                            <h3 class="font-display text-3xl text-sage-linen tracking-tight group-hover:text-sage-moss transition-colors duration-300">{{ item.title }}</h3>
+                        </div>
+                        {% if item.services %}
+                            <div class="text-right">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-sage-linen/30">{{ item.services }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
