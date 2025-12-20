@@ -110,7 +110,16 @@ MIDDLEWARE: list[str] = [
 
 ROOT_URLCONF: str = "test_project.urls"
 
-THEME_TEMPLATES_DIR: Path = BASE_DIR / "theme" / "active" / "templates"
+REPO_ROOT: Path = BASE_DIR.parent.parent.parent
+THEME_TEMPLATES_CANDIDATES: list[Path] = [
+    REPO_ROOT / "themes" / "theme_a" / "templates",
+    BASE_DIR.parent / "themes" / "theme_a" / "templates",
+]
+FALLBACK_THEME_TEMPLATES_DIR: Path = BASE_DIR / "theme" / "active" / "templates"
+THEME_TEMPLATES_DIR: Path = next(
+    (candidate for candidate in THEME_TEMPLATES_CANDIDATES if candidate.exists()),
+    FALLBACK_THEME_TEMPLATES_DIR,
+)
 CLIENT_OVERRIDES_DIR: Path = BASE_DIR / "templates" / "overrides"
 
 TEMPLATES = [
@@ -210,12 +219,17 @@ MEDIA_ROOT: Path = Path(
 
 STATIC_URL: str = "/static/"
 
+THEME_STATIC_CANDIDATES: list[Path] = [
+    REPO_ROOT / "themes" / "theme_a" / "static",
+    BASE_DIR.parent / "themes" / "theme_a" / "static",
+]
+THEME_STATIC_DIR: Path = next(
+    (candidate for candidate in THEME_STATIC_CANDIDATES if candidate.exists()),
+    BASE_DIR / "theme" / "active" / "static",
+)
 STATICFILES_DIRS: list[Path] = [
     # Per v0.6 theme-owned rendering contract: client-owned theme statics first.
-    BASE_DIR
-    / "theme"
-    / "active"
-    / "static",
+    THEME_STATIC_DIR,
 ]
 
 DEFAULT_AUTO_FIELD: str = "django.db.models.BigAutoField"
