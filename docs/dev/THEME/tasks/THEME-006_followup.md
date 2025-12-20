@@ -37,6 +37,11 @@ Created `sum_core_pages` migration `0008` to enforce the schema change (AlterFie
 - `pytest tests/blocks/test_content_blocks.py` → **PASS** (Schema valid)
 - `pytest tests/themes/test_theme_a_manifesto.py` → **PASS** (Rendering valid)
 
+## Troubleshooting
+
+- **Template Syntax Error**: Encounted a `TemplateSyntaxError` on `themes/theme_a/templates/sum_core/blocks/manifesto.html` due to auto-formatter (djhtml) breaking Django tags across multiple lines weirdly.
+- **Resolution**: Refactored the template to use standard indented block structure with single-line tags.
+
 ### Manual Verification Required
 
 1. Run `make db-up` and `make migrate`.
