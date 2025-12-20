@@ -891,10 +891,23 @@ class Command(BaseCommand):
             contact_page=contact_page,
         )
 
-        # Merge the lists of blocks
-        combined_data = list(home_data) + list(showroom_data)
+        # NOTE:
+        # home_data/showroom_data are StreamValues (iterating yields StreamChild objects).
+        # StreamBlock.to_python expects *raw* stream data (list of dicts/tuples), so we
+        # convert back to raw and only to_python() once.
+        home_raw = (
+            home_data.get_prep_value()
+            if hasattr(home_data, "get_prep_value")
+            else home_data
+        )
+        showroom_raw = (
+            showroom_data.get_prep_value()
+            if hasattr(showroom_data, "get_prep_value")
+            else showroom_data
+        )
 
-        return stream_block.to_python(combined_data)
+        combined_raw = list(home_raw) + list(showroom_raw)
+        return stream_block.to_python(combined_raw)
 
     def _build_services_index_intro_stream(self, *, images: _Images) -> Any:
         stream_block = PageStreamBlock()
@@ -972,15 +985,15 @@ class Command(BaseCommand):
 
     def _seed_branding(self, *, site: Site, images: _Images) -> None:
         settings = SiteSettings.for_site(site)
-        settings.site_name = "Showroom"
-        settings.logo = images.brand_logo_id
-        settings.favicon = images.favicon_id
-        settings.contact_email = "hello@example.com"
-        settings.contact_phone = "0800 123 4567"
-        settings.social_facebook = "https://facebook.com"
-        settings.social_instagram = "https://instagram.com"
-        # We also need to save the footer info if SiteSettings has those fields
-        # (Assuming standard SUM branding model)
+        # SiteSettings lives in sum_core and uses explicit fields.
+        settings.company_name = "Showroom"
+        settings.header_logo_id = images.brand_logo_id
+        settings.footer_logo_id = images.brand_logo_id
+        settings.favicon_id = images.favicon_id
+        settings.email = "hello@example.com"
+        settings.phone_number = "0800 123 4567"
+        settings.facebook_url = "https://facebook.com"
+        settings.instagram_url = "https://instagram.com"
         settings.save()
 
     def _seed_navigation(
@@ -994,63 +1007,196 @@ class Command(BaseCommand):
         service_one: Page,
         service_two: Page,
     ) -> None:
-        # Header: Home, Services (dropdown), Showroom, Contact
+        # HeaderNavigation / FooterNavigation are StreamField-based settings.
         header = HeaderNavigation.for_site(site)
-        header.items.all().delete()
 
-        # 1. Services with children
-        svc_item = header.items.create(
-            link_label="Services",
-            link_page=services_index,
-            sort_order=1,
-        )
-        svc_item.sub_items.create(
-            link_label=service_one.title,
-            link_page=service_one,
-            sort_order=1,
-        )
-        svc_item.sub_items.create(
-            link_label=service_two.title,
-            link_page=service_two,
-            sort_order=2,
-        )
+        header.menu_items = [
+            {
+                "type": "item",
+                "value": {
+                    "label": "Home",
+                    "link": {
+                        "link_type": "page",
+                        "page": home.id,
+                        "link_text": "Home",
+                        "open_in_new_tab": False,
+                    },
+                    "children": [],
+                },
+            },
+            {
+                "type": "item",
+                "value": {
+                    "label": "Services",
+                    "link": {
+                        "link_type": "page",
+                        "page": services_index.id,
+                        "link_text": "Services",
+                        "open_in_new_tab": False,
+                    },
+                    "children": [
+                        {
+                            "label": service_one.title,
+                            "link": {
+                                "link_type": "page",
+                                "page": service_one.id,
+                                "link_text": service_one.title,
+                                "open_in_new_tab": False,
+                            },
+                            "children": [],
+                        },
+                        {
+                            "label": service_two.title,
+                            "link": {
+                                "link_type": "page",
+                                "page": service_two.id,
+                                "link_text": service_two.title,
+                                "open_in_new_tab": False,
+                            },
+                            "children": [],
+                        },
+                    ],
+                },
+            },
+            {
+                "type": "item",
+                "value": {
+                    "label": "Showroom",
+                    "link": {
+                        "link_type": "page",
+                        "page": showroom.id,
+                        "link_text": "Showroom",
+                        "open_in_new_tab": False,
+                    },
+                    "children": [],
+                },
+            },
+            {
+                "type": "item",
+                "value": {
+                    "label": "Contact",
+                    "link": {
+                        "link_type": "page",
+                        "page": contact.id,
+                        "link_text": "Contact",
+                        "open_in_new_tab": False,
+                    },
+                    "children": [],
+                },
+            },
+        ]
 
-        # 2. Showroom
-        header.items.create(
-            link_label="Showroom",
-            link_page=showroom,
-            sort_order=2,
-        )
+        header.header_cta_enabled = True
+        header.header_cta_text = "Contact"
+        header.header_cta_link = [
+            {
+                "type": "link",
+                "value": {
+                    "link_type": "page",
+                    "page": contact.id,
+                    "link_text": "Contact",
+                    "open_in_new_tab": False,
+                },
+            }
+        ]
 
-        # 3. Contact (CTA style)
-        header.items.create(
-            link_label="Contact",
-            link_page=contact,
-            sort_order=3,
-        )
+        header.mobile_cta_enabled = True
+        header.mobile_cta_button_enabled = True
+        header.mobile_cta_button_text = "Contact"
+        header.mobile_cta_button_link = [
+            {
+                "type": "link",
+                "value": {
+                    "link_type": "page",
+                    "page": contact.id,
+                    "link_text": "Contact",
+                    "open_in_new_tab": False,
+                },
+            }
+        ]
         header.save()
 
-        # Footer
         footer = FooterNavigation.for_site(site)
-        footer.items.all().delete()
 
-        # Col 1: Showroom pages
-        c1 = footer.items.create(heading="Explore", sort_order=1)
-        c1.links.create(link_label="Home", link_page=home, sort_order=1)
-        c1.links.create(link_label="Showroom", link_page=showroom, sort_order=2)
-        c1.links.create(
-            link_label="Kitchen Sink", link_url="/kitchen-sink/", sort_order=3
-        )
+        kitchen_sink = home.get_children().filter(slug="kitchen-sink").first()
+        explore_links = [
+            {
+                "link_type": "page",
+                "page": home.id,
+                "link_text": "Home",
+                "open_in_new_tab": False,
+            },
+            {
+                "link_type": "page",
+                "page": showroom.id,
+                "link_text": "Showroom",
+                "open_in_new_tab": False,
+            },
+        ]
+        if kitchen_sink:
+            explore_links.append(
+                {
+                    "link_type": "page",
+                    "page": kitchen_sink.id,
+                    "link_text": "Kitchen Sink",
+                    "open_in_new_tab": False,
+                }
+            )
 
-        # Col 2: Services
-        c2 = footer.items.create(heading="Services", sort_order=2)
-        c2.links.create(link_label="Solar", link_page=service_one, sort_order=1)
-        c2.links.create(link_label="Roofing", link_page=service_two, sort_order=2)
+        footer.link_sections = [
+            {
+                "type": "section",
+                "value": {
+                    "title": "Explore",
+                    "links": explore_links,
+                },
+            },
+            {
+                "type": "section",
+                "value": {
+                    "title": "Services",
+                    "links": [
+                        {
+                            "link_type": "page",
+                            "page": services_index.id,
+                            "link_text": "All Services",
+                            "open_in_new_tab": False,
+                        },
+                        {
+                            "link_type": "page",
+                            "page": service_one.id,
+                            "link_text": service_one.title,
+                            "open_in_new_tab": False,
+                        },
+                        {
+                            "link_type": "page",
+                            "page": service_two.id,
+                            "link_text": service_two.title,
+                            "open_in_new_tab": False,
+                        },
+                    ],
+                },
+            },
+            {
+                "type": "section",
+                "value": {
+                    "title": "Company",
+                    "links": [
+                        {
+                            "link_type": "page",
+                            "page": contact.id,
+                            "link_text": "Contact",
+                            "open_in_new_tab": False,
+                        },
+                    ],
+                },
+            },
+        ]
 
-        # Col 3: Company
-        c3 = footer.items.create(heading="Company", sort_order=3)
-        c3.links.create(link_label="Contact", link_page=contact, sort_order=1)
-
+        # Keep footer social links blank so templates can demonstrate the
+        # effective-settings fallback to Branding SiteSettings.
+        footer.social_facebook = ""
+        footer.social_instagram = ""
         footer.save()
 
     def _slugify(self, text: str) -> str:

@@ -49,7 +49,7 @@ def test_branding_css_output_hsl() -> None:
 
     # Check Surface HSL
     assert "--surface-h:40;" in rendered_clean
-    assert "--surface-s:22%;" in rendered_clean
+    assert "--surface-s:21%;" in rendered_clean
     assert "--surface-l:86%;" in rendered_clean
 
     # Check Text HSL

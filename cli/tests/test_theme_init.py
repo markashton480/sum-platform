@@ -184,6 +184,25 @@ def test_init_includes_seed_showroom_command(monkeypatch) -> None:
         assert (
             cmd.exists()
         ), "seed_showroom command should be present in the generated project"
+
+        # SQ-002 regression check: Kitchen Sink stream should not double-to_python()
+        # StreamChild items. We look for the safe raw-data merge via get_prep_value().
+        text = cmd.read_text(encoding="utf-8")
+        assert "get_prep_value" in text
+        assert "combined_data = list(home_data) + list(showroom_data)" not in text
+        assert "return stream_block.to_python(combined_data)" not in text
+
+        # Navigation seeding should match StreamField-based settings models.
+        assert "header.menu_items" in text
+        assert "footer.link_sections" in text
+        assert "header.items" not in text
+        assert "sub_items" not in text
+
+        # Branding seeding should use sum_core SiteSettings fields.
+        assert "settings.company_name" in text
+        assert "settings.header_logo_id" in text
+        assert "settings.footer_logo_id" in text
+        assert "settings.favicon_id" in text
     finally:
         if project_root.exists():
             shutil.rmtree(project_root)

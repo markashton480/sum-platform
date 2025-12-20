@@ -1,5 +1,7 @@
 # THEME-010 — Branding contract bridge for Theme A
 
+Ticket executed: THEME-010 (with Claude clarifications on HSL syntax + fixed/dynamic palette).
+
 ## Status: COMPLETE
 
 ## Inventory of Branding Output

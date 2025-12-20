@@ -158,13 +158,16 @@ Seeds safe defaults for:
 
 Seeds:
 
-- **Header menu items**: Home, Showroom, Services (with submenu + nested submenu), Contact
+- **Header menu items**: Home, Services (with submenu), Showroom, Contact
 - **Header CTA**: enabled + points to Contact
 - **Sticky CTA**: enabled, phone enabled, button enabled pointing to Contact
 - **Footer sections**: “Company” and “Services”
   - Includes a variety of `UniversalLinkBlock` link types: page, url, email, phone
+  - Explicitly adds a "Kitchen Sink" link to the footer for easy access.
 
 Note: footer `tagline` and `social_*` are intentionally set blank so the footer demonstrates **effective settings fallback** to Branding (see `sum_core.navigation.services.get_effective_footer_settings`).
+
+Implementation detail: both Header and Footer navigation are seeded via **StreamField raw data** (`menu_items`, `header_cta_link`, `mobile_cta_button_link`, `link_sections`) rather than a relational `.items.create(...)` API.
 
 ---
 
@@ -197,3 +200,7 @@ Re-running `seed_showroom` is safe:
 - **Pillow missing**:
   - Install `Pillow` (normally included with Wagtail).
   - The command must be able to generate placeholder images because many blocks require images.
+
+- **Kitchen Sink StreamField `TypeError: cannot unpack non-iterable StreamChild object`**:
+  - This usually means you combined already-converted StreamField values (iterating a StreamValue yields `StreamChild` objects) and then called `StreamBlock.to_python()` again.
+  - Fix pattern: merge *raw* stream data (e.g. via `stream_value.get_prep_value()`) and only call `to_python()` once, or assign raw stream data directly to the StreamField.
