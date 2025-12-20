@@ -3,6 +3,7 @@ from sum_core.blocks.content import (
     ButtonGroupBlock,
     DividerBlock,
     ImageBlock,
+    ManifestoBlock,
     PortfolioItemBlock,
     QuoteBlock,
     RichTextContentBlock,
@@ -73,3 +74,15 @@ def test_portfolio_item_block_metadata_fields():
     assert "constraint" in block.child_blocks
     assert "material" in block.child_blocks
     assert "outcome" in block.child_blocks
+
+
+@pytest.mark.django_db
+def test_manifesto_block_definition():
+    block = ManifestoBlock()
+    assert isinstance(block, blocks.StructBlock)
+    assert "eyebrow" in block.child_blocks
+    assert "heading" in block.child_blocks
+    assert "body" in block.child_blocks
+    assert "quote" in block.child_blocks
+    assert "cta_label" in block.child_blocks
+    assert "cta_url" in block.child_blocks

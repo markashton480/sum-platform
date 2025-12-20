@@ -22,6 +22,12 @@ WAGTAILADMIN_BASE_URL: str = "http://localhost:8000"
 
 BASE_DIR: Path = Path(__file__).resolve().parent.parent
 
+# Detect test runs early so we can keep template resolution deterministic.
+# During pytest runs we ALWAYS resolve theme templates from theme/active/templates
+# (and let tests explicitly install Theme A there), rather than auto-pointing at
+# any repo-local Theme A directories.
+RUNNING_TESTS = any("pytest" in arg for arg in sys.argv)
+
 ENV_FILE_PATH: Path | None = None
 
 
@@ -116,9 +122,13 @@ THEME_TEMPLATES_CANDIDATES: list[Path] = [
     BASE_DIR.parent / "themes" / "theme_a" / "templates",
 ]
 FALLBACK_THEME_TEMPLATES_DIR: Path = BASE_DIR / "theme" / "active" / "templates"
-THEME_TEMPLATES_DIR: Path = next(
-    (candidate for candidate in THEME_TEMPLATES_CANDIDATES if candidate.exists()),
-    FALLBACK_THEME_TEMPLATES_DIR,
+THEME_TEMPLATES_DIR: Path = (
+    FALLBACK_THEME_TEMPLATES_DIR
+    if RUNNING_TESTS
+    else next(
+        (candidate for candidate in THEME_TEMPLATES_CANDIDATES if candidate.exists()),
+        FALLBACK_THEME_TEMPLATES_DIR,
+    )
 )
 CLIENT_OVERRIDES_DIR: Path = BASE_DIR / "templates" / "overrides"
 
@@ -166,7 +176,6 @@ def _validate_db_env() -> None:
         )
 
 
-RUNNING_TESTS = any("pytest" in arg for arg in sys.argv)
 USE_POSTGRES_FOR_TESTS = os.getenv("SUM_TEST_DB", "sqlite").lower() == "postgres"
 
 if not RUNNING_TESTS:

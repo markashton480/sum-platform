@@ -13,6 +13,7 @@
 | `service_cards` | ServiceCardsBlock | Services | Service card grid section |
 | `testimonials` | TestimonialsBlock | Sections | Customer testimonial cards |
 | `gallery` | GalleryBlock | Sections | Image gallery grid |
+| `manifesto` | ManifestoBlock | Sections | Centered manifesto/prose section |
 | `portfolio` | PortfolioBlock | Sections | Project portfolio with offset layout |
 | `trust_strip_logos` | TrustStripBlock | Sections | Logo strip (certifications/partners) |
 | `stats` | StatsBlock | Sections | Key metrics display |
@@ -283,6 +284,29 @@ Used within hero blocks for CTA buttons.
 | `image` | ImageChooserBlock | Yes | - |
 | `alt_text` | CharBlock | No | Falls back to image title |
 | `caption` | CharBlock | No | max: 255 |
+
+---
+
+### ManifestoBlock
+
+**Key:** `manifesto`  
+**Template:** `sum_core/blocks/manifesto.html`  
+**Purpose:** Centered prose section with eyebrow + heading + body, plus optional pull quote and CTA.
+
+#### Fields
+
+| Field | Type | Required | Constraints | Notes |
+|-------|------|----------|-------------|-------|
+| `eyebrow` | CharBlock | No | max: 100 | e.g. "The Manifesto" |
+| `heading` | RichTextBlock | No | features: `['italic', 'bold']` | Italic words get accent styling |
+| `body` | RichTextBlock | No | features: `['bold', 'italic', 'link', 'ol', 'ul']` | Main prose content |
+| `quote` | TextBlock | No | - | Optional pull quote |
+| `cta_label` | CharBlock | No | max: 80 | Only shown when paired with `cta_url` |
+| `cta_url` | URLBlock | No | - | Only shown when paired with `cta_label` |
+
+#### Notes
+- Theme A renders this block as a single semantic unit matching the wireframe manifesto section.
+- CTA is optional; if either `cta_label` or `cta_url` is missing, the CTA is not rendered.
 
 ---
 

@@ -179,6 +179,46 @@ def test_home_page_renders_service_cards() -> None:
     assert "btn--link" in rendered
 
 
+def test_home_page_renders_manifesto_block() -> None:
+    """Test that HomePage renders ManifestoBlock content."""
+    root = Page.get_first_root_node()
+
+    stream_block = PageStreamBlock()
+    manifesto_data = {
+        "eyebrow": "The Manifesto",
+        "heading": "Good kitchens don't age. They <em>season</em>.",
+        "body": "<p>In a market saturated with disposable luxury...</p>",
+        "quote": "We build with solid timber, repairable joinery, and finishes designed to patina — not peel.",
+    }
+
+    stream_data = stream_block.to_python(
+        [
+            {
+                "type": "manifesto",
+                "value": manifesto_data,
+            }
+        ]
+    )
+
+    homepage = HomePage(
+        title="Test Home with Manifesto", slug="test-home-manifesto", body=stream_data
+    )
+    root.add_child(instance=homepage)
+
+    site = Site.objects.get(is_default_site=True)
+    site.root_page = homepage
+    site.save()
+
+    request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
+    template = Template("{% extends 'theme/home_page.html' %}")
+    rendered = template.render(RequestContext(request, {"page": homepage}))
+
+    assert "The Manifesto" in rendered
+    assert "Good kitchens don't age" in rendered
+    assert "disposable luxury" in rendered
+    assert "repairable joinery" in rendered
+
+
 def test_home_page_clean_validates_when_root_page() -> None:
     """Test that HomePage.clean() validates correctly when it's a root_page."""
     root = Page.get_first_root_node()

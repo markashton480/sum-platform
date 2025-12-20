@@ -138,6 +138,54 @@ class PortfolioBlock(blocks.StructBlock):
         label = "Portfolio Gallery"
 
 
+class ManifestoBlock(blocks.StructBlock):
+    """
+    Centered prose section used for "manifesto"-style content blocks.
+
+    Designed to match Theme A wireframes: eyebrow + heading + rich prose + optional quote/CTA.
+    """
+
+    eyebrow = blocks.CharBlock(
+        max_length=100,
+        required=False,
+        help_text="Optional accent label above the heading (e.g. “The Manifesto”).",
+    )
+
+    heading = blocks.RichTextBlock(
+        required=False,
+        features=["italic", "bold"],
+        help_text="Optional heading. Use Italic for accent styling.",
+    )
+
+    body = blocks.RichTextBlock(
+        required=False,
+        features=["bold", "italic", "link", "ol", "ul"],
+        help_text="Main prose content. Use paragraphs and lists.",
+    )
+
+    quote = blocks.TextBlock(
+        required=False,
+        help_text="Optional pull quote shown beneath the prose content.",
+    )
+
+    cta_label = blocks.CharBlock(
+        required=False,
+        max_length=80,
+        label="CTA Label",
+        help_text="Optional link label shown beneath the manifesto content.",
+    )
+    cta_url = blocks.URLBlock(
+        required=False,
+        label="CTA URL",
+        help_text="Optional URL for the CTA link.",
+    )
+
+    class Meta:
+        template = "sum_core/blocks/manifesto.html"
+        icon = "doc-full"
+        label = "Manifesto"
+
+
 # --- M2-008 New Content Blocks ---
 
 

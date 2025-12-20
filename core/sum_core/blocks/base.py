@@ -14,6 +14,7 @@ from sum_core.blocks.content import (
     FeaturesListBlock,
     HeroBlock,
     ImageBlock,
+    ManifestoBlock,
     PortfolioBlock,
     QuoteBlock,
     RichTextContentBlock,
@@ -54,6 +55,7 @@ class PageStreamBlock(StreamBlock):
     faq = FAQBlock(group="Sections")
     features = FeaturesListBlock(group="Sections")
     comparison = ComparisonBlock(group="Sections")
+    manifesto = ManifestoBlock(group="Sections")
     portfolio = PortfolioBlock(group="Sections")
 
     # Content Blocks

@@ -60,4 +60,5 @@ class TestPageStreamBlock:
         assert "stats" in block.child_blocks
         assert "features" in block.child_blocks
         assert "comparison" in block.child_blocks
+        assert "manifesto" in block.child_blocks
         assert "portfolio" in block.child_blocks
