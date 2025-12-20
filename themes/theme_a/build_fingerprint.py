@@ -1,6 +1,6 @@
 """
 Name: Theme A Guardrails - Build Fingerprint Generator
-Path: core/sum_core/themes/theme_a/build_fingerprint.py
+Path: themes/theme_a/build_fingerprint.py
 Purpose: Prevent compiled Tailwind CSS drift and regressions
 Family: Themes / Toolchain
 Dependencies: filesystem, hashlib, pytest
@@ -22,10 +22,10 @@ def compute_fingerprint(theme_root: Path) -> str:
     """Compute deterministic fingerprint from all Tailwind build inputs.
 
     Fingerprint inputs (in order):
-    1. tailwind.config.js
-    2. postcss.config.js (or empty string if missing)
+    1. tailwind/tailwind.config.js
+    2. tailwind/postcss.config.js (or empty string if missing)
     3. static/theme_a/css/input.css
-    4. All templates/theme/**/*.html files (sorted alphabetically)
+    4. All templates/**/*.html files (sorted alphabetically)
 
     Args:
         theme_root: Path to theme_a directory
@@ -38,8 +38,8 @@ def compute_fingerprint(theme_root: Path) -> str:
     """
     hasher = hashlib.sha256()
 
-    # 1. tailwind.config.js (required)
-    tailwind_config = theme_root / "tailwind.config.js"
+    # 1. tailwind/tailwind.config.js (required)
+    tailwind_config = theme_root / "tailwind" / "tailwind.config.js"
     if not tailwind_config.exists():
         raise FileNotFoundError(
             f"Required file not found: {tailwind_config}\n"
@@ -47,8 +47,8 @@ def compute_fingerprint(theme_root: Path) -> str:
         )
     hasher.update(tailwind_config.read_bytes())
 
-    # 2. postcss.config.js (optional - use empty string if missing)
-    postcss_config = theme_root / "postcss.config.js"
+    # 2. tailwind/postcss.config.js (optional - use empty string if missing)
+    postcss_config = theme_root / "tailwind" / "postcss.config.js"
     if postcss_config.exists():
         hasher.update(postcss_config.read_bytes())
     else:
@@ -64,7 +64,7 @@ def compute_fingerprint(theme_root: Path) -> str:
     hasher.update(input_css.read_bytes())
 
     # 4. All template files (sorted for determinism)
-    templates_dir = theme_root / "templates" / "theme"
+    templates_dir = theme_root / "templates"
     if not templates_dir.exists():
         raise FileNotFoundError(
             f"Templates directory not found: {templates_dir}\n"

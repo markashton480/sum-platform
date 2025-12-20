@@ -29,6 +29,9 @@ sum-platform/
 │   ├── _smoke_consumer/            # Proof-of-concept consumer
 │   └── acme-kitchens/              # Example client project
 │
+├── themes/                         # Canonical theme source-of-truth (Theme Architecture Spec v1)
+│   └── theme_a/                    # Reference theme (Sage & Stone)
+│
 ├── cli/                            # Command-line interface package
 │   └── sum_cli/                    # CLI implementation
 │       ├── boilerplate/            # Project boilerplate templates
@@ -206,7 +209,11 @@ Repository-level utility scripts:
 Client projects consume `sum_core` as an installed package and:
 
 - Define their own `HomePage` model (client-owned)
-- Override templates in `templates/overrides/`
+- Use a fixed, init-time selected theme (copied into `clients/<client>/theme/active/`)
+- Override templates in this order (highest priority first):
+  - `clients/<client>/theme/active/templates/` (theme templates)
+  - `clients/<client>/templates/overrides/` (client overrides)
+  - `sum_core/templates/` (core fallbacks)
 - Configure settings in their own `settings/` module
 - Define URL routing in their own `urls.py`
 

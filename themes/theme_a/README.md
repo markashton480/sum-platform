@@ -12,10 +12,11 @@ Premium theme for SUM Platform featuring reveal animations, mega menu, and elega
 
 ```
 theme_a/
-├── package.json           # Tailwind build toolchain (maintainers only)
-├── tailwind.config.js     # Tailwind configuration with CSS variable mapping
-├── postcss.config.js      # PostCSS configuration
-├── npm-shrinkwrap.json    # Locked dependencies for reproducible builds
+├── tailwind/              # Tailwind build toolchain (maintainers only)
+│   ├── package.json
+│   ├── npm-shrinkwrap.json
+│   ├── tailwind.config.js
+│   └── postcss.config.js
 ├── theme.json             # Theme manifest
 ├── static/theme_a/
 │   ├── css/
@@ -23,7 +24,7 @@ theme_a/
 │   │   └── main.css       # GENERATED - compiled Tailwind output
 │   └── js/
 │       └── main.js        # Theme A JavaScript
-└── templates/theme/       # Theme templates for page types
+└── templates/             # Theme templates (theme/* plus sum_core/* overrides)
 ```
 
 ## For Site Operators
@@ -39,7 +40,7 @@ When modifying Theme A styles or templates that use new Tailwind classes:
 ### One-Time Setup
 
 ```bash
-cd core/sum_core/themes/theme_a
+cd themes/theme_a/tailwind
 npm install
 ```
 

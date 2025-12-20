@@ -1,7 +1,7 @@
 """
 Name: Theme Discovery & Registry (Theme System v1)
 Path: core/sum_core/themes/__init__.py
-Purpose: Discover and validate built-in themes shipped with sum_core.
+Purpose: Deprecated theme manifest helpers (tooling should use repo-root `themes/` via sum_cli).
 Family: Themes / Toolchain
 Dependencies: stdlib only
 """
@@ -81,7 +81,7 @@ def _read_manifest(theme_dir: Path) -> ThemeManifest:
 
 def discover_themes(themes_dir: Path | None = None) -> list[ThemeManifest]:
     """
-    Discover themes shipped with sum_core by scanning `core/sum_core/themes/*/theme.json`.
+    Discover themes by scanning `<themes_dir>/*/theme.json`.
 
     Notes:
     - Skips directories without theme.json
@@ -160,8 +160,10 @@ __all__ = [
 ]
 
 """
-Theme packages shipped with sum_core.
+Deprecated note:
 
-These are canonical theme sources used by tooling (e.g. `sum init --theme ...`)
-and by guardrail tests to validate compiled assets/templates.
+Themes are *not* canonical inside `sum_core`. Canonical theme sources live at repo root
+`themes/` per Theme Architecture Spec v1, and are copied into client projects at init-time.
+
+This module remains only for backwards compatibility with older tooling/tests.
 """

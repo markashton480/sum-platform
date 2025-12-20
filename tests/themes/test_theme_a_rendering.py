@@ -3,7 +3,7 @@ Name: Theme A Rendering Tests
 Path: tests/themes/test_theme_a_rendering.py
 Purpose: Integration tests proving Theme A (Sage & Stone) renders correctly with critical DOM hooks
 Family: sum_core tests
-Dependencies: sum_core.themes, pytest, wagtail, django
+Dependencies: pytest, wagtail, django
 """
 
 from __future__ import annotations
@@ -28,9 +28,7 @@ def active_theme_a():
     directory and ensure it is first in template resolution.
     """
     repo_root = Path(__file__).resolve().parents[2]
-    source_templates_dir = (
-        repo_root / "core" / "sum_core" / "themes" / "theme_a" / "templates"
-    )
+    source_templates_dir = repo_root / "themes" / "theme_a" / "templates"
     active_templates_dir = Path(settings.THEME_TEMPLATES_DIR)
     active_root_dir = active_templates_dir.parent.parent
 

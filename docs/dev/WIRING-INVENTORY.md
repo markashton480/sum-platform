@@ -63,6 +63,41 @@ urlpatterns = [
 
 ---
 
+## Theme Wiring (v0.6+)
+
+### What Lives Where
+
+- **Canonical themes (platform repo)**: `themes/<theme_slug>/...`
+- **Active theme (client project)**: `clients/<client>/theme/active/...` (copied at `sum init` time)
+
+### Template Resolution Order (Highest Priority First)
+
+Configure Django templates so the theme wins, but core remains a fallback:
+
+1. `clients/<client>/theme/active/templates/`
+2. `clients/<client>/templates/overrides/`
+3. `sum_core/templates/` (via `APP_DIRS=True`)
+
+### Static Files Expectations
+
+- Theme static assets live under: `theme/active/static/<theme_slug>/...`
+- Theme CSS convention: `static/<theme_slug>/css/main.css` (compiled output, committed)
+- Theme JS convention: `static/<theme_slug>/js/main.js` (optional)
+
+In Django settings, ensure theme statics are included first (example pattern):
+
+```python
+THEME_STATIC_DIR = BASE_DIR / "theme" / "active" / "static"
+STATICFILES_DIRS = [THEME_STATIC_DIR]
+```
+
+### Database Reminder (Dev Parity)
+
+- Real development parity expects Postgres via `DJANGO_DB_*` env vars.
+- `core/sum_core/test_project/` has an SQLite fallback for convenience, but it is not the target production parity.
+
+---
+
 ## Feature Area: Branding & Design Tokens
 
 ### What Core Provides

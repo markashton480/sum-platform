@@ -5,11 +5,16 @@ import importlib.resources.abc
 import json
 import os
 import shutil
-import sys
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
+from sum_cli.themes_registry import (
+    ThemeNotFoundError,
+    ThemeValidationError,
+    get_theme,
+    resolve_theme_dir,
+)
 from sum_cli.util import (
     ProjectNaming,
     get_packaged_boilerplate,
@@ -117,7 +122,7 @@ def _copy_theme_to_active(
     project_root: Path, theme_source_dir: Path, theme_slug: str
 ) -> None:
     """
-    Copy the selected theme from sum_core into the client's theme/active/ directory.
+    Copy the selected theme into the client's theme/active/ directory.
 
     Per THEME-ARCHITECTURE-SPECv1, themes are copied into the client project
     at init-time, not referenced from sum_core at runtime.
@@ -201,19 +206,13 @@ def run_init(project_name: str, theme_slug: str = "theme_a") -> int:
 
     # Validate theme exists
     try:
-        import sum_core.themes
-
-        theme_manifest = sum_core.themes.get_theme(theme_slug)
-        theme_source_dir = sum_core.themes.get_theme_dir(theme_slug)
-    except ImportError:
-        print("[FAIL] sum_core is not installed or not importable.", file=sys.stderr)
-        print("       Install sum_core: pip install -e ./core", file=sys.stderr)
-        return 1
-    except sum_core.themes.ThemeNotFoundError:
+        theme_manifest = get_theme(theme_slug)
+        theme_source_dir = resolve_theme_dir(theme_slug)
+    except ThemeNotFoundError:
         print(f"[FAIL] Theme '{theme_slug}' does not exist.")
         print("       Run 'sum themes' to list available themes.")
         return 1
-    except sum_core.themes.ThemeValidationError as e:
+    except ThemeValidationError as e:
         print(f"[FAIL] Theme '{theme_slug}' is invalid: {e}")
         return 1
     except Exception as e:

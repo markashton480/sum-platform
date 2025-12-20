@@ -8,17 +8,57 @@ Dependencies: filesystem, hashlib, pytest
 
 from __future__ import annotations
 
-import sys
+import hashlib
 from pathlib import Path
 
-# Import the fingerprint module
 repo_root = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(repo_root / "core"))
 
-from sum_core.themes.theme_a.build_fingerprint import (  # noqa: E402
-    compute_fingerprint,
-    get_theme_a_root,
-)
+
+def get_theme_a_root() -> Path:
+    """
+    Canonical Theme A location (Theme Architecture Spec v1):
+    repo-root `themes/theme_a/`
+    """
+    return repo_root / "themes" / "theme_a"
+
+
+def compute_fingerprint(theme_root: Path) -> str:
+    """
+    Compute deterministic fingerprint from all Tailwind build inputs.
+
+    Keep this logic aligned with `themes/theme_a/build_fingerprint.py`.
+    """
+    hasher = hashlib.sha256()
+
+    # 1) Tailwind config (required)
+    tailwind_config = theme_root / "tailwind" / "tailwind.config.js"
+    if not tailwind_config.exists():
+        raise FileNotFoundError(f"Required file not found: {tailwind_config}")
+    hasher.update(tailwind_config.read_bytes())
+
+    # 2) PostCSS config (optional)
+    postcss_config = theme_root / "tailwind" / "postcss.config.js"
+    hasher.update(postcss_config.read_bytes() if postcss_config.exists() else b"")
+
+    # 3) Tailwind input CSS (required)
+    input_css = theme_root / "static" / "theme_a" / "css" / "input.css"
+    if not input_css.exists():
+        raise FileNotFoundError(f"Required file not found: {input_css}")
+    hasher.update(input_css.read_bytes())
+
+    # 4) All templates (required)
+    templates_dir = theme_root / "templates"
+    if not templates_dir.exists():
+        raise FileNotFoundError(f"Templates directory not found: {templates_dir}")
+
+    template_files = sorted(templates_dir.rglob("*.html"))
+    if not template_files:
+        raise FileNotFoundError(f"No HTML templates found in {templates_dir}")
+
+    for template_path in template_files:
+        hasher.update(template_path.read_bytes())
+
+    return hasher.hexdigest()
 
 
 class TestThemeABuildFingerprint:
@@ -43,8 +83,7 @@ class TestThemeABuildFingerprint:
                 f"Build fingerprint not found at {fingerprint_path}\n\n"
                 "This file must exist to validate Theme A build freshness.\n"
                 "Generate it by running:\n"
-                "  cd core/sum_core/themes/theme_a\n"
-                "  python -m sum_core.themes.theme_a.build_fingerprint\n"
+                "  python themes/theme_a/build_fingerprint.py\n"
                 "  git add static/theme_a/css/.build_fingerprint\n"
                 "  git commit\n"
             )
@@ -56,8 +95,7 @@ class TestThemeABuildFingerprint:
         assert fingerprint_path.exists(), (
             f"Build fingerprint missing at {fingerprint_path}\n\n"
             "Generate it by running:\n"
-            "  cd core/sum_core/themes/theme_a\n"
-            "  python -m sum_core.themes.theme_a.build_fingerprint\n"
+            "  python themes/theme_a/build_fingerprint.py\n"
         )
 
     def test_fingerprint_is_current(self) -> None:
@@ -83,9 +121,9 @@ class TestThemeABuildFingerprint:
             f"Current:   {current_hash}\n\n"
             f"Tailwind inputs have changed but CSS was not rebuilt.\n\n"
             f"Fix:\n"
-            f"  1. cd core/sum_core/themes/theme_a\n"
+            f"  1. cd themes/theme_a/tailwind\n"
             f"  2. npm run build\n"
-            f"  3. python -m sum_core.themes.theme_a.build_fingerprint\n"
+            f"  3. python ../build_fingerprint.py\n"
             f"  4. git add static/theme_a/css/main.css static/theme_a/css/.build_fingerprint\n"
             f"  5. git commit -m 'chore:theme-a-rebuild CSS after config changes'\n"
         )
@@ -115,9 +153,9 @@ class TestThemeACompiledCSSValidity:
                 f"Compiled CSS not found at {css_path}\n\n"
                 "CSS must be built before running tests.\n"
                 "Generate it by running:\n"
-                "  cd core/sum_core/themes/theme_a\n"
+                "  cd themes/theme_a/tailwind\n"
                 "  npm run build\n"
-                "  python -m sum_core.themes.theme_a.build_fingerprint\n"
+                "  python ../build_fingerprint.py\n"
             )
         return css_path.read_text()
 
@@ -128,7 +166,7 @@ class TestThemeACompiledCSSValidity:
             f"Compiled CSS not found at {css_path}\n\n"
             "Theme A requires compiled Tailwind CSS.\n"
             "Generate it by running:\n"
-            "  cd core/sum_core/themes/theme_a\n"
+            "  cd themes/theme_a/tailwind\n"
             "  npm run build\n"
         )
 
@@ -146,7 +184,7 @@ class TestThemeACompiledCSSValidity:
             f"Compiled CSS is only {file_size} bytes (expected > {min_size}).\n\n"
             f"This suggests Tailwind compilation failed or is incomplete.\n"
             f"Rebuild by running:\n"
-            f"  cd core/sum_core/themes/theme_a\n"
+            f"  cd themes/theme_a/tailwind\n"
             f"  npm run build\n"
         )
 
@@ -159,7 +197,7 @@ class TestThemeACompiledCSSValidity:
             "This is a core Tailwind utility that should always be present.\n"
             "If missing, Tailwind compilation is broken.\n"
             "Rebuild by running:\n"
-            "  cd core/sum_core/themes/theme_a\n"
+            "  cd themes/theme_a/tailwind\n"
             "  npm run build\n"
         )
 
@@ -172,7 +210,7 @@ class TestThemeACompiledCSSValidity:
             "This is a core Tailwind utility that should always be present.\n"
             "If missing, Tailwind compilation is broken.\n"
             "Rebuild by running:\n"
-            "  cd core/sum_core/themes/theme_a\n"
+            "  cd themes/theme_a/tailwind\n"
             "  npm run build\n"
         )
 
@@ -210,9 +248,9 @@ class TestThemeACompiledCSSValidity:
             + "\n\n"
             "Fix:\n"
             "  1. Ensure selectors are defined in static/theme_a/css/input.css under @layer components\n"
-            "  2. cd core/sum_core/themes/theme_a\n"
+            "  2. cd themes/theme_a/tailwind\n"
             "  3. npm run build\n"
-            "  4. python -m sum_core.themes.theme_a.build_fingerprint\n"
+            "  4. python ../build_fingerprint.py\n"
         )
 
     def test_no_legacy_core_css_import_statement(self) -> None:
@@ -230,9 +268,9 @@ class TestThemeACompiledCSSValidity:
             "Theme A must be self-contained without core CSS dependencies.\n\n"
             "Fix:\n"
             "  1. Remove @import from input.css or Tailwind config\n"
-            "  2. cd core/sum_core/themes/theme_a\n"
+            "  2. cd themes/theme_a/tailwind\n"
             "  3. npm run build\n"
-            "  4. python -m sum_core.themes.theme_a.build_fingerprint\n"
+            "  4. python ../build_fingerprint.py\n"
         )
 
     def test_no_legacy_core_css_reference(self) -> None:
@@ -250,9 +288,9 @@ class TestThemeACompiledCSSValidity:
             "Theme A must be completely independent of core styling.\n\n"
             "Fix:\n"
             "  1. Remove all references to sum_core/css/main.css\n"
-            "  2. cd core/sum_core/themes/theme_a\n"
+            "  2. cd themes/theme_a/tailwind\n"
             "  3. npm run build\n"
-            "  4. python -m sum_core.themes.theme_a.build_fingerprint\n"
+            "  4. python ../build_fingerprint.py\n"
         )
 
     def test_no_at_import_statements(self) -> None:
@@ -278,7 +316,7 @@ class TestThemeAGuardrailsIntegration:
     """Integration tests to verify guardrails work end-to-end."""
 
     def test_fingerprint_module_is_runnable(self) -> None:
-        """The build_fingerprint module must be runnable via python -m."""
+        """The build_fingerprint script must be runnable by operators/maintainers."""
         theme_root = get_theme_a_root()
         fingerprint_module = theme_root / "build_fingerprint.py"
 
@@ -299,9 +337,10 @@ class TestThemeAGuardrailsIntegration:
 
         # Required files
         required = [
-            theme_root / "tailwind.config.js",
+            theme_root / "tailwind" / "tailwind.config.js",
             theme_root / "static" / "theme_a" / "css" / "input.css",
             theme_root / "templates" / "theme",
+            theme_root / "templates" / "sum_core",
         ]
 
         for path in required:

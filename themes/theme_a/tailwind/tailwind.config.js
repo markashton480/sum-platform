@@ -1,6 +1,6 @@
 /**
  * Name: Tailwind Configuration
- * Path: core/sum_core/themes/theme_a/tailwind.config.js
+ * Path: themes/theme_a/tailwind/tailwind.config.js
  * Purpose: Configure Tailwind CSS for Theme A (Sage & Stone), mapping theme colours
  *          to CSS variables so branding overrides work without rebuilding CSS.
  * Family: Theme A
@@ -11,13 +11,14 @@
 module.exports = {
   content: [
     // Theme A templates (page layouts, includes)
-    './templates/theme/**/*.html',
+    '../templates/theme/**/*.html',
 
     // Theme A block template overrides (CRITICAL - our Tailwind-styled blocks!)
-    './templates/sum_core/**/*.html',
+    '../templates/sum_core/**/*.html',
 
-    // Core templates (fallback for any blocks not overridden)
-    '../../templates/**/*.html',
+    // Core templates (fallback for any blocks not overridden). This path is repo-relative:
+    // themes/theme_a/tailwind -> ../../../core/sum_core/templates
+    '../../../core/sum_core/templates/**/*.html',
   ],
 
   // Classes composed dynamically in templates won't be discovered by the

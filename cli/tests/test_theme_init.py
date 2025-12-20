@@ -3,7 +3,7 @@ Name: CLI Theme Init Tests
 Path: cli/tests/test_theme_init.py
 Purpose: Integration tests for sum init --theme functionality
 Family: sum_cli tests
-Dependencies: sum_cli, sum_core.themes
+Dependencies: sum_cli
 """
 
 from __future__ import annotations
@@ -87,10 +87,10 @@ def test_init_copies_theme_to_active_directory(monkeypatch) -> None:
         assert "/static/sum_core/css/main.css" not in css_text
 
         # Toolchain files should be shipped for maintainers (no runtime Node required)
-        assert (theme_active_dir / "tailwind.config.js").exists()
-        assert (theme_active_dir / "postcss.config.js").exists()
-        assert (theme_active_dir / "package.json").exists()
-        assert (theme_active_dir / "npm-shrinkwrap.json").exists()
+        assert (theme_active_dir / "tailwind" / "tailwind.config.js").exists()
+        assert (theme_active_dir / "tailwind" / "postcss.config.js").exists()
+        assert (theme_active_dir / "tailwind" / "package.json").exists()
+        assert (theme_active_dir / "tailwind" / "npm-shrinkwrap.json").exists()
         assert (static_dir / "theme_a" / "css" / "input.css").exists()
 
         # init must not copy node_modules into the client project
@@ -158,6 +158,37 @@ def test_init_default_theme_is_theme_a(monkeypatch) -> None:
             shutil.rmtree(project_root)
 
 
+def test_init_includes_seed_showroom_command(monkeypatch) -> None:
+    """Generated client projects should include the seed_showroom management command."""
+    repo_root = Path(__file__).resolve().parents[2]
+
+    unique_suffix = int(time.time() * 1000) % 100000
+    project_name = f"seed-showroom-{unique_suffix}"
+    python_pkg = project_name.replace("-", "_")
+
+    monkeypatch.chdir(repo_root)
+    project_root = repo_root / "clients" / project_name
+
+    try:
+        code = run_init(project_name, theme_slug="theme_a")
+        assert code == 0
+
+        cmd = (
+            project_root
+            / python_pkg
+            / "home"
+            / "management"
+            / "commands"
+            / "seed_showroom.py"
+        )
+        assert (
+            cmd.exists()
+        ), "seed_showroom command should be present in the generated project"
+    finally:
+        if project_root.exists():
+            shutil.rmtree(project_root)
+
+
 def test_init_fails_fast_when_theme_missing_compiled_css(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:
@@ -194,9 +225,8 @@ def test_init_fails_fast_when_theme_missing_compiled_css(
     )
     # Intentionally omit static/theme_b/css/main.css
 
-    import sum_core.themes
-
-    monkeypatch.setattr(sum_core.themes, "THEMES_DIR", themes_dir)
+    # Override theme discovery for this test to point at our temp registry
+    monkeypatch.setenv("SUM_THEME_PATH", str(themes_dir))
 
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"missing-css-{unique_suffix}"
