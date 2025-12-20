@@ -84,5 +84,11 @@ def test_manifesto_block_definition():
     assert "heading" in block.child_blocks
     assert "body" in block.child_blocks
     assert "quote" in block.child_blocks
-    assert "cta_label" in block.child_blocks
-    assert "cta_url" in block.child_blocks
+    assert "cta_label" not in block.child_blocks
+    assert "cta_url" not in block.child_blocks
+
+    # Check required fields
+    assert block.child_blocks["heading"].required
+    assert block.child_blocks["body"].required
+    assert not block.child_blocks["eyebrow"].required
+    assert not block.child_blocks["quote"].required

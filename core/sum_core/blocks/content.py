@@ -142,7 +142,7 @@ class ManifestoBlock(blocks.StructBlock):
     """
     Centered prose section used for "manifesto"-style content blocks.
 
-    Designed to match Theme A wireframes: eyebrow + heading + rich prose + optional quote/CTA.
+    Designed to match Theme A wireframes: eyebrow + heading + rich prose + optional quote.
     """
 
     eyebrow = blocks.CharBlock(
@@ -152,13 +152,13 @@ class ManifestoBlock(blocks.StructBlock):
     )
 
     heading = blocks.RichTextBlock(
-        required=False,
+        required=True,
         features=["italic", "bold"],
-        help_text="Optional heading. Use Italic for accent styling.",
+        help_text="Main heading. Use Italic for accent styling.",
     )
 
     body = blocks.RichTextBlock(
-        required=False,
+        required=True,
         features=["bold", "italic", "link", "ol", "ul"],
         help_text="Main prose content. Use paragraphs and lists.",
     )
@@ -166,18 +166,6 @@ class ManifestoBlock(blocks.StructBlock):
     quote = blocks.TextBlock(
         required=False,
         help_text="Optional pull quote shown beneath the prose content.",
-    )
-
-    cta_label = blocks.CharBlock(
-        required=False,
-        max_length=80,
-        label="CTA Label",
-        help_text="Optional link label shown beneath the manifesto content.",
-    )
-    cta_url = blocks.URLBlock(
-        required=False,
-        label="CTA URL",
-        help_text="Optional URL for the CTA link.",
     )
 
     class Meta:

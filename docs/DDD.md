@@ -21,7 +21,7 @@ docs/
     ├── [individual reference files]   # Implementation guides
     ├── design/                        # Design system & UI specs
     ├── deploy/                        # Deployment guides
-    ├── CM/                            # Core Monitoring audit reports  
+    ├── CM/                            # Corrective Missions audit reports
     ├── reports/                       # Analysis & review documents
     ├── reviews/                       # Code review guidelines
     ├── side_quests/                   # Experimental/task-specific docs
@@ -33,6 +33,7 @@ docs/
 ## 🎯 Entry Points & Essential Reading
 
 ### Main Repository Entry Point
+
 - **Location:** `README.md` (repository root)
 - **Purpose:** Primary "how the repo works" guide, quick start instructions
 - **What it contains:**
@@ -43,6 +44,7 @@ docs/
   - Pointers to detailed documentation
 
 ### Single Source of Truth (SSOT)
+
 - **Location:** `docs/dev/master-docs/SUM-PLATFORM-SSOT.md`
 - **Purpose:** Consolidated platform specification replacing multiple scattered docs
 - **What it contains:**
@@ -61,6 +63,7 @@ docs/
 ### Master Documents Directory (`docs/dev/master-docs/`)
 
 #### Strategic Planning & Requirements
+
 - **`overview.md`** - High-level LINTEL × SUM entity relationships, clarifies what SUM is/isn't
 - **`prd-sum-platform-v1.1.md`** - Complete Product Requirements Document (3,169 lines)
   - User stories, functional requirements, technical specs
@@ -70,6 +73,7 @@ docs/
   - Blog system, multi-tenancy, advanced integrations
 
 #### Architecture & Implementation
+
 - **`THEME-ARCHITECTURE-SPECv1.md`** - Future theme system architecture
   - Multi-theme support strategy
   - Tailwind-based theme development workflow
@@ -78,6 +82,7 @@ docs/
 ### Core Reference Documents (`docs/dev/`)
 
 #### Platform Architecture
+
 - **`AGENT-ORIENTATION.md`** - Critical: "This is a platform, not a demo project"
   - Essential reading for understanding the repository's purpose
   - Explains platform vs. test project distinction
@@ -87,6 +92,7 @@ docs/
   - Module organization within `sum_core`
 
 #### Implementation Guides
+
 - **`WIRING-INVENTORY.md`** - How to consume `sum_core` in client projects
   - Required settings, installed apps, URL patterns
   - Step-by-step integration checklist
@@ -107,7 +113,9 @@ docs/
 ### Design Directory (`docs/dev/design/`)
 
 #### Core Design System
+
 - **`css-architecture-and-tokens.md`** - Primary CSS architecture guide
+
   - Token system explanation
   - CSS file organization and structure
   - Brand injection via Wagtail settings
@@ -119,6 +127,7 @@ docs/
   - Token system architecture
 
 #### Visual Design References
+
 - **`premium-trade-website-v3-final.html`** - Visual design reference
 - **Component-specific design files:**
   - `content_blocks_design.html`
@@ -134,7 +143,9 @@ docs/
 ## 🔧 Development & Contributor Documentation
 
 ### Development Standards
+
 - **`hygiene.md`** - Repository hygiene standards
+
   - Code formatting and linting requirements
   - Dependency management rules
   - Testing standards and fixtures
@@ -144,11 +155,13 @@ docs/
   - Quality standards and checkpoints
 
 ### Development Tools
+
 - **`cli.md`** - SUM CLI documentation
   - `sum init` and `sum check` command specifications
   - Project scaffolding workflow
 
 ### Development Decisions
+
 - **`decisions.md`** - Architectural decisions log
   - Docker deferral decision and rationale
 - **`git_strategy.md`** - Git workflow and branching strategy
@@ -159,6 +172,7 @@ docs/
 ## 🚀 Operations & Deployment
 
 ### Deployment Documentation (`docs/dev/deploy/`)
+
 - **`vps-golden-path.md`** - Production deployment guide
   - Ubuntu + Caddy + systemd + Postgres setup
   - Complete VPS configuration walkthrough
@@ -169,7 +183,9 @@ docs/
 ## 📊 Audit Trail & Analysis
 
 ### Core Monitoring (`docs/dev/CM/`)
+
 Production readiness audits and corrective missions:
+
 - **CM-001 through CM-008** - Core production hardening audits
 - **CM-M5-N1, CM-M6-01, CM-M6-02** - Milestone-specific audits
 - Each includes main audit document and `_followup.md` with implementation status
@@ -177,16 +193,19 @@ Production readiness audits and corrective missions:
 ### Reports Directory (`docs/dev/reports/`)
 
 #### Code Quality Analysis
+
 - **`sum_core_code_review_2025-12-10.md`** - Comprehensive code review report
   - Full package analysis and recommendations
   - Security, performance, and maintainability assessment
 
 #### Technical Analysis
+
 - **`site-settings-duplication-analysis.md`** - Settings architecture analysis
 - **`db-loss.md`** - Database loss incident report and recovery
 - **`end-of-milestone-review.md`** - Milestone completion analysis
 
 #### Status Reports
+
 - **`daily/`** - Daily development progress reports
 - **`status/`** - Project status snapshots
 - **`M2/`, `M3/`, `M4/`** - Milestone-specific reports
@@ -196,7 +215,9 @@ Production readiness audits and corrective missions:
 ## 🎯 Side Projects & Experiments
 
 ### Side Quests Directory (`docs/dev/side_quests/`)
+
 Task-specific documentation for experimental or secondary work:
+
 - **`css_modular_task.md`** - CSS architecture refactoring task
 - **`db_relation_issue.md`** - Database relationship troubleshooting
 - **`db_relation_issue_chat.md`** - Related technical discussion
@@ -218,23 +239,27 @@ These are preserved for audit purposes but excluded from this functional documen
 ## 🗺️ Documentation Usage Guide
 
 ### For New Contributors
+
 1. **Start here:** `README.md`
 2. **Understand the platform:** `AGENT-ORIENTATION.md`
 3. **Learn the architecture:** `SUM-PLATFORM-SSOT.md`
 4. **Follow standards:** `hygiene.md`
 
 ### For Implementation Work
+
 1. **Block development:** `blocks-reference.md`
 2. **Page development:** `page-types-reference.md`
 3. **CSS work:** `css-architecture-and-tokens.md`
 4. **Client integration:** `WIRING-INVENTORY.md`
 
 ### For Operations & Deployment
+
 1. **Production setup:** `deploy/vps-golden-path.md`
 2. **CLI usage:** `cli.md`
 3. **Quality standards:** `reviews/daily_code_review.md`
 
 ### For Strategic Planning
+
 1. **Current state:** `SUM-PLATFORM-SSOT.md`
 2. **Future roadmap:** `POST-MVP_BIG-PLAN.md`
 3. **Architecture evolution:** `THEME-ARCHITECTURE-SPECv1.md`
@@ -255,6 +280,7 @@ These are preserved for audit purposes but excluded from this functional documen
 ## ✅ Maintenance Notes
 
 This DDD should be updated when:
+
 - New documentation files are added
 - Major documentation is restructured
 - Documentation purposes or scopes change

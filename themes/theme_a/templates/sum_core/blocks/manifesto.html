@@ -3,135 +3,28 @@
 <section class="py-24 md:py-32 bg-sage-linen">
   <div class="max-w-3xl mx-auto px-6 text-center">
     {% if self.eyebrow %}
-      <span class="block text-sage-terra font-accent italic text-2xl mb-6 reveal">
-        {{ self.eyebrow }}
-      </span>
-    {% endif %}
-
-    {% if self.heading %}
-      <h2 class="font-display text-4xl md:text-5xl text-sage-black mb-10 leading-tight reveal">
-        {{ self.heading|richtext }}
-      </h2>
-    {% endif %}
-
-    {% if self.body or self.quote or self.cta_url %}
-      <div class="prose prose-lg text-sage-black mx-auto font-light leading-relaxed reveal">
-        {% if self.body %}
-          {{ self.body|richtext }}
-        {% endif %}
-
-        {% if self.quote %}
-          <div class="border-t border-sage-black/10 pt-8 mt-8">
-            <p class="font-accent italic text-xl text-sage-darkmoss">{{ self.quote }}</p>
-          </div>
-        {% endif %}
-
-        {% if self.cta_url and self.cta_label %}
-          <div class="not-prose mt-10">
-            <a
-              href="{{ self.cta_url }}"
-              class="inline-flex items-center text-xs font-bold uppercase tracking-widest border-b-2 border-sage-black/20 pb-2 hover:border-sage-terra hover:text-sage-terra transition-colors py-2"
-            >
-              {{ self.cta_label }}
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-              </svg>
-            </a>
-          </div>
-        {% endif %}
+    <span class="block text-sage-terra font-accent italic text-2xl mb-6 reveal">
+      {{ self.eyebrow }}
+    </span>
+    {% endif %} {% if self.heading %}
+    <h2
+      class="font-display text-4xl md:text-5xl text-sage-black mb-10 leading-tight reveal"
+    >
+      {{ self.heading|richtext }}
+    </h2>
+    {% endif %} {% if self.body or self.quote %}
+    <div
+      class="prose prose-lg text-sage-black mx-auto font-light leading-relaxed reveal"
+    >
+      {% if self.body %} {{ self.body|richtext }} {% endif %} {% if self.quote
+      %}
+      <div class="border-t border-sage-black/10 pt-8 mt-8">
+        <p class="font-accent italic text-xl text-sage-darkmoss">
+          {{ self.quote }}
+        </p>
       </div>
-    {% endif %}
-  </div>
-</section>
-
-{% load wagtailcore_tags %}
-
-<section class="py-24 md:py-32 bg-sage-linen">
-  <div class="max-w-3xl mx-auto px-6 text-center">
-    {% if self.eyebrow %}
-      <span class="block text-sage-terra font-accent italic text-2xl mb-6 reveal">
-        {{ self.eyebrow }}
-      </span>
-    {% endif %}
-
-    {% if self.heading %}
-      <h2 class="font-display text-4xl md:text-5xl text-sage-black mb-10 leading-tight reveal">
-        {{ self.heading|richtext }}
-      </h2>
-    {% endif %}
-
-    {% if self.body or self.quote or self.cta_url %}
-      <div class="prose prose-lg text-sage-black mx-auto font-light leading-relaxed reveal">
-        {% if self.body %}
-          {{ self.body|richtext }}
-        {% endif %}
-
-        {% if self.quote %}
-          <div class="border-t border-sage-black/10 pt-8 mt-8">
-            <p class="font-accent italic text-xl text-sage-darkmoss">{{ self.quote }}</p>
-          </div>
-        {% endif %}
-
-        {% if self.cta_url and self.cta_label %}
-          <div class="not-prose mt-10">
-            <a
-              href="{{ self.cta_url }}"
-              class="inline-flex items-center text-xs font-bold uppercase tracking-widest border-b-2 border-sage-black/20 pb-2 hover:border-sage-terra hover:text-sage-terra transition-colors py-2"
-            >
-              {{ self.cta_label }}
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-              </svg>
-            </a>
-          </div>
-        {% endif %}
-      </div>
-    {% endif %}
-  </div>
-</section>
-
-{% load wagtailcore_tags %}
-
-<section class="py-24 md:py-32 bg-sage-linen">
-  <div class="max-w-3xl mx-auto px-6 text-center">
-    {% if self.eyebrow %}
-      <span class="block text-sage-terra font-accent italic text-2xl mb-6 reveal">
-        {{ self.eyebrow }}
-      </span>
-    {% endif %}
-
-    {% if self.heading %}
-      <h2 class="font-display text-4xl md:text-5xl text-sage-black mb-10 leading-tight reveal">
-        {{ self.heading|richtext }}
-      </h2>
-    {% endif %}
-
-    {% if self.body or self.quote or self.cta_url %}
-      <div class="prose prose-lg text-sage-black mx-auto font-light leading-relaxed reveal">
-        {% if self.body %}
-          {{ self.body|richtext }}
-        {% endif %}
-
-        {% if self.quote %}
-          <div class="border-t border-sage-black/10 pt-8 mt-8">
-            <p class="font-accent italic text-xl text-sage-darkmoss">{{ self.quote }}</p>
-          </div>
-        {% endif %}
-
-        {% if self.cta_url and self.cta_label %}
-          <div class="not-prose mt-10">
-            <a
-              href="{{ self.cta_url }}"
-              class="inline-flex items-center text-xs font-bold uppercase tracking-widest border-b-2 border-sage-black/20 pb-2 hover:border-sage-terra hover:text-sage-terra transition-colors py-2"
-            >
-              {{ self.cta_label }}
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-              </svg>
-            </a>
-          </div>
-        {% endif %}
-      </div>
+      {% endif %}
+    </div>
     {% endif %}
   </div>
 </section>
