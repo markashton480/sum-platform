@@ -106,6 +106,9 @@ class PortfolioItemBlock(blocks.StructBlock):
     title = blocks.CharBlock(required=True)
     location = blocks.CharBlock(required=False, help_text="e.g. Kensington, London")
     services = blocks.CharBlock(required=False, help_text="e.g. Solar • Battery")
+    constraint = blocks.CharBlock(max_length=100, required=False)
+    material = blocks.CharBlock(max_length=100, required=False)
+    outcome = blocks.CharBlock(max_length=100, required=False)
     link_url = blocks.URLBlock(
         required=False, help_text="Link to full project case study"
     )

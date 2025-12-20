@@ -3,6 +3,7 @@ from sum_core.blocks.content import (
     ButtonGroupBlock,
     DividerBlock,
     ImageBlock,
+    PortfolioItemBlock,
     QuoteBlock,
     RichTextContentBlock,
     SpacerBlock,
@@ -64,3 +65,11 @@ def test_divider_block_definition():
     choices = [c[0] for c in block.child_blocks["style"].field.choices]
     assert "muted" in choices
     assert "accent" in choices
+
+
+@pytest.mark.django_db
+def test_portfolio_item_block_metadata_fields():
+    block = PortfolioItemBlock()
+    assert "constraint" in block.child_blocks
+    assert "material" in block.child_blocks
+    assert "outcome" in block.child_blocks

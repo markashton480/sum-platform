@@ -72,7 +72,7 @@ urlpatterns = [
   - Brand colours (primary, secondary, accent, background, text, surface)
   - Typography (heading_font, body_font - Google Fonts names)
   - Logos (header, footer, favicon, og_default_image)
-  - Business info (company name, phone, email, address)
+  - Business info (company name, established year, phone, email, address)
   - Social links (Facebook, Instagram, LinkedIn, Twitter, YouTube, TikTok)
 
 - **Template tags** (from `sum_core.templatetags.branding_tags`):

@@ -310,6 +310,9 @@ Used within hero blocks for CTA buttons.
 | `title` | CharBlock | Yes | - |
 | `location` | CharBlock | No | e.g. "Kensington, London" |
 | `services` | CharBlock | No | e.g. "Solar • Battery" |
+| `constraint` | CharBlock | No | max: 100 |
+| `material` | CharBlock | No | max: 100 |
+| `outcome` | CharBlock | No | max: 100 |
 | `link_url` | URLBlock | No | Link to case study |
 
 ---
@@ -526,4 +529,3 @@ Blocks are organized into groups in the admin chooser:
 | Date | Change |
 |------|--------|
 | 2025-12-12 | Initial documentation created (M2-012) |
-

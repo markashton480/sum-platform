@@ -54,3 +54,9 @@ def test_site_settings_fields_persist() -> None:
     assert retrieved.facebook_url.endswith("/acme")
     assert retrieved.instagram_url.endswith("/acme")
     assert retrieved.business_hours.startswith("Mon–Fri")
+
+
+def test_site_settings_established_year_field() -> None:
+    field = SiteSettings._meta.get_field("established_year")
+    assert field.null is True
+    assert field.blank is True
