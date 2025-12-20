@@ -1,0 +1,14 @@
+{% load wagtailcore_tags %}
+<div class="py-8">
+  <div class="container max-w-4xl mx-auto px-6">
+    <div class="flex flex-wrap gap-4 {% if self.alignment == 'center' %}justify-center{% elif self.alignment == 'right' %}justify-end{% else %}justify-start{% endif %}">
+      {% for btn in self.buttons %}
+      <a href="{{ btn.url }}"
+         class="btn {% if btn.style == 'primary' %}btn-primary{% else %}btn-outline{% endif %}"
+         {% if btn.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+        {{ btn.label }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>

@@ -23,7 +23,7 @@ from wagtail.models import Page, Site
 try:
     from faker import Faker
 except ImportError:
-    Faker = None  # type: ignore
+    Faker = None
 
 
 class Command(BaseCommand):
@@ -39,7 +39,7 @@ class Command(BaseCommand):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self.fake = Faker() if Faker is not None else None
+        self.fake: Any = Faker() if Faker is not None else None
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(

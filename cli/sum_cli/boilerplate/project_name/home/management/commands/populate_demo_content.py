@@ -23,7 +23,7 @@ from wagtail.models import Page, Site
 try:
     from faker import Faker
 except ImportError:
-    Faker = None  # type: ignore
+    Faker = None
 
 
 class Command(BaseCommand):
@@ -39,7 +39,7 @@ class Command(BaseCommand):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self.fake = Faker() if Faker is not None else None
+        self.fake: Any = Faker() if Faker is not None else None
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
@@ -148,6 +148,14 @@ class Command(BaseCommand):
         ]
 
         for title, builder_func in pages_config:
+            # Check if page already exists to avoid duplicates
+            existing_page = (
+                root_page.get_children().filter(slug=self._slugify(title)).first()
+            )
+            if existing_page:
+                self.stdout.write(f"  ⊙ Skipping (already exists): {title}")
+                continue
+
             page = standard_page_model(
                 title=title,
                 slug=self._slugify(title),
@@ -159,6 +167,8 @@ class Command(BaseCommand):
 
     def _create_home_page(self, home_page_model: Any, parent: Page) -> Page:
         """Create a HomePage with hero and feature content."""
+        import uuid
+
         body_content = [
             self._build_hero_gradient(),
             self._build_stats_block(),
@@ -166,9 +176,11 @@ class Command(BaseCommand):
             self._build_testimonials_block(count=3),
         ]
 
+        # Create with temporary unique slug to avoid conflicts
+        temp_slug = f"home-{uuid.uuid4().hex[:8]}"
         home_page = home_page_model(
             title="Home",
-            slug="home",
+            slug=temp_slug,
             intro=f"<p>{self.fake.paragraph(nb_sentences=2)}</p>",
             body=body_content,
         )
@@ -176,11 +188,25 @@ class Command(BaseCommand):
         parent.add_child(instance=home_page)
         home_page.save_revision().publish()
 
-        # Set as default homepage for the site
+        # Get the site and old root page
         site = Site.objects.first()
+        old_root = None
         if site:
+            old_root = site.root_page
+            # Set new page as site root
             site.root_page = home_page
             site.save()
+
+        # Delete the old default Wagtail page if it exists
+        if old_root and old_root.id != parent.id:
+            old_slug = old_root.slug
+            old_title = old_root.title
+            old_root.delete()
+            self.stdout.write(f"  ✓ Removed old page: '{old_title}' (slug: {old_slug})")
+
+        # Now update slug to 'home' since the old one is gone
+        home_page.slug = "home"
+        home_page.save()
 
         self.stdout.write("  ✓ Created HomePage")
         return home_page

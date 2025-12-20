@@ -1,0 +1,60 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+
+<section class="py-24 bg-sage-darkmoss text-sage-linen overflow-hidden">
+  <div class="container mx-auto px-4">
+
+    <header class="text-center mb-16 reveal">
+      {% if self.eyebrow %}
+        <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-sage-moss mb-4">
+          {{ self.eyebrow }}
+        </div>
+      {% endif %}
+      {% if self.heading %}
+        <div class="font-display text-4xl md:text-5xl text-sage-linen">
+          {{ self.heading|richtext }}
+        </div>
+      {% endif %}
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {% for item in self.testimonials %}
+      <article class="reveal delay-{{ forloop.counter0|add:1 }}00 bg-sage-black/20 backdrop-blur-sm rounded-sm p-10 border border-sage-linen/5 flex flex-col h-full">
+        {% if item.rating %}
+        <div class="flex gap-1.5 mb-8 text-sage-moss text-sm" aria-label="{{ item.rating }} out of 5 stars">
+          {% for _ in "12345" %}
+          <span aria-hidden="true">{% if forloop.counter <= item.rating %}★{% else %}☆{% endif %}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if item.quote %}
+        <blockquote class="text-xl font-display text-sage-linen/90 italic leading-relaxed mb-10 flex-grow">
+          "{{ item.quote }}"
+        </blockquote>
+        {% endif %}
+
+        <div class="flex items-center gap-5 mt-auto pt-8 border-t border-sage-linen/10">
+          {% if item.photo %}
+            <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-sage-moss/30">
+              {% image item.photo fill-112x112 class="w-full h-full object-cover" %}
+            </div>
+          {% else %}
+            {% with initials=item.author_name|slice:":2"|upper %}
+            <div class="w-14 h-14 rounded-full bg-sage-moss/20 text-sage-moss flex items-center justify-center font-bold text-sm border border-sage-moss/30">
+              {{ initials }}
+            </div>
+            {% endwith %}
+          {% endif %}
+
+          <div class="flex-1 min-w-0">
+            <h4 class="font-body font-bold text-sage-linen tracking-wide">{{ item.author_name }}</h4>
+            {% if item.company %}
+            <p class="text-[11px] font-bold uppercase tracking-widest text-sage-linen/50 mt-1">{{ item.company }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>

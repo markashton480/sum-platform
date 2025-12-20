@@ -1,0 +1,118 @@
+{% load wagtailcore_tags form_tags %}
+<section class="section bg-sage-oat">
+  <div class="container max-w-4xl mx-auto">
+    <header class="reveal text-center mb-12">
+      {% if self.eyebrow %}
+        <div class="text-sm font-bold uppercase tracking-wider text-primary mb-4">
+          {{ self.eyebrow }}
+        </div>
+      {% endif %}
+      <div class="font-display text-3xl md:text-4xl leading-tight text-sage-black mb-6">
+        {{ self.heading|richtext }}
+      </div>
+      {% if self.intro %}
+        <div class="text-lg text-sage-black/80 leading-relaxed max-w-2xl mx-auto">
+          {{ self.intro|richtext }}
+        </div>
+      {% endif %}
+    </header>
+
+    <div class="reveal delay-100">
+      <form action="/forms/submit/" method="post" novalidate class="bg-sage-linen rounded-2xl p-8 shadow-md border border-sage-black/10 space-y-6" data-form-type="quote_request" id="quote-form"
+            data-success-message="{{ self.success_message|default:"Thanks, we'll prepare your quote."|escapejs }}"
+            data-error-message="Something went wrong. Please try again.">
+        {% csrf_token %}
+
+        <!-- Hidden fields -->
+        {% form_hidden_fields form_type="quote_request" %}
+
+        <!-- Honeypot -->
+        <div class="sr-only" aria-hidden="true">
+          <label for="form-company-field">Company</label>
+          <input type="text" name="company" id="form-company-field" tabindex="-1" autocomplete="off">
+        </div>
+
+        {% if form %}
+          {% for field in form %}
+            <div class="{% if field.errors %}has-error{% endif %}">
+              <label for="{{ field.id_for_label }}" class="block text-sm font-bold text-sage-black mb-2">
+                {{ field.label }}
+              </label>
+              {{ field }}
+              {% if field.help_text %}
+                <span class="text-sm text-sage-black/60 mt-1 block">{{ field.help_text }}</span>
+              {% endif %}
+              {% if field.errors %}
+                <span class="text-sm text-primary mt-1 block">{{ field.errors.0 }}</span>
+              {% endif %}
+            </div>
+          {% endfor %}
+
+          {% if form.non_field_errors %}
+            <div class="p-4 bg-primary/10 rounded-lg border border-primary">
+              {% for error in form.non_field_errors %}
+                <p class="text-sm text-primary">{{ error }}</p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+        {% else %}
+          <p class="text-sage-black/60 italic">Form configuration missing.</p>
+        {% endif %}
+
+        <!-- Messages -->
+        <div role="alert" aria-live="polite"></div>
+
+        <div>
+          <button type="submit" class="btn btn-primary w-full">
+            {{ self.submit_label|default:"Request a quote" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% form_attribution_script %}
+
+<script>
+(function() {
+  'use strict';
+  var form = document.getElementById('quote-form');
+  if (!form) return;
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var formData = new FormData(form);
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var messagesDiv = form.querySelector('[role="alert"]');
+    var originalText = submitBtn.textContent;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    messagesDiv.innerHTML = '';
+
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        messagesDiv.innerHTML = '<div class="p-4 bg-sage-moss/20 text-sage-black rounded-lg">' + form.dataset.successMessage + '</div>';
+        form.reset();
+      } else {
+        messagesDiv.innerHTML = '<div class="p-4 bg-primary/20 text-sage-black rounded-lg">' + form.dataset.errorMessage + '</div>';
+      }
+    })
+    .catch(function() {
+      messagesDiv.innerHTML = '<div class="p-4 bg-primary/20 text-sage-black rounded-lg">' + form.dataset.errorMessage + '</div>';
+    })
+    .finally(function() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    });
+  });
+})();
+</script>

@@ -1,0 +1,25 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+
+<section class="py-12 bg-sage-linen border-y border-sage-black/5">
+  <div class="container mx-auto px-4">
+    {% if self.eyebrow %}
+      <p class="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-sage-label mb-8">
+        {{ self.eyebrow }}
+      </p>
+    {% endif %}
+
+    <div class="flex flex-wrap items-center justify-center gap-8 md:gap-16 opacity-40 grayscale hover:opacity-80 transition-all duration-700 ease-out">
+      {% for item in self.items %}
+      <div class="flex-shrink-0 reveal delay-{{ forloop.counter0|add:1 }}00">
+        {% if item.url %}
+        <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer" class="block hover:scale-105 transition-transform duration-300">
+          {% image item.logo fill-240x100 class="h-8 md:h-10 w-auto object-contain" alt=item.alt_text %}
+        </a>
+        {% else %}
+          {% image item.logo fill-240x100 class="h-8 md:h-10 w-auto object-contain" alt=item.alt_text %}
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
