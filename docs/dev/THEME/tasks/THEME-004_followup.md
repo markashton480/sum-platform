@@ -122,3 +122,4 @@ Result: **test suite passes under Postgres**.
 5. Confirm it renders via Theme A with the centered manifesto layout.
 
 
+
