@@ -22,7 +22,7 @@ from sum_core.blocks.content import (
     TrustStripBlock,
 )
 from sum_core.blocks.forms import ContactFormBlock, QuoteRequestFormBlock
-from sum_core.blocks.gallery import GalleryBlock
+from sum_core.blocks.gallery import FeaturedCaseStudyBlock, GalleryBlock
 from sum_core.blocks.hero import HeroGradientBlock, HeroImageBlock
 from sum_core.blocks.process_faq import FAQBlock, ProcessStepsBlock
 from sum_core.blocks.services import ServiceCardsBlock
@@ -47,6 +47,7 @@ class PageStreamBlock(StreamBlock):
     service_cards = ServiceCardsBlock(group="Services")
     testimonials = TestimonialsBlock(group="Sections")
     gallery = GalleryBlock(group="Sections")
+    featured_case_study = FeaturedCaseStudyBlock(group="Sections")
     hero = HeroBlock(group="Legacy Sections")  # Keeping specific hero type separate
     trust_strip = TrustStripBlock(group="Sections")
     trust_strip_logos = TrustStripLogosBlock(group="Sections")

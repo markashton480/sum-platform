@@ -23,7 +23,7 @@ from .content import (
     TrustStripBlock,
 )
 from .forms import ContactFormBlock, QuoteRequestFormBlock
-from .gallery import GalleryBlock, GalleryImageBlock
+from .gallery import FeaturedCaseStudyBlock, GalleryBlock, GalleryImageBlock
 from .hero import HeroCTABlock, HeroGradientBlock, HeroImageBlock
 from .links import LINK_TYPE_CHOICES, UniversalLinkBlock, UniversalLinkValue
 from .process_faq import FAQBlock, ProcessStepsBlock
@@ -52,6 +52,7 @@ __all__ = [
     "TestimonialBlock",
     "GalleryBlock",
     "GalleryImageBlock",
+    "FeaturedCaseStudyBlock",
     "StatItemBlock",
     "StatsBlock",
     "ProcessStepsBlock",

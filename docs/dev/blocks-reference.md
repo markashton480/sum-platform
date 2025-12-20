@@ -6,28 +6,29 @@
 
 ## Quick Reference Table
 
-| Key                  | Block                 | Group        | Purpose                              |
-| -------------------- | --------------------- | ------------ | ------------------------------------ |
-| `hero_image`         | HeroImageBlock        | Hero         | Full-width image hero with overlay   |
-| `hero_gradient`      | HeroGradientBlock     | Hero         | Gradient background hero             |
-| `service_cards`      | ServiceCardsBlock     | Services     | Service card grid section            |
-| `testimonials`       | TestimonialsBlock     | Sections     | Customer testimonial cards           |
-| `gallery`            | GalleryBlock          | Sections     | Image gallery grid                   |
-| `manifesto`          | ManifestoBlock        | Sections     | Centered manifesto/prose section     |
-| `portfolio`          | PortfolioBlock        | Sections     | Project portfolio with offset layout |
-| `trust_strip_logos`  | TrustStripBlock       | Sections     | Logo strip (certifications/partners) |
-| `stats`              | StatsBlock            | Sections     | Key metrics display                  |
-| `process`            | ProcessStepsBlock     | Sections     | Timeline/process steps               |
-| `faq`                | FAQBlock              | Sections     | FAQ accordion with JSON-LD           |
-| `editorial_header`   | EditorialHeaderBlock  | Page Content | Page/article header                  |
-| `content`            | RichTextContentBlock  | Page Content | General rich text content            |
-| `quote`              | QuoteBlock            | Page Content | Pull quote/blockquote                |
-| `image_block`        | ImageBlock            | Page Content | Standalone image with caption        |
-| `buttons`            | ButtonGroupBlock      | Page Content | CTA button group                     |
-| `spacer`             | SpacerBlock           | Page Content | Vertical spacing control             |
-| `divider`            | DividerBlock          | Page Content | Horizontal divider line              |
-| `contact_form`       | ContactFormBlock      | Forms        | Contact form section                 |
-| `quote_request_form` | QuoteRequestFormBlock | Forms        | Quote request form section           |
+| Key                   | Block                  | Group        | Purpose                              |
+| --------------------- | ---------------------- | ------------ | ------------------------------------ |
+| `hero_image`          | HeroImageBlock         | Hero         | Full-width image hero with overlay   |
+| `hero_gradient`       | HeroGradientBlock      | Hero         | Gradient background hero             |
+| `service_cards`       | ServiceCardsBlock      | Services     | Service card grid section            |
+| `testimonials`        | TestimonialsBlock      | Sections     | Customer testimonial cards           |
+| `gallery`             | GalleryBlock           | Sections     | Image gallery grid                   |
+| `featured_case_study` | FeaturedCaseStudyBlock | Sections     | Large highlighted case study         |
+| `manifesto`           | ManifestoBlock         | Sections     | Centered manifesto/prose section     |
+| `portfolio`           | PortfolioBlock         | Sections     | Project portfolio with offset layout |
+| `trust_strip_logos`   | TrustStripBlock        | Sections     | Logo strip (certifications/partners) |
+| `stats`               | StatsBlock             | Sections     | Key metrics display                  |
+| `process`             | ProcessStepsBlock      | Sections     | Timeline/process steps               |
+| `faq`                 | FAQBlock               | Sections     | FAQ accordion with JSON-LD           |
+| `editorial_header`    | EditorialHeaderBlock   | Page Content | Page/article header                  |
+| `content`             | RichTextContentBlock   | Page Content | General rich text content            |
+| `quote`               | QuoteBlock             | Page Content | Pull quote/blockquote                |
+| `image_block`         | ImageBlock             | Page Content | Standalone image with caption        |
+| `buttons`             | ButtonGroupBlock       | Page Content | CTA button group                     |
+| `spacer`              | SpacerBlock            | Page Content | Vertical spacing control             |
+| `divider`             | DividerBlock           | Page Content | Horizontal divider line              |
+| `contact_form`        | ContactFormBlock       | Forms        | Contact form section                 |
+| `quote_request_form`  | QuoteRequestFormBlock  | Forms        | Quote request form section           |
 
 ---
 
@@ -287,6 +288,38 @@ Used within hero blocks for CTA buttons.
 | `image`    | ImageChooserBlock | Yes      | -                         |
 | `alt_text` | CharBlock         | No       | Falls back to image title |
 | `caption`  | CharBlock         | No       | max: 255                  |
+
+---
+
+### FeaturedCaseStudyBlock
+
+**Key:** `featured_case_study`
+**Template:** `sum_core/blocks/featured_case_study.html`
+**Purpose:** High-impact case study feature with split layout (image + stats vs content).
+
+#### Fields
+
+| Field         | Type              | Required | Constraints     | Notes                      |
+| ------------- | ----------------- | -------- | --------------- | -------------------------- |
+| `eyebrow`     | CharBlock         | No       | max: 100        | e.g. "Case Study"          |
+| `heading`     | RichTextBlock     | Yes      | -               | Main title                 |
+| `intro`       | RichTextBlock     | No       | -               | Supporting text            |
+| `points`      | ListBlock(Text)   | No       | max_length: 500 | Key features/outcomes list |
+| `cta_text`    | CharBlock         | No       | max: 50         | e.g. "Read more"           |
+| `cta_url`     | URLBlock          | No       | -               | Link destination           |
+| `image`       | ImageChooserBlock | Yes      | -               | Main visual                |
+| `image_alt`   | CharBlock         | Yes      | max: 255        | Accessibility text         |
+| `stats_label` | CharBlock         | No       | max: 50         | Floating card label        |
+| `stats_value` | CharBlock         | No       | max: 100        | Floating card value        |
+
+#### Notes
+
+- **CTA behavior:** Only renders if **both** `cta_text` and `cta_url` are present.
+- **Stats card:** Only renders if at least one of `stats_label` or `stats_value` is present.
+- **Theme A:**
+  - Image aspect ratio: 4:5
+  - Hovering image reveals "INSPECT ARTIFACT" overlay.
+  - Stats card floats top-right over image.
 
 ---
 

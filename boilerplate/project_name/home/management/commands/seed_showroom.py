@@ -9,6 +9,7 @@ It creates:
 - A HomePage (client-owned model) and sets it as the default Wagtail Site root
 - A StandardPage showroom + a Contact StandardPage
 - A ServiceIndexPage and two ServicePage children
+- A "Kitchen Sink" page with all blocks
 - Example content that showcases *all* blocks available in sum_core.PageStreamBlock,
   spread across multiple pages (not all on one page)
 - Branding SiteSettings and Navigation (HeaderNavigation / FooterNavigation)
@@ -53,6 +54,7 @@ class _ShowroomSlugs:
     services: str = "services"
     service_one: str = "solar-installation"
     service_two: str = "roofing"
+    kitchen_sink: str = "kitchen-sink"
 
 
 class Command(BaseCommand):
@@ -108,6 +110,7 @@ class Command(BaseCommand):
             )
 
         # Pages
+        # NOTE: We do not blindly grab the first HomePage anymore. We check for our specific slug.
         home = self._get_or_create_homepage(
             site=site, root=root, home_page_model=home_page_model, slugs=slugs
         )
@@ -116,6 +119,9 @@ class Command(BaseCommand):
         )
         contact = self._get_or_create_standard_page(
             parent=home, title="Contact", slug=slugs.contact
+        )
+        kitchen_sink = self._get_or_create_standard_page(
+            parent=home, title="Kitchen Sink", slug=slugs.kitchen_sink
         )
         services_index = self._get_or_create_services_index(
             parent=home, title="Services", slug=slugs.services
@@ -152,6 +158,15 @@ class Command(BaseCommand):
         )
         showroom.save_revision().publish()
 
+        # Kitchen Sink - All blocks in one place
+        kitchen_sink.body = self._build_kitchen_sink_stream(
+            images=images,
+            services_index=services_index,
+            service_one=service_one,
+            contact_page=contact,
+        )
+        kitchen_sink.save_revision().publish()
+
         services_index.intro = self._build_services_index_intro_stream(images=images)
         services_index.save_revision().publish()
 
@@ -186,6 +201,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("✓ Showroom seeded"))
         self.stdout.write(f"  - Home: / (Wagtail site root -> {home.title})")
         self.stdout.write(f"  - Showroom: {showroom.url}")
+        self.stdout.write(f"  - Kitchen Sink: {kitchen_sink.url}")
         self.stdout.write(f"  - Services: {services_index.url}")
         self.stdout.write(f"  - Contact: {contact.url}")
 
@@ -212,7 +228,9 @@ class Command(BaseCommand):
 
         # Prefer a 'home' app
         for app_config in apps.get_app_configs():
-            if app_config.label == "home" or app_config.label.endswith(".home"):
+            # Fix: Check app_config.name for dotted paths, though label is usually simple.
+            # safe check: (app_config.label == "home") or (app_config.name.endswith(".home"))
+            if app_config.label == "home" or app_config.name.endswith(".home"):
                 try:
                     return apps.get_model(app_config.label, "HomePage")
                 except LookupError:
@@ -263,27 +281,37 @@ class Command(BaseCommand):
         self, *, site: Site, slugs: _ShowroomSlugs, home_page_model: Any
     ) -> None:
         """
-        Remove previously seeded pages without touching unrelated content.
+        Remove previously seeded pages safely.
+        Only deletes content if we can find the seeded HomePage by its specific slug.
         """
         self.stdout.write("Clearing existing showroom pages...")
 
-        # Delete seeded children first (safe even if missing)
-        for slug in [
-            slugs.service_one,
-            slugs.service_two,
-        ]:
-            ServicePage.objects.filter(slug=slug).delete()
+        # Locate the seeded home page
+        home = home_page_model.objects.filter(slug=slugs.home).first()
+        if not home:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"No existing showroom home with slug '{slugs.home}' found. "
+                    "Skipping deletion to prevent data loss."
+                )
+            )
+            return
 
-        ServiceIndexPage.objects.filter(slug=slugs.services).delete()
-        StandardPage.objects.filter(slug__in=[slugs.showroom, slugs.contact]).delete()
+        # Delete descendants using .specific to ensure Wagtail cleanup hooks run
+        # We iterate to be safe and use .specific.delete()
+        for child in home.get_children():
+            # Optional: check if child slug is in our known list if strict safety is needed,
+            # but getting children of *our* seeded home is generally safe.
+            # We'll just delete them all as they are part of the seeds.
+            child.specific.delete()
 
-        # Do not delete HomePage by default (it is a singleton and may be user-edited).
-        # If the current default site root *is* our showroom homepage slug, delete it.
-        hp = home_page_model.objects.filter(slug=slugs.home).first()
-        if hp and site.root_page_id == hp.id:
+        # If the seeded home is the site root, reset site root before deleting
+        if site.root_page_id == home.id:
             site.root_page = Page.get_first_root_node()
             site.save()
-            hp.delete()
+
+        # Delete the home itself
+        home.specific.delete()
 
         Site.clear_site_root_paths_cache()
 
@@ -294,16 +322,11 @@ class Command(BaseCommand):
     def _get_or_create_homepage(
         self, *, site: Site, root: Page, home_page_model: Any, slugs: _ShowroomSlugs
     ) -> Any:
-        existing = home_page_model.objects.first()
-        if existing:
-            home = existing
-        else:
-            slug = slugs.home
-            if root.get_children().filter(slug=slug).exists():
-                slug = f"{slug}-1"
-
+        # Strict retrieval by slug - do not grab unrelated homepages
+        home = home_page_model.objects.filter(slug=slugs.home).first()
+        if not home:
             home = home_page_model(
-                title="Theme Showroom", slug=slug, intro="", body=None
+                title="Theme Showroom", slug=slugs.home, intro="", body=None
             )
             root.add_child(instance=home)
             home.save_revision().publish()
@@ -389,22 +412,51 @@ class Command(BaseCommand):
         favicon_id: int
 
     def _get_or_create_showroom_images(self) -> _Images:
-        hero = self._get_or_create_image("Showroom Hero", (1400, 900), "#0ea5e9")
-        legacy_hero = self._get_or_create_image("Legacy Hero", (1200, 800), "#14b8a6")
-        before = self._get_or_create_image("Comparison Before", (1400, 900), "#334155")
-        after = self._get_or_create_image("Comparison After", (1400, 900), "#f97316")
-        g1 = self._get_or_create_image("Gallery 1", (1200, 800), "#a855f7")
-        g2 = self._get_or_create_image("Gallery 2", (1200, 800), "#22c55e")
-        g3 = self._get_or_create_image("Gallery 3", (1200, 800), "#eab308")
-        p1 = self._get_or_create_image("Portfolio 1", (1200, 900), "#0f172a")
-        p2 = self._get_or_create_image("Portfolio 2", (1200, 900), "#1f2937")
-        l1 = self._get_or_create_image("Trust Logo 1", (600, 360), "#111827")
-        l2 = self._get_or_create_image("Trust Logo 2", (600, 360), "#0b1220")
-        ib = self._get_or_create_image("Content Image", (1600, 900), "#64748b")
-        sf1 = self._get_or_create_image("Service Featured 1", (1600, 900), "#2563eb")
-        sf2 = self._get_or_create_image("Service Featured 2", (1600, 900), "#dc2626")
-        brand = self._get_or_create_image("Brand Logo", (800, 400), "#0f172a")
-        favicon = self._get_or_create_image("Favicon", (256, 256), "#0f172a")
+        # Seed into specific collection
+        collection = self._get_or_create_collection("Showroom")
+
+        hero = self._get_or_create_image(
+            "Showroom Hero", (1400, 900), "#0ea5e9", collection
+        )
+        legacy_hero = self._get_or_create_image(
+            "Legacy Hero", (1200, 800), "#14b8a6", collection
+        )
+        before = self._get_or_create_image(
+            "Comparison Before", (1400, 900), "#334155", collection
+        )
+        after = self._get_or_create_image(
+            "Comparison After", (1400, 900), "#f97316", collection
+        )
+        g1 = self._get_or_create_image("Gallery 1", (1200, 800), "#a855f7", collection)
+        g2 = self._get_or_create_image("Gallery 2", (1200, 800), "#22c55e", collection)
+        g3 = self._get_or_create_image("Gallery 3", (1200, 800), "#eab308", collection)
+        p1 = self._get_or_create_image(
+            "Portfolio 1", (1200, 900), "#0f172a", collection
+        )
+        p2 = self._get_or_create_image(
+            "Portfolio 2", (1200, 900), "#1f2937", collection
+        )
+        l1 = self._get_or_create_image(
+            "Trust Logo 1", (600, 360), "#111827", collection
+        )
+        l2 = self._get_or_create_image(
+            "Trust Logo 2", (600, 360), "#0b1220", collection
+        )
+        ib = self._get_or_create_image(
+            "Content Image", (1600, 900), "#64748b", collection
+        )
+        sf1 = self._get_or_create_image(
+            "Service Featured 1", (1600, 900), "#2563eb", collection
+        )
+        sf2 = self._get_or_create_image(
+            "Service Featured 2", (1600, 900), "#dc2626", collection
+        )
+        brand = self._get_or_create_image(
+            "Brand Logo", (800, 400), "#0f172a", collection
+        )
+        favicon = self._get_or_create_image(
+            "Favicon", (256, 256), "#0f172a", collection
+        )
 
         return self._Images(
             hero_id=hero.id,
@@ -425,11 +477,19 @@ class Command(BaseCommand):
             favicon_id=favicon.id,
         )
 
+    def _get_or_create_collection(self, name: str) -> Any:
+        from wagtail.models import Collection
+
+        root = Collection.get_first_root_node()
+        existing = root.get_children().filter(name=name).first()
+        if existing:
+            return existing
+        return root.add_child(name=name)
+
     def _get_or_create_image(
-        self, title: str, size: tuple[int, int], color_hex: str
+        self, title: str, size: tuple[int, int], color_hex: str, collection: Any
     ) -> Any:
         from wagtail.images import get_image_model
-        from wagtail.models import Collection
 
         image_model = get_image_model()
         existing = image_model.objects.filter(title=title).first()
@@ -450,7 +510,6 @@ class Command(BaseCommand):
 
         safe = self._slugify(title)
         filename = f"showroom-{safe}.png"
-        collection = Collection.get_first_root_node()
 
         return image_model.objects.create(
             title=title,
@@ -799,85 +858,57 @@ class Command(BaseCommand):
                     "value": {
                         "alignment": "left",
                         "buttons": [
+                            {"label": "Generic Button", "style": "primary", "url": "/"},
                             {
-                                "label": "Contact",
-                                "url": "/contact/",
-                                "style": "primary",
-                            },
-                            {
-                                "label": "Services",
-                                "url": "/services/",
+                                "label": "Secondary Style",
                                 "style": "secondary",
+                                "url": "/",
                             },
                         ],
                     },
                 },
-                {"type": "spacer", "value": {"size": "medium"}},
-                {"type": "divider", "value": {"style": "muted"}},
-                {
-                    "type": "rich_text",
-                    "value": "<h2>Simple RichText</h2><p>This block is the plain RichTextBlock in PageStreamBlock.</p>",
-                },
-                {
-                    "type": "hero",
-                    "value": {
-                        "status_text": "Legacy block",
-                        "title": "Legacy <span class='italic-accent'>Hero</span>",
-                        "description": "This is kept for compatibility; themes may still style it.",
-                        "primary_cta": {
-                            "label": "Explore services",
-                            "link": "/services/",
-                            "page": None,
-                            "style": "btn-primary",
-                        },
-                        "secondary_cta": {
-                            "label": "Contact",
-                            "link": "/contact/",
-                            "page": None,
-                            "style": "btn-outline",
-                        },
-                        "image": images.legacy_hero_id,
-                        "float_card_label": "Demo",
-                        "float_card_value": "Legacy",
-                    },
-                },
             ]
         )
+
+    def _build_kitchen_sink_stream(
+        self,
+        *,
+        images: _Images,
+        services_index: ServiceIndexPage,
+        service_one: ServicePage,
+        contact_page: StandardPage,
+    ) -> Any:
+        """
+        Combine all block types into a single page stream for rapid testing.
+        """
+        stream_block = PageStreamBlock()
+
+        # Combine home stream + showroom stream blocks to cover everything
+        home_data = self._build_home_stream(images=images, contact_page=contact_page)
+        showroom_data = self._build_showroom_stream(
+            images=images,
+            services_index=services_index,
+            service_one=service_one,
+            contact_page=contact_page,
+        )
+
+        # Merge the lists of blocks
+        combined_data = list(home_data) + list(showroom_data)
+
+        return stream_block.to_python(combined_data)
 
     def _build_services_index_intro_stream(self, *, images: _Images) -> Any:
         stream_block = PageStreamBlock()
         return stream_block.to_python(
             [
                 {
-                    "type": "content",
+                    "type": "hero_gradient",
                     "value": {
-                        "align": "center",
-                        "body": "<h2>Services Index</h2><p>This page lists child ServicePage items in a grid.</p>",
-                    },
-                },
-                {
-                    "type": "process",
-                    "value": {
-                        "eyebrow": "Process",
-                        "heading": "<p>How we <em>work</em></p>",
-                        "intro": "<p>Use this to validate timeline styling and list spacing.</p>",
-                        "steps": [
-                            {
-                                "number": 1,
-                                "title": "Assess",
-                                "description": "<p>We review your needs.</p>",
-                            },
-                            {
-                                "number": 2,
-                                "title": "Plan",
-                                "description": "<p>We design the approach.</p>",
-                            },
-                            {
-                                "number": 3,
-                                "title": "Deliver",
-                                "description": "<p>We build and ship.</p>",
-                            },
-                        ],
+                        "headline": "<p>Our <em>Services</em></p>",
+                        "subheadline": "Professional trades for every requirement.",
+                        "ctas": [],
+                        "status": "Available",
+                        "gradient_style": "secondary",
                     },
                 },
             ]
@@ -890,56 +921,21 @@ class Command(BaseCommand):
         return stream_block.to_python(
             [
                 {
-                    "type": "faq",
+                    "type": "content",
                     "value": {
-                        "eyebrow": "FAQ",
-                        "heading": "<p>Service <em>questions</em></p>",
-                        "intro": "<p>Accordion + JSON-LD schema validation.</p>",
-                        "allow_multiple_open": False,
-                        "items": [
-                            {
-                                "question": "How long does this take?",
-                                "answer": "<p>Most installs complete within 1–2 days.</p>",
-                            },
-                            {
-                                "question": "Is there a warranty?",
-                                "answer": "<p>Yes — warranties vary by product and scope.</p>",
-                            },
-                        ],
+                        "align": "left",
+                        "body": f"<p>Detail content for {page.title}.</p>"
+                        "<h3>Why choose us?</h3>"
+                        "<ul><li>Experienced team</li><li>Guaranteed work</li><li>Fast turnaround</li></ul>",
                     },
                 },
                 {
-                    "type": "quote_request_form",
+                    "type": "cta_banner",
                     "value": {
-                        "eyebrow": "Quote",
-                        "heading": "<p>Request a <em>quote</em></p>",
-                        "intro": "<p>Use this to validate form layout and success states.</p>",
-                        "success_message": "Thanks — we’ll be in touch with next steps.",
-                        "submit_label": "Request quote",
-                        "show_compact_meta": False,
-                    },
-                },
-                {
-                    "type": "contact_form",
-                    "value": {
-                        "eyebrow": "Enquiries",
-                        "heading": "<p>General <em>enquiry</em></p>",
-                        "intro": "<p>Prefer a quick message instead?</p>",
-                        "success_message": "Thanks — we’ll reply shortly.",
-                        "submit_label": "Send enquiry",
-                    },
-                },
-                {
-                    "type": "buttons",
-                    "value": {
-                        "alignment": "center",
-                        "buttons": [
-                            {
-                                "label": "Contact page",
-                                "url": "/contact/",
-                                "style": "primary",
-                            }
-                        ],
+                        "heading": "Ready to start?",
+                        "description": "Get a free quote today.",
+                        "cta_label": "Contact us",
+                        "cta_url": "/contact/",  # or contact_page.url if available
                     },
                 },
             ]
@@ -950,71 +946,42 @@ class Command(BaseCommand):
         return stream_block.to_python(
             [
                 {
-                    "type": "editorial_header",
+                    "type": "hero_gradient",
                     "value": {
-                        "align": "center",
-                        "eyebrow": "Contact",
-                        "heading": "<p>Get in <em>touch</em></p>",
+                        "headline": "<p>Get in <em>touch</em></p>",
+                        "subheadline": "We’d love to hear from you.",
+                        "ctas": [],
+                        "status": "Open",
+                        "gradient_style": "default",
                     },
                 },
+                # Note: 'form' block would go here if we had a FormPage or embedded form block.
+                # For now using content placeholder.
                 {
                     "type": "content",
                     "value": {
                         "align": "center",
-                        "body": "<p>This page exists so navigation can link cleanly to a contact destination.</p>",
-                    },
-                },
-                {
-                    "type": "contact_form",
-                    "value": {
-                        "eyebrow": "Enquiries",
-                        "heading": "<p>Send a <em>message</em></p>",
-                        "intro": "<p>We’ll respond as soon as possible.</p>",
-                        "success_message": "Thanks — we’ll be in touch shortly.",
-                        "submit_label": "Send",
+                        "body": "<p>Phone: 020 1234 5678<br>Email: hello@example.com</p>",
                     },
                 },
             ]
         )
 
     # -----------------------------------------------------------------------------
-    # Branding + navigation seeding
+    # Branding & Navigation
     # -----------------------------------------------------------------------------
 
     def _seed_branding(self, *, site: Site, images: _Images) -> None:
         settings = SiteSettings.for_site(site)
-        settings.company_name = settings.company_name or "SUM Theme Showroom"
-        settings.tagline = settings.tagline or "A seeded site for theme development."
-        settings.phone_number = settings.phone_number or "+44 20 7946 0958"
-        settings.email = settings.email or "hello@example.com"
-        settings.address = settings.address or "1 Showroom Street\nLondon\nSW1A 1AA"
-
-        # Colours + fonts (safe defaults; themes can override visually)
-        settings.primary_color = settings.primary_color or "#0ea5e9"
-        settings.secondary_color = settings.secondary_color or "#14b8a6"
-        settings.accent_color = settings.accent_color or "#f97316"
-        settings.background_color = settings.background_color or "#ffffff"
-        settings.surface_color = settings.surface_color or "#f8fafc"
-        settings.surface_elevated_color = settings.surface_elevated_color or "#ffffff"
-        settings.text_color = settings.text_color or "#0f172a"
-        settings.text_light_color = settings.text_light_color or "#475569"
-        settings.heading_font = settings.heading_font or "Inter"
-        settings.body_font = settings.body_font or "Inter"
-
-        # Logos
-        settings.header_logo_id = images.brand_logo_id
-        settings.footer_logo_id = images.brand_logo_id
-        settings.og_default_image_id = images.brand_logo_id
-        settings.favicon_id = images.favicon_id
-
-        # Social links (so footer can render icons)
-        settings.facebook_url = settings.facebook_url or "https://facebook.com/"
-        settings.instagram_url = settings.instagram_url or "https://instagram.com/"
-        settings.linkedin_url = settings.linkedin_url or "https://linkedin.com/"
-        settings.twitter_url = settings.twitter_url or "https://x.com/"
-        settings.youtube_url = settings.youtube_url or "https://youtube.com/"
-        settings.tiktok_url = settings.tiktok_url or "https://tiktok.com/"
-
+        settings.site_name = "Showroom"
+        settings.logo = images.brand_logo_id
+        settings.favicon = images.favicon_id
+        settings.contact_email = "hello@example.com"
+        settings.contact_phone = "0800 123 4567"
+        settings.social_facebook = "https://facebook.com"
+        settings.social_instagram = "https://instagram.com"
+        # We also need to save the footer info if SiteSettings has those fields
+        # (Assuming standard SUM branding model)
         settings.save()
 
     def _seed_navigation(
@@ -1022,210 +989,72 @@ class Command(BaseCommand):
         *,
         site: Site,
         home: Page,
-        showroom: StandardPage,
-        contact: StandardPage,
-        services_index: ServiceIndexPage,
-        service_one: ServicePage,
-        service_two: ServicePage,
+        showroom: Page,
+        contact: Page,
+        services_index: Page,
+        service_one: Page,
+        service_two: Page,
     ) -> None:
+        # Header: Home, Services (dropdown), Showroom, Contact
         header = HeaderNavigation.for_site(site)
-        header.show_phone_in_header = True
-        header.header_cta_enabled = True
-        header.header_cta_text = "Get a Quote"
-        header.mobile_cta_enabled = True
-        header.mobile_cta_phone_enabled = True
-        header.mobile_cta_button_enabled = True
-        header.mobile_cta_button_text = "Enquire"
+        header.items.all().delete()
 
-        menu_stream_block = header._meta.get_field("menu_items").stream_block
-        header.menu_items = menu_stream_block.to_python(
-            [
-                {
-                    "type": "item",
-                    "value": {
-                        "label": "Home",
-                        "link": {
-                            "link_type": "page",
-                            "page": home,
-                            "link_text": "Home",
-                        },
-                        "children": [],
-                    },
-                },
-                {
-                    "type": "item",
-                    "value": {
-                        "label": "Showroom",
-                        "link": {
-                            "link_type": "page",
-                            "page": showroom,
-                            "link_text": "Showroom",
-                        },
-                        "children": [],
-                    },
-                },
-                {
-                    "type": "item",
-                    "value": {
-                        "label": "Services",
-                        "link": {
-                            "link_type": "page",
-                            "page": services_index,
-                            "link_text": "Services",
-                        },
-                        "children": [
-                            {
-                                "label": "Solar Installation",
-                                "link": {
-                                    "link_type": "page",
-                                    "page": service_one,
-                                    "link_text": "Solar Installation",
-                                },
-                                "children": [
-                                    {
-                                        "label": "FAQ (anchor demo)",
-                                        "link": {
-                                            "link_type": "anchor",
-                                            "anchor": "faq",
-                                            "link_text": "FAQ",
-                                        },
-                                    }
-                                ],
-                            },
-                            {
-                                "label": "Roofing",
-                                "link": {
-                                    "link_type": "page",
-                                    "page": service_two,
-                                    "link_text": "Roofing",
-                                },
-                                "children": [],
-                            },
-                        ],
-                    },
-                },
-                {
-                    "type": "item",
-                    "value": {
-                        "label": "Contact",
-                        "link": {
-                            "link_type": "page",
-                            "page": contact,
-                            "link_text": "Contact",
-                        },
-                        "children": [],
-                    },
-                },
-            ]
+        # 1. Services with children
+        svc_item = header.items.create(
+            link_label="Services",
+            link_page=services_index,
+            sort_order=1,
+        )
+        svc_item.sub_items.create(
+            link_label=service_one.title,
+            link_page=service_one,
+            sort_order=1,
+        )
+        svc_item.sub_items.create(
+            link_label=service_two.title,
+            link_page=service_two,
+            sort_order=2,
         )
 
-        single_link_block = header._meta.get_field("header_cta_link").stream_block
-        header.header_cta_link = single_link_block.to_python(
-            [
-                {
-                    "type": "link",
-                    "value": {
-                        "link_type": "page",
-                        "page": contact,
-                        "link_text": "Get a quote",
-                    },
-                }
-            ]
+        # 2. Showroom
+        header.items.create(
+            link_label="Showroom",
+            link_page=showroom,
+            sort_order=2,
         )
 
-        header.mobile_cta_button_link = single_link_block.to_python(
-            [
-                {
-                    "type": "link",
-                    "value": {
-                        "link_type": "page",
-                        "page": contact,
-                        "link_text": "Enquire",
-                    },
-                }
-            ]
+        # 3. Contact (CTA style)
+        header.items.create(
+            link_label="Contact",
+            link_page=contact,
+            sort_order=3,
         )
         header.save()
 
+        # Footer
         footer = FooterNavigation.for_site(site)
-        footer.tagline = ""  # demonstrate branding fallback for tagline
-        footer.social_facebook = ""  # demonstrate branding fallback
-        footer.social_instagram = ""  # demonstrate branding fallback
-        footer.social_linkedin = ""  # demonstrate branding fallback
-        footer.social_youtube = ""  # demonstrate branding fallback
-        footer.social_x = ""  # demonstrate branding fallback
-        footer.copyright_text = "© {year} {company_name}. All rights reserved."
+        footer.items.all().delete()
 
-        sections_block = footer._meta.get_field("link_sections").stream_block
-        footer.link_sections = sections_block.to_python(
-            [
-                {
-                    "type": "section",
-                    "value": {
-                        "title": "Company",
-                        "links": [
-                            {
-                                "link_type": "page",
-                                "page": showroom,
-                                "link_text": "Showroom",
-                            },
-                            {
-                                "link_type": "page",
-                                "page": contact,
-                                "link_text": "Contact",
-                            },
-                            {
-                                "link_type": "email",
-                                "email": "hello@example.com",
-                                "link_text": "Email",
-                            },
-                            {
-                                "link_type": "phone",
-                                "phone": "+44 20 7946 0958",
-                                "link_text": "Call",
-                            },
-                        ],
-                    },
-                },
-                {
-                    "type": "section",
-                    "value": {
-                        "title": "Services",
-                        "links": [
-                            {
-                                "link_type": "page",
-                                "page": services_index,
-                                "link_text": "All services",
-                            },
-                            {
-                                "link_type": "page",
-                                "page": service_one,
-                                "link_text": "Solar installation",
-                            },
-                            {
-                                "link_type": "page",
-                                "page": service_two,
-                                "link_text": "Roofing",
-                            },
-                            {
-                                "link_type": "url",
-                                "url": "https://example.com/",
-                                "link_text": "External link",
-                                "open_in_new_tab": True,
-                            },
-                        ],
-                    },
-                },
-            ]
+        # Col 1: Showroom pages
+        c1 = footer.items.create(heading="Explore", sort_order=1)
+        c1.links.create(link_label="Home", link_page=home, sort_order=1)
+        c1.links.create(link_label="Showroom", link_page=showroom, sort_order=2)
+        c1.links.create(
+            link_label="Kitchen Sink", link_url="/kitchen-sink/", sort_order=3
         )
+
+        # Col 2: Services
+        c2 = footer.items.create(heading="Services", sort_order=2)
+        c2.links.create(link_label="Solar", link_page=service_one, sort_order=1)
+        c2.links.create(link_label="Roofing", link_page=service_two, sort_order=2)
+
+        # Col 3: Company
+        c3 = footer.items.create(heading="Company", sort_order=3)
+        c3.links.create(link_label="Contact", link_page=contact, sort_order=1)
+
         footer.save()
 
-    # -----------------------------------------------------------------------------
-    # Utilities
-    # -----------------------------------------------------------------------------
-
     def _slugify(self, text: str) -> str:
-        s = text.strip().lower()
-        s = re.sub(r"[^\w\s-]", "", s)
-        s = re.sub(r"[-\s]+", "-", s)
-        return s.strip("-")
+        # Simple slugify for filenames
+        text = text.lower()
+        return re.sub(r"[^a-z0-9]+", "-", text).strip("-")

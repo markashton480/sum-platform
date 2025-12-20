@@ -61,3 +61,20 @@ class GalleryBlock(blocks.StructBlock):
         label = "Gallery"
         help_text = "Grid of project images with optional captions."
         template = "sum_core/blocks/gallery.html"
+
+
+class FeaturedCaseStudyBlock(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(max_length=100, required=False)
+    heading = blocks.RichTextBlock(required=True)
+    intro = blocks.RichTextBlock(required=False)
+    points = blocks.ListBlock(blocks.TextBlock(max_length=500), required=False)
+    cta_text = blocks.CharBlock(max_length=50, required=False)
+    cta_url = blocks.URLBlock(required=False)
+    image = ImageChooserBlock(required=True)
+    image_alt = blocks.CharBlock(max_length=255, required=True)
+    stats_label = blocks.CharBlock(max_length=50, required=False)
+    stats_value = blocks.CharBlock(max_length=100, required=False)
+
+    class Meta:
+        icon = "doc-full"
+        template = "sum_core/blocks/featured_case_study.html"

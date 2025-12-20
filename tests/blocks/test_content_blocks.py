@@ -9,6 +9,7 @@ from sum_core.blocks.content import (
     RichTextContentBlock,
     SpacerBlock,
 )
+from sum_core.blocks.gallery import FeaturedCaseStudyBlock
 from wagtail import blocks
 
 
@@ -92,3 +93,39 @@ def test_manifesto_block_definition():
     assert block.child_blocks["body"].required
     assert not block.child_blocks["eyebrow"].required
     assert not block.child_blocks["quote"].required
+
+
+@pytest.mark.django_db
+def test_featured_case_study_block_definition():
+    block = FeaturedCaseStudyBlock()
+    assert isinstance(block, blocks.StructBlock)
+
+    # Check fields
+    expected_fields = [
+        "eyebrow",
+        "heading",
+        "intro",
+        "points",
+        "cta_text",
+        "cta_url",
+        "image",
+        "image_alt",
+        "stats_label",
+        "stats_value",
+    ]
+    for field in expected_fields:
+        assert field in block.child_blocks
+
+    # Check requiredness
+    assert block.child_blocks["heading"].required
+    assert block.child_blocks["image"].required
+    assert block.child_blocks["image_alt"].required
+
+    # Check non-required
+    assert not block.child_blocks["eyebrow"].required
+    assert not block.child_blocks["intro"].required
+    assert not block.child_blocks["points"].required
+    assert not block.child_blocks["cta_text"].required
+    assert not block.child_blocks["cta_url"].required
+    assert not block.child_blocks["stats_label"].required
+    assert not block.child_blocks["stats_value"].required
