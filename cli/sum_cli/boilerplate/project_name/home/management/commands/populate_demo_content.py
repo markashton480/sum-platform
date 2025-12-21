@@ -20,13 +20,14 @@ from django.apps import apps
 from django.core.management.base import BaseCommand, CommandParser
 from wagtail.models import Page, Site
 
-# Keep Faker optional without re-importing into an existing name
+# Keep Faker optional - import into a variable that's already typed as optional
+FakerClass: type[Any] | None
 try:
-    from faker import Faker as _Faker
-except ImportError:  # pragma: no cover
-    _Faker = None  # type: ignore[assignment,misc]
+    from faker import Faker
 
-FakerClass: type[Any] | None = _Faker
+    FakerClass = Faker
+except ImportError:  # pragma: no cover
+    FakerClass = None
 
 
 class Command(BaseCommand):
