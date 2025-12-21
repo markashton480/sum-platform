@@ -122,13 +122,9 @@ THEME_TEMPLATES_CANDIDATES: list[Path] = [
     BASE_DIR.parent / "themes" / "theme_a" / "templates",
 ]
 FALLBACK_THEME_TEMPLATES_DIR: Path = BASE_DIR / "theme" / "active" / "templates"
-THEME_TEMPLATES_DIR: Path = (
-    FALLBACK_THEME_TEMPLATES_DIR
-    if RUNNING_TESTS
-    else next(
-        (candidate for candidate in THEME_TEMPLATES_CANDIDATES if candidate.exists()),
-        FALLBACK_THEME_TEMPLATES_DIR,
-    )
+THEME_TEMPLATES_DIR: Path = next(
+    (candidate for candidate in THEME_TEMPLATES_CANDIDATES if candidate.exists()),
+    FALLBACK_THEME_TEMPLATES_DIR,
 )
 CLIENT_OVERRIDES_DIR: Path = BASE_DIR / "templates" / "overrides"
 
