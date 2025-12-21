@@ -8,6 +8,7 @@ Dependencies: Django test utilities, pytest.
 
 from __future__ import annotations
 
+import shutil
 import sys
 from pathlib import Path
 
@@ -123,6 +124,35 @@ def _reset_homepage_between_tests(db) -> None:
     for homepage in HomePage.objects.all():
         homepage.delete()
     Site.clear_site_root_paths_cache()
+
+
+@pytest.fixture(scope="session")
+def safe_rmtree(tmp_path_factory):
+    """
+    Guarded shutil.rmtree for tests.
+
+    Refuse to delete:
+    - any path containing .git
+    - the repo root itself
+    - any path outside pytest's temp root
+    """
+    tmp_root = Path(tmp_path_factory.getbasetemp()).resolve()
+    repo_root = ROOT_DIR.resolve()
+
+    def _safe_rmtree(path: Path) -> None:
+        resolved = path.resolve()
+        if ".git" in resolved.parts:
+            raise RuntimeError(f"Refusing to delete path containing .git: {resolved}")
+        if resolved == repo_root:
+            raise RuntimeError(f"Refusing to delete repo root: {resolved}")
+        if not resolved.is_relative_to(tmp_root):
+            raise RuntimeError(
+                "Refusing to delete outside tmp root: "
+                f"{resolved} (tmp_root={tmp_root})"
+            )
+        shutil.rmtree(resolved)
+
+    return _safe_rmtree
 
 
 @pytest.fixture

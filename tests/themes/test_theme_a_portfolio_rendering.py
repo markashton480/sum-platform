@@ -12,15 +12,21 @@ from wagtail.images import get_image_model
 
 
 @pytest.fixture(scope="module", autouse=True)
-def active_theme_a():
+def active_theme_a(tmp_path_factory, safe_rmtree):
     """Ensure Theme A templates are used."""
     repo_root = Path(__file__).resolve().parents[2]
     source_templates_dir = repo_root / "themes" / "theme_a" / "templates"
-    active_templates_dir = Path(settings.THEME_TEMPLATES_DIR)
-    active_root_dir = active_templates_dir.parent.parent
+    active_root_dir = Path(tmp_path_factory.mktemp("theme-active"))
+    active_templates_dir = active_root_dir / "templates"
 
-    if active_root_dir.exists():
-        shutil.rmtree(active_root_dir)
+    original_theme_templates_dir = Path(settings.THEME_TEMPLATES_DIR)
+    original_template_dirs = list(settings.TEMPLATES[0]["DIRS"])
+
+    settings.THEME_TEMPLATES_DIR = str(active_templates_dir)
+    settings.TEMPLATES[0]["DIRS"] = [
+        Path(settings.THEME_TEMPLATES_DIR),
+        Path(settings.CLIENT_OVERRIDES_DIR),
+    ]
 
     active_templates_dir.mkdir(parents=True, exist_ok=True)
     if source_templates_dir.exists():
@@ -29,12 +35,15 @@ def active_theme_a():
     for loader in engines["django"].engine.template_loaders:
         if hasattr(loader, "reset"):
             loader.reset()
-    yield
-    if active_root_dir.exists():
-        shutil.rmtree(active_root_dir)
-    for loader in engines["django"].engine.template_loaders:
-        if hasattr(loader, "reset"):
-            loader.reset()
+    try:
+        yield
+    finally:
+        safe_rmtree(active_root_dir)
+        settings.THEME_TEMPLATES_DIR = str(original_theme_templates_dir)
+        settings.TEMPLATES[0]["DIRS"] = original_template_dirs
+        for loader in engines["django"].engine.template_loaders:
+            if hasattr(loader, "reset"):
+                loader.reset()
 
 
 @pytest.fixture

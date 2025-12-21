@@ -10,6 +10,10 @@ from sum_cli.commands.init import run_init
 from sum_cli.util import validate_project_name
 
 
+def _theme_tree(theme_root: Path) -> list[str]:
+    return sorted(str(path.relative_to(theme_root)) for path in theme_root.rglob("*"))
+
+
 def test_validate_project_name_allows_hyphens_and_normalizes() -> None:
     naming = validate_project_name("acme-kitchens")
     assert naming.slug == "acme-kitchens"
@@ -55,6 +59,31 @@ def test_init_creates_project_and_check_passes(tmp_path, monkeypatch) -> None:
     # check passes when run from project root - CLI detects monorepo mode
     monkeypatch.chdir(project_root)
     assert run_check() == 0
+
+
+def test_cli_init_and_check_do_not_remove_theme_a(tmp_path, monkeypatch) -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    theme_root = repo_root / "themes" / "theme_a"
+    assert theme_root.exists()
+
+    before_tree = _theme_tree(theme_root)
+
+    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
+    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
+
+    unique_suffix = int(time.time() * 1000) % 100000
+    project_name = f"cli-theme-safety-{unique_suffix}"
+
+    monkeypatch.chdir(tmp_path)
+    project_root = tmp_path / "clients" / project_name
+
+    assert run_init(project_name) == 0
+
+    monkeypatch.chdir(project_root)
+    assert run_check() == 0
+
+    after_tree = _theme_tree(theme_root)
+    assert after_tree == before_tree
 
 
 def test_check_fails_on_missing_required_env_vars(tmp_path, monkeypatch) -> None:

@@ -5,6 +5,7 @@ import importlib.resources.abc
 import json
 import os
 import shutil
+import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
@@ -17,8 +18,10 @@ from sum_cli.themes_registry import (
 )
 from sum_cli.util import (
     ProjectNaming,
+    find_repo_root,
     get_packaged_boilerplate,
     is_boilerplate_dir,
+    safe_rmtree,
     safe_text_replace_in_file,
     validate_project_name,
 )
@@ -141,17 +144,9 @@ def _copy_theme_to_active(
     if theme_target_dir.exists():
         raise RuntimeError(f"Theme target directory already exists: {theme_target_dir}")
 
-    tmp_dir = (
-        theme_parent_dir
-        / f".active_tmp_{theme_slug}_{datetime.now(UTC).timestamp():.0f}"
-    )
-    if tmp_dir.exists():
-        raise RuntimeError(
-            f"Refusing to overwrite temporary theme directory: {tmp_dir}"
-        )
-
-    try:
-        ignore = shutil.ignore_patterns("node_modules")
+    ignore = shutil.ignore_patterns("node_modules")
+    with tempfile.TemporaryDirectory(prefix=f"sum-theme-{theme_slug}-") as tmp_root:
+        tmp_dir = Path(tmp_root) / theme_slug
         shutil.copytree(theme_source_dir, tmp_dir, dirs_exist_ok=False, ignore=ignore)
 
         errors = _theme_contract_errors(tmp_dir, theme_slug)
@@ -160,11 +155,7 @@ def _copy_theme_to_active(
                 "Theme copy validation failed:\n  - " + "\n  - ".join(errors)
             )
 
-        tmp_dir.rename(theme_target_dir)
-    except Exception:
-        if tmp_dir.exists():
-            shutil.rmtree(tmp_dir, ignore_errors=True)
-        raise
+        shutil.move(str(tmp_dir), str(theme_target_dir))
 
 
 def _write_theme_config(
@@ -270,10 +261,13 @@ def run_init(project_name: str, theme_slug: str = "theme_a") -> int:
         _write_theme_config(target_dir, theme_slug, theme_manifest.version)
     except Exception as e:
         print(f"[FAIL] Project created but failed to finalize init: {e}")
+        repo_root = find_repo_root(Path.cwd())
+        tmp_root = Path(tempfile.gettempdir())
         try:
-            shutil.rmtree(target_dir)
+            safe_rmtree(target_dir, tmp_root=tmp_root, repo_root=repo_root)
             print(f"       Cleaned up partial project: {target_dir}")
-        except Exception:
+        except Exception as cleanup_error:
+            print(f"       Refused to delete: {cleanup_error}")
             print(f"       You may need to delete: {target_dir}")
         return 1
 

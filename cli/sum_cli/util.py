@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.resources
 import importlib.resources.abc
 import re
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
@@ -82,3 +83,23 @@ def safe_text_replace_in_file(path: Path, old: str, new: str) -> bool:
 
     path.write_text(content.replace(old, new), encoding="utf-8")
     return True
+
+
+def find_repo_root(start: Path) -> Path | None:
+    for directory in [start, *start.parents]:
+        if (directory / ".git").exists():
+            return directory
+    return None
+
+
+def safe_rmtree(path: Path, *, tmp_root: Path | None, repo_root: Path | None) -> None:
+    resolved = path.resolve()
+    if ".git" in resolved.parts:
+        raise RuntimeError(f"Refusing to delete path containing .git: {resolved}")
+    if repo_root and resolved == repo_root.resolve():
+        raise RuntimeError(f"Refusing to delete repo root: {resolved}")
+    if tmp_root and not resolved.is_relative_to(tmp_root.resolve()):
+        raise RuntimeError(
+            "Refusing to delete outside tmp root: " f"{resolved} (tmp_root={tmp_root})"
+        )
+    shutil.rmtree(resolved)

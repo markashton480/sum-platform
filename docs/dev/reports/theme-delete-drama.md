@@ -39,6 +39,11 @@ The following actions were taken to recover the data and patch the vulnerability
     - **Result:** 13 passed, 0 failed.
     - **Confirmation:** Verified `themes/theme_a` exists and is intact after test execution.
 
+4.  **Hardening:**
+    - Added guarded deletion for test cleanups (refuses `.git`, repo root, or paths outside pytest temp).
+    - CLI init cleanup now uses a safe delete guard and temp staging.
+    - Added a regression test ensuring CLI init/check does not remove `themes/theme_a`.
+
 ## 4. Current Git Status
 
 The repository is currently in a **clean, committed** state with the fix applied on `develop`.
