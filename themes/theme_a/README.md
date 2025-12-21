@@ -57,6 +57,19 @@ npm run dev
 npm run watch
 ```
 
+### Build Fingerprint
+
+After building CSS, generate the build fingerprint:
+
+```bash
+python themes/theme_a/build_fingerprint.py
+```
+
+Commit both compiled outputs:
+
+- `static/theme_a/css/main.css`
+- `static/theme_a/css/.build_fingerprint`
+
 ### Commit Changes
 
 Always commit both source and compiled files:
@@ -77,6 +90,24 @@ to keep class coverage aligned with the prototype:
 This is intentional: scanning all compiled reference pages preserves the full
 class universe for template copy/paste. If you add new reference HTML files,
 ensure the glob still matches them.
+
+### When You Do NOT Need to Rebuild CSS
+
+Skip rebuilding when you only update templates using classes already present in
+the reference scan universe.
+
+Rebuild is required when you:
+
+- change `static/theme_a/css/input.css`
+- change `themes/theme_a/tailwind/tailwind.config.js`
+- introduce new class patterns not present in the scanned reference HTML
+
+### Tests
+
+Run these after theme changes:
+
+- `pytest tests/themes/test_theme_a_css_contract.py -q`
+- `make test`
 
 ### Breakpoints
 
@@ -161,11 +192,18 @@ Keep this pattern consistent to avoid drift in compiled CSS output.
 
 ### Why Tailwind v3.x?
 
-Tailwind v4 has a different architecture that doesn't support the CSS variable pattern we use for runtime branding. We use v3.4.x for full compatibility.
+Theme A pins Tailwind v3.4.x. Do not upgrade to v4 without reviewing the
+branding-variable mapping and build pipeline.
 
 ### Why Shrinkwrap?
 
 We use `npm-shrinkwrap.json` instead of `package-lock.json` because shrinkwrap is published with the package and ensures reproducible builds across all environments.
+
+## CSS Size Note
+
+Current compiled CSS is ~104KB with the reference scan strategy. If this grows
+significantly, consider introducing a theme-local `reference-scan.html` to
+reduce coupling and bloat.
 
 ---
 
