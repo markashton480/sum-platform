@@ -47,4 +47,4 @@
 
 ### Addendum
 - Added an iPad nav strip so the header no longer collapses straight to mobile at 970–1199px (`themes/theme_a/templates/theme/includes/header.html`), matching the reference behavior.
-- Aligned hero primary/secondary CTA styling to the reference (spacing, hover colors, arrow treatment, and blur) in `themes/theme_a/templates/sum_core/blocks/hero_image.html`.
+- Aligned hero primary/secondary CTAs to the updated button system (no per-template hardcoding) and introduced the inverse outline variant in `themes/theme_a/static/theme_a/css/input.css`.

@@ -59,17 +59,17 @@
                     {% if cta.style == 'primary' or not cta.style and forloop.first %}
                         {# Primary Style #}
                         <a href="{{ cta.url }}"
-                           class="inline-block bg-sage-terra text-white px-12 py-5 text-base font-bold uppercase tracking-widest hover:bg-sage-black transition-colors duration-300 shadow-lg"
+                           class="btn btn-primary"
                            {% if cta.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
                             {{ cta.label }}
                         </a>
                     {% else %}
                         {# Secondary/Outline Style #}
                         <a href="{{ cta.url }}"
-                           class="group inline-flex items-center space-x-3 text-sage-linen border border-sage-linen/30 rounded-none px-6 py-4 transition-colors duration-300 cursor-pointer backdrop-blur-sm hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen"
+                           class="btn btn-outline-inverse"
                            {% if cta.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
-                            <span class="uppercase tracking-[0.2em] text-sm font-bold">{{ cta.label }}</span>
-                            <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <span>{{ cta.label }}</span>
+                            <svg class="btn__icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
                             </svg>
                         </a>
