@@ -188,12 +188,17 @@ def test_check_fails_when_theme_compiled_css_missing(
     missing_css_backup = css_path.with_suffix(".css.bak")
     css_path.rename(missing_css_backup)
 
-    monkeypatch.chdir(project_root)
-    exit_code = run_check()
-    captured = capsys.readouterr()
+    try:
+        monkeypatch.chdir(project_root)
+        exit_code = run_check()
+        captured = capsys.readouterr()
 
-    assert exit_code == 1
-    assert "Theme compiled CSS" in captured.out
+        assert exit_code == 1
+        assert "Theme compiled CSS" in captured.out
+    finally:
+        # Restore CSS file to maintain test isolation
+        if missing_css_backup.exists():
+            missing_css_backup.rename(css_path)
 
 
 def test_check_fails_when_theme_slug_mismatch(tmp_path, monkeypatch, capsys) -> None:
