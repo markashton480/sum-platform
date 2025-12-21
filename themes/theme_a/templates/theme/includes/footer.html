@@ -54,19 +54,19 @@
 
                 {# Contact Section #}
                 <div>
-                    <h4 class="footer__section-title">Contact</h4>
-                    <div class="footer__text footer__text--address">
-                        {% if footer.business.address %}
-                            <p class="footer__text--spaced">{{ footer.business.address|linebreaksbr }}</p>
-                        {% endif %}
-                        {% if footer.business.email %}
-                            <p><a href="mailto:{{ footer.business.email }}" class="footer__link">{{ footer.business.email }}</a></p>
-                        {% endif %}
-                        {% if footer.business.phone_number %}
-                            <p><a href="tel:{{ footer.business.phone_number }}" class="footer__link">{{ footer.business.phone_number }}</a></p>
-                        {% endif %}
+                        <h4 class="footer__section-title">Studio</h4>
+                        <div class="footer__text footer__text--address">
+                            {% if footer.business.address %}
+                                <p class="footer__text--spaced">{{ footer.business.address|linebreaksbr }}</p>
+                            {% endif %}
+                            {% if footer.business.email %}
+                                <p><a href="mailto:{{ footer.business.email }}" class="footer__contact-link">{{ footer.business.email }}</a></p>
+                            {% endif %}
+                            {% if footer.business.phone_number %}
+                                <p><a href="tel:{{ footer.business.phone_number }}" class="footer__contact-link">{{ footer.business.phone_number }}</a></p>
+                            {% endif %}
+                        </div>
                     </div>
-                </div>
             </div>
         </div>
 
