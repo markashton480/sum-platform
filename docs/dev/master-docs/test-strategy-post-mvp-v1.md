@@ -845,6 +845,11 @@ class TestTemplateLoadingOrder:
             )
 ```
 
+The production suite now ships this test verbatim in
+`tests/templates/test_template_loading_order.py`, backed by the shared
+`theme_active_copy` fixture so that Theme A is copied into a sandboxed
+`theme/active` directory without ever mutating repository assets.
+
 ---
 
 ## 6. Multi-Version Testing Strategy
@@ -1281,44 +1286,12 @@ pytest -v --cov=sum_core --cov-report=html
 
 ### 10.1 Known Issue Markers
 
-For issues like the THEME-15-A test failures, use regression markers:
-
-```python
-# tests/themes/test_known_issues.py
-
-"""
-Known Issues and Regression Tests
-
-File: tests/themes/test_known_issues.py
-Purpose: Document and test known issues
-"""
-
-import pytest
-
-
-@pytest.mark.regression
-@pytest.mark.xfail(
-    reason="THEME-15-A: Settings leakage in full suite causes template override failure",
-    strict=False,  # Don't fail if it starts passing
-)
-def test_theme_15_a_stats_block_override():
-    """
-    Regression test for THEME-15-A.
-    
-    Issue: StatsBlock template override works in isolation but fails
-           in full test suite due to settings leakage.
-    
-    Root cause: RUNNING_TESTS conditional in settings.py
-    Fix: Remove conditional, use consistent template loading
-    
-    Related: theme-delete-drama.md, THEME-15-A_followup.md
-    """
-    # This test documents the issue and will pass once fixed
-    from django.template.loader import get_template
-    
-    template = get_template("sum_core/blocks/stats.html")
-    assert "theme_a" in template.origin.name
-```
+For issues like THEME-15-A, prefer **real** regression tests over
+`xfail` placeholders. The suite now enforces deterministic template ordering
+via `tests/templates/test_template_loading_order.py` and wiring guards in
+`tests/themes/test_test_project_theme_wiring.py`. If a future incident requires
+temporary suppression, add the narrowest possible `xfail`, link to the ticket,
+and remove it as soon as the deterministic fix lands.
 
 ### 10.2 Post-Incident Testing
 

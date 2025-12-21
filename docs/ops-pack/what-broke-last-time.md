@@ -64,6 +64,16 @@
 
 ---
 
+## Site: sum-platform (Core)
+
+**Date:** 2025-12-21  
+**Version:** v0.7.1-dev  
+**Symptom:** Template overrides (THEME-15-A) passed when run alone but failed in the full suite because `RUNNING_TESTS` altered template resolution order and tests mutated `settings.TEMPLATES` per module.  
+**Fix:** Rewired `core/sum_core/test_project/test_project/settings.py` to load theme/active templates first with deterministic candidate lists, introduced the shared `theme_active_copy` fixture, and added `tests/templates/test_template_loading_order.py` + wiring guards to prove template origins stay stable.  
+**Follow-up:** Any new template fixtures should plug into `theme_active_copy` (or equivalent override_settings usage) instead of hand-editing `settings.TEMPLATES`; add regression tests whenever template precedence changes.  
+
+---
+
 _(No further entries)_
 
 ---
