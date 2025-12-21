@@ -359,3 +359,11 @@ class TestThemeAGuardrailsIntegration:
             f"No HTML templates found in {templates_dir}\n\n"
             f"Theme A requires template files for fingerprint computation."
         )
+
+    def test_theme_a_source_assets_exist(self, theme_filesystem_sandbox) -> None:
+        theme_root = get_theme_a_root()
+        assert theme_root.is_dir(), "Theme A directory must exist in the repo"
+        assert (
+            theme_root / "theme.json"
+        ).exists(), "Theme A manifest must stay in place"
+        assert theme_filesystem_sandbox.repo_root.samefile(repo_root)

@@ -8,11 +8,13 @@ Dependencies: Django test utilities, pytest.
 
 from __future__ import annotations
 
-import shutil
 import sys
 from pathlib import Path
 
 import pytest
+
+from tests.utils.safe_cleanup import create_filesystem_sandbox
+from tests.utils.safe_cleanup import safe_rmtree as safe_cleanup_rmtree
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 CORE_DIR = ROOT_DIR / "core"
@@ -140,19 +142,16 @@ def safe_rmtree(tmp_path_factory):
     repo_root = ROOT_DIR.resolve()
 
     def _safe_rmtree(path: Path) -> None:
-        resolved = path.resolve()
-        if ".git" in resolved.parts:
-            raise RuntimeError(f"Refusing to delete path containing .git: {resolved}")
-        if resolved == repo_root:
-            raise RuntimeError(f"Refusing to delete repo root: {resolved}")
-        if not resolved.is_relative_to(tmp_root):
-            raise RuntimeError(
-                "Refusing to delete outside tmp root: "
-                f"{resolved} (tmp_root={tmp_root})"
-            )
-        shutil.rmtree(resolved)
+        safe_cleanup_rmtree(path, repo_root=repo_root, tmp_base=tmp_root)
 
     return _safe_rmtree
+
+
+@pytest.fixture
+def filesystem_sandbox(request, tmp_path_factory):
+    repo_root = ROOT_DIR.resolve()
+    tmp_base = Path(tmp_path_factory.getbasetemp()).resolve()
+    return create_filesystem_sandbox(repo_root, tmp_base, request)
 
 
 @pytest.fixture

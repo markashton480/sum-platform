@@ -60,3 +60,18 @@ jobs:
 
       - name: Run tests
         run: make test
+
+      - name: Guard protected assets
+        run: |
+          set -euo pipefail
+
+          if [ ! -d themes/theme_a ]; then
+            echo "themes/theme_a missing after tests" >&2
+            exit 1
+          fi
+
+          if ! git diff --quiet -- themes boilerplate core cli docs scripts infrastructure; then
+            echo "Protected directories were modified during tests" >&2
+            git status --short -- themes boilerplate core cli docs scripts infrastructure
+            exit 1
+          fi

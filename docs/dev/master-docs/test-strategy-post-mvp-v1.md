@@ -713,6 +713,14 @@ class TestThemeDeleteDramaRegression:
             assert "themes/theme_" not in content, "theme dirs should not be gitignored!"
 ```
 
+### 4.2 Safe cleanup toolkit
+
+* `tests/utils/safe_cleanup.py` now ships the guarded `safe_rmtree`, `register_cleanup`, and the `FilesystemSandbox` helper that keeps `repo_root` and `tmp_base` in sync with pytest.
+* `tests/conftest.py` exposes the prior `safe_rmtree` fixture backed by the new helper and a reusable `filesystem_sandbox` fixture so tests can register guarded deletions without manual path math.
+* CLI and theme suites now register autouse fixtures (`cli_filesystem_sandbox`, `theme_filesystem_sandbox`) that instantiate the sandbox for every test, making it easy to assert safe cleanup semantics and transparently reusing the same guardrail logic.
+* Regression coverage now includes `tests/themes/test_theme_a_guardrails.py::TestThemeAGuardrailsIntegration.test_theme_a_source_assets_exist`, so any removal of `themes/theme_a` or its manifest is detected immediately. We also added focused unit tests under `tests/utils/test_safe_cleanup.py` that verify the guard refuses repo roots, protected folders, `.git` fragments, and anything outside pytest's temp tree.
+
+
 ---
 
 ## 5. Template Loading Order Testing
@@ -1392,6 +1400,8 @@ class TestThemeDeleteDramaRegression:
 ---
 
 ## 11. CI Pipeline Updates
+
+New guard steps run after `make test` to ensure source assets remain untouched: a simple directory check makes sure `themes/theme_a` still exists and a targeted `git diff --exit-code -- themes boilerplate core cli docs scripts infrastructure` ensures no protected paths were mutated by the test run.
 
 ### 11.1 Updated CI Workflow
 

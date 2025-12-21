@@ -54,6 +54,16 @@
 
 ---
 
+## Site: sum-platform (Core)
+
+**Date:** 2025-12-21  
+**Version:** v0.7.1-dev  
+**Symptom:** Theme Delete Drama regression resurfaced in CI when destructive cleanup quietly targeted repo assets, threatening `themes/theme_a` during CLI/theme tests.  
+**Fix:** Introduced `tests/utils/safe_cleanup.py`, the `filesystem_sandbox` fixture, and autouse fixtures for CLI/theme tests so `safe_rmtree` only ever runs inside pytest’s sandbox, added unit/regression tests that trip on a missing `themes/theme_a`, and enforced a CI guard that verifies the directory exists and no protected paths changed.  
+**Follow-up:** Keep this entry visible before running destructive test suites to remind maintainers that guard rails are in place and to review them when adding new cleanup logic.  
+
+---
+
 _(No further entries)_
 
 ---
