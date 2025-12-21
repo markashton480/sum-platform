@@ -61,6 +61,12 @@ jobs:
       - name: Run tests
         run: make test
 
+      - name: Run CLI test slice
+        run: make test-cli
+
+      - name: Run themes test slice
+        run: make test-themes
+
       - name: Guard protected assets
         run: |
           set -euo pipefail
