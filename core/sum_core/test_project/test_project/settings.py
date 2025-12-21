@@ -117,15 +117,19 @@ MIDDLEWARE: list[str] = [
 ROOT_URLCONF: str = "test_project.urls"
 
 REPO_ROOT: Path = BASE_DIR.parent.parent.parent
+THEME_ACTIVE_TEMPLATES_DIR: Path = BASE_DIR / "theme" / "active" / "templates"
 THEME_TEMPLATES_CANDIDATES: list[Path] = [
+    THEME_ACTIVE_TEMPLATES_DIR,
     REPO_ROOT / "themes" / "theme_a" / "templates",
     BASE_DIR.parent / "themes" / "theme_a" / "templates",
 ]
-FALLBACK_THEME_TEMPLATES_DIR: Path = BASE_DIR / "theme" / "active" / "templates"
-THEME_TEMPLATES_DIR: Path = next(
-    (candidate for candidate in THEME_TEMPLATES_CANDIDATES if candidate.exists()),
-    FALLBACK_THEME_TEMPLATES_DIR,
-)
+THEME_TEMPLATE_DIRS: list[Path] = [
+    candidate for candidate in THEME_TEMPLATES_CANDIDATES if candidate.exists()
+]
+if not THEME_TEMPLATE_DIRS:
+    THEME_TEMPLATE_DIRS = [THEME_ACTIVE_TEMPLATES_DIR]
+
+THEME_TEMPLATES_DIR: Path = THEME_TEMPLATE_DIRS[0]
 CLIENT_OVERRIDES_DIR: Path = BASE_DIR / "templates" / "overrides"
 
 TEMPLATES = [
@@ -133,9 +137,10 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         # Per v0.6 theme-owned rendering contract:
         # 1. theme/active/templates (client-owned theme)
-        # 2. templates/overrides (client overrides)
-        # 3. APP_DIRS fallback (sum_core/templates/theme)
-        "DIRS": [THEME_TEMPLATES_DIR, CLIENT_OVERRIDES_DIR],
+        # 2. repo-root theme fallback (local dev convenience)
+        # 3. templates/overrides (client overrides)
+        # 4. APP_DIRS fallback (sum_core/templates)
+        "DIRS": [*THEME_TEMPLATE_DIRS, CLIENT_OVERRIDES_DIR],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -224,17 +229,22 @@ MEDIA_ROOT: Path = Path(
 
 STATIC_URL: str = "/static/"
 
+THEME_ACTIVE_STATIC_DIR: Path = BASE_DIR / "theme" / "active" / "static"
 THEME_STATIC_CANDIDATES: list[Path] = [
+    THEME_ACTIVE_STATIC_DIR,
     REPO_ROOT / "themes" / "theme_a" / "static",
     BASE_DIR.parent / "themes" / "theme_a" / "static",
 ]
-THEME_STATIC_DIR: Path = next(
-    (candidate for candidate in THEME_STATIC_CANDIDATES if candidate.exists()),
-    BASE_DIR / "theme" / "active" / "static",
-)
+THEME_STATIC_DIRS: list[Path] = [
+    candidate for candidate in THEME_STATIC_CANDIDATES if candidate.exists()
+]
+if not THEME_STATIC_DIRS:
+    THEME_STATIC_DIRS = [THEME_ACTIVE_STATIC_DIR]
+
+THEME_STATIC_DIR: Path = THEME_STATIC_DIRS[0]
 STATICFILES_DIRS: list[Path] = [
     # Per v0.6 theme-owned rendering contract: client-owned theme statics first.
-    THEME_STATIC_DIR,
+    *THEME_STATIC_DIRS,
 ]
 
 DEFAULT_AUTO_FIELD: str = "django.db.models.BigAutoField"

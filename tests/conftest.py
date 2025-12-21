@@ -8,10 +8,13 @@ Dependencies: Django test utilities, pytest.
 
 from __future__ import annotations
 
+import shutil
 import sys
 from pathlib import Path
 
 import pytest
+from django.conf import settings
+from django.template import engines
 
 from tests.utils.safe_cleanup import create_filesystem_sandbox
 from tests.utils.safe_cleanup import safe_rmtree as safe_cleanup_rmtree
@@ -25,6 +28,15 @@ if str(CORE_DIR) not in sys.path:
 
 if str(TEST_PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(TEST_PROJECT_DIR))
+
+
+def _reset_django_template_loaders() -> None:
+    engine = engines["django"].engine
+    loaders = getattr(engine, "template_loaders", [])
+    for loader in loaders:
+        reset = getattr(loader, "reset", None)
+        if callable(reset):
+            reset()
 
 
 @pytest.fixture(scope="session")
@@ -152,6 +164,56 @@ def filesystem_sandbox(request, tmp_path_factory):
     repo_root = ROOT_DIR.resolve()
     tmp_base = Path(tmp_path_factory.getbasetemp()).resolve()
     return create_filesystem_sandbox(repo_root, tmp_base, request)
+
+
+@pytest.fixture(scope="module")
+def theme_active_copy(tmp_path_factory, safe_rmtree):
+    """Install Theme A templates into an isolated theme/active sandbox."""
+
+    repo_root = ROOT_DIR.resolve()
+    source_templates_dir = repo_root / "themes" / "theme_a" / "templates"
+
+    if not source_templates_dir.exists():
+        raise RuntimeError(
+            f"Theme A templates not found at {source_templates_dir}."
+            " The theme guardrails fixture requires canonical templates."
+        )
+
+    active_root_dir = Path(tmp_path_factory.mktemp("theme-active"))
+    active_templates_dir = active_root_dir / "templates"
+    active_templates_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(source_templates_dir, active_templates_dir, dirs_exist_ok=True)
+
+    original_theme_templates_dir = Path(settings.THEME_TEMPLATES_DIR)
+    original_theme_template_dirs = list(getattr(settings, "THEME_TEMPLATE_DIRS", []))
+    original_template_dirs = list(settings.TEMPLATES[0]["DIRS"])
+
+    normalized_theme_dirs = (
+        [Path(entry) for entry in original_theme_template_dirs]
+        if original_theme_template_dirs
+        else [original_theme_templates_dir]
+    )
+
+    new_theme_dirs: list[Path] = [active_templates_dir]
+    for directory in normalized_theme_dirs:
+        if directory != active_templates_dir:
+            new_theme_dirs.append(directory)
+
+    settings.THEME_TEMPLATE_DIRS = new_theme_dirs
+    settings.THEME_TEMPLATES_DIR = str(active_templates_dir)
+    client_overrides_dir = Path(settings.CLIENT_OVERRIDES_DIR)
+    settings.TEMPLATES[0]["DIRS"] = [*new_theme_dirs, client_overrides_dir]
+
+    _reset_django_template_loaders()
+
+    try:
+        yield active_templates_dir
+    finally:
+        settings.THEME_TEMPLATE_DIRS = original_theme_template_dirs
+        settings.THEME_TEMPLATES_DIR = str(original_theme_templates_dir)
+        settings.TEMPLATES[0]["DIRS"] = original_template_dirs
+        _reset_django_template_loaders()
+        safe_rmtree(active_root_dir)
 
 
 @pytest.fixture

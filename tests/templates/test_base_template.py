@@ -52,7 +52,8 @@ def test_base_template_renders_with_branding_and_content() -> None:
     assert "Custom SEO Title" in rendered
     assert "Test Co" in rendered
     assert "Hello" in rendered
-    assert "sum_core/css/main.css" in rendered
+    assert "theme_a/css/main.css" in rendered
+    assert "<!-- THEME: theme_a -->" in rendered
     assert '<style id="branding-css">' in rendered
 
 

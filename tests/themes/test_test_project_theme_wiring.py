@@ -47,3 +47,23 @@ def test_test_project_candidates_include_repo_root_theme_a() -> None:
     # Also assert those canonical directories exist in this repo checkout.
     assert expected_templates.is_dir()
     assert expected_static.is_dir()
+
+
+def test_theme_active_candidate_precedes_repo_root() -> None:
+    """Theme/active must be evaluated before repo-root fallbacks."""
+    settings_py = (
+        repo_root
+        / "core"
+        / "sum_core"
+        / "test_project"
+        / "test_project"
+        / "settings.py"
+    )
+    settings_text = settings_py.read_text(encoding="utf-8")
+
+    active_idx = settings_text.index('BASE_DIR / "theme" / "active" / "templates"')
+    repo_idx = settings_text.index('REPO_ROOT / "themes" / "theme_a" / "templates"')
+
+    assert (
+        active_idx < repo_idx
+    ), "theme/active templates must be prioritized before repo-root fallback"

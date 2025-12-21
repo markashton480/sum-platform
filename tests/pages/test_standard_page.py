@@ -229,8 +229,8 @@ def test_standard_page_parent_page_types() -> None:
     assert StandardPage.can_create_at(root) is True
 
 
-def test_standard_page_template_uses_sum_core_base() -> None:
-    """theme/standard_page.html renders via sum_core fallback base."""
+def test_standard_page_template_uses_theme_base() -> None:
+    """theme/standard_page.html renders via the active theme base."""
     root = Page.get_first_root_node()
     standard_page = StandardPage(title="Template Test", slug="template-test")
     root.add_child(instance=standard_page)
@@ -246,6 +246,7 @@ def test_standard_page_template_uses_sum_core_base() -> None:
     )
     rendered = template.render(RequestContext(request, {"page": standard_page}))
 
-    assert "sum_core/css/main.css" in rendered
-    assert "<header" in rendered
-    assert "<footer" in rendered
+    assert "theme_a/css/main.css" in rendered
+    assert "<!-- THEME: theme_a -->" in rendered
+    assert 'id="main-header"' in rendered
+    assert 'id="mobile-menu"' in rendered

@@ -41,9 +41,8 @@ def test_homepage_renders_testimonials_block(wagtail_default_site):
     content = response.content.decode()
 
     # Check layout classes
-    assert 'class="section section--dark testimonials"' in content
-    assert "testimonials__grid" in content
-    assert "testimonial-card" in content
+    assert "bg-sage-darkmoss" in content
+    assert "grid grid-cols-1" in content
 
     # Check content
     assert "Testimonials" in content
@@ -122,9 +121,8 @@ def test_homepage_renders_gallery_block(wagtail_default_site):
     content = response.content.decode()
 
     # Check layout classes
-    assert 'class="section gallery"' in content
-    assert "gallery__grid" in content
-    assert "gallery__item" in content
+    assert "bg-sage-oat" in content
+    assert "lg:grid-cols-3" in content
 
     # Check header content
     assert "Selected Works" in content
@@ -133,7 +131,7 @@ def test_homepage_renders_gallery_block(wagtail_default_site):
     assert "Explore our craftsmanship across London." in content
 
     # Check correct number of items rendered (3 images)
-    assert content.count("gallery__item") == 3
+    assert content.count("<figure") == 3
 
     # Check alt text behaviour
     # Image 1: custom alt text provided
@@ -148,4 +146,4 @@ def test_homepage_renders_gallery_block(wagtail_default_site):
     assert "Surrey Hills Estate" in content
     # Image 3 has no caption - verify figcaption doesn't appear for it by count
     # We should have exactly 2 figcaptions (for images 1 and 2)
-    assert content.count("gallery__caption") == 2
+    assert content.count("<figcaption") == 2

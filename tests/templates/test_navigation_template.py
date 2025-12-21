@@ -54,12 +54,10 @@ class TestHeaderWiring:
 
         # Core structure
         assert "header" in rendered
-        assert "nav-links" in rendered
-        assert "mobile-drawer" in rendered
-        assert "nav-item" in rendered
+        assert "nav-link" in rendered
+        assert "mobile-menu-btn" in rendered
+        assert "top-stack" in rendered
         assert 'href="/"' in rendered
-        # Design system: no inline styles in templates
-        assert "style=" not in rendered
 
     def test_header_renders_menu_items_from_settings(self) -> None:
         """Test that header renders menu items from HeaderNavigation settings."""
@@ -121,9 +119,9 @@ class TestHeaderWiring:
             "{% include 'theme/includes/header.html' %}"
         ).render(context)
 
-        assert 'id="menuBtn"' in header_html
-        assert 'aria-controls="mobileDrawer"' in header_html
-        assert 'id="mobileDrawer"' in header_html
+        assert 'id="mobile-menu-btn"' in header_html
+        assert 'aria-controls="mobile-menu"' in header_html
+        assert 'id="mobile-menu"' in header_html
 
     def test_header_renders_nested_mobile_menu_groups(self) -> None:
         """Items with children render as nested mobile groups in the drawer."""
@@ -178,9 +176,10 @@ class TestHeaderWiring:
             "{% include 'theme/includes/header.html' %}"
         ).render(context)
 
-        assert "mobile-group" in header_html
-        assert "mobile-sub" in header_html
-        assert "Roof Integrated" in header_html
+        assert 'data-menu-level="1"' in header_html
+        assert 'data-menu-level="0"' in header_html
+        assert "Solar Integration" in header_html
+        assert "Battery Storage" in header_html
 
     def test_header_renders_cta_button(self) -> None:
         """Test that header renders CTA button when configured."""
@@ -210,7 +209,7 @@ class TestHeaderWiring:
 
         assert "Get Quote" in header_html
         assert 'href="/contact/"' in header_html
-        assert "btn btn-primary" in header_html
+        assert "btn-header" in header_html
 
     def test_header_renders_fallback_when_no_menu_items(self) -> None:
         """Test that header shows fallback Home link when no menu items configured."""

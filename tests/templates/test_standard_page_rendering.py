@@ -195,8 +195,8 @@ def test_standard_page_renders_service_cards_block() -> None:
     assert "Services" in content
     assert "Consulting" in content
     assert "Development" in content
-    assert "services__grid" in content
-    assert "services__card" in content
+    assert "grid-cols-3" in content
+    assert "bg-sage-oat/20" in content
 
 
 def test_standard_page_renders_testimonials_block() -> None:
@@ -240,8 +240,8 @@ def test_standard_page_renders_testimonials_block() -> None:
     assert "What People" in content
     assert "Excellent service" in content
     assert "Jane Doe" in content
-    assert "testimonials__grid" in content
-    assert "testimonial-card" in content
+    assert "grid grid-cols-1" in content
+    assert "bg-sage-darkmoss" in content
 
 
 def test_standard_page_renders_faq_block() -> None:
@@ -284,7 +284,7 @@ def test_standard_page_renders_faq_block() -> None:
     assert "Frequently Asked" in content
     assert "What is your return policy?" in content
     assert "30-day returns" in content
-    assert "faq-item" in content
+    assert "accordion-item" in content
 
 
 def test_standard_page_no_inline_styles() -> None:
