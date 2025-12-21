@@ -348,16 +348,18 @@ Used within hero blocks for CTA buttons.
 
 **Key:** `portfolio`  
 **Template:** `sum_core/blocks/portfolio.html`  
-**Purpose:** Project portfolio with offset editorial layout. 2-column with alternating vertical offset.
+**Purpose:** Project portfolio gallery. Theme A uses a horizontal editorial carousel on mobile and a 3-column grid on desktop.
 
 #### Fields
 
-| Field     | Type                          | Required | Constraints                    | Notes           |
-| --------- | ----------------------------- | -------- | ------------------------------ | --------------- |
-| `eyebrow` | CharBlock                     | No       | -                              | e.g. "Our Work" |
-| `heading` | RichTextBlock                 | Yes      | features: `['bold', 'italic']` | Section heading |
-| `intro`   | TextBlock                     | No       | -                              | Supporting text |
-| `items`   | ListBlock(PortfolioItemBlock) | Yes      | min: 1, max: 12                | Project items   |
+| Field            | Type                          | Required | Constraints                    | Notes                       |
+| ---------------- | ----------------------------- | -------- | ------------------------------ | --------------------------- |
+| `eyebrow`        | CharBlock                     | No       | -                              | e.g. "Our Work"             |
+| `heading`        | RichTextBlock                 | Yes      | features: `['bold', 'italic']` | Section heading             |
+| `intro`          | TextBlock                     | No       | -                              | Supporting text             |
+| `view_all_link`  | URLBlock                      | No       | -                              | Link to main portfolio page |
+| `view_all_label` | CharBlock                     | No       | max: 50                        | e.g. "View full gallery"    |
+| `items`          | ListBlock(PortfolioItemBlock) | Yes      | min: 1, max: 12                | Project items               |
 
 ### PortfolioItemBlock (Child Block)
 

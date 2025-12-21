@@ -8,6 +8,18 @@ from __future__ import annotations
 
 import os
 import sys
+from pathlib import Path
+
+# Load environment variables from .env file (if it exists)
+# This allows SUM_CANONICAL_THEME_ROOT and other settings to be configured per-client
+try:
+    from dotenv import load_dotenv
+
+    env_file = Path(__file__).resolve().parent / ".env"
+    if env_file.exists():
+        load_dotenv(env_file)
+except ImportError:
+    pass  # python-dotenv not installed, skip
 
 
 def main() -> None:

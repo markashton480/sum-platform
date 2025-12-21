@@ -208,6 +208,46 @@ def test_init_includes_seed_showroom_command(monkeypatch) -> None:
             shutil.rmtree(project_root)
 
 
+def test_init_settings_include_canonical_theme_override(monkeypatch) -> None:
+    """Generated settings should include the canonical theme dev override."""
+    repo_root = Path(__file__).resolve().parents[2]
+
+    unique_suffix = int(time.time() * 1000) % 100000
+    project_name = f"canonical-theme-{unique_suffix}"
+    python_pkg = project_name.replace("-", "_")
+
+    monkeypatch.chdir(repo_root)
+    project_root = repo_root / "clients" / project_name
+
+    try:
+        code = run_init(project_name, theme_slug="theme_a")
+        assert code == 0
+
+        settings_base = project_root / python_pkg / "settings" / "base.py"
+        text = settings_base.read_text(encoding="utf-8")
+
+        assert "SUM_CANONICAL_THEME_ROOT" in text
+        assert "_get_canonical_theme_root" in text
+
+        template_canonical_idx = text.find('canonical_theme_root / "templates"')
+        template_active_idx = text.find('theme" / "active" / "templates"')
+        assert template_canonical_idx != -1
+        assert template_active_idx != -1
+        assert template_canonical_idx < template_active_idx
+
+        static_canonical_idx = text.find('canonical_theme_root / "static"')
+        static_active_idx = text.find('theme" / "active" / "static"')
+        assert static_canonical_idx != -1
+        assert static_active_idx != -1
+        assert static_canonical_idx < static_active_idx
+
+        assert "ImproperlyConfigured" in text
+        assert "Unset SUM_CANONICAL_THEME_ROOT" in text
+    finally:
+        if project_root.exists():
+            shutil.rmtree(project_root)
+
+
 def test_init_fails_fast_when_theme_missing_compiled_css(
     tmp_path: Path, monkeypatch, capsys
 ) -> None:

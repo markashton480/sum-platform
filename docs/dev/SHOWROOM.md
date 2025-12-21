@@ -12,6 +12,10 @@ The goal is a repeatable content + navigation baseline so you can focus on **the
 
 ---
 
+## Related
+
+Tasks: SQ-002, SQ-003, SQ-004
+
 ## Where it lives
 
 `seed_showroom` is part of **boilerplate** (not `sum_core`), because it depends on the **client-owned `HomePage` model**:
@@ -35,6 +39,25 @@ From a generated client project directory:
 ```bash
 python manage.py seed_showroom
 ```
+
+## Canonical theme dev override (SQ-003)
+
+For fast showroom iteration, you can point Django at the **canonical theme source** instead of the copied `theme/active` assets.
+
+1. Set the canonical root (must contain `templates/`, `static/` optional):
+
+```bash
+export SUM_CANONICAL_THEME_ROOT=/home/mark/workspaces/sum-platform/themes/theme_a
+```
+
+2. Run the showroom as normal (e.g. `python manage.py runserver`).
+3. Verify templates resolve from the canonical path:
+
+```bash
+python manage.py shell -c "from django.template.loader import get_template; t=get_template('theme/base.html'); print(t.origin.name)"
+```
+
+If the path is invalid, Django raises `ImproperlyConfigured` with guidance; unset `SUM_CANONICAL_THEME_ROOT` to return to the default `theme/active` copy.
 
 ### Options
 
@@ -198,9 +221,10 @@ Re-running `seed_showroom` is safe:
   - Ensure your client `home` app is in `INSTALLED_APPS`
   - Or specify `--homepage-model app_label.HomePage`
 - **Pillow missing**:
+
   - Install `Pillow` (normally included with Wagtail).
   - The command must be able to generate placeholder images because many blocks require images.
 
 - **Kitchen Sink StreamField `TypeError: cannot unpack non-iterable StreamChild object`**:
   - This usually means you combined already-converted StreamField values (iterating a StreamValue yields `StreamChild` objects) and then called `StreamBlock.to_python()` again.
-  - Fix pattern: merge *raw* stream data (e.g. via `stream_value.get_prep_value()`) and only call `to_python()` once, or assign raw stream data directly to the StreamField.
+  - Fix pattern: merge _raw_ stream data (e.g. via `stream_value.get_prep_value()`) and only call `to_python()` once, or assign raw stream data directly to the StreamField.
