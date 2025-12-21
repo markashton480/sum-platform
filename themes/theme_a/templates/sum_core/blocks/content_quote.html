@@ -1,0 +1,28 @@
+{% load wagtailcore_tags %}
+<div class="py-16 bg-sage-oat/30">
+  <div class="container max-w-4xl mx-auto px-4">
+    <div class="relative reveal">
+      <!-- Large decorative quote mark -->
+      <span class="absolute -top-10 -left-8 text-8xl text-sage-moss/10 font-display pointer-events-none">“</span>
+
+      <blockquote class="relative z-10">
+        <p class="font-display text-3xl md:text-4xl leading-relaxed text-sage-black italic mb-8">
+          {{ self.quote }}
+        </p>
+        {% if self.author or self.role %}
+        <footer class="flex items-center gap-4">
+          <div class="w-10 h-px bg-sage-moss/40"></div>
+          <div class="text-sage-black/80">
+            {% if self.author %}
+            <cite class="not-italic font-body font-bold text-sage-black tracking-wide">{{ self.author }}</cite>
+            {% endif %}
+            {% if self.role %}
+            <span class="text-[11px] font-bold uppercase tracking-widest text-sage-label/60 ml-2">{{ self.role }}</span>
+            {% endif %}
+          </div>
+        </footer>
+        {% endif %}
+      </blockquote>
+    </div>
+  </div>
+</div>

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import shutil
 import sys
 import time
 from pathlib import Path
@@ -17,7 +16,7 @@ def test_validate_project_name_allows_hyphens_and_normalizes() -> None:
     assert naming.python_package == "acme_kitchens"
 
 
-def test_init_creates_project_and_check_passes(monkeypatch) -> None:
+def test_init_creates_project_and_check_passes(tmp_path, monkeypatch) -> None:
     """
     Test that sum init + sum check works from repo root context.
 
@@ -25,6 +24,8 @@ def test_init_creates_project_and_check_passes(monkeypatch) -> None:
     the project directory to the repo root.
     """
     repo_root = Path(__file__).resolve().parents[2]
+    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
+    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
 
     # Use unique project name to avoid conflicts with existing projects
     # Note: avoid names containing 'test' since the check scans for 'test_project'
@@ -33,32 +34,27 @@ def test_init_creates_project_and_check_passes(monkeypatch) -> None:
     python_package = f"cli_check_{unique_suffix}"
 
     # Create a new project from repo root context
-    monkeypatch.chdir(repo_root)
-    project_root = repo_root / "clients" / project_name
+    monkeypatch.chdir(tmp_path)
+    project_root = tmp_path / "clients" / project_name
 
-    try:
-        code = run_init(project_name)
-        assert code == 0
+    code = run_init(project_name)
+    assert code == 0
 
-        assert project_root.exists()
-        assert (project_root / "manage.py").exists()
-        assert (project_root / ".env").exists()
-        assert (project_root / ".env.example").exists()
+    assert project_root.exists()
+    assert (project_root / "manage.py").exists()
+    assert (project_root / ".env").exists()
+    assert (project_root / ".env.example").exists()
 
-        # project package renamed
-        assert not (project_root / "project_name").exists()
-        assert (project_root / python_package).is_dir()
+    # project package renamed
+    assert not (project_root / "project_name").exists()
+    assert (project_root / python_package).is_dir()
 
-        manage_text = (project_root / "manage.py").read_text(encoding="utf-8")
-        assert f"{python_package}.settings.local" in manage_text
+    manage_text = (project_root / "manage.py").read_text(encoding="utf-8")
+    assert f"{python_package}.settings.local" in manage_text
 
-        # check passes when run from project root - CLI detects monorepo mode
-        monkeypatch.chdir(project_root)
-        assert run_check() == 0
-    finally:
-        # Clean up the test project
-        if project_root.exists():
-            shutil.rmtree(project_root)
+    # check passes when run from project root - CLI detects monorepo mode
+    monkeypatch.chdir(project_root)
+    assert run_check() == 0
 
 
 def test_check_fails_on_missing_required_env_vars(tmp_path, monkeypatch) -> None:
@@ -141,67 +137,57 @@ def test_check_standalone_mode_fails_with_friendly_message(
         sys.path = original_path
 
 
-def test_check_fails_when_theme_compiled_css_missing(monkeypatch, capsys) -> None:
+def test_check_fails_when_theme_compiled_css_missing(
+    tmp_path, monkeypatch, capsys
+) -> None:
     repo_root = Path(__file__).resolve().parents[2]
+    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
+    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
 
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"cli-theme-check-{unique_suffix}"
 
-    monkeypatch.chdir(repo_root)
-    project_root = repo_root / "clients" / project_name
+    monkeypatch.chdir(tmp_path)
+    project_root = tmp_path / "clients" / project_name
 
-    try:
-        assert run_init(project_name) == 0
+    assert run_init(project_name) == 0
 
-        css_path = (
-            project_root
-            / "theme"
-            / "active"
-            / "static"
-            / "theme_a"
-            / "css"
-            / "main.css"
-        )
-        assert css_path.exists()
-        css_path.unlink()
+    css_path = (
+        project_root / "theme" / "active" / "static" / "theme_a" / "css" / "main.css"
+    )
+    assert css_path.exists()
+    css_path.unlink()
 
-        monkeypatch.chdir(project_root)
-        exit_code = run_check()
-        captured = capsys.readouterr()
+    monkeypatch.chdir(project_root)
+    exit_code = run_check()
+    captured = capsys.readouterr()
 
-        assert exit_code == 1
-        assert "Theme compiled CSS" in captured.out
-    finally:
-        if project_root.exists():
-            shutil.rmtree(project_root)
+    assert exit_code == 1
+    assert "Theme compiled CSS" in captured.out
 
 
-def test_check_fails_when_theme_slug_mismatch(monkeypatch, capsys) -> None:
+def test_check_fails_when_theme_slug_mismatch(tmp_path, monkeypatch, capsys) -> None:
     repo_root = Path(__file__).resolve().parents[2]
+    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
+    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
 
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"cli-theme-mismatch-{unique_suffix}"
 
-    monkeypatch.chdir(repo_root)
-    project_root = repo_root / "clients" / project_name
+    monkeypatch.chdir(tmp_path)
+    project_root = tmp_path / "clients" / project_name
 
-    try:
-        assert run_init(project_name) == 0
+    assert run_init(project_name) == 0
 
-        # Break provenance to simulate a bad/partial theme install
-        theme_provenance = project_root / ".sum" / "theme.json"
-        config = json.loads(theme_provenance.read_text(encoding="utf-8"))
-        config["theme"] = "theme_b"
-        theme_provenance.write_text(
-            json.dumps(config, indent=2) + "\n", encoding="utf-8"
-        )
+    # Break provenance to simulate a bad/partial theme install
+    theme_provenance = project_root / ".sum" / "theme.json"
+    config = json.loads(theme_provenance.read_text(encoding="utf-8"))
+    config["theme"] = "theme_b"
+    theme_provenance.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
 
-        monkeypatch.chdir(project_root)
-        exit_code = run_check()
-        captured = capsys.readouterr()
+    monkeypatch.chdir(project_root)
+    exit_code = run_check()
+    captured = capsys.readouterr()
 
-        assert exit_code == 1
-        assert "Theme slug match" in captured.out
-    finally:
-        if project_root.exists():
-            shutil.rmtree(project_root)
+    assert exit_code == 1
+    assert "Theme slug match" in captured.out
