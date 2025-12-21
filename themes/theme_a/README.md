@@ -125,6 +125,18 @@ Theme A includes these custom CSS components beyond Tailwind utilities:
 - **Accordion**: `.accordion-grid-wrapper`, `.accordion-inner`
 - **Mobile Menu**: `.menu-level`
 
+## Button System
+
+Use the shared button classes instead of per-template utility stacks:
+
+- **Primary**: `btn btn-primary`
+- **Secondary (light surface)**: `btn btn-outline`
+- **Secondary (dark/hero/header)**: `btn btn-outline-inverse`
+- **Header sizing**: `btn-header` and `btn-header--compact`
+- **Icon treatment**: add an SVG with `btn__icon` inside the button
+
+This keeps CTAs consistent across the header, hero, and content blocks.
+
 ## Reveal Behavior
 
 Reveal animations are progressive enhancement: `.reveal` content is visible by
@@ -139,6 +151,11 @@ Theme A uses Tailwind named groups for header state styling:
 - Variants: `group-[.scrolled]/header:*`
 
 Keep this pattern consistent to avoid drift in compiled CSS output.
+
+## Core Shell Notes
+
+- **Header**: CTA uses the shared button system (`btn-outline-inverse` plus `btn-header` sizing).
+- **Footer**: 4-column grid layout and `text-sage-footer-*` tokens are used to match the reference.
 
 ## Technical Notes
 
