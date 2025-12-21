@@ -394,8 +394,8 @@
   .footer__social-link {
     @apply text-sage-footer-primary hover:text-white transition-colors p-2;
   }
-  .footer__links {
-    @apply grid gap-12 md:grid-cols-3;
+  .footer__section {
+    @apply md:col-span-1;
   }
   .footer__section-title {
     @apply text-white text-xs uppercase tracking-widest mb-6;

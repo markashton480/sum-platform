@@ -83,13 +83,12 @@ def test_theme_a_hero_markers(image):
 
     primary_btn = soup.find("a", string=lambda t: "Primary" in str(t))
     assert primary_btn
-    assert "bg-sage-terra" in primary_btn["class"]
+    assert "btn-primary" in primary_btn["class"]
 
     secondary_btn = soup.find("a", href="http://s.com")
     assert secondary_btn
     classes = " ".join(secondary_btn.get("class", []))
-    assert "border-sage-linen/30" in classes
-    assert "border" in classes
+    assert "btn-outline-inverse" in classes
 
 
 @pytest.mark.django_db

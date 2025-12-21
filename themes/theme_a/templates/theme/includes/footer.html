@@ -6,7 +6,7 @@
 {# Theme A include (v0.6 theme-owned rendering contract) #}
 
 <footer class="footer">
-    <div class="container mx-auto px-4">
+    <div class="max-w-7xl mx-auto px-6">
         <div class="footer__grid">
             <!-- Brand -->
             <div class="footer__brand">
@@ -32,41 +32,39 @@
             </div>
 
             {# Link Sections #}
-            <div class="footer__links">
-                {% for section in footer.link_sections %}
-                    <div>
-                        <h4 class="footer__section-title">{{ section.title }}</h4>
-                        <ul class="footer__link-list">
-                            {% for link in section.links %}
-                                <li>
-                                    <a
-                                        href="{{ link.href }}"
-                                        class="footer__link"
-                                        {% for k, v in link.attrs.items %} {{ k }}="{{ v|escape }}"{% endfor %}
-                                    >
-                                        {{ link.text }}
-                                    </a>
-                                </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endfor %}
+            {% for section in footer.link_sections %}
+                <div class="footer__section">
+                    <h4 class="footer__section-title">{{ section.title }}</h4>
+                    <ul class="footer__link-list">
+                        {% for link in section.links %}
+                            <li>
+                                <a
+                                    href="{{ link.href }}"
+                                    class="footer__link"
+                                    {% for k, v in link.attrs.items %} {{ k }}="{{ v|escape }}"{% endfor %}
+                                >
+                                    {{ link.text }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
 
-                {# Contact Section #}
-                <div>
-                        <h4 class="footer__section-title">Studio</h4>
-                        <div class="footer__text footer__text--address">
-                            {% if footer.business.address %}
-                                <p class="footer__text--spaced">{{ footer.business.address|linebreaksbr }}</p>
-                            {% endif %}
-                            {% if footer.business.email %}
-                                <p><a href="mailto:{{ footer.business.email }}" class="footer__contact-link">{{ footer.business.email }}</a></p>
-                            {% endif %}
-                            {% if footer.business.phone_number %}
-                                <p><a href="tel:{{ footer.business.phone_number }}" class="footer__contact-link">{{ footer.business.phone_number }}</a></p>
-                            {% endif %}
-                        </div>
-                    </div>
+            {# Contact Section #}
+            <div class="footer__section">
+                <h4 class="footer__section-title">Studio</h4>
+                <div class="footer__text footer__text--address">
+                    {% if footer.business.address %}
+                        <p class="footer__text--spaced">{{ footer.business.address|linebreaksbr }}</p>
+                    {% endif %}
+                    {% if footer.business.email %}
+                        <p><a href="mailto:{{ footer.business.email }}" class="footer__contact-link">{{ footer.business.email }}</a></p>
+                    {% endif %}
+                    {% if footer.business.phone_number %}
+                        <p><a href="tel:{{ footer.business.phone_number }}" class="footer__contact-link">{{ footer.business.phone_number }}</a></p>
+                    {% endif %}
+                </div>
             </div>
         </div>
 

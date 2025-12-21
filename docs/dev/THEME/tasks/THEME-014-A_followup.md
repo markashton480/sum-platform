@@ -29,9 +29,9 @@
 
 ### Tests (evidence)
 - `source .venv/bin/activate && pytest tests/themes/test_theme_a_css_contract.py -q`
-  - Result: `3 passed, 7 warnings in 54.60s`
+  - Result: `3 passed, 7 warnings in 50.09s`
 - `source .venv/bin/activate && make test`
-  - Result: `737 passed, 45 warnings in 238.92s (0:03:58)`
+  - Result: `737 passed, 45 warnings in 210.51s (0:03:30)`
   - Note: pytest-cov warned about `.coverage` “no such table: tracer” while generating the report; tests still passed.
 
 ### Files Updated
@@ -49,3 +49,5 @@
 - Added an iPad nav strip so the header no longer collapses straight to mobile at 970–1199px (`themes/theme_a/templates/theme/includes/header.html`), matching the reference behavior.
 - Aligned hero primary/secondary CTAs to the updated button system (no per-template hardcoding) and introduced the inverse outline variant in `themes/theme_a/static/theme_a/css/input.css`.
 - Standardized header CTA usage to the shared button system and reworked footer tokens/layout to match the reference (`themes/theme_a/templates/theme/includes/header.html`, `themes/theme_a/templates/theme/includes/footer.html`, `themes/theme_a/static/theme_a/css/input.css`).
+- Restructured the footer grid to match the reference 4-column layout and adjusted spacing to the reference container (`themes/theme_a/templates/theme/includes/footer.html`, `themes/theme_a/static/theme_a/css/input.css`).
+- Updated hero marker tests to assert the button system classes instead of per-button utilities (`tests/themes/test_theme_a_hero_rendering.py`).
