@@ -10,9 +10,9 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    '../templates/theme/**/*.html',
-    '../templates/sum_core/**/*.html',
+    '../templates/**/*.html',
     '../../../core/sum_core/templates/**/*.html',
+    '../../../docs/dev/design/wireframes/sage-and-stone/compiled/*.html',
   ],
 
   // Classes composed dynamically in templates won't be discovered by the
@@ -58,7 +58,8 @@ module.exports = {
 
       // Custom breakpoints
       screens: {
-        'desktop': '1024px', // Matches Theme A mega menu breakpoint
+        'ipad': '970px', // Matches Sage & Stone reference breakpoint
+        'desktop': '1200px', // Header/nav switch breakpoint (avoid for general layout)
       },
 
       // Animation easings from Theme A

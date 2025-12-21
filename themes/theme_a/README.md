@@ -66,6 +66,26 @@ git add static/theme_a/css/input.css static/theme_a/css/main.css
 git commit -m "feature:theme_a - update styles"
 ```
 
+### Tailwind Content Sources
+
+Theme A scans both local templates and the Sage & Stone compiled reference HTML
+to keep class coverage aligned with the prototype:
+
+- `themes/theme_a/templates/**/*.html`
+- `docs/dev/design/wireframes/sage-and-stone/compiled/*.html`
+
+This is intentional: scanning all compiled reference pages preserves the full
+class universe for template copy/paste. If you add new reference HTML files,
+ensure the glob still matches them.
+
+### Breakpoints
+
+- `ipad` (970px): matches the reference mid-size breakpoint.
+- `desktop` (1200px): reserved for the header/nav layout switch.
+
+For general layout, prefer Tailwind defaults like `lg`/`xl` to avoid shifting
+core grid behavior to 1200px.
+
 ## Branding Override System
 
 Theme A uses CSS variables for colors, allowing client sites to override branding through SiteSettings without rebuilding CSS.
@@ -104,6 +124,21 @@ Theme A includes these custom CSS components beyond Tailwind utilities:
 - **Banner Grid**: `.banner-grid-wrapper`, `.banner-inner`
 - **Accordion**: `.accordion-grid-wrapper`, `.accordion-inner`
 - **Mobile Menu**: `.menu-level`
+
+## Reveal Behavior
+
+Reveal animations are progressive enhancement: `.reveal` content is visible by
+default, and Theme A JS adds `reveal-ready` to `<html>` to enable the hide-then-
+animate behavior when JS is available.
+
+## Named Group Variants
+
+Theme A uses Tailwind named groups for header state styling:
+
+- Wrapper: `group/header`
+- Variants: `group-[.scrolled]/header:*`
+
+Keep this pattern consistent to avoid drift in compiled CSS output.
 
 ## Technical Notes
 
