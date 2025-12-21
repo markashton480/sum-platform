@@ -34,18 +34,13 @@ def test_portfolio_block_tailwind_markers(image):
         "heading": "<h1>Featured Projects</h1>",
         "items": [
             {
-                "image": None,  # Will be mocked/ignored in rendering if we don't use {% image %} or mock it
+                "image": image.id,  # StructBlock expects ID for ImageChooserBlock
                 "alt_text": "Project 1",
                 "title": "Project One",
                 "link_url": "https://example.com/1",
             }
         ],
     }
-
-    # To avoid 'NoneType' errors in {% image %}, we use the created fixture.
-    block_data["items"][0][
-        "image"
-    ] = image.id  # StructBlock expects ID for ImageChooserBlock
 
     # Render via the block's render method to ensure proper handling
     html = block.render(block.to_python(block_data))

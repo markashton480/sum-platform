@@ -74,6 +74,16 @@
 
 ---
 
+## Site: sum-platform (Core)
+
+**Date:** 2025-12-21  
+**Version:** v0.7.1-dev  
+**Symptom:** `make lint` failed in CI due to Ruff UP032 in boilerplate settings and an unused variable in CLI theme init tests.  
+**Fix:** Converted `str.format` calls to f-strings in both boilerplate settings templates and removed the unused `project_root` assignment in `cli/tests/test_theme_init.py`.  
+**Follow-up:** Keep the boilerplate + CLI scaffold templates in the lint scope so future edits don’t bypass Ruff.  
+
+---
+
 _(No further entries)_
 
 ---
