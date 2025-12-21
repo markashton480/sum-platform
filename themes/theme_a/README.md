@@ -70,14 +70,34 @@ Commit both compiled outputs:
 - `static/theme_a/css/main.css`
 - `static/theme_a/css/.build_fingerprint`
 
+
+
 ### Commit Changes
 
 Always commit both source and compiled files:
 
 ```bash
-git add static/theme_a/css/input.css static/theme_a/css/main.css
+git add \
+  themes/theme_a/static/theme_a/css/input.css \
+  themes/theme_a/static/theme_a/css/main.css \
+  themes/theme_a/static/theme_a/css/.build_fingerprint
 git commit -m "feature:theme_a - update styles"
 ```
+
+### Verify Theme Wiring (Template + Static Resolution)
+
+Confirm templates and static files resolve to Theme A:
+
+```bash
+python manage.py shell -c "from django.template.loader import get_template; t=get_template('theme/base.html'); print(t.origin.name)"
+python manage.py shell -c "from django.template.loader import get_template; t=get_template('sum_core/blocks/portfolio.html'); print(t.origin.name)"
+python manage.py shell -c "from django.contrib.staticfiles.finders import find; print(find('theme_a/css/main.css'))"
+```
+
+Expected output:
+
+- templates should resolve to `themes/theme_a/templates/...`
+- CSS should resolve to `themes/theme_a/static/theme_a/css/main.css`
 
 ### Tailwind Content Sources
 
