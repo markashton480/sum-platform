@@ -10,14 +10,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    // Theme A templates (page layouts, includes)
     '../templates/theme/**/*.html',
-
-    // Theme A block template overrides (CRITICAL - our Tailwind-styled blocks!)
     '../templates/sum_core/**/*.html',
-
-    // Core templates (fallback for any blocks not overridden). This path is repo-relative:
-    // themes/theme_a/tailwind -> ../../../core/sum_core/templates
     '../../../core/sum_core/templates/**/*.html',
   ],
 
