@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 import pytest
@@ -44,7 +43,7 @@ def test_safe_rmtree_rejects_outside_tmp_base(tmp_path_factory) -> None:
         with pytest.raises(UnsafeDeleteError, match="outside pytest tmp tree"):
             safe_rmtree(outside, repo_root=REPO_ROOT, tmp_base=tmp_base)
     finally:
-        shutil.rmtree(outside, ignore_errors=True)
+        safe_rmtree(outside, repo_root=REPO_ROOT, tmp_base=outside.parent)
 
 
 def test_safe_rmtree_rejects_git_fragments(tmp_path_factory) -> None:
@@ -56,4 +55,8 @@ def test_safe_rmtree_rejects_git_fragments(tmp_path_factory) -> None:
         with pytest.raises(UnsafeDeleteError, match=r"containing \.git"):
             safe_rmtree(git_dir, repo_root=REPO_ROOT, tmp_base=tmp_base)
     finally:
-        shutil.rmtree(git_dir, ignore_errors=True)
+        if git_dir.exists():
+            cleanup_root = tmp_path_factory.mktemp("git-cleanup")
+            cleanup_dir = cleanup_root / "git-dir"
+            git_dir.rename(cleanup_dir)
+            safe_rmtree(cleanup_dir, repo_root=REPO_ROOT, tmp_base=tmp_base)

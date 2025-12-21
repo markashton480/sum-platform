@@ -185,7 +185,8 @@ def test_check_fails_when_theme_compiled_css_missing(
         project_root / "theme" / "active" / "static" / "theme_a" / "css" / "main.css"
     )
     assert css_path.exists()
-    css_path.unlink()
+    missing_css_backup = css_path.with_suffix(".css.bak")
+    css_path.rename(missing_css_backup)
 
     monkeypatch.chdir(project_root)
     exit_code = run_check()
