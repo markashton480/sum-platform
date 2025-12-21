@@ -170,6 +170,23 @@
     transition-delay: 500ms;
   }
 
+  /* Portfolio cards */
+  .portfolio-card__image {
+    transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+    will-change: transform;
+  }
+  .portfolio-card__title {
+    transition: color 0.2s ease;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .portfolio-card:hover .portfolio-card__image {
+      transform: scale(1.05);
+    }
+    .portfolio-card:hover .portfolio-card__title {
+      color: theme("colors.sage.terra");
+    }
+  }
+
   /* Layout primitives */
   .section {
     @apply py-12 md:py-16;

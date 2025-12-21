@@ -39,10 +39,13 @@ def _get_canonical_theme_root() -> Path | None:
     """
 
     canonical_root_env = os.getenv("SUM_CANONICAL_THEME_ROOT")
-    if not canonical_root_env:
-        return None
-
-    canonical_root = Path(canonical_root_env)
+    if canonical_root_env:
+        canonical_root = Path(canonical_root_env)
+    else:
+        # Showroom default: prefer the canonical theme in the repo if available.
+        canonical_root = BASE_DIR.parent.parent / "themes" / "theme_a"
+        if not canonical_root.exists():
+            return None
     templates_dir = canonical_root / "templates"
 
     if not canonical_root.exists():

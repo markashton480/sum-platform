@@ -79,18 +79,32 @@ def test_portfolio_block_tailwind_markers(image):
     # Render via the block's render method to ensure proper handling
     html = block.render(block.to_python(block_data))
 
-    # Layout markers
-    assert "overflow-x-auto" in html  # Mobile scroll
-    assert "min-w-[85vw]" in html  # Mobile card width
-    assert "md:grid-cols-3" in html  # Desktop grid
+    # Section markers
+    assert "bg-sage-linen" in html
+
+    # Header markers
+    assert "max-w-7xl mx-auto px-6 mb-12 flex justify-between items-end" in html
+
+    # Scroll container markers
+    assert "no-scrollbar snap-x snap-mandatory" in html
+    assert "overflow-x-auto" in html
 
     # Card markers
-    assert "aspect-[4/3]" in html  # Image aspect ratio
-    assert "group-hover:scale-105" in html  # Hover effect
+    assert "snap-center" in html
+    assert "focus:ring-4 focus:ring-sage-terra" in html
+
+    # Image wrapper markers
+    assert "bg-sage-oat mb-6" in html
+    assert "!group-hover/card:scale-105" in html
+
+    # Title hover markers
+    assert "!group-hover/card:text-sage-terra" in html
+
+    # Metadata grid markers
+    assert "text-xs font-display text-sage-black/70" in html
 
     # Fade overlay
-    assert "bg-gradient-to-l" in html
-    assert "pointer-events-none" in html
+    assert "bg-gradient-to-l from-sage-linen to-transparent" in html
 
 
 @pytest.mark.django_db
