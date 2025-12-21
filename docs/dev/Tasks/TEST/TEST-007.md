@@ -1,6 +1,6 @@
 
 # TEST-007 — Enforce filesystem sandbox + guarded deletion for CLI/theme tests
-
+**CANCELLED TICKET!!**
 **Branch:** `test/TEST-007-safe-cleanup` (from `origin/develop`)
 **PR target:** `develop`
 **Goal:** Prevent any test (especially CLI/theme tests) from deleting or writing to repo source assets by enforcing a tmp-path sandbox and using guarded deletion utilities everywhere.
