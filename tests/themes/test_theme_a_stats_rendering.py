@@ -1,6 +1,18 @@
+from __future__ import annotations
+
 import pytest
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 from sum_core.blocks.trust import StatsBlock
+
+
+def _get_classes(tag: Tag) -> list[str]:
+    classes = tag.get("class")
+    if not classes:
+        return []
+    if isinstance(classes, list):
+        return [str(value) for value in classes]
+    return [str(classes)]
 
 
 @pytest.mark.django_db
@@ -31,18 +43,19 @@ def test_stats_block_structure():
 
     root = soup.find(class_="bg-sage-linen")
     assert root is not None
-    assert "border-b" in root.get("class", [])
-    assert "border-sage-black/5" in root.get("class", [])
-    assert "py-12" in root.get("class", [])
+    root_classes = _get_classes(root)
+    assert "border-b" in root_classes
+    assert "border-sage-black/5" in root_classes
+    assert "py-12" in root_classes
 
     # Assert inner grid container
     grid = soup.find(class_="grid")
     assert grid is not None
-    classes = grid.get("class", [])
-    assert "grid-cols-2" in classes
-    assert "md:grid-cols-4" in classes
-    assert "gap-8" in classes
-    assert "text-center" in classes
+    grid_classes = _get_classes(grid)
+    assert "grid-cols-2" in grid_classes
+    assert "md:grid-cols-4" in grid_classes
+    assert "gap-8" in grid_classes
+    assert "text-center" in grid_classes
 
     # Assert 4 items rendered
     items = grid.find_all("div", recursive=False)

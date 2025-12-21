@@ -47,17 +47,16 @@ def _get_canonical_theme_root() -> Path | None:
 
     if not canonical_root.exists():
         raise ImproperlyConfigured(
-            "SUM_CANONICAL_THEME_ROOT='{}' does not exist. Expected <root>/templates"
-            " and optional <root>/static. Unset SUM_CANONICAL_THEME_ROOT to disable.".format(
-                canonical_root_env
-            )
+            f"SUM_CANONICAL_THEME_ROOT='{canonical_root_env}' does not exist. "
+            "Expected <root>/templates and optional <root>/static. "
+            "Unset SUM_CANONICAL_THEME_ROOT to disable."
         )
 
     if not templates_dir.exists():
         raise ImproperlyConfigured(
-            "SUM_CANONICAL_THEME_ROOT='{}' is missing required <root>/templates."
-            " Expected layout: <root>/templates and optional <root>/static."
-            " Unset SUM_CANONICAL_THEME_ROOT to disable.".format(canonical_root_env)
+            f"SUM_CANONICAL_THEME_ROOT='{canonical_root_env}' is missing required "
+            "<root>/templates. Expected layout: <root>/templates and optional "
+            "<root>/static. Unset SUM_CANONICAL_THEME_ROOT to disable."
         )
 
     return canonical_root
@@ -79,7 +78,8 @@ def _get_project_theme_slug() -> str | None:
     try:
         with theme_file.open("r", encoding="utf-8") as f:
             config = json.load(f)
-        return config.get("theme")
+        theme_value = config.get("theme")
+        return theme_value if isinstance(theme_value, str) else None
     except (json.JSONDecodeError, OSError):
         return None
 

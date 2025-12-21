@@ -1,13 +1,33 @@
+from __future__ import annotations
+
 from io import BytesIO
 
 import pytest
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image as PILImage
 from sum_core.blocks.hero import HeroImageBlock
 from wagtail.images import get_image_model
 
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("theme_active_copy")]
+
+
+def _get_classes(tag: Tag) -> list[str]:
+    classes = tag.get("class")
+    if not classes:
+        return []
+    if isinstance(classes, list):
+        return [str(value) for value in classes]
+    return [str(classes)]
+
+
+def _tag_has_text(tag: Tag, value: str) -> bool:
+    return value in tag.get_text()
+
+
+def _is_primary_link(tag: Tag) -> bool:
+    return tag.name == "a" and _tag_has_text(tag, "Primary")
 
 
 @pytest.fixture
@@ -46,20 +66,20 @@ def test_theme_a_hero_markers(image):
 
     container = soup.select_one("div.h-screen")
     assert container, "Missing h-screen container"
-    assert "min-h-[700px]" in container["class"]
-    assert "bg-sage-black" in container["class"]
+    container_classes = _get_classes(container)
+    assert "min-h-[700px]" in container_classes
+    assert "bg-sage-black" in container_classes
 
     overlay = soup.find("div", class_="bg-black/60")
     assert overlay, "Medium opacity should map to bg-black/60"
 
-    primary_btn = soup.find("a", string=lambda t: "Primary" in str(t))
+    primary_btn = soup.find(_is_primary_link)
     assert primary_btn
-    assert "btn-primary" in primary_btn["class"]
+    assert "btn-primary" in _get_classes(primary_btn)
 
     secondary_btn = soup.find("a", href="http://s.com")
     assert secondary_btn
-    classes = " ".join(secondary_btn.get("class", []))
-    assert "btn-outline-inverse" in classes
+    assert "btn-outline-inverse" in _get_classes(secondary_btn)
 
 
 @pytest.mark.parametrize(

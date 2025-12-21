@@ -106,7 +106,6 @@ def test_init_with_invalid_theme_fails(tmp_path, monkeypatch, capsys) -> None:
     project_name = f"invalid-theme-{unique_suffix}"
 
     monkeypatch.chdir(tmp_path)
-    project_root = tmp_path / "clients" / project_name
 
     code = run_init(project_name, theme_slug="nonexistent_theme")
     captured = capsys.readouterr()
@@ -285,6 +284,4 @@ def test_init_fails_fast_when_theme_missing_compiled_css(
 
     assert code == 1
     assert "Missing compiled CSS" in captured.out or "main.css" in captured.out
-    assert (
-        not project_root.exists()
-    ), "init should not scaffold a half-broken client"
+    assert not project_root.exists(), "init should not scaffold a half-broken client"
