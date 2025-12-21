@@ -105,8 +105,45 @@
                 {% endblock %}
             </nav>
 
+            <!-- iPad Nav -->
+            <nav class="hidden ipad:flex desktop:hidden items-center space-x-10 relative z-[60]" aria-label="Main Navigation">
+                {% block ipad_nav %}
+                    {% for item in nav.menu_items %}
+                        {% if item.has_children %}
+                            {% with first_child=item.children.0 %}
+                                <a href="{{ item.href|default:first_child.href }}"
+                                   class="nav-link text-sm uppercase tracking-widest {% if has_hero %}text-sage-linen group-[.scrolled]/header:text-sage-black{% else %}text-sage-black{% endif %} hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent">
+                                    {{ item.label }}
+                                </a>
+                            {% endwith %}
+                        {% else %}
+                            <a href="{{ item.href }}"
+                               class="nav-link text-sm uppercase tracking-widest {% if has_hero %}text-sage-linen group-[.scrolled]/header:text-sage-black{% else %}text-sage-black{% endif %} hover:text-sage-terra transition-colors duration-300 py-4 border-b-2 border-transparent"
+                               {% if item.is_current %}aria-current="page"{% endif %}
+                               {% for k, v in item.attrs.items %} {{ k }}="{{ v|escape }}"{% endfor %}>
+                                {{ item.label }}
+                            </a>
+                        {% endif %}
+                    {% empty %}
+                        <a href="/" class="nav-link text-sm uppercase tracking-widest {% if has_hero %}text-sage-linen group-[.scrolled]/header:text-sage-black{% else %}text-sage-black{% endif %} hover:text-sage-terra transition-colors duration-300 py-4">Home</a>
+                    {% endfor %}
+
+                    {% if nav.header_cta.enabled %}
+                        <a href="{{ nav.header_cta.href }}"
+                           class="px-7 py-3.5 text-sm font-bold uppercase tracking-widest transition-colors duration-300
+                                  {% if has_hero %}text-sage-linen border-sage-linen/30 backdrop-blur-sm hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen{% else %}text-sage-black border-sage-black/30 hover:bg-sage-black hover:text-sage-linen hover:border-sage-black{% endif %}
+                                  group-[.scrolled]/header:border-sage-black group-[.scrolled]/header:text-sage-black
+                                  group-[.scrolled]/header:bg-transparent group-[.scrolled]/header:backdrop-blur-none
+                                  group-[.scrolled]/header:hover:bg-sage-black group-[.scrolled]/header:hover:text-sage-linen group-[.scrolled]/header:hover:border-sage-black"
+                           {% for k, v in nav.header_cta.attrs.items %} {{ k }}="{{ v|escape }}"{% endfor %}>
+                            {{ nav.header_cta.text }}
+                        </a>
+                    {% endif %}
+                {% endblock %}
+            </nav>
+
             <!-- Mobile Actions -->
-            <div class="desktop:hidden flex items-center gap-4 relative z-[60]">
+            <div class="ipad:hidden flex items-center gap-4 relative z-[60]">
                 {% if nav.header_cta.enabled %}
                     <a href="{{ nav.header_cta.href }}"
                        class="px-5 py-3 text-xs font-bold uppercase tracking-widest transition-colors duration-300

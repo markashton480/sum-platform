@@ -44,3 +44,6 @@
 
 ### Open Items / Clarifications
 - Please validate header/nav behavior visually at 1024–1199px and ≥1200px and confirm the switch feels correct.
+
+### Addendum
+- Added an iPad nav strip so the header no longer collapses straight to mobile at 970–1199px (`themes/theme_a/templates/theme/includes/header.html`), matching the reference behavior.
