@@ -43,7 +43,10 @@ def test_safe_rmtree_rejects_outside_tmp_base(tmp_path_factory) -> None:
         with pytest.raises(UnsafeDeleteError, match="outside pytest tmp tree"):
             safe_rmtree(outside, repo_root=REPO_ROOT, tmp_base=tmp_base)
     finally:
-        safe_rmtree(outside, repo_root=REPO_ROOT, tmp_base=outside.parent)
+        # Relocate into tmp, then cleanup within normal boundaries
+        cleanup_dir = tmp_path_factory.mktemp("outside-cleanup") / "relocated"
+        outside.rename(cleanup_dir)
+        safe_rmtree(cleanup_dir, repo_root=REPO_ROOT, tmp_base=tmp_base)
 
 
 def test_safe_rmtree_rejects_git_fragments(tmp_path_factory) -> None:
