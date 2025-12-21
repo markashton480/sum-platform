@@ -1,4 +1,4 @@
-.PHONY: help lint test format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref
+.PHONY: help lint test test-cli test-themes test-fast format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref
 
 MANAGE = python core/sum_core/test_project/manage.py
 
@@ -30,6 +30,15 @@ format: ## Auto-format code
 
 test: ## Run tests with pytest
 	python -m pytest
+
+test-cli: ## Run CLI test slice only
+	python -m pytest cli/tests -q
+
+test-themes: ## Run themes test slice only
+	python -m pytest tests/themes -q
+
+test-fast: ## Run high-signal test slices (CLI + themes)
+	python -m pytest cli/tests tests/themes -q
 
 run: ## Initial for local dev (may be wired to Docker later)
 	$(MANAGE) migrate --noinput
