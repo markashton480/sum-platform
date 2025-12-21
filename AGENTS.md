@@ -10,6 +10,7 @@
 - Goal: provide a fast-launch core for multiple Wagtail sites (home improvement trades).
 
 ## Design Tokens
+
 - This project has a design token system as outlined in `docs/dev/design/css-architecture-and-tokens.md`
 - Always check and follow the existing design tokens
 - Never hard code values
@@ -32,8 +33,8 @@
 
 ## Git & Branching Conventions
 
-- Default branch is **`main`** (must remain stable).
-- For each task/ticket, create a branch from `main`:
+- Default branch is **`develop`** (must remain stable).
+- For each task/ticket, create a branch from `develop`:
   - Example: `git checkout -b feat/m0-001-monorepo-tooling`
 - Prefer **small, focused commits** using these prefixes:
   - `feature:<scope>-<description>` – new user-facing behaviour or styling.
@@ -41,7 +42,7 @@
   - `chore:<description>` – tooling, infra, refactors that don’t change behaviour.
   - `docs:<description>` – documentation-only changes.
   - `refactor:<scope>-<description>` – internal code reshaping.
-- Never commit directly to `main`; always go via a feature/fix branch.
+- Never commit directly to `main` or `develop`; always go via a feature/fix branch.
 
 ## Code & Testing Guidelines
 
