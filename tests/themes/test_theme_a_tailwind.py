@@ -11,6 +11,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from tests.utils import REPO_ROOT
+
 
 class TestThemeATailwindCSS:
     """Tests for Theme A compiled Tailwind CSS.
@@ -24,9 +26,8 @@ class TestThemeATailwindCSS:
     @staticmethod
     def _get_theme_a_css_path() -> Path:
         """Get the path to Theme A's compiled main.css."""
-        repo_root = Path(__file__).resolve().parents[2]
         return (
-            repo_root / "themes" / "theme_a" / "static" / "theme_a" / "css" / "main.css"
+            REPO_ROOT / "themes" / "theme_a" / "static" / "theme_a" / "css" / "main.css"
         )
 
     def test_compiled_css_exists(self) -> None:
@@ -110,8 +111,7 @@ class TestThemeATailwindToolchain:
     @staticmethod
     def _get_theme_a_path() -> Path:
         """Get the path to Theme A directory."""
-        repo_root = Path(__file__).resolve().parents[2]
-        return repo_root / "themes" / "theme_a"
+        return REPO_ROOT / "themes" / "theme_a"
 
     def test_package_json_exists(self) -> None:
         """package.json must exist for maintainer toolchain."""

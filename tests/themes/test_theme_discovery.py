@@ -14,8 +14,9 @@ from pathlib import Path
 
 import pytest
 
-repo_root = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(repo_root / "cli"))
+from tests.utils import REPO_ROOT
+
+sys.path.insert(0, str(REPO_ROOT / "cli"))
 
 from sum_cli.themes_registry import (  # noqa: E402
     ThemeManifest,
@@ -30,8 +31,8 @@ from sum_cli.themes_registry import (  # noqa: E402
 
 def test_discover_themes_finds_theme_a(monkeypatch) -> None:
     """Test that theme discovery finds theme_a from repo-root themes/."""
-    monkeypatch.chdir(repo_root)
-    themes = discover_themes(repo_root / "themes")
+    monkeypatch.chdir(REPO_ROOT)
+    themes = discover_themes(REPO_ROOT / "themes")
 
     assert len(themes) >= 1
     theme_slugs = [t.slug for t in themes]
@@ -40,7 +41,7 @@ def test_discover_themes_finds_theme_a(monkeypatch) -> None:
 
 def test_get_theme_returns_valid_manifest(monkeypatch) -> None:
     """Test that get_theme returns a valid ThemeManifest for theme_a."""
-    monkeypatch.chdir(repo_root)
+    monkeypatch.chdir(REPO_ROOT)
     theme = get_theme("theme_a")
 
     assert isinstance(theme, ThemeManifest)
@@ -52,14 +53,14 @@ def test_get_theme_returns_valid_manifest(monkeypatch) -> None:
 
 def test_get_theme_raises_on_invalid_slug(monkeypatch) -> None:
     """Test that get_theme raises ThemeNotFoundError for invalid slugs."""
-    monkeypatch.chdir(repo_root)
+    monkeypatch.chdir(REPO_ROOT)
     with pytest.raises(ThemeNotFoundError, match="not found"):
         get_theme("nonexistent_theme")
 
 
 def test_list_themes_returns_sorted(monkeypatch) -> None:
     """Test that list_themes returns themes sorted by slug."""
-    monkeypatch.chdir(repo_root)
+    monkeypatch.chdir(REPO_ROOT)
     themes = list_themes()
 
     assert len(themes) >= 1
@@ -69,7 +70,7 @@ def test_list_themes_returns_sorted(monkeypatch) -> None:
 
 def test_theme_template_dir_exists(monkeypatch) -> None:
     """Theme A templates/ directory must exist."""
-    monkeypatch.chdir(repo_root)
+    monkeypatch.chdir(REPO_ROOT)
     theme_dir = resolve_theme_dir("theme_a")
     template_dir = theme_dir / "templates"
 
@@ -81,7 +82,7 @@ def test_theme_template_dir_exists(monkeypatch) -> None:
 
 def test_theme_static_dir_exists(monkeypatch) -> None:
     """Theme A static/ directory must exist."""
-    monkeypatch.chdir(repo_root)
+    monkeypatch.chdir(REPO_ROOT)
     theme_dir = resolve_theme_dir("theme_a")
     static_dir = theme_dir / "static"
 

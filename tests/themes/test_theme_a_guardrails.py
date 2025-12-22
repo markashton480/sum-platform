@@ -11,7 +11,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-repo_root = Path(__file__).resolve().parents[2]
+from tests.utils import REPO_ROOT
 
 
 def get_theme_a_root() -> Path:
@@ -19,7 +19,7 @@ def get_theme_a_root() -> Path:
     Canonical Theme A location (Theme Architecture Spec v1):
     repo-root `themes/theme_a/`
     """
-    return repo_root / "themes" / "theme_a"
+    return REPO_ROOT / "themes" / "theme_a"
 
 
 def compute_fingerprint(theme_root: Path) -> str:
@@ -366,4 +366,4 @@ class TestThemeAGuardrailsIntegration:
         assert (
             theme_root / "theme.json"
         ).exists(), "Theme A manifest must stay in place"
-        assert theme_filesystem_sandbox.repo_root.samefile(repo_root)
+        assert theme_filesystem_sandbox.repo_root.samefile(REPO_ROOT)
