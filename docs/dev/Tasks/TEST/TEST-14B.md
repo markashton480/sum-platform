@@ -92,6 +92,3 @@ git push
 * All tests and lint pass.
 * Branch clean (`git status` empty).
 * PR #16 ready to merge.
-
-```
-
