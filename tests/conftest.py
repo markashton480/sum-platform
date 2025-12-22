@@ -80,7 +80,9 @@ def _sum_core_major_minor() -> tuple[int, int] | None:
     return parsed
 
 
-def pytest_collection_modifyitems(config, items) -> None:
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
     parsed_version = _sum_core_major_minor()
     if not parsed_version:
         return
