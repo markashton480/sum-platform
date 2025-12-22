@@ -79,7 +79,9 @@ def _get_project_theme_slug() -> str | None:
         with theme_file.open("r", encoding="utf-8") as f:
             config = json.load(f)
         theme_value = config.get("theme")
-        return theme_value if isinstance(theme_value, str) else None
+        if isinstance(theme_value, str):
+            return theme_value
+        return None
     except (json.JSONDecodeError, OSError):
         return None
 
