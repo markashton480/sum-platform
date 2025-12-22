@@ -196,7 +196,7 @@ def test_standard_page_renders_service_cards_block() -> None:
     assert "Consulting" in content
     assert "Development" in content
     assert "grid-cols-3" in content
-    assert "bg-sage-oat/20" in content
+    assert "bg-sage-oat/30" in content
 
 
 def test_standard_page_renders_testimonials_block() -> None:

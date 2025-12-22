@@ -20,14 +20,10 @@ from django.apps import apps
 from django.core.management.base import BaseCommand, CommandParser
 from wagtail.models import Page, Site
 
-# Keep Faker optional - import into a variable that's already typed as optional
-FakerClass: type[Any] | None
 try:
     from faker import Faker
-
-    FakerClass = Faker
-except ImportError:  # pragma: no cover
-    FakerClass = None
+except ImportError:
+    Faker = None
 
 
 class Command(BaseCommand):
@@ -43,7 +39,7 @@ class Command(BaseCommand):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self.fake: Any = FakerClass() if FakerClass is not None else None
+        self.fake: Any = Faker() if Faker is not None else None
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
@@ -57,7 +53,7 @@ class Command(BaseCommand):
             help="Skip creating image blocks (useful if no sample images available)",
         )
 
-    def handle(self, *args: Any, **options: Any) -> None:
+    def handle(self, *args: Any, **options: dict[str, Any]) -> None:
         if not self.fake:
             self.stdout.write(
                 self.style.ERROR(

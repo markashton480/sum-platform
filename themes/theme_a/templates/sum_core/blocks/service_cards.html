@@ -1,59 +1,112 @@
 {% load wagtailcore_tags wagtailimages_tags %}
 
-<section class="py-24 bg-sage-linen">
-    <div class="container mx-auto px-4">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-            <div class="max-w-2xl">
-                {% if self.eyebrow %}
-                    <span class="reveal block text-[10px] font-bold text-sage-label uppercase tracking-[0.2em] mb-4">{{ self.eyebrow }}</span>
-                {% endif %}
-                <h2 class="reveal delay-100 font-display text-4xl md:text-5xl text-sage-black leading-tight tracking-tight">
-                    {{ self.heading|richtext }}
-                </h2>
-            </div>
-            {% if self.view_all_link %}
-                <div class="reveal delay-200">
-                    <a href="{{ self.view_all_link }}" class="btn--link">
-                        {{ self.view_all_label|default:"View All Services" }}
-                        <span>&rarr;</span>
-                    </a>
+<section class="py-20 bg-sage-oat/30">
+    <div class="max-w-7xl mx-auto px-6">
+        {# Header Area - Only render if content exists #}
+        {% if self.eyebrow or self.heading or self.intro %}
+        <div class="mb-12 max-w-3xl">
+            {% if self.eyebrow %}
+                <span class="block text-xs font-bold uppercase tracking-widest text-sage-moss mb-4">{{ self.eyebrow }}</span>
+            {% endif %}
+
+            {% if self.heading %}
+                <div class="font-display text-4xl md:text-5xl text-sage-black mb-6 leading-tight">
+                    {{ self.heading }}
                 </div>
             {% endif %}
-        </div>
 
-        {% if self.cards %}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {% for card in self.cards %}
-                    <article class="reveal delay-{{ forloop.counter0|add:1 }}00 group bg-sage-oat/20 border border-sage-black/5 p-10 rounded-sm hover:bg-sage-linen hover:shadow-xl hover:shadow-sage-black/5 transition-all duration-500">
-                        <div class="flex justify-between items-start mb-12">
-                            <span class="font-display text-sm text-sage-moss font-bold">{% if forloop.counter < 10 %}0{% endif %}{{ forloop.counter }}</span>
+            {% if self.intro %}
+                <p class="text-sage-black font-light leading-relaxed text-lg">{{ self.intro }}</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# Cards Grid #}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-0 border border-sage-black/10">
+
+            {% for card in self.cards %}
+                {% if forloop.first %}
+                    {# Featured Card (First Item) - spans 2 cols #}
+                    <div class="md:col-span-2 group relative border-b md:border-b-0 md:border-r border-sage-black/10 flex flex-col justify-between p-12 hover:bg-white transition-colors duration-500 reveal min-h-[400px]">
+                        <div class="mb-8">
+                            <span class="block text-xs font-bold uppercase tracking-widest text-sage-moss mb-4">
+                                {% if card.icon %}{{ card.icon }} {% endif %}Featured Service
+                            </span>
+
+                            <h3 class="font-display text-4xl text-sage-black mb-2 group-hover:text-sage-terra transition-colors">
+                                {{ card.title }}
+                            </h3>
+
                             {% if card.image %}
-                                <div class="w-12 h-12 rounded-sm overflow-hidden">
-                                    {% image card.image fill-48x48 class="w-full h-full object-cover" %}
+                                <div class="mb-6 w-full aspect-video overflow-hidden bg-sage-black/5">
+                                    {% image card.image fill-800x450 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" %}
                                 </div>
-                            {% elif card.icon %}
-                                <div class="w-12 h-12 rounded-sm bg-sage-linen border border-sage-moss/20 flex items-center justify-center text-sage-moss group-hover:bg-sage-moss group-hover:text-sage-linen transition-colors duration-500">
-                                    <span class="text-xl">{{ card.icon }}</span>
+                            {% endif %}
+
+                            {% if card.description %}
+                                <div class="text-sage-black font-light leading-relaxed text-lg max-w-xl prose prose-p:text-sage-black prose-a:text-sage-terra">
+                                    {{ card.description }}
                                 </div>
                             {% endif %}
                         </div>
+                        <div>
+                            {% if card.link_url %}
+                                <a href="{{ card.link_url }}" class="inline-flex items-center text-xs font-bold uppercase tracking-widest border-b-2 border-sage-black/20 pb-2 hover:border-sage-terra hover:text-sage-terra transition-colors py-2">
+                                    {{ card.link_label|default:"Explore Process" }}
+                                    <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                                </a>
+                            {% else %}
+                                <div class="inline-flex items-center text-xs font-bold uppercase tracking-widest border-b-2 border-transparent pb-2 text-sage-black/40 cursor-default">
+                                    {{ card.link_label|default:"Coming Soon" }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
 
-                        <h3 class="font-display text-2xl text-sage-black mb-4 tracking-tight">{{ card.title }}</h3>
+                {% else %}
+                    {# Standard Card - spans 1 col #}
+                    <div class="group relative border-b md:border-b-0 border-sage-black/10 flex flex-col justify-between p-12 hover:bg-white transition-colors duration-500 reveal min-h-[400px] {% if not forloop.last %}md:border-r{% endif %}">
+                        <div class="mb-8">
+                            <span class="block text-xs font-bold uppercase tracking-widest text-sage-meta mb-4">0{{ forloop.counter }}</span>
 
-                        {% if card.description %}
-                            <div class="text-sage-black/60 text-base leading-relaxed mb-10 font-body">
-                                {{ card.description|richtext }}
-                            </div>
-                        {% endif %}
+                            <h3 class="font-display text-3xl text-sage-black mb-4 group-hover:text-sage-terra transition-colors">
+                                {{ card.title }}
+                            </h3>
 
-                        {% if card.link_url %}
-                            <a href="{{ card.link_url }}" class="btn--link">
-                                {{ card.link_label|default:"Learn More" }}
-                                <span>&rarr;</span>
-                            </a>
-                        {% endif %}
-                    </article>
-                {% endfor %}
+                            {% if card.image %}
+                                <div class="mb-6 w-full aspect-[4/3] overflow-hidden bg-sage-black/5">
+                                    {% image card.image fill-400x300 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" %}
+                                </div>
+                            {% elif card.icon %}
+                                <div class="mb-4 text-3xl text-sage-terra">
+                                    {{ card.icon }}
+                                </div>
+                            {% endif %}
+
+                            {% if card.description %}
+                                <div class="text-sage-black font-light leading-relaxed prose prose-sm prose-p:text-sage-black">
+                                    {{ card.description }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if card.link_url %}
+                                <a href="{{ card.link_url }}" class="inline-block text-xs font-bold uppercase tracking-widest border-b border-sage-black/20 pb-1 group-hover:border-sage-terra transition-colors py-2">
+                                    {{ card.link_label|default:"Learn More" }}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+
+        </div>
+
+        {% if self.view_all_link %}
+            <div class="mt-12 text-center">
+                 <a href="{{ self.view_all_link }}" class="inline-block text-xs font-bold uppercase tracking-widest border-b border-sage-black/20 pb-1 hover:border-sage-terra hover:text-sage-terra transition-colors py-2">
+                    {{ self.view_all_label|default:"View All Services" }}
+                </a>
             </div>
         {% endif %}
     </div>
