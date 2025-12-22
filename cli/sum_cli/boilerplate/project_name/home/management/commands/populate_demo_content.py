@@ -21,9 +21,11 @@ from django.core.management.base import BaseCommand, CommandParser
 from wagtail.models import Page, Site
 
 try:
-    from faker import Faker
+    from faker import Faker as FakerImpl
 except ImportError:
-    Faker = None
+    FakerClass = None
+else:
+    FakerClass = FakerImpl
 
 
 class Command(BaseCommand):
@@ -39,7 +41,7 @@ class Command(BaseCommand):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
-        self.fake: Any = Faker() if Faker is not None else None
+        self.fake: Any = FakerClass() if FakerClass is not None else None
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(

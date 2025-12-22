@@ -39,6 +39,7 @@ from sum_core.navigation.models import FooterNavigation, HeaderNavigation
 from sum_core.pages import ServiceIndexPage, ServicePage, StandardPage
 from wagtail.models import Page, Site
 
+PILImage: Any | None
 try:
     from PIL import Image as PILImage
 except Exception:  # pragma: no cover
@@ -89,7 +90,15 @@ class Command(BaseCommand):
     def handle(self, *args: Any, **options: dict[str, Any]) -> None:
         slugs = _ShowroomSlugs()
 
-        home_page_model = self._resolve_home_page_model(options.get("homepage_model"))
+        homepage_model = options.get("homepage_model")
+        hostname = options.get("hostname")
+        port = options.get("port")
+
+        homepage_model = homepage_model if isinstance(homepage_model, str) else None
+        hostname = hostname if isinstance(hostname, str) else None
+        port = port if isinstance(port, int) else None
+
+        home_page_model = self._resolve_home_page_model(homepage_model)
         if home_page_model is None:
             self.stdout.write(
                 self.style.ERROR(
@@ -99,9 +108,7 @@ class Command(BaseCommand):
             return
 
         root = Page.get_first_root_node()
-        site = self._get_or_create_default_site(
-            options.get("hostname"), options.get("port"), root
-        )
+        site = self._get_or_create_default_site(hostname, port, root)
 
         if options.get("clear"):
             self._clear_showroom(

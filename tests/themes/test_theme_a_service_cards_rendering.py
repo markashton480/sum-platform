@@ -12,7 +12,7 @@ def _get_classes(tag: Tag) -> list[str]:
         return []
     if isinstance(classes, list):
         return [str(value) for value in classes]
-    return [str(classes).split()]  # Handle single string case better
+    return str(classes).split()
 
 
 @pytest.mark.django_db
@@ -110,7 +110,9 @@ def test_service_cards_content_logic():
 
     html = block.render(block_value)
     soup = BeautifulSoup(html, "html.parser")
-    cards = soup.find(class_="grid").find_all("div", recursive=False)
+    grid = soup.find(class_="grid")
+    assert grid is not None
+    cards = grid.find_all("div", recursive=False)
 
     # Featured Card Defaults
     featured = cards[0]
