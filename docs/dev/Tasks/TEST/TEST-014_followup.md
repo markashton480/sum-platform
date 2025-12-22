@@ -16,9 +16,9 @@ Upgraded `tests/themes/conftest.py` with standard fixtures and refactored 4 them
 
 ### Parametrized Fixtures
 
-| Fixture     | Description                                             |
-| ----------- | ------------------------------------------------------- |
-| `theme_dir` | Parametrized across themes; yields `(slug, Path)` tuple |
+| Fixture     | Description                                                  |
+| ----------- | ------------------------------------------------------------ |
+| `theme_dir` | Parametrized across themes; yields `Path` to theme directory |
 
 ### Helper Functions
 
