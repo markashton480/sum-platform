@@ -15,6 +15,8 @@ protected_paths=(
   "docs"
   "infrastructure"
   "scripts"
+  "design"
+  "media"
 )
 
 missing_paths=()
