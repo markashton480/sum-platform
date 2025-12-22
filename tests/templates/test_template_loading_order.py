@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from django.template.loader import get_template
 
@@ -44,16 +46,39 @@ class TestTemplateLoadingOrder:
             settings.TEMPLATES[0]["DIRS"] = original_dirs
             _reset_django_template_loaders()
 
-    def test_core_only_template_resolves_from_core(self) -> None:
-        """Template only in core (trust_strip.html) falls back correctly.
+    def test_core_only_template_resolves_from_core(
+        self, tmp_path: Path, settings
+    ) -> None:
+        """Template only in core falls back correctly (hermetic test).
 
-        trust_strip.html exists in core/sum_core/templates but NOT in
-        themes/theme_a/templates, so it must resolve from core regardless
-        of theme configuration. This tests the APP_DIRS fallback path.
+        Sets the template search path to ONLY an empty temporary theme directory,
+        completely removing all existing theme dirs. Verifies that templates
+        correctly fall back to core via APP_DIRS when not found in the empty theme.
+        This is fully hermetic and doesn't depend on the actual contents of any theme.
         """
-        template = get_template("sum_core/blocks/trust_strip.html")
-        origin = template.origin.name
+        # Create empty theme dir that will be the ONLY configured theme dir
+        empty_theme_templates = tmp_path / "empty_theme" / "templates"
+        empty_theme_templates.mkdir(parents=True)
 
-        assert (
-            "sum_core" in origin and "themes" not in origin
-        ), f"Expected trust_strip.html from core (not in theme), got: {origin}"
+        # Template we know exists in core but won't be in our empty theme
+        core_only_template = "sum_core/blocks/stats.html"
+
+        # Replace all theme dirs with ONLY the empty theme (fully isolated)
+        original_dirs = list(settings.TEMPLATES[0]["DIRS"])
+        settings.TEMPLATES[0]["DIRS"] = [str(empty_theme_templates)]
+
+        try:
+            _reset_django_template_loaders()
+
+            # Resolve template - must come from core since empty theme has nothing
+            template = get_template(core_only_template)
+            origin = template.origin.name
+
+            # Should resolve from core (not our empty theme)
+            assert "sum_core" in origin and str(empty_theme_templates) not in origin, (
+                f"Expected {core_only_template} to fall back to core when "
+                f"only empty theme configured, got: {origin}"
+            )
+        finally:
+            settings.TEMPLATES[0]["DIRS"] = original_dirs
+            _reset_django_template_loaders()
