@@ -58,15 +58,13 @@ def theme_a_dir(themes_root_dir: Path) -> Path:
 # =============================================================================
 
 
-THEMES_ROOT = REPO_ROOT / "themes"
-
-
 @pytest.fixture(
-    scope="session", params=[p.name for p in THEMES_ROOT.iterdir() if p.is_dir()]
+    scope="session",
+    params=[p.name for p in (REPO_ROOT / "themes").iterdir() if p.is_dir()],
 )
-def theme_dir(request) -> Path:
+def theme_dir(request, themes_root_dir: Path):
     """Yield each available theme directory."""
-    return THEMES_ROOT / request.param
+    return themes_root_dir / request.param
 
 
 # =============================================================================
