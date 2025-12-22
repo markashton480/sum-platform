@@ -8,8 +8,11 @@ Dependencies: Django test utilities, pytest.
 
 from __future__ import annotations
 
+import logging
+import re
 import shutil
 import sys
+from importlib import metadata
 from pathlib import Path
 
 import pytest
@@ -29,6 +32,101 @@ if str(CORE_DIR) not in sys.path:
 
 if str(TEST_PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(TEST_PROJECT_DIR))
+
+logger = logging.getLogger(__name__)
+
+
+def _resolve_sum_core_version() -> str | None:
+    try:
+        import sum_core
+
+        version = getattr(sum_core, "__version__", None)
+        if version:
+            return str(version)
+    except Exception:
+        # If importing sum_core or reading __version__ fails, fall back to package metadata.
+        logger.debug(
+            "Failed to resolve sum_core version from import; falling back to package metadata.",
+            exc_info=True,
+        )
+
+    try:
+        return metadata.version("sum-core")
+    except metadata.PackageNotFoundError:
+        return None
+    except Exception:
+        logger.debug(
+            "Failed to resolve sum-core version from package metadata.",
+            exc_info=True,
+        )
+        return None
+
+
+def _parse_major_minor(version: str) -> tuple[int, int] | None:
+    match = re.match(r"^(\d+)\.(\d+)", version)
+    if not match:
+        return None
+    return int(match.group(1)), int(match.group(2))
+
+
+def _sum_core_major_minor() -> tuple[int, int] | None:
+    version = _resolve_sum_core_version()
+    if not version:
+        logger.warning(
+            "sum_core version could not be determined; skipping version-based marker logic."
+        )
+        return None
+
+    parsed = _parse_major_minor(version)
+    if not parsed:
+        logger.warning(
+            "sum_core version %r could not be parsed; skipping version-based marker logic.",
+            version,
+        )
+        return None
+
+    return parsed
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    parsed_version = _sum_core_major_minor()
+    if not parsed_version:
+        return
+
+    # Resolve a human-readable version string for clearer skip messages.
+    raw_version = _resolve_sum_core_version()
+    display_version = raw_version or f"{parsed_version[0]}.{parsed_version[1]}"
+
+    # Treat pre-release versions on the 0.6 line (e.g. "0.6.0-alpha") as legacy,
+    # since theme support is only guaranteed for final 0.6+ releases.
+    is_prerelease = bool(
+        raw_version and re.search(r"[-.]?(alpha|beta|rc|dev|pre|a|b)", raw_version)
+    )
+    is_legacy_line = parsed_version < (0, 6) or (
+        parsed_version[:2] == (0, 6) and is_prerelease
+    )
+
+    if is_legacy_line:
+        skip_marker = pytest.mark.skip(
+            reason=(
+                "Requires theme support (sum_core >= 0.6); "
+                f"skipping on version {display_version}"
+            )
+        )
+        for item in items:
+            if "requires_themes" in item.keywords:
+                item.add_marker(skip_marker)
+    else:
+        skip_marker = pytest.mark.skip(
+            reason=(
+                f"Legacy test for 0.5.x only; skipping on version {display_version}"
+            )
+        )
+        for item in items:
+            if "legacy_only" in item.keywords:
+                item.add_marker(skip_marker)
 
 
 def _reset_django_template_loaders() -> None:
