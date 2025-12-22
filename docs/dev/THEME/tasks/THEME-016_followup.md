@@ -13,7 +13,7 @@ Implemented the Theme A override for `ServiceCardsBlock` to match the "Sage & St
 
 - **Theme Rendering Tests:** Passed. Verified template resolution, "featured" class application, and link/content logic.
 - **Full Suite:** Passed (pending final confirmation in CI).
-- **Manual Verification:** Skipped locally due to missing `seed_showroom` command in the `test_project` environment, but confidence is high due to comprehensive unit tests covering HTML structure.
+- **Manual Verification:** Seeded `clients/showroom` successfully (`python clients/showroom/manage.py seed_showroom --clear`). Unit tests cover HTML structure.
 
 ## Decisions Made
 
