@@ -125,7 +125,8 @@ THEME_ACTIVE_TEMPLATES_DIR: Path = BASE_DIR / "theme" / "active" / "templates"
 # 1. Client-owned theme: theme/active/templates (installed by `sum init`)
 # 2. Repo-root theme: themes/theme_a/templates (local dev convenience)
 # 3. Legacy fallback: core-relative path (deprecated, kept for backwards compat)
-# 4. Core package APP_DIRS fallback: sum_core/templates (always available)
+# 4. Client overrides: templates/overrides
+# 5. Core package APP_DIRS fallback: sum_core/templates (always available)
 #
 # This order is IDENTICAL in test and production. Do NOT add RUNNING_TESTS
 # conditionals here — template resolution must be deterministic.
