@@ -67,7 +67,9 @@
                     {# Standard Card - spans 1 col #}
                     <div class="group relative border-b md:border-b-0 border-sage-black/10 flex flex-col justify-between p-12 hover:bg-white transition-colors duration-500 reveal min-h-[400px] {% if not forloop.last %}md:border-r{% endif %}">
                         <div class="mb-8">
-                            <span class="block text-xs font-bold uppercase tracking-widest text-sage-meta mb-4">0{{ forloop.counter }}</span>
+                            <span class="block text-xs font-bold uppercase tracking-widest text-sage-meta mb-4">
+                                {{ forloop.counter0|stringformat:"02d" }}
+                            </span>
 
                             <h3 class="font-display text-3xl text-sage-black mb-4 group-hover:text-sage-terra transition-colors">
                                 {{ card.title }}
@@ -84,8 +86,8 @@
                             {% endif %}
 
                             {% if card.description %}
-                                <div class="text-sage-black font-light leading-relaxed prose prose-sm prose-p:text-sage-black">
-                                    {{ card.description }}
+                                <div class="text-sage-black font-light leading-relaxed prose prose-sm prose-p:text-sage-black prose-a:text-sage-terra">
+                                    {{ card.description|richtext }}
                                 </div>
                             {% endif %}
                         </div>
@@ -104,7 +106,7 @@
 
         {% if self.view_all_link %}
             <div class="mt-12 text-center">
-                 <a href="{{ self.view_all_link }}" class="inline-block text-xs font-bold uppercase tracking-widest border-b border-sage-black/20 pb-1 hover:border-sage-terra hover:text-sage-terra transition-colors py-2">
+                <a href="{{ self.view_all_link }}" class="inline-block text-xs font-bold uppercase tracking-widest border-b border-sage-black/20 pb-1 hover:border-sage-terra hover:text-sage-terra transition-colors py-2">
                     {{ self.view_all_label|default:"View All Services" }}
                 </a>
             </div>

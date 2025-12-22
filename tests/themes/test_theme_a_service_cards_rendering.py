@@ -47,7 +47,7 @@ def test_service_cards_theme_structure():
     # 1. Assert Section Wrapper
     section = soup.find("section")
     assert section is not None
-    section_classes = str(section.get("class"))
+    section_classes = _get_classes(section)
     assert "bg-sage-oat/30" in section_classes
     assert "py-20" in section_classes
 
@@ -57,7 +57,7 @@ def test_service_cards_theme_structure():
     # 3. Assert Grid
     grid = soup.find(class_="grid")
     assert grid is not None
-    grid_classes = str(grid.get("class"))
+    grid_classes = _get_classes(grid)
     assert "grid-cols-1" in grid_classes
     assert "md:grid-cols-3" in grid_classes
 
@@ -71,13 +71,13 @@ def test_service_cards_theme_structure():
 
     # 5. Check Featured Card (First)
     featured_card = cards[0]
-    featured_classes = str(featured_card.get("class"))
+    featured_classes = _get_classes(featured_card)
     assert "md:col-span-2" in featured_classes
     assert "Featured Service" in featured_card.get_text()
 
     # 6. Check Standard Card (Second)
     standard_card = cards[1]
-    standard_classes = str(standard_card.get("class"))
+    standard_classes = _get_classes(standard_card)
     assert "md:col-span-2" not in standard_classes
     # Check for border logic (not last, so should have right border)
     # Actually my template has: {% if not forloop.last %}md:border-r{% endif %}
