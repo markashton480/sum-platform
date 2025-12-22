@@ -8,8 +8,11 @@ Dependencies: Django test utilities, pytest.
 
 from __future__ import annotations
 
+import logging
+import re
 import shutil
 import sys
+from importlib import metadata
 from pathlib import Path
 
 import pytest
@@ -29,6 +32,73 @@ if str(CORE_DIR) not in sys.path:
 
 if str(TEST_PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(TEST_PROJECT_DIR))
+
+logger = logging.getLogger(__name__)
+
+
+def _resolve_sum_core_version() -> str | None:
+    try:
+        import sum_core
+
+        version = getattr(sum_core, "__version__", None)
+        if version:
+            return str(version)
+    except Exception:
+        pass
+
+    try:
+        return metadata.version("sum-core")
+    except metadata.PackageNotFoundError:
+        return None
+    except Exception:
+        return None
+
+
+def _parse_major_minor(version: str) -> tuple[int, int] | None:
+    match = re.match(r"^(\d+)\.(\d+)", version)
+    if not match:
+        return None
+    return int(match.group(1)), int(match.group(2))
+
+
+def _sum_core_major_minor() -> tuple[int, int] | None:
+    version = _resolve_sum_core_version()
+    if not version:
+        logger.warning(
+            "sum_core version could not be determined; skipping version-based marker logic."
+        )
+        return None
+
+    parsed = _parse_major_minor(version)
+    if not parsed:
+        logger.warning(
+            "sum_core version %r could not be parsed; skipping version-based marker logic.",
+            version,
+        )
+        return None
+
+    return parsed
+
+
+def pytest_collection_modifyitems(config, items) -> None:
+    parsed_version = _sum_core_major_minor()
+    if not parsed_version:
+        return
+
+    is_legacy_line = parsed_version < (0, 6)
+
+    if is_legacy_line:
+        skip_marker = pytest.mark.skip(
+            reason="requires themes; skipped on sum_core < 0.6"
+        )
+        for item in items:
+            if "requires_themes" in item.keywords:
+                item.add_marker(skip_marker)
+    else:
+        skip_marker = pytest.mark.skip(reason="legacy-only; skipped on sum_core >= 0.6")
+        for item in items:
+            if "legacy_only" in item.keywords:
+                item.add_marker(skip_marker)
 
 
 def _reset_django_template_loaders() -> None:
