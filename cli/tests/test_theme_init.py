@@ -15,21 +15,36 @@ from pathlib import Path
 from sum_cli.commands.init import run_init
 
 
-def test_init_with_theme_creates_theme_config(tmp_path, monkeypatch) -> None:
-    """Test that sum init --theme creates .sum/theme.json provenance file."""
-    repo_root = Path(__file__).resolve().parents[2]
-    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
-    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
+def _assert_output_boundary(project_root: Path, output_root: Path) -> None:
+    assert project_root.is_relative_to(
+        output_root
+    ), "Project must be created under SUM_CLIENT_OUTPUT_PATH"
 
+
+def _assert_source_theme_present(theme_root: Path) -> None:
+    assert theme_root.exists(), "Source theme directory must exist"
+    assert (theme_root / "theme.json").exists(), "Source theme.json must exist"
+
+
+def test_init_with_theme_creates_theme_config(
+    monkeypatch, isolated_theme_env, apply_isolated_theme_env, theme_snapshot
+) -> None:
+    """Test that sum init --theme creates .sum/theme.json provenance file."""
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
+    before_snapshot = theme_snapshot(theme_root)
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"theme-test-{unique_suffix}"
 
-    monkeypatch.chdir(tmp_path)
+    monkeypatch.chdir(output_root)
     # init creates "clients" subdir in CWD
-    project_root = tmp_path / "clients" / project_name
+    project_root = output_root / "clients" / project_name
 
     code = run_init(project_name, theme_slug="theme_a")
     assert code == 0
+    _assert_output_boundary(project_root, output_root)
+    _assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
 
     # Check .sum/theme.json was created
     theme_file = project_root / ".sum" / "theme.json"
@@ -45,20 +60,24 @@ def test_init_with_theme_creates_theme_config(tmp_path, monkeypatch) -> None:
     assert "locked_at" in config
 
 
-def test_init_copies_theme_to_active_directory(tmp_path, monkeypatch) -> None:
+def test_init_copies_theme_to_active_directory(
+    monkeypatch, isolated_theme_env, apply_isolated_theme_env, theme_snapshot
+) -> None:
     """Test that sum init --theme copies theme to theme/active/ directory."""
-    repo_root = Path(__file__).resolve().parents[2]
-    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
-    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
-
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
+    before_snapshot = theme_snapshot(theme_root)
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"theme-copy-{unique_suffix}"
 
-    monkeypatch.chdir(tmp_path)
-    project_root = tmp_path / "clients" / project_name
+    monkeypatch.chdir(output_root)
+    project_root = output_root / "clients" / project_name
 
     code = run_init(project_name, theme_slug="theme_a")
     assert code == 0
+    _assert_output_boundary(project_root, output_root)
+    _assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
 
     # Check theme/active/ directory exists
     theme_active_dir = project_root / "theme" / "active"
@@ -96,22 +115,32 @@ def test_init_copies_theme_to_active_directory(tmp_path, monkeypatch) -> None:
     assert not (theme_active_dir / "node_modules").exists()
 
 
-def test_init_with_invalid_theme_fails(tmp_path, monkeypatch, capsys) -> None:
+def test_init_with_invalid_theme_fails(
+    monkeypatch,
+    capsys,
+    isolated_theme_env,
+    apply_isolated_theme_env,
+    theme_snapshot,
+) -> None:
     """Test that sum init --theme fails gracefully with invalid theme."""
-    repo_root = Path(__file__).resolve().parents[2]
-    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
-    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
-
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
+    before_snapshot = theme_snapshot(theme_root)
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"invalid-theme-{unique_suffix}"
 
-    monkeypatch.chdir(tmp_path)
+    monkeypatch.chdir(output_root)
+    project_root = output_root / "clients" / project_name
 
     code = run_init(project_name, theme_slug="nonexistent_theme")
     captured = capsys.readouterr()
 
     # Should fail
     assert code == 1
+    _assert_output_boundary(project_root, output_root)
+    _assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
+    assert not project_root.exists()
 
     # Should mention the invalid theme
     assert "nonexistent_theme" in captured.out or "does not exist" in captured.out
@@ -120,21 +149,25 @@ def test_init_with_invalid_theme_fails(tmp_path, monkeypatch, capsys) -> None:
     # (depending on when validation happens)
 
 
-def test_init_default_theme_is_theme_a(tmp_path, monkeypatch) -> None:
+def test_init_default_theme_is_theme_a(
+    monkeypatch, isolated_theme_env, apply_isolated_theme_env, theme_snapshot
+) -> None:
     """Test that sum init without --theme uses theme_a by default."""
-    repo_root = Path(__file__).resolve().parents[2]
-    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
-    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
-
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
+    before_snapshot = theme_snapshot(theme_root)
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"default-theme-{unique_suffix}"
 
-    monkeypatch.chdir(tmp_path)
-    project_root = tmp_path / "clients" / project_name
+    monkeypatch.chdir(output_root)
+    project_root = output_root / "clients" / project_name
 
     # Call without theme_slug - should use default
     code = run_init(project_name)
     assert code == 0
+    _assert_output_boundary(project_root, output_root)
+    _assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
 
     # Check theme file has theme_a
     theme_file = project_root / ".sum" / "theme.json"
@@ -149,21 +182,25 @@ def test_init_default_theme_is_theme_a(tmp_path, monkeypatch) -> None:
     assert (project_root / "theme" / "active" / "theme.json").exists()
 
 
-def test_init_includes_seed_showroom_command(tmp_path, monkeypatch) -> None:
+def test_init_includes_seed_showroom_command(
+    monkeypatch, isolated_theme_env, apply_isolated_theme_env, theme_snapshot
+) -> None:
     """Generated client projects should include the seed_showroom management command."""
-    repo_root = Path(__file__).resolve().parents[2]
-    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
-    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
-
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
+    before_snapshot = theme_snapshot(theme_root)
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"seed-showroom-{unique_suffix}"
     python_pkg = project_name.replace("-", "_")
 
-    monkeypatch.chdir(tmp_path)
-    project_root = tmp_path / "clients" / project_name
+    monkeypatch.chdir(output_root)
+    project_root = output_root / "clients" / project_name
 
     code = run_init(project_name, theme_slug="theme_a")
     assert code == 0
+    _assert_output_boundary(project_root, output_root)
+    _assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
 
     cmd = (
         project_root
@@ -197,21 +234,25 @@ def test_init_includes_seed_showroom_command(tmp_path, monkeypatch) -> None:
     assert "settings.favicon_id" in text
 
 
-def test_init_settings_include_canonical_theme_override(tmp_path, monkeypatch) -> None:
+def test_init_settings_include_canonical_theme_override(
+    monkeypatch, isolated_theme_env, apply_isolated_theme_env, theme_snapshot
+) -> None:
     """Generated settings should include the canonical theme dev override."""
-    repo_root = Path(__file__).resolve().parents[2]
-    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
-    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
-
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
+    before_snapshot = theme_snapshot(theme_root)
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"canonical-theme-{unique_suffix}"
     python_pkg = project_name.replace("-", "_")
 
-    monkeypatch.chdir(tmp_path)
-    project_root = tmp_path / "clients" / project_name
+    monkeypatch.chdir(output_root)
+    project_root = output_root / "clients" / project_name
 
     code = run_init(project_name, theme_slug="theme_a")
     assert code == 0
+    _assert_output_boundary(project_root, output_root)
+    _assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
 
     settings_base = project_root / python_pkg / "settings" / "base.py"
     text = settings_base.read_text(encoding="utf-8")

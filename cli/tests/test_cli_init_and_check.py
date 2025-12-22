@@ -10,8 +10,15 @@ from sum_cli.commands.init import run_init
 from sum_cli.util import validate_project_name
 
 
-def _theme_tree(theme_root: Path) -> list[str]:
-    return sorted(str(path.relative_to(theme_root)) for path in theme_root.rglob("*"))
+def _assert_output_boundary(project_root: Path, output_root: Path) -> None:
+    assert project_root.is_relative_to(
+        output_root
+    ), "Project must be created under SUM_CLIENT_OUTPUT_PATH"
+
+
+def _assert_source_theme_present(theme_root: Path) -> None:
+    assert theme_root.exists(), "Source theme directory must exist"
+    assert (theme_root / "theme.json").exists(), "Source theme.json must exist"
 
 
 def test_validate_project_name_allows_hyphens_and_normalizes() -> None:
@@ -20,16 +27,13 @@ def test_validate_project_name_allows_hyphens_and_normalizes() -> None:
     assert naming.python_package == "acme_kitchens"
 
 
-def test_init_creates_project_and_check_passes(tmp_path, monkeypatch) -> None:
-    """
-    Test that sum init + sum check works from repo root context.
-
-    The CLI's monorepo detection will find core/ by traversing upward from
-    the project directory to the repo root.
-    """
-    repo_root = Path(__file__).resolve().parents[2]
-    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
-    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
+def test_init_creates_project_and_check_passes(
+    monkeypatch, isolated_theme_env, apply_isolated_theme_env, theme_snapshot
+) -> None:
+    """Test that sum init + sum check works from an isolated output directory."""
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
+    before_snapshot = theme_snapshot(theme_root)
 
     # Use unique project name to avoid conflicts with existing projects
     # Note: avoid names containing 'test' since the check scans for 'test_project'
@@ -37,12 +41,15 @@ def test_init_creates_project_and_check_passes(tmp_path, monkeypatch) -> None:
     project_name = f"cli-check-{unique_suffix}"
     python_package = f"cli_check_{unique_suffix}"
 
-    # Create a new project from repo root context
-    monkeypatch.chdir(tmp_path)
-    project_root = tmp_path / "clients" / project_name
+    # Create a new project from isolated output context
+    monkeypatch.chdir(output_root)
+    project_root = output_root / "clients" / project_name
 
     code = run_init(project_name)
     assert code == 0
+    _assert_output_boundary(project_root, output_root)
+    _assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
 
     assert project_root.exists()
     assert (project_root / "manage.py").exists()
@@ -61,29 +68,29 @@ def test_init_creates_project_and_check_passes(tmp_path, monkeypatch) -> None:
     assert run_check() == 0
 
 
-def test_cli_init_and_check_do_not_remove_theme_a(tmp_path, monkeypatch) -> None:
-    repo_root = Path(__file__).resolve().parents[2]
-    theme_root = repo_root / "themes" / "theme_a"
+def test_cli_init_and_check_do_not_remove_theme_a(
+    monkeypatch, isolated_theme_env, apply_isolated_theme_env, theme_snapshot
+) -> None:
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
     assert theme_root.exists()
-
-    before_tree = _theme_tree(theme_root)
-
-    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
-    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
+    before_snapshot = theme_snapshot(theme_root)
 
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"cli-theme-safety-{unique_suffix}"
 
-    monkeypatch.chdir(tmp_path)
-    project_root = tmp_path / "clients" / project_name
+    monkeypatch.chdir(output_root)
+    project_root = output_root / "clients" / project_name
 
     assert run_init(project_name) == 0
+    _assert_output_boundary(project_root, output_root)
+    _assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
 
     monkeypatch.chdir(project_root)
     assert run_check() == 0
 
-    after_tree = _theme_tree(theme_root)
-    assert after_tree == before_tree
+    assert theme_snapshot(theme_root) == before_snapshot
 
 
 def test_check_fails_on_missing_required_env_vars(tmp_path, monkeypatch) -> None:
@@ -167,19 +174,26 @@ def test_check_standalone_mode_fails_with_friendly_message(
 
 
 def test_check_fails_when_theme_compiled_css_missing(
-    tmp_path, monkeypatch, capsys
+    monkeypatch,
+    capsys,
+    isolated_theme_env,
+    apply_isolated_theme_env,
+    theme_snapshot,
 ) -> None:
-    repo_root = Path(__file__).resolve().parents[2]
-    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
-    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
+    before_snapshot = theme_snapshot(theme_root)
 
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"cli-theme-check-{unique_suffix}"
 
-    monkeypatch.chdir(tmp_path)
-    project_root = tmp_path / "clients" / project_name
+    monkeypatch.chdir(output_root)
+    project_root = output_root / "clients" / project_name
 
     assert run_init(project_name) == 0
+    _assert_output_boundary(project_root, output_root)
+    _assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
 
     css_path = (
         project_root / "theme" / "active" / "static" / "theme_a" / "css" / "main.css"
@@ -201,18 +215,27 @@ def test_check_fails_when_theme_compiled_css_missing(
             missing_css_backup.rename(css_path)
 
 
-def test_check_fails_when_theme_slug_mismatch(tmp_path, monkeypatch, capsys) -> None:
-    repo_root = Path(__file__).resolve().parents[2]
-    monkeypatch.setenv("SUM_THEME_PATH", str(repo_root / "themes"))
-    monkeypatch.setenv("SUM_BOILERPLATE_PATH", str(repo_root / "boilerplate"))
+def test_check_fails_when_theme_slug_mismatch(
+    monkeypatch,
+    capsys,
+    isolated_theme_env,
+    apply_isolated_theme_env,
+    theme_snapshot,
+) -> None:
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
+    before_snapshot = theme_snapshot(theme_root)
 
     unique_suffix = int(time.time() * 1000) % 100000
     project_name = f"cli-theme-mismatch-{unique_suffix}"
 
-    monkeypatch.chdir(tmp_path)
-    project_root = tmp_path / "clients" / project_name
+    monkeypatch.chdir(output_root)
+    project_root = output_root / "clients" / project_name
 
     assert run_init(project_name) == 0
+    _assert_output_boundary(project_root, output_root)
+    _assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
 
     # Break provenance to simulate a bad/partial theme install
     theme_provenance = project_root / ".sum" / "theme.json"
