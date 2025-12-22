@@ -20,11 +20,15 @@ from django.apps import apps
 from django.core.management.base import BaseCommand, CommandParser
 from wagtail.models import Page, Site
 
-FakerClass: type[Any] | None
+_FakerClass: type[Any] | None
 try:
-    from faker import Faker as FakerClass
+    from faker import Faker as FakerImpl
 except ImportError:  # pragma: no cover
-    FakerClass = None
+    _FakerClass = None
+else:
+    _FakerClass = FakerImpl
+
+FakerClass = _FakerClass
 
 
 class Command(BaseCommand):
