@@ -51,33 +51,33 @@ class TestTemplateLoadingOrder:
     ) -> None:
         """Template only in core falls back correctly (hermetic test).
 
-        Creates an empty temporary theme directory, prepends it to the template
-        search path, and verifies that templates NOT in the empty theme correctly
-        fall back to core. This is fully hermetic and doesn't depend on the
-        actual contents of themes/theme_a.
+        Sets the template search path to ONLY an empty temporary theme directory,
+        completely removing all existing theme dirs. Verifies that templates
+        correctly fall back to core via APP_DIRS when not found in the empty theme.
+        This is fully hermetic and doesn't depend on the actual contents of any theme.
         """
-        # Create empty theme dir that will be searched first
+        # Create empty theme dir that will be the ONLY configured theme dir
         empty_theme_templates = tmp_path / "empty_theme" / "templates"
         empty_theme_templates.mkdir(parents=True)
 
         # Template we know exists in core but won't be in our empty theme
         core_only_template = "sum_core/blocks/stats.html"
 
-        # Temporarily prepend empty theme to template dirs
+        # Replace all theme dirs with ONLY the empty theme (fully isolated)
         original_dirs = list(settings.TEMPLATES[0]["DIRS"])
-        settings.TEMPLATES[0]["DIRS"] = [str(empty_theme_templates), *original_dirs]
+        settings.TEMPLATES[0]["DIRS"] = [str(empty_theme_templates)]
 
         try:
             _reset_django_template_loaders()
 
-            # Force resolution through our empty theme first
+            # Resolve template - must come from core since empty theme has nothing
             template = get_template(core_only_template)
             origin = template.origin.name
 
-            # Should resolve from core (not our empty theme, not theme_a)
-            assert "sum_core" in origin, (
+            # Should resolve from core (not our empty theme)
+            assert "sum_core" in origin and str(empty_theme_templates) not in origin, (
                 f"Expected {core_only_template} to fall back to core when "
-                f"empty theme searched first, got: {origin}"
+                f"only empty theme configured, got: {origin}"
             )
         finally:
             settings.TEMPLATES[0]["DIRS"] = original_dirs

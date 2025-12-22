@@ -16,8 +16,7 @@ import pytest
 from django.conf import settings
 from django.template import engines
 
-from tests.utils import create_filesystem_sandbox, get_protected_paths
-from tests.utils.fixtures import REPO_ROOT
+from tests.utils import REPO_ROOT, create_filesystem_sandbox, get_protected_paths
 from tests.utils.safe_cleanup import safe_rmtree as safe_cleanup_rmtree
 
 # Use centralized REPO_ROOT from tests.utils.fixtures
