@@ -87,17 +87,29 @@ def pytest_collection_modifyitems(
     if not parsed_version:
         return
 
+    # Resolve a human-readable version string for clearer skip messages.
+    raw_version = _resolve_sum_core_version()
+    display_version = raw_version or f"{parsed_version[0]}.{parsed_version[1]}"
+
     is_legacy_line = parsed_version < (0, 6)
 
     if is_legacy_line:
         skip_marker = pytest.mark.skip(
-            reason="requires themes; skipped on sum_core < 0.6"
+            reason=(
+                "Requires theme support (sum_core >= 0.6); "
+                f"skipping on version {display_version}"
+            )
         )
         for item in items:
             if "requires_themes" in item.keywords:
                 item.add_marker(skip_marker)
     else:
-        skip_marker = pytest.mark.skip(reason="legacy-only; skipped on sum_core >= 0.6")
+        skip_marker = pytest.mark.skip(
+            reason=(
+                "Legacy-only behavior; skipping on sum_core version "
+                f"{display_version} (>= 0.6)"
+            )
+        )
         for item in items:
             if "legacy_only" in item.keywords:
                 item.add_marker(skip_marker)
