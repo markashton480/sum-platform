@@ -9,16 +9,7 @@ from sum_cli.commands.check import run_check
 from sum_cli.commands.init import run_init
 from sum_cli.util import validate_project_name
 
-
-def _assert_output_boundary(project_root: Path, output_root: Path) -> None:
-    assert project_root.is_relative_to(
-        output_root
-    ), "Project must be created under SUM_CLIENT_OUTPUT_PATH"
-
-
-def _assert_source_theme_present(theme_root: Path) -> None:
-    assert theme_root.exists(), "Source theme directory must exist"
-    assert (theme_root / "theme.json").exists(), "Source theme.json must exist"
+from cli.tests.conftest import assert_output_boundary, assert_source_theme_present
 
 
 def test_validate_project_name_allows_hyphens_and_normalizes() -> None:
@@ -47,8 +38,8 @@ def test_init_creates_project_and_check_passes(
 
     code = run_init(project_name)
     assert code == 0
-    _assert_output_boundary(project_root, output_root)
-    _assert_source_theme_present(theme_root)
+    assert_output_boundary(project_root, output_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == before_snapshot
 
     assert project_root.exists()
@@ -83,8 +74,8 @@ def test_cli_init_and_check_do_not_remove_theme_a(
     project_root = output_root / "clients" / project_name
 
     assert run_init(project_name) == 0
-    _assert_output_boundary(project_root, output_root)
-    _assert_source_theme_present(theme_root)
+    assert_output_boundary(project_root, output_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == before_snapshot
 
     monkeypatch.chdir(project_root)
@@ -191,8 +182,8 @@ def test_check_fails_when_theme_compiled_css_missing(
     project_root = output_root / "clients" / project_name
 
     assert run_init(project_name) == 0
-    _assert_output_boundary(project_root, output_root)
-    _assert_source_theme_present(theme_root)
+    assert_output_boundary(project_root, output_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == before_snapshot
 
     css_path = (
@@ -233,8 +224,8 @@ def test_check_fails_when_theme_slug_mismatch(
     project_root = output_root / "clients" / project_name
 
     assert run_init(project_name) == 0
-    _assert_output_boundary(project_root, output_root)
-    _assert_source_theme_present(theme_root)
+    assert_output_boundary(project_root, output_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == before_snapshot
 
     # Break provenance to simulate a bad/partial theme install

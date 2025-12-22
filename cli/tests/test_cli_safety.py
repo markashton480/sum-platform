@@ -13,20 +13,10 @@ from pathlib import Path
 import pytest
 from sum_cli.commands.init import run_init
 
+from cli.tests.conftest import assert_output_boundary, assert_source_theme_present
 from tests.utils.safe_cleanup import UnsafeDeleteError
 
 pytestmark = pytest.mark.regression
-
-
-def _assert_output_boundary(project_root: Path, output_root: Path) -> None:
-    assert project_root.is_relative_to(
-        output_root
-    ), "Project must be created under SUM_CLIENT_OUTPUT_PATH"
-
-
-def _assert_source_theme_present(theme_root: Path) -> None:
-    assert theme_root.exists(), "Source theme directory must exist"
-    assert (theme_root / "theme.json").exists(), "Source theme.json must exist"
 
 
 def test_init_output_boundary_and_source_immutability(
@@ -44,9 +34,9 @@ def test_init_output_boundary_and_source_immutability(
     assert run_init(project_name, theme_slug="theme_a") == 0
 
     project_root = output_root / "clients" / project_name
-    _assert_output_boundary(project_root, output_root)
+    assert_output_boundary(project_root, output_root)
     assert project_root.exists()
-    _assert_source_theme_present(theme_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == theme_before
     assert theme_snapshot(boilerplate_root) == boilerplate_before
 
@@ -82,10 +72,10 @@ def test_repeated_inits_do_not_corrupt_sources(
     first_root = output_root / "clients" / first_project
     second_root = output_root / "clients" / second_project
 
-    _assert_output_boundary(first_root, output_root)
-    _assert_output_boundary(second_root, output_root)
+    assert_output_boundary(first_root, output_root)
+    assert_output_boundary(second_root, output_root)
     assert first_root.exists()
     assert second_root.exists()
-    _assert_source_theme_present(theme_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == theme_before
     assert theme_snapshot(boilerplate_root) == boilerplate_before

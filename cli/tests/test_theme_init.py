@@ -14,16 +14,7 @@ from pathlib import Path
 
 from sum_cli.commands.init import run_init
 
-
-def _assert_output_boundary(project_root: Path, output_root: Path) -> None:
-    assert project_root.is_relative_to(
-        output_root
-    ), "Project must be created under SUM_CLIENT_OUTPUT_PATH"
-
-
-def _assert_source_theme_present(theme_root: Path) -> None:
-    assert theme_root.exists(), "Source theme directory must exist"
-    assert (theme_root / "theme.json").exists(), "Source theme.json must exist"
+from cli.tests.conftest import assert_output_boundary, assert_source_theme_present
 
 
 def test_init_with_theme_creates_theme_config(
@@ -42,8 +33,8 @@ def test_init_with_theme_creates_theme_config(
 
     code = run_init(project_name, theme_slug="theme_a")
     assert code == 0
-    _assert_output_boundary(project_root, output_root)
-    _assert_source_theme_present(theme_root)
+    assert_output_boundary(project_root, output_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == before_snapshot
 
     # Check .sum/theme.json was created
@@ -75,8 +66,8 @@ def test_init_copies_theme_to_active_directory(
 
     code = run_init(project_name, theme_slug="theme_a")
     assert code == 0
-    _assert_output_boundary(project_root, output_root)
-    _assert_source_theme_present(theme_root)
+    assert_output_boundary(project_root, output_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == before_snapshot
 
     # Check theme/active/ directory exists
@@ -137,8 +128,9 @@ def test_init_with_invalid_theme_fails(
 
     # Should fail
     assert code == 1
-    _assert_output_boundary(project_root, output_root)
-    _assert_source_theme_present(theme_root)
+    error_target = output_root / "clients"
+    assert_output_boundary(error_target, output_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == before_snapshot
     assert not project_root.exists()
 
@@ -165,8 +157,8 @@ def test_init_default_theme_is_theme_a(
     # Call without theme_slug - should use default
     code = run_init(project_name)
     assert code == 0
-    _assert_output_boundary(project_root, output_root)
-    _assert_source_theme_present(theme_root)
+    assert_output_boundary(project_root, output_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == before_snapshot
 
     # Check theme file has theme_a
@@ -198,8 +190,8 @@ def test_init_includes_seed_showroom_command(
 
     code = run_init(project_name, theme_slug="theme_a")
     assert code == 0
-    _assert_output_boundary(project_root, output_root)
-    _assert_source_theme_present(theme_root)
+    assert_output_boundary(project_root, output_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == before_snapshot
 
     cmd = (
@@ -250,8 +242,8 @@ def test_init_settings_include_canonical_theme_override(
 
     code = run_init(project_name, theme_slug="theme_a")
     assert code == 0
-    _assert_output_boundary(project_root, output_root)
-    _assert_source_theme_present(theme_root)
+    assert_output_boundary(project_root, output_root)
+    assert_source_theme_present(theme_root)
     assert theme_snapshot(theme_root) == before_snapshot
 
     settings_base = project_root / python_pkg / "settings" / "base.py"

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import hashlib
+import pathlib
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 # Ensure repo root is on sys.path so 'tests.utils' is importable
 # when running `pytest cli/tests` in isolation (sliced runs).
-_REPO_ROOT = Path(__file__).resolve().parents[2]
+_REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
@@ -17,6 +18,17 @@ from tests.utils.safe_cleanup import create_filesystem_sandbox  # noqa: E402
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+
+def assert_output_boundary(project_root: Path, output_root: Path) -> None:
+    assert project_root.is_relative_to(
+        output_root
+    ), "Project must be created under SUM_CLIENT_OUTPUT_PATH"
+
+
+def assert_source_theme_present(theme_root: Path) -> None:
+    assert theme_root.exists(), "Source theme directory must exist"
+    assert (theme_root / "theme.json").exists(), "Source theme.json must exist"
 
 
 @pytest.fixture(autouse=True)
