@@ -82,22 +82,8 @@ jobs:
       - name: Run template loading tests
         run: make test-templates
 
-      - name: Guard protected assets
-        run: |
-          set -euo pipefail
-
-          if [ ! -d themes/theme_a ]; then
-            echo "themes/theme_a missing after tests" >&2
-            exit 1
-          fi
-
-          protected_paths=(themes boilerplate core cli docs scripts infrastructure clients design media)
-          status_output=$(git status --porcelain --untracked-files=all -- "${protected_paths[@]}")
-          if [ -n "$status_output" ]; then
-            echo "Protected directories were modified or contain untracked files during tests" >&2
-            echo "$status_output"
-            exit 1
-          fi
+      - name: Verify source integrity
+        run: make verify-source-intact
 
   # ---------------------------------------------------------------------------
   # TEST-FULL: Run the full test suite
@@ -138,22 +124,8 @@ jobs:
       - name: Run tests
         run: make test
 
-      - name: Guard protected assets
-        run: |
-          set -euo pipefail
-
-          if [ ! -d themes/theme_a ]; then
-            echo "themes/theme_a missing after tests" >&2
-            exit 1
-          fi
-
-          protected_paths=(themes boilerplate core cli docs scripts infrastructure clients design media)
-          status_output=$(git status --porcelain --untracked-files=all -- "${protected_paths[@]}")
-          if [ -n "$status_output" ]; then
-            echo "Protected directories were modified or contain untracked files during tests" >&2
-            echo "$status_output"
-            exit 1
-          fi
+      - name: Verify source integrity
+        run: make verify-source-intact
 
   # ---------------------------------------------------------------------------
   # TEST-CLI: Run CLI test slice
@@ -194,22 +166,8 @@ jobs:
       - name: Run CLI test slice
         run: make test-cli
 
-      - name: Guard protected assets
-        run: |
-          set -euo pipefail
-
-          if [ ! -d themes/theme_a ]; then
-            echo "themes/theme_a missing after tests" >&2
-            exit 1
-          fi
-
-          protected_paths=(themes boilerplate core cli docs scripts infrastructure clients design media)
-          status_output=$(git status --porcelain --untracked-files=all -- "${protected_paths[@]}")
-          if [ -n "$status_output" ]; then
-            echo "Protected directories were modified or contain untracked files during tests" >&2
-            echo "$status_output"
-            exit 1
-          fi
+      - name: Verify source integrity
+        run: make verify-source-intact
 
   # ---------------------------------------------------------------------------
   # TEST-THEMES: Run themes test slice
@@ -250,19 +208,5 @@ jobs:
       - name: Run themes test slice
         run: make test-themes
 
-      - name: Guard protected assets
-        run: |
-          set -euo pipefail
-
-          if [ ! -d themes/theme_a ]; then
-            echo "themes/theme_a missing after tests" >&2
-            exit 1
-          fi
-
-          protected_paths=(themes boilerplate core cli docs scripts infrastructure clients design media)
-          status_output=$(git status --porcelain --untracked-files=all -- "${protected_paths[@]}")
-          if [ -n "$status_output" ]; then
-            echo "Protected directories were modified or contain untracked files during tests" >&2
-            echo "$status_output"
-            exit 1
-          fi
+      - name: Verify source integrity
+        run: make verify-source-intact
