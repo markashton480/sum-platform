@@ -43,3 +43,17 @@ class TestTemplateLoadingOrder:
         finally:
             settings.TEMPLATES[0]["DIRS"] = original_dirs
             _reset_django_template_loaders()
+
+    def test_core_only_template_resolves_from_core(self) -> None:
+        """Template only in core (trust_strip.html) falls back correctly.
+
+        trust_strip.html exists in core/sum_core/templates but NOT in
+        themes/theme_a/templates, so it must resolve from core regardless
+        of theme configuration. This tests the APP_DIRS fallback path.
+        """
+        template = get_template("sum_core/blocks/trust_strip.html")
+        origin = template.origin.name
+
+        assert (
+            "sum_core" in origin and "themes" not in origin
+        ), f"Expected trust_strip.html from core (not in theme), got: {origin}"

@@ -50,6 +50,56 @@ jobs:
         run: make lint
 
   # ---------------------------------------------------------------------------
+  # TEST-TEMPLATES: Template loading order gate (fast fail)
+  # ---------------------------------------------------------------------------
+  test-templates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: lint
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./core[dev]
+
+      - name: Run template loading tests
+        run: make test-templates
+
+      - name: Guard protected assets
+        run: |
+          set -euo pipefail
+
+          if [ ! -d themes/theme_a ]; then
+            echo "themes/theme_a missing after tests" >&2
+            exit 1
+          fi
+
+          protected_paths=(themes boilerplate core cli docs scripts infrastructure clients design media)
+          status_output=$(git status --porcelain --untracked-files=all -- "${protected_paths[@]}")
+          if [ -n "$status_output" ]; then
+            echo "Protected directories were modified or contain untracked files during tests" >&2
+            echo "$status_output"
+            exit 1
+          fi
+
+  # ---------------------------------------------------------------------------
   # TEST-FULL: Run the full test suite
   # ---------------------------------------------------------------------------
   test-full:
