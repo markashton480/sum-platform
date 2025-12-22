@@ -33,6 +33,7 @@ Implemented Phase 2 of the test strategy (Root Cause Fixes) by:
 3. sum_core/templates         (APP_DIRS fallback)
 ```
 
+_Note: This is a simplified view of the resolution order. The full order also includes the core-relative legacy fallback path and `templates/overrides` (`CLIENT_OVERRIDES_DIR`); see `settings.py` for the authoritative list._
 ## Test Template Selection
 
 | Test Case        | Template                           | Location                      |
