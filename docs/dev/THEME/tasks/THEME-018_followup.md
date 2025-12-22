@@ -12,7 +12,7 @@
 - docs/dev/THEME/tasks/THEME-018_followup.md
 
 ## Test Results
-- `pytest -q tests/themes/test_theme_a_contact_form_rendering.py` (fails: `pytest` not found).
+- `source .venv/bin/activate && pytest -q tests/themes/test_theme_a_contact_form_rendering.py` (passed; warnings about Django URLField default scheme).
 
 ## Decisions / Blockers
 - Kept form-object rendering with standard labels since widget class overrides are not available in templates.
