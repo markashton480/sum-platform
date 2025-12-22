@@ -56,7 +56,7 @@ We’ve completed the Phase 5 CLI safety refactor and added Phase 6 CI source-in
 
    - Update (or create, if missing) tests/conftest.py so it:
 
-     - determines the running sum_core version robustly (prefer import sum_core.**version**; if import fails, fall back to importlib.metadata for installed package version; if both fail, do not crash the test run—log a short warning and skip version-based logic).
+     - determines the running sum_core version robustly (prefer `sum_core.__version__`; if import fails, fall back to `importlib.metadata` for the installed package version; if both fail, do not crash the test run—log a short warning and skip version-based logic).
      - implements pytest_collection_modifyitems to apply the skip rules for requires_themes and legacy_only.
 
    - Keep this logic scoped to the root tests suite; it must not break running pytest from other subtrees.

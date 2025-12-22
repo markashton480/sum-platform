@@ -32,7 +32,7 @@ jobs:
             ref="release/0.5.x"
           else
             git fetch --tags --force --quiet
-            tag=$(git tag -l "v0.5.*" --sort=version:refname | tail -n 1)
+            tag=$(git tag -l "v0.5.*" --sort=-version:refname | head -n 1)
             if [ -n "$tag" ]; then
               ref="$tag"
             fi
@@ -73,7 +73,7 @@ jobs:
           try:
               import sum_core
               version = getattr(sum_core, "__version__", "unknown")
-          except Exception as exc:  # pragma: no cover - diagnostics only
+          except Exception as exc:  # diagnostics only
               version = f"unavailable ({exc})"
 
           print(f"python: {sys.version}")

@@ -28,7 +28,9 @@ def test_sum_core_version_has_major_minor() -> None:
     import sum_core
 
     version = str(getattr(sum_core, "__version__", ""))
-    assert re.match(r"^\d+\.\d+(\.\d+)?", version)
+    assert re.match(
+        r"^\d+\.\d+\.\d+", version
+    ), f"Expected semantic version 'MAJOR.MINOR.PATCH', got {version!r}"
 
 
 def test_settings_module_importable() -> None:
