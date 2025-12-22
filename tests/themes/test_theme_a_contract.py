@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
 
-THEME_A_DIR = Path(__file__).resolve().parent.parent.parent / "themes" / "theme_a"
+from tests.utils import REPO_ROOT
+
+THEME_A_DIR = REPO_ROOT / "themes" / "theme_a"
 
 
 def test_theme_a_tailwind_config_references_branding() -> None:
