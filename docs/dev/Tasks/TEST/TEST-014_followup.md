@@ -43,7 +43,7 @@ Replaced bespoke `repo_root = Path(__file__).resolve().parents[2]` with centrali
 4. `tests/themes/test_theme_a_tailwind.py`
 5. `tests/themes/test_theme_discovery.py`
 
-## Verification Output
+## Verification Output (close-out)
 
 ```
 $ make lint
@@ -57,21 +57,21 @@ All done! ✨ 🍰 ✨
 isort --check-only core cli tests
 Skipped 44 files
 
-$ pytest tests/themes/ --collect-only
-========================= 69 tests collected in 3.06s ==========================
-
 $ make test-themes
-================== 69 passed, 7 warnings in 66.38s (0:01:06) ===================
+=================================================== 69 passed, 7 warnings in 50.61s ===================================================
 
 $ make test-templates
-======================== 4 passed, 7 warnings in 52.55s ========================
+==================================================== 4 passed, 7 warnings in 43.76s ====================================================
 
 $ make test
-================= 752 passed, 45 warnings in 184.14s (0:03:04) =================
+============================================= 752 passed, 45 warnings in 167.15s (0:02:47) =============================================
 
 $ git status --porcelain
-# Only expected modified files (5 theme test files)
+?? docs/dev/Tasks/TEST/TEST-14A.md
+?? docs/dev/reports/REDFLAGS.md
 ```
+
+> Note: working tree shows two pre-existing untracked files (not part of this ticket). No tracked files are modified.
 
 ## Success Criteria Met
 
