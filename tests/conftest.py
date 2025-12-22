@@ -44,13 +44,21 @@ def _resolve_sum_core_version() -> str | None:
         if version:
             return str(version)
     except Exception:
-        pass
+        # If importing sum_core or reading __version__ fails, fall back to package metadata.
+        logger.debug(
+            "Failed to resolve sum_core version from import; falling back to package metadata.",
+            exc_info=True,
+        )
 
     try:
         return metadata.version("sum-core")
     except metadata.PackageNotFoundError:
         return None
     except Exception:
+        logger.debug(
+            "Failed to resolve sum-core version from package metadata.",
+            exc_info=True,
+        )
         return None
 
 
@@ -91,7 +99,12 @@ def pytest_collection_modifyitems(
     raw_version = _resolve_sum_core_version()
     display_version = raw_version or f"{parsed_version[0]}.{parsed_version[1]}"
 
-    is_legacy_line = parsed_version < (0, 6)
+    # Treat pre-release versions on the 0.6 line (e.g. "0.6.0-alpha") as legacy,
+    # since theme support is only guaranteed for final 0.6+ releases.
+    is_prerelease = bool(raw_version and re.search(r"[A-Za-z]", raw_version))
+    is_legacy_line = parsed_version < (0, 6) or (
+        parsed_version == (0, 6) and is_prerelease
+    )
 
     if is_legacy_line:
         skip_marker = pytest.mark.skip(
@@ -106,8 +119,7 @@ def pytest_collection_modifyitems(
     else:
         skip_marker = pytest.mark.skip(
             reason=(
-                "Legacy-only behavior; skipping on sum_core version "
-                f"{display_version} (>= 0.6)"
+                f"Legacy test for 0.5.x only; skipping on version {display_version}"
             )
         )
         for item in items:
