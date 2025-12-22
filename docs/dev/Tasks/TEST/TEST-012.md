@@ -98,5 +98,5 @@ Preferred:
   - what RUNNING_TESTS conditionals were removed/changed
   - chosen templates for precedence/fallback tests
   - local verification output (commands + results)
-  - Called `TEST-12_followup.md` in same directory
+  - Called `TEST-012_followup.md` in same directory
   - Commit this ticket with the same commit message
