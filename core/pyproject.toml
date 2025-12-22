@@ -23,7 +23,7 @@ dev = [
   "pytest-cov",
   "mypy",
   "types-requests>=2.31,<3.0",
-  "ruff",
+  "ruff>=0.1.0",
   "black",
   "isort",
 ]
