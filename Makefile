@@ -1,4 +1,4 @@
-.PHONY: help lint test test-cli test-themes test-fast format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref
+.PHONY: help lint test test-cli test-themes test-templates test-fast format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref
 
 MANAGE = python core/sum_core/test_project/manage.py
 
@@ -36,6 +36,9 @@ test-cli: ## Run CLI test slice only
 
 test-themes: ## Run themes test slice only
 	python -m pytest tests/themes -q
+
+test-templates: ## Run template loading order tests (fast gate)
+	python -m pytest tests/templates/test_template_loading_order.py -q
 
 test-fast: ## Run high-signal test slices (CLI + themes)
 	python -m pytest cli/tests tests/themes -q

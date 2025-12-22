@@ -118,6 +118,18 @@ ROOT_URLCONF: str = "test_project.urls"
 
 REPO_ROOT: Path = BASE_DIR.parent.parent.parent
 THEME_ACTIVE_TEMPLATES_DIR: Path = BASE_DIR / "theme" / "active" / "templates"
+
+# -----------------------------------------------------------------------------
+# Template Resolution Order (deterministic, first-existing wins)
+# -----------------------------------------------------------------------------
+# 1. Client-owned theme: theme/active/templates (installed by `sum init`)
+# 2. Repo-root theme: themes/theme_a/templates (local dev convenience)
+# 3. Legacy fallback: core-relative path (deprecated, kept for backwards compat)
+# 4. Core package APP_DIRS fallback: sum_core/templates (always available)
+#
+# This order is IDENTICAL in test and production. Do NOT add RUNNING_TESTS
+# conditionals here — template resolution must be deterministic.
+# -----------------------------------------------------------------------------
 THEME_TEMPLATES_CANDIDATES: list[Path] = [
     THEME_ACTIVE_TEMPLATES_DIR,
     REPO_ROOT / "themes" / "theme_a" / "templates",
