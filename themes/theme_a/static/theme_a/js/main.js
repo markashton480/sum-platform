@@ -132,7 +132,8 @@ try {
     const faqBlocks = document.querySelectorAll('[data-faq-block]');
 
     faqBlocks.forEach((block) => {
-        const allowMultiple = block.dataset.faqAllowMultiple !== 'false';
+        const allowMultipleAttr = block.dataset.faqAllowMultiple;
+        const allowMultiple = allowMultipleAttr === undefined ? true : allowMultipleAttr === 'true';
         const items = block.querySelectorAll('[data-faq-item]');
 
         const setItemState = (item, open) => {
@@ -142,7 +143,6 @@ try {
 
             if (!button || !content) return;
 
-            item.setAttribute('aria-expanded', open ? 'true' : 'false');
             button.setAttribute('aria-expanded', open ? 'true' : 'false');
             content.setAttribute('aria-hidden', open ? 'false' : 'true');
             content.classList.toggle('open', open);

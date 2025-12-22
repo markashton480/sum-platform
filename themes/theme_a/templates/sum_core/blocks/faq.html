@@ -20,7 +20,7 @@
 
         <div class="divide-y divide-sage-black/10 border-b border-sage-black/10">
             {% for item in self.items %}
-                <div class="group reveal accordion-item" data-faq-item aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+                <div class="group reveal accordion-item" data-faq-item>
                     <button class="w-full text-left flex items-start justify-between py-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-terra focus-visible:ring-inset"
                             id="btn-faq-{{ page.pk|default:'0' }}-{{ block.id|default:'0' }}-{{ forloop.counter }}"
                             aria-controls="faq-ans-{{ page.pk|default:'0' }}-{{ block.id|default:'0' }}-{{ forloop.counter }}"

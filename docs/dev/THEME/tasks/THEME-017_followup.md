@@ -5,6 +5,7 @@
 - Added Theme A FAQ accordion JS behavior honoring allow-multiple and a no-JS first item open state.
 - Added Theme A FAQ rendering tests for structure, content, JSON-LD, and allow-multiple flag.
 - Rebuilt Theme A CSS and refreshed the build fingerprint.
+- Refined FAQ ARIA handling and allow-multiple parsing to match accessibility guidance.
 
 ## Files Modified/Created
 - Modified: themes/theme_a/templates/sum_core/blocks/faq.html
