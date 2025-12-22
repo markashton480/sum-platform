@@ -1,4 +1,4 @@
-.PHONY: help lint test test-cli test-themes test-templates test-fast format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref
+.PHONY: help lint test test-cli test-themes test-templates test-fast verify-source-intact format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref
 
 MANAGE = python core/sum_core/test_project/manage.py
 
@@ -42,6 +42,9 @@ test-templates: ## Run template loading order tests (fast gate)
 
 test-fast: ## Run high-signal test slices (CLI + themes)
 	python -m pytest cli/tests tests/themes -q
+
+verify-source-intact: ## Verify tests did not modify protected repo paths
+	bash scripts/verify_source_intact.sh
 
 run: ## Initial for local dev (may be wired to Docker later)
 	$(MANAGE) migrate --noinput
