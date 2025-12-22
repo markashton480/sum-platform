@@ -45,7 +45,7 @@
 
                             {% if card.description %}
                                 <div class="text-sage-black font-light leading-relaxed text-lg max-w-xl prose prose-p:text-sage-black prose-a:text-sage-terra">
-                                    {{ card.description }}
+                                    {{ card.description|richtext }}
                                 </div>
                             {% endif %}
                         </div>
