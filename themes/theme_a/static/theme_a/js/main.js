@@ -127,6 +127,58 @@ try {
     console.warn('Banner close failed:', e);
 }
 
+// --- FAQ Accordion (data attributes) ---
+try {
+    const faqBlocks = document.querySelectorAll('[data-faq-block]');
+
+    faqBlocks.forEach((block) => {
+        const allowMultipleAttr = block.dataset.faqAllowMultiple;
+        const allowMultiple = allowMultipleAttr === undefined ? true : allowMultipleAttr === 'true';
+        const items = block.querySelectorAll('[data-faq-item]');
+
+        const setItemState = (item, open) => {
+            const button = item.querySelector('[data-faq-trigger]');
+            const content = item.querySelector('[data-faq-content]');
+            const icon = item.querySelector('[data-faq-icon]');
+
+            if (!button || !content) return;
+
+            button.setAttribute('aria-expanded', open ? 'true' : 'false');
+            content.setAttribute('aria-hidden', open ? 'false' : 'true');
+            content.classList.toggle('open', open);
+
+            if (icon) {
+                icon.style.transform = open ? 'rotate(45deg)' : 'rotate(0deg)';
+                icon.style.opacity = open ? '1' : '0.3';
+            }
+        };
+
+        items.forEach((item) => {
+            const button = item.querySelector('[data-faq-trigger]');
+            if (!button) return;
+
+            const isOpen = button.getAttribute('aria-expanded') === 'true';
+            setItemState(item, isOpen);
+
+            button.addEventListener('click', () => {
+                const currentlyOpen = button.getAttribute('aria-expanded') === 'true';
+
+                if (!allowMultiple && !currentlyOpen) {
+                    items.forEach((otherItem) => {
+                        if (otherItem !== item) {
+                            setItemState(otherItem, false);
+                        }
+                    });
+                }
+
+                setItemState(item, !currentlyOpen);
+            });
+        });
+    });
+} catch (e) {
+    console.warn('FAQ accordion failed:', e);
+}
+
 // --- Mobile Menu System ---
 try {
     const btn = document.getElementById('mobile-menu-btn');
