@@ -44,7 +44,7 @@ git commit -m "fix(TEST-014B): remove hidden unicode characters"
 git push
 ```
 
-### 4. Fix theme discovery
+### 3. Fix theme discovery
 
 In `tests/themes/conftest.py`, make sure:
 
@@ -65,7 +65,7 @@ git commit -m "refactor(TEST-014B): make theme_dir fixture discover themes dynam
 git push
 ```
 
-### 5. Verify and record
+### 4. Verify and record
 
 ```bash
 make lint
