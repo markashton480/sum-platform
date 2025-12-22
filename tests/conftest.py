@@ -16,10 +16,12 @@ import pytest
 from django.conf import settings
 from django.template import engines
 
-from tests.utils.safe_cleanup import create_filesystem_sandbox
+from tests.utils import create_filesystem_sandbox, get_protected_paths
+from tests.utils.fixtures import REPO_ROOT
 from tests.utils.safe_cleanup import safe_rmtree as safe_cleanup_rmtree
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
+# Use centralized REPO_ROOT from tests.utils.fixtures
+ROOT_DIR = REPO_ROOT
 CORE_DIR = ROOT_DIR / "core"
 TEST_PROJECT_DIR = CORE_DIR / "sum_core" / "test_project"
 
@@ -138,6 +140,26 @@ def _reset_homepage_between_tests(db) -> None:
     for homepage in HomePage.objects.all():
         homepage.delete()
     Site.clear_site_root_paths_cache()
+
+
+@pytest.fixture(scope="session")
+def repo_root() -> Path:
+    """Return resolved repository root Path (single source of truth).
+
+    This fixture provides a consistent way to access the repo root across
+    all test slices without duplicating path resolution logic.
+    """
+    return REPO_ROOT
+
+
+@pytest.fixture(scope="session")
+def protected_paths() -> tuple[str, ...]:
+    """Return canonical list of protected repo directory names.
+
+    These are directories that tests must never modify or delete.
+    Useful for assertions in test teardowns or guardrail fixtures.
+    """
+    return get_protected_paths()
 
 
 @pytest.fixture(scope="session")
