@@ -93,6 +93,7 @@ DJANGO_SETTINGS_MODULE = "sum_core.test_project.test_project.settings"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
+    "regression: Regression tests",
     "slow: Slow running tests",
     "django_db: Tests that require database access",
 ]
