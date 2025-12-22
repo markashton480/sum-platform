@@ -9,11 +9,13 @@
   - `tests/themes/test_theme_a_service_cards_rendering.py:113` — Item "None" of "Tag | None" has no attribute "find_all" [union-attr]
 
 ## Files Modified
+- Sync-side effect correction: the canonical boilerplate change was re-synced into the CLI copy.
 - `cli/sum_cli/boilerplate/project_name/home/management/commands/populate_demo_content.py`
 - `cli/sum_cli/boilerplate/project_name/home/management/commands/seed_showroom.py`
 - `cli/sum_cli/boilerplate/project_name/settings/base.py`
 - `cli/sum_cli/boilerplate/project_name/home/models.py`
 - `tests/themes/test_theme_a_service_cards_rendering.py`
+ - `boilerplate/project_name/settings/base.py`
 
 ## Test Results
 - `ruff check . --config pyproject.toml` (via `make lint`): pass
@@ -27,3 +29,4 @@
 - Keep optional Faker import with explicit alias to avoid shadowing and ruff/mypy ambiguity.
 - Reinstate theme slug type narrowing to `str | None`.
 - Explicitly coerce CLI options to `str | None` / `int | None` for safer typing in boilerplate.
+- Corrected a sync side-effect by updating the canonical boilerplate and re-syncing the CLI copy.
