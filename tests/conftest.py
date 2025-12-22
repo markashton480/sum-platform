@@ -101,9 +101,11 @@ def pytest_collection_modifyitems(
 
     # Treat pre-release versions on the 0.6 line (e.g. "0.6.0-alpha") as legacy,
     # since theme support is only guaranteed for final 0.6+ releases.
-    is_prerelease = bool(raw_version and re.search(r"[A-Za-z]", raw_version))
+    is_prerelease = bool(
+        raw_version and re.search(r"[-.]?(alpha|beta|rc|dev|pre|a|b)", raw_version)
+    )
     is_legacy_line = parsed_version < (0, 6) or (
-        parsed_version == (0, 6) and is_prerelease
+        parsed_version[:2] == (0, 6) and is_prerelease
     )
 
     if is_legacy_line:
