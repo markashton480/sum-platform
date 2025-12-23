@@ -1,15 +1,13 @@
 {% load wagtailimages_tags %}
-<div class="py-12">
-  <div class="container {% if not self.full_width %}max-w-5xl{% else %}max-w-screen-2xl{% endif %} mx-auto px-4">
-    <figure class="reveal">
-      <div class="rounded-sm overflow-hidden shadow-sm border border-sage-black/5 bg-sage-oat">
-        {% image self.image width-2400 alt=self.alt_text class="w-full h-auto object-cover" %}
-      </div>
+<section class="py-12 md:py-16">
+  <div class="max-w-6xl mx-auto px-6">
+    <figure class="reveal {% if self.full_width %}-mx-6 md:-mx-12 lg:mx-0{% else %}max-w-3xl mx-auto{% endif %}">
+      {% image self.image width-2400 alt=self.alt_text class="w-full h-auto rounded-sm shadow-2xl object-cover" %}
       {% if self.caption %}
-      <figcaption class="mt-4 text-[11px] font-bold uppercase tracking-widest text-sage-label/60 border-l border-sage-moss/30 pl-3">
+      <figcaption class="reveal delay-100 text-center mt-4 text-xs font-bold uppercase tracking-widest text-sage-black/50">
         {{ self.caption }}
       </figcaption>
       {% endif %}
     </figure>
   </div>
-</div>
+</section>
