@@ -32,7 +32,8 @@ def test_contact_form_rendering():
     assert "Get in touch" in rendered
     assert "Send It" in rendered
     assert 'data-form-type="contact"' in rendered
-    assert 'class="bg-sage-linen' in rendered
+    assert 'class="contact-form-block' in rendered
+    assert "bg-sage-black" in rendered
     assert 'name="company"' in rendered  # Honeypot
     assert "sr-only" in rendered
     assert "Your Name" in rendered
