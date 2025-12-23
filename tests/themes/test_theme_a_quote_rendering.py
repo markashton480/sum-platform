@@ -77,6 +77,13 @@ class TestThemeAQuoteBlock:
         assert "Ava Hill" in content
         assert "Property Owner" in content
         assert "reveal" in content
+        soup = BeautifulSoup(content, "html.parser")
+        assert soup.find("blockquote") is not None
+        section = soup.find(
+            "section",
+            class_=lambda value: value and "section" in str(value).split(),
+        )
+        assert section is not None
 
     def test_quote_block_author_and_role_are_optional(self, client: Client) -> None:
         author_page = _create_standard_page_with_quote(

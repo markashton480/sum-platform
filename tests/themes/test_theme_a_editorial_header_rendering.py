@@ -68,6 +68,12 @@ def test_editorial_header_uses_theme_a_override(
     content = response.content.decode("utf-8")
     assert "bg-sage-black" in content
     assert "text-sage-linen" in content
+    soup = BeautifulSoup(content, "html.parser")
+    section = soup.find(
+        "section",
+        class_=lambda value: value and "section--hero" in str(value).split(),
+    )
+    assert section is not None
 
 
 def test_editorial_header_alignment_and_richtext() -> None:

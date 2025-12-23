@@ -111,6 +111,11 @@ class TestThemeAImageBlock:
         soup = BeautifulSoup(response.content.decode("utf-8"), "html.parser")
         img = soup.find("img", alt="Stacks of oak timber")
         assert img is not None
+        section = soup.find(
+            "section",
+            class_=lambda value: value and "section" in str(value).split(),
+        )
+        assert section is not None
         assert "reveal" in response.content.decode("utf-8")
 
     def test_caption_is_optional(self, client: Client) -> None:

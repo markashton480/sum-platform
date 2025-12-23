@@ -166,6 +166,11 @@ def test_theme_a_button_group_template_and_styles(
     soup = BeautifulSoup(response.content.decode("utf-8"), "html.parser")
     button_group = _find_button_group(soup, "https://example.com/book")
     assert button_group
+    section = soup.find(
+        "section",
+        class_=lambda value: value and "section" in str(value).split(),
+    )
+    assert section is not None
 
     primary = button_group.find("a", href="https://example.com/book")
     assert primary
