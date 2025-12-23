@@ -22,10 +22,10 @@
             </header>
 
             <div>
-                <ol class="space-y-8 md:space-y-12">
+                <ol class="space-y-8 md:space-y-12 list-none">
                     {% for step in self.steps %}
                         <li class="relative border-l border-sage-black/10 pl-8 md:pl-12 pb-8 reveal{% if not forloop.first %} delay-{{ forloop.counter0 }}00{% endif %}">
-                            <span class="absolute -left-6 top-0 inline-flex h-12 w-12 items-center justify-center rounded-full bg-sage-black text-sage-linen text-xs font-mono tracking-[0.2em]">
+                            <span class="absolute left-0 -translate-x-1/2 transform top-0 inline-flex h-12 w-12 items-center justify-center rounded-full bg-sage-black text-sage-linen text-xs font-mono tracking-[0.2em]">
                                 {% if step.number %}
                                     {% if step.number < 10 %}0{% endif %}{{ step.number }}
                                 {% else %}
