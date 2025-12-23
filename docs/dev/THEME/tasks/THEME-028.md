@@ -134,12 +134,4 @@ Implement Theme A overrides for:
 
 ---
 
-### Going-forward batching rule (so tickets stay sane)
 
-**Bundle 2–4 micro blocks per ticket** when they’re:
-
-* single-template, no JS, no models/migrations
-* same block group (e.g. Page Content utilities)
-* one combined test file is enough
-
-If you want, I’ll also rewrite the next queue so we alternate: **one “real” block** (Image/ButtonGroup/SocialProof) + **one micro-bundle** (Spacer/Divider/etc.) to keep momentum high without PR spam.

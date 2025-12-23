@@ -249,6 +249,25 @@ class QuoteBlock(blocks.StructBlock):
         template = "sum_core/blocks/content_quote.html"
 
 
+class SocialProofQuoteBlock(blocks.StructBlock):
+    """
+    Editorial quote with optional social proof metadata.
+    """
+
+    quote = blocks.TextBlock(
+        label="Quote Text", help_text="Editorial quote (1-3 sentences)."
+    )
+    logo = ImageChooserBlock(required=False, help_text="Optional company logo.")
+    author = blocks.CharBlock(required=False)
+    role = blocks.CharBlock(required=False)
+    company = blocks.CharBlock(required=False)
+
+    class Meta:
+        icon = "openquote"
+        label = "Social Proof Quote"
+        template = "sum_core/blocks/content_social_proof_quote.html"
+
+
 class ImageBlock(blocks.StructBlock):
     """
     Cinematic image block with caption.
