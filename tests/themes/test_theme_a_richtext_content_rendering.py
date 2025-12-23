@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from bs4 import BeautifulSoup
 from django.test import Client
 from home.models import HomePage
 from wagtail.models import Page, Site
@@ -74,3 +75,14 @@ class TestThemeARichTextContentBlock:
         assert "<h2>Section Heading</h2>" in content
         assert "<ul>" in content
         assert '<a href="#link"' in content
+        soup = BeautifulSoup(content, "html.parser")
+        prose = soup.find(
+            "div",
+            class_=lambda value: value and "prose-sage" in str(value).split(),
+        )
+        assert prose is not None
+        wrapper = prose.find_parent(
+            "section",
+            class_=lambda value: value and "section" in str(value).split(),
+        )
+        assert wrapper is not None

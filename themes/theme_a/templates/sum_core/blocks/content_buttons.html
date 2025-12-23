@@ -1,6 +1,6 @@
 {% load wagtailcore_tags %}
-<section class="py-8">
-  <div class="container max-w-4xl mx-auto px-6">
+<section class="section">
+  <div class="container max-w-6xl mx-auto px-6">
     <div class="flex flex-wrap gap-4 {% if self.alignment == 'center' %}justify-center{% elif self.alignment == 'right' %}justify-end{% else %}justify-start{% endif %}">
       {% for btn in self.buttons %}
       <a href="{{ btn.url }}"
