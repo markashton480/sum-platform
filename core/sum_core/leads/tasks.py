@@ -227,30 +227,41 @@ def send_lead_notification(
             "sum_core/emails/lead_notification_subject.txt", context
         ).strip()
         subject = f"{subject_prefix}{subject_raw}"
-
         body = render_to_string("sum_core/emails/lead_notification_body.txt", context)
+    except Exception as e:
+        error_message = f"Template render failed: {str(e)[:500]}"
+        with transaction.atomic():
+            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+            lead.email_last_error = error_message
+            lead.email_status = EmailStatus.FAILED
+            lead.save(update_fields=["email_status", "email_last_error"])
+        logger.error(
+            "Lead email template render failed",
+            extra={"lead_id": lead_id, "request_id": request_id or "-"},
+        )
+        return
 
-        # Send the email
-        msg = EmailMultiAlternatives(
-            subject=subject,
-            body=body,
-            from_email=from_email,
-            to=[notification_email],
-            reply_to=reply_to or None,
+    msg = EmailMultiAlternatives(
+        subject=subject,
+        body=body,
+        from_email=from_email,
+        to=[notification_email],
+        reply_to=reply_to or None,
+    )
+
+    # Check if HTML template exists (it should, but safety first)
+    try:
+        html_body = render_to_string(
+            "sum_core/emails/lead_notification_body.html", context
+        )
+        msg.attach_alternative(html_body, "text/html")
+    except Exception as e:
+        logger.warning(
+            "Failed to render HTML lead email, sending text only",
+            extra={"error": str(e), "lead_id": lead_id},
         )
 
-        # Check if HTML template exists (it should, but safety first)
-        try:
-            html_body = render_to_string(
-                "sum_core/emails/lead_notification_body.html", context
-            )
-            msg.attach_alternative(html_body, "text/html")
-        except Exception as e:
-            logger.warning(
-                "Failed to render HTML lead email, sending text only",
-                extra={"error": str(e), "lead_id": lead_id},
-            )
-
+    try:
         msg.send(fail_silently=False)
     except Exception as e:
         error_message = str(e)[:500]
@@ -452,8 +463,6 @@ def send_lead_webhook(self, lead_id: int, request_id: str | None = None) -> None
         )
         return
 
-    error_message = f"HTTP {response.status_code}: {response.text[:200]}"
-
     with transaction.atomic():
         lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
         lead.webhook_last_status_code = response.status_code
@@ -476,6 +485,7 @@ def send_lead_webhook(self, lead_id: int, request_id: str | None = None) -> None
             )
             return
 
+        error_message = f"HTTP {response.status_code}: {response.text[:200]}"
         lead.webhook_last_error = error_message
         lead.webhook_status = (
             WebhookStatus.IN_PROGRESS
