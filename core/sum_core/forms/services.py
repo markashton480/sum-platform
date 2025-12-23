@@ -10,17 +10,21 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import logging
 import time
 from dataclasses import dataclass
+from typing import cast
 
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpRequest
 from sum_core.forms.models import FormConfiguration
+from sum_core.ops.request_utils import get_client_ip as request_get_client_ip
 from wagtail.models import Site
 
 # Time token settings
 TIME_TOKEN_LIFETIME_SECONDS = 3600  # 1 hour max validity
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -115,9 +119,23 @@ def increment_rate_limit_counter(ip_address: str, site_id: int) -> None:
     Call this AFTER a successful submission is processed.
     """
     cache_key = get_rate_limit_cache_key(ip_address, site_id)
-    current_count = cache.get(cache_key, 0)
-    # Set/update with 1 hour expiry
-    cache.set(cache_key, current_count + 1, timeout=3600)
+    try:
+        if cache.add(cache_key, 1, timeout=3600):
+            return
+
+        try:
+            cache.incr(cache_key)
+        except (ValueError, NotImplementedError):
+            current_count = cache.get(cache_key, 0)
+            cache.set(cache_key, current_count + 1, timeout=3600)
+            return
+
+        try:
+            cache.touch(cache_key, timeout=3600)
+        except NotImplementedError:
+            return
+    except Exception:
+        logger.warning("Rate limit counter update failed", exc_info=True)
 
 
 def generate_time_token() -> str:
@@ -250,10 +268,4 @@ def get_client_ip(request: HttpRequest) -> str:
 
     Handles X-Forwarded-For header for proxied requests.
     """
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        # Take the first IP in the chain (original client)
-        ip = x_forwarded_for.split(",")[0].strip()
-    else:
-        ip = request.META.get("REMOTE_ADDR", "")
-    return str(ip)
+    return cast(str, request_get_client_ip(request))

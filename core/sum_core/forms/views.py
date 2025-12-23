@@ -18,12 +18,9 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
 from sum_core.forms.models import FormConfiguration
-from sum_core.forms.services import (
-    get_client_ip,
-    increment_rate_limit_counter,
-    run_spam_checks,
-)
+from sum_core.forms.services import increment_rate_limit_counter, run_spam_checks
 from sum_core.leads.services import AttributionData, create_lead_from_submission
+from sum_core.ops.request_utils import get_client_ip
 from wagtail.models import Site
 
 # UK phone validation regex - accepts common UK formats
