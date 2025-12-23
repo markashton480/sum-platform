@@ -1,28 +1,24 @@
 {% load wagtailcore_tags %}
-<div class="py-16 bg-sage-oat/30">
-  <div class="container max-w-4xl mx-auto px-4">
-    <div class="relative reveal">
-      <!-- Large decorative quote mark -->
-      <span class="absolute -top-10 -left-8 text-8xl text-sage-moss/10 font-display pointer-events-none">“</span>
-
-      <blockquote class="relative z-10">
-        <p class="font-display text-3xl md:text-4xl leading-relaxed text-sage-black italic mb-8">
-          {{ self.quote }}
-        </p>
-        {% if self.author or self.role %}
-        <footer class="flex items-center gap-4">
-          <div class="w-10 h-px bg-sage-moss/40"></div>
-          <div class="text-sage-black/80">
-            {% if self.author %}
-            <cite class="not-italic font-body font-bold text-sage-black tracking-wide">{{ self.author }}</cite>
-            {% endif %}
-            {% if self.role %}
-            <span class="text-[11px] font-bold uppercase tracking-widest text-sage-label/60 ml-2">{{ self.role }}</span>
-            {% endif %}
-          </div>
-        </footer>
-        {% endif %}
+<section class="py-16 md:py-24 bg-sage-oat/30">
+  <div class="container max-w-5xl mx-auto px-6">
+    <figure class="relative border-l-2 border-sage-moss/30 pl-8 md:pl-12">
+      <span class="absolute -top-8 left-2 text-6xl md:text-7xl text-sage-moss/15 font-display leading-none pointer-events-none" aria-hidden="true">“</span>
+      <blockquote class="font-display text-3xl md:text-4xl leading-relaxed text-sage-black italic reveal">
+        {{ self.quote|linebreaksbr }}
       </blockquote>
-    </div>
+      {% if self.author or self.role %}
+      <figcaption class="mt-6 flex flex-wrap items-center gap-2 text-sage-black/70 font-body reveal delay-100">
+        <span class="text-sage-black/50" aria-hidden="true">—</span>
+        {% if self.author %}
+        <cite class="not-italic font-semibold text-sage-black">{{ self.author }}</cite>
+        {% endif %}
+        {% if self.role %}
+        <span class="text-sm uppercase tracking-[0.2em] text-sage-label/60 {% if self.author %}ml-1{% endif %}">
+          {{ self.role }}
+        </span>
+        {% endif %}
+      </figcaption>
+      {% endif %}
+    </figure>
   </div>
-</div>
+</section>
