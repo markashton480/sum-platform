@@ -31,12 +31,14 @@ def test_team_members_block_contract(image):
         "members": [
             {
                 "photo": image.id,
+                "alt_text": "Portrait of Alex Rivera",
                 "name": "Alex Rivera",
                 "role": "Founder",
                 "bio": "Builder, strategist, and coffee snob.",
             },
             {
                 "photo": image.id,
+                "alt_text": "Portrait of Morgan Lee",
                 "name": "Morgan Lee",
                 "role": "Design Lead",
                 "bio": "Design systems and playful prototyping.",

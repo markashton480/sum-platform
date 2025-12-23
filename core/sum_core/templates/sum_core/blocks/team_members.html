@@ -19,7 +19,7 @@
       {% for member in self.members %}
       <article class="team-member-card" data-team-member>
         <div class="team-member-card__photo">
-          {% image member.photo fill-400x400 class="team-member-card__image" %}
+          {% image member.photo fill-400x400 class="team-member-card__image" alt=member.alt_text %}
         </div>
         <div class="team-member-card__body">
           <h3 class="team-member-card__name">{{ member.name }}</h3>

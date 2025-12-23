@@ -139,10 +139,13 @@ class PortfolioBlock(blocks.StructBlock):
 
 
 class TeamMemberItemBlock(blocks.StructBlock):
-    photo = ImageChooserBlock(required=True)
-    name = blocks.CharBlock(required=True)
-    role = blocks.CharBlock(required=False)
-    bio = blocks.TextBlock(required=False)
+    photo = ImageChooserBlock(
+        required=True, help_text="Team member headshot or portrait."
+    )
+    alt_text = blocks.CharBlock(required=True, help_text="Alt text for accessibility.")
+    name = blocks.CharBlock(required=True, help_text="Full name.")
+    role = blocks.CharBlock(required=False, help_text="Role or title.")
+    bio = blocks.TextBlock(required=False, help_text="Short bio (1-2 sentences).")
 
     class Meta:
         icon = "user"
@@ -150,7 +153,9 @@ class TeamMemberItemBlock(blocks.StructBlock):
 
 
 class TeamMemberBlock(blocks.StructBlock):
-    eyebrow = blocks.CharBlock(required=False, help_text="Small label above heading")
+    eyebrow = blocks.CharBlock(
+        max_length=100, required=False, help_text="Small label above heading"
+    )
     heading = blocks.RichTextBlock(
         required=False,
         features=["bold", "italic"],

@@ -170,18 +170,19 @@ Used within hero blocks for CTA buttons.
 
 | Field     | Type                           | Required | Constraints                    | Notes                       |
 | --------- | ------------------------------ | -------- | ------------------------------ | --------------------------- |
-| `eyebrow` | CharBlock                      | No       | max: 255                       | Small label above heading   |
+| `eyebrow` | CharBlock                      | No       | max: 100                       | Small label above heading   |
 | `heading` | RichTextBlock                  | No       | features: `['bold', 'italic']` | Section heading             |
 | `members` | ListBlock(TeamMemberItemBlock) | Yes      | min: 1, max: 12                | Team member cards           |
 
 ### TeamMemberItemBlock (Child Block)
 
-| Field   | Type              | Required | Notes                        |
-| ------- | ----------------- | -------- | ---------------------------- |
-| `photo` | ImageChooserBlock | Yes      | Rendered via Wagtail renditions |
-| `name`  | CharBlock         | Yes      | -                            |
-| `role`  | CharBlock         | No       | e.g. "Founder"               |
-| `bio`   | TextBlock         | No       | Short description            |
+| Field      | Type              | Required | Notes                        |
+| ---------- | ----------------- | -------- | ---------------------------- |
+| `photo`    | ImageChooserBlock | Yes      | Rendered via Wagtail renditions |
+| `alt_text` | CharBlock         | Yes      | Accessible description for the photo |
+| `name`     | CharBlock         | Yes      | -                            |
+| `role`     | CharBlock         | No       | e.g. "Founder"               |
+| `bio`      | TextBlock         | No       | Short description            |
 
 ---
 

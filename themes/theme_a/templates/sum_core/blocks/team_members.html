@@ -21,7 +21,7 @@
       {% for member in self.members %}
       <article class="bg-white border border-sage-black/10 p-8 flex flex-col gap-6 shadow-sm reveal {% if forloop.counter == 2 %}delay-100{% elif forloop.counter == 3 %}delay-200{% endif %}" data-team-member>
         <div class="aspect-square overflow-hidden bg-sage-oat">
-          {% image member.photo fill-600x600 class="w-full h-full object-cover" %}
+          {% image member.photo fill-600x600 class="w-full h-full object-cover" alt=member.alt_text %}
         </div>
 
         <div>
