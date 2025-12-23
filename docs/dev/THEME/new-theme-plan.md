@@ -2,17 +2,77 @@
 
 ## Executive Summary
 
-**Current State:** Theme A exists but block templates don't match the audited wireframe. Templates use old CSS token styling, missing components, and have S&S branding hardcoded.
+**Current State:** Theme A block templates have been migrated to Tailwind and match wireframe styling. Infrastructure is complete. Header/footer/navigation are done. Most blocks have tests.
 
 **Target State:** Theme A perfectly recreates the wireframe across all page types (homepage, about, services, portfolio, blog, terms). All blocks match wireframe structure. Branding is data-driven, not hardcoded.
 
-**Gap:** 7 wireframe pages need implementation. Some blocks exist but templates are wrong. Some blocks don't exist at all. Fast iteration is broken (test_project doesn't point at theme_a).
+**Remaining Gap:** 4 blocks don't exist (TeamMemberBlock, TimelineBlock, ServiceDetailBlock, PageHeaderBlock). Blog/Portfolio page types don't exist. QuoteRequestFormBlock needs checklist verification.
 
-**Timeline:** 2-3 weeks full implementation.
+**Timeline:** ~1 week remaining for new blocks + page types.
 
 ---
 
-## Part 1: Current State Analysis
+## Progress Audit (Updated: 2024-12-23)
+
+### ✅ COMPLETED
+
+**Category A - Fix Existing Block Templates (13/13 DONE)**
+- [x] HeroImageBlock - template matches wireframe
+- [x] HeroGradientBlock - template matches wireframe  
+- [x] PortfolioBlock - template + horizontal scroll mobile
+- [x] ContactFormBlock - split layout, floating labels
+- [x] FAQBlock - accordion with proper styling
+- [x] ServiceCardsBlock - grid with featured card layout
+- [x] StatsBlock - 4-column grid with proper spacing
+- [x] TrustStripLogosBlock - text OR image logos (THEME-020)
+- [x] TestimonialsBlock - dark theme, horizontal scroll (THEME-019)
+- [x] EditorialHeaderBlock - page header styling (THEME-021)
+- [x] RichTextContentBlock - prose typography (THEME-022)
+- [x] QuoteBlock - pull quote styling (THEME-023)
+- [x] ImageBlock - caption styling (THEME-024/029)
+
+**Category B - Create New Blocks (2/6 DONE)**
+- [x] ManifestoBlock - exists in content.py + theme_a template
+- [x] FeaturedCaseStudyBlock - exists in gallery.py + theme_a template
+
+**Category D - Site-Wide Components (4/4 DONE)**
+- [x] Header/Navigation - mega menu, mobile drill-down
+- [x] Footer - multi-column layout with social
+- [x] Alert Banner - dismissible with local storage
+- [x] Mobile Menu - slide-in drill-down system
+
+**Category E - Infrastructure (5/5 DONE)**
+- [x] Fast Iteration Setup - test_project resolves to themes/theme_a
+- [x] Add Missing Fields - PortfolioItemBlock has constraint/material/outcome
+- [x] Add established_year - SiteSettings has this field
+- [x] Strip Hardcoded Branding - only 2 cosmetic comments remain in base.html
+- [x] Management Commands - (verify status)
+
+### ❌ REMAINING WORK
+
+**Category B - Create New Blocks (4 remaining)**
+- [ ] TeamMemberBlock - team member grid (photo, name, role, bio)
+- [ ] TimelineBlock - history timeline with dates
+- [ ] ServiceDetailBlock - service detail section (repeating pattern)
+- [ ] PageHeaderBlock - simple interior page header with breadcrumbs
+
+**Category C - Create New Page Types (3 remaining)**
+- [ ] BlogIndexPage - blog listing page
+- [ ] BlogPostPage - individual blog articles
+- [ ] PortfolioIndexPage - dedicated portfolio page (if needed)
+
+**Other**
+- [ ] QuoteRequestFormBlock - verify template matches wireframe (template exists but not in checklist)
+
+---
+
+## Original Plan (Reference)
+
+---
+
+---
+
+## Part 1: Current State Analysis (HISTORICAL - see Progress Audit above)
 
 ### What Exists in sum_core (from blocks-reference.md)
 
