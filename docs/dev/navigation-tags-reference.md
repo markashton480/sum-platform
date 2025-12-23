@@ -203,6 +203,8 @@ Canonical keys, regardless of underlying field names:
 - `{year}` → Current year (e.g., `2025`)
 - `{company_name}` → Effective company name
 
+Unknown placeholders are left untouched.
+
 ### Example
 
 ```django
@@ -336,6 +338,11 @@ NAV_CACHE_TTL = 1800  # 30 minutes
 ### Cache Invalidation
 
 Cache invalidation is handled by signal handlers (see NAV-006). When navigation or branding settings are saved/published, the relevant cache keys are cleared.
+
+### Cached vs Rendered Fields
+
+`footer_nav` caches only stable data (including the raw copyright template).
+Time-dependent rendering (e.g., `{year}`) happens after retrieving the cached payload on each call.
 
 ### Graceful Fallback
 
