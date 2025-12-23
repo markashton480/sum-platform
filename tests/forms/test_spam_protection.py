@@ -223,6 +223,22 @@ class TestTimingCheck:
         assert result.is_spam
         assert "signature" in result.reason.lower()
 
+    def test_invalid_signature_logs_warning(self, caplog_propagate):
+        """Invalid signatures should log a warning for monitoring."""
+        fake_token = "1234567890:fakesignature00"
+        with caplog_propagate("sum_core.forms.services", "sum_core") as caplog:
+            with caplog.at_level(logging.WARNING):
+                result = check_timing(fake_token, min_seconds=3)
+
+        assert result.is_spam
+        assert any(
+            getattr(record, "time_token_status", "") == "invalid_signature"
+            and getattr(record, "time_token_reason", "") == "signature"
+            and getattr(record, "metric_name", "")
+            == "forms.time_token.invalid_signature"
+            for record in caplog.records
+        )
+
     def test_valid_token_after_min_seconds_passes(self):
         """Valid token submitted after min_seconds should pass."""
         token = generate_time_token()
