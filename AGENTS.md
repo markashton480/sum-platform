@@ -11,7 +11,7 @@
 
 ## Design Tokens
 
-- This project has a design token system as outlined in `docs/dev/design/css-architecture-and-tokens.md`
+- This project has a design token system as outlined in `docs/dev/THEME-GUIDE.md`
 - Always check and follow the existing design tokens
 - Never hard code values
 - Only create new design tokens when absolutely necessary.

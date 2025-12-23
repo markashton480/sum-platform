@@ -24,6 +24,11 @@ PRD_PRESETS = {
         "primary_color": "#1e3a5f",
         "secondary_color": "#0f172a",
         "accent_color": "#f59e0b",
+        "background_color": "#ffffff",
+        "surface_color": "#f8fafc",
+        "surface_elevated_color": "#f1f5f9",
+        "text_color": "#0f172a",
+        "text_light_color": "#64748b",
         "heading_font": "Montserrat",
         "body_font": "Open Sans",
     },
@@ -32,6 +37,11 @@ PRD_PRESETS = {
         "primary_color": "#2563eb",
         "secondary_color": "#1e40af",
         "accent_color": "#f97316",
+        "background_color": "#ffffff",
+        "surface_color": "#f8fafc",
+        "surface_elevated_color": "#f1f5f9",
+        "text_color": "#0f172a",
+        "text_light_color": "#64748b",
         "heading_font": "Poppins",
         "body_font": "Inter",
     },
@@ -40,6 +50,11 @@ PRD_PRESETS = {
         "primary_color": "#059669",
         "secondary_color": "#064e3b",
         "accent_color": "#fbbf24",
+        "background_color": "#ffffff",
+        "surface_color": "#f8fafc",
+        "surface_elevated_color": "#ecfdf5",
+        "text_color": "#0f172a",
+        "text_light_color": "#64748b",
         "heading_font": "DM Sans",
         "body_font": "Source Sans 3",
     },
@@ -48,6 +63,11 @@ PRD_PRESETS = {
         "primary_color": "#92400e",
         "secondary_color": "#78350f",
         "accent_color": "#dc2626",
+        "background_color": "#fffbeb",
+        "surface_color": "#fef3c7",
+        "surface_elevated_color": "#fde68a",
+        "text_color": "#78350f",
+        "text_light_color": "#92400e",
         "heading_font": "Playfair Display",
         "body_font": "Lato",
     },
@@ -56,6 +76,11 @@ PRD_PRESETS = {
         "primary_color": "#374151",
         "secondary_color": "#1f2937",
         "accent_color": "#6366f1",
+        "background_color": "#f9fafb",
+        "surface_color": "#f3f4f6",
+        "surface_elevated_color": "#e5e7eb",
+        "text_color": "#111827",
+        "text_light_color": "#6b7280",
         "heading_font": "Work Sans",
         "body_font": "Roboto",
     },
@@ -86,6 +111,21 @@ def test_theme_presets_match_prd_definitions() -> None:
         assert (
             preset.accent_color == expected["accent_color"]
         ), f"{key}: accent_color mismatch"
+        assert (
+            preset.background_color == expected["background_color"]
+        ), f"{key}: background_color mismatch"
+        assert (
+            preset.surface_color == expected["surface_color"]
+        ), f"{key}: surface_color mismatch"
+        assert (
+            preset.surface_elevated_color == expected["surface_elevated_color"]
+        ), f"{key}: surface_elevated_color mismatch"
+        assert (
+            preset.text_color == expected["text_color"]
+        ), f"{key}: text_color mismatch"
+        assert (
+            preset.text_light_color == expected["text_light_color"]
+        ), f"{key}: text_light_color mismatch"
         assert (
             preset.heading_font == expected["heading_font"]
         ), f"{key}: heading_font mismatch"
@@ -160,6 +200,11 @@ def test_applying_theme_preset_updates_site_settings_fields() -> None:
     assert saved_instance.primary_color == expected["primary_color"]
     assert saved_instance.secondary_color == expected["secondary_color"]
     assert saved_instance.accent_color == expected["accent_color"]
+    assert saved_instance.background_color == expected["background_color"]
+    assert saved_instance.surface_color == expected["surface_color"]
+    assert saved_instance.surface_elevated_color == expected["surface_elevated_color"]
+    assert saved_instance.text_color == expected["text_color"]
+    assert saved_instance.text_light_color == expected["text_light_color"]
     assert saved_instance.heading_font == expected["heading_font"]
     assert saved_instance.body_font == expected["body_font"]
 
