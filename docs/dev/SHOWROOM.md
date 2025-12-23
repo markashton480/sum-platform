@@ -134,6 +134,8 @@ Showroom body contains:
 - **`rich_text`** (the plain RichTextBlock)
 - **`hero`** (legacy hero block kept for compatibility)
 
+Note: showroom portfolio items include categories so the filter navigation renders.
+
 ### Kitchen Sink page (`/kitchen-sink/`)
 
 Kitchen Sink body contains **every block type** available in the showroom, aggregated into a single stream. This is intended for rapid template iteration and visual regression testing without clicking through multiple pages.

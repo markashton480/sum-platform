@@ -5,6 +5,7 @@ Purpose: Define StructBlocks for rich content sections (Hero, Features, Portfoli
 Family: Used by StreamFields in pages.
 """
 
+from django.utils.text import slugify
 from wagtail import blocks
 from wagtail.images.blocks import ImageChooserBlock
 
@@ -104,6 +105,11 @@ class PortfolioItemBlock(blocks.StructBlock):
     image = ImageChooserBlock(required=True)
     alt_text = blocks.CharBlock(required=True, help_text="Alt text for accessibility.")
     title = blocks.CharBlock(required=True)
+    category = blocks.CharBlock(
+        required=False,
+        max_length=50,
+        help_text="Optional filter label, e.g. Residential, Commercial.",
+    )
     location = blocks.CharBlock(required=False, help_text="e.g. Kensington, London")
     services = blocks.CharBlock(required=False, help_text="e.g. Solar • Battery")
     constraint = blocks.CharBlock(max_length=100, required=False)
@@ -131,6 +137,39 @@ class PortfolioBlock(blocks.StructBlock):
         required=False, max_length=50, label="View All Label"
     )
     items = blocks.ListBlock(PortfolioItemBlock(), min_num=1, max_num=12)
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context=parent_context)
+        items = list(value.get("items", []))
+        categories = []
+        for item in items:
+            category = (item.get("category") or "").strip()
+            if category and category not in categories:
+                categories.append(category)
+
+        request = parent_context.get("request") if parent_context else None
+        active_category = ""
+        if request:
+            active_category = request.GET.get("category", "").strip()
+
+        if active_category:
+            filtered_items = [
+                item
+                for item in items
+                if (item.get("category") or "").strip()
+                and slugify((item.get("category") or "").strip()) == active_category
+            ]
+        else:
+            filtered_items = items
+
+        context.update(
+            {
+                "categories": categories,
+                "active_category": active_category,
+                "filtered_items": filtered_items,
+            }
+        )
+        return context
 
     class Meta:
         template = "sum_core/blocks/portfolio.html"
