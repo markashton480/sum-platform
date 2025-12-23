@@ -135,9 +135,9 @@ def _increment_rate_limit_counter(cache_key: str) -> int | None:
             return 1
 
         try:
-            new_count = cache.incr(cache_key)
+            new_count = cast(int, cache.incr(cache_key))
         except (ValueError, NotImplementedError):
-            current_count = cache.get(cache_key, 0)
+            current_count = cast(int, cache.get(cache_key, 0))
             new_count = current_count + 1
             cache.set(cache_key, new_count, timeout=RATE_LIMIT_WINDOW_SECONDS)
             return new_count
