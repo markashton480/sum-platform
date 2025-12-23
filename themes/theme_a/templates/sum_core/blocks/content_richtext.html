@@ -1,8 +1,10 @@
 {% load wagtailcore_tags %}
-<div class="py-12">
-  <div class="container max-w-4xl mx-auto px-4">
-    <div class="prose prose-sage prose-lg max-w-none text-sage-black/80 font-body leading-relaxed reveal {% if self.align == 'center' %}text-center mx-auto{% endif %}">
-      {{ self.body|richtext }}
+<section class="py-16 md:py-24">
+  <div class="container max-w-6xl mx-auto px-6">
+    <div class="max-w-3xl {% if self.align == 'center' %}mx-auto{% else %}mr-auto{% endif %}">
+      <div class="prose prose-sage prose-lg font-accent text-sage-black prose-headings:font-display prose-headings:font-normal prose-h2:font-semibold prose-a:text-sage-terra prose-a:underline max-w-none leading-relaxed reveal {% if self.align == 'center' %}prose-headings:text-center{% endif %}">
+        {{ self.body|richtext }}
+      </div>
     </div>
   </div>
-</div>
+</section>
