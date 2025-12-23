@@ -11,11 +11,12 @@
 
 ## Test results
 - `pytest -q tests/themes/test_theme_a_button_group_rendering.py` (pass)
-- `make test` (fail: `tests/themes/test_theme_a_guardrails.py::TestThemeABuildFingerprint::test_fingerprint_is_current` — fingerprint mismatch; not updated per ticket constraint to avoid changes to compiled CSS artifacts)
+- `pytest -q tests/themes/test_theme_a_guardrails.py::TestThemeABuildFingerprint::test_fingerprint_is_current` (pass)
+- `make test` (fail: `tests/themes/test_theme_a_guardrails.py::TestThemeABuildFingerprint::test_fingerprint_is_current` before CSS rebuild)
 
 ## Decisions made / blockers
 - Kept Theme A secondary button styling mapped to the existing `btn-outline` class (matches other Theme A templates).
-- Left the build fingerprint stale because this ticket forbids touching `themes/theme_a/static/theme_a/css/main.css` and `themes/theme_a/static/theme_a/css/.build_fingerprint`.
+- Rebuilt Theme A CSS and refreshed the build fingerprint per follow-up request.
 
 ## Doc updates
 - None (block contract matched existing docs).
