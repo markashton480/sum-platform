@@ -18,7 +18,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
 from sum_core.forms.models import FormConfiguration
-from sum_core.forms.services import increment_rate_limit_counter, run_spam_checks
+from sum_core.forms.services import run_spam_checks
 from sum_core.leads.services import AttributionData, create_lead_from_submission
 from sum_core.ops.request_utils import get_client_ip
 from wagtail.models import Site
@@ -123,9 +123,6 @@ class FormSubmissionView(View):
         # Queue notification tasks AFTER lead is safely persisted
         # Failure to queue does NOT lose the lead - we update status fields
         self._queue_notification_tasks(lead, site.id, request)
-
-        # Increment rate limit counter AFTER successful lead creation
-        increment_rate_limit_counter(get_client_ip(request), site.id)
 
         return JsonResponse(
             {
