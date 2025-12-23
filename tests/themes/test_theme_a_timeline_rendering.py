@@ -4,6 +4,7 @@ from io import BytesIO
 
 import pytest
 from bs4 import BeautifulSoup
+from bs4.element import Tag
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from home.models import HomePage
@@ -105,13 +106,17 @@ class TestThemeATimelineBlock:
         timeline_section = soup.find(
             "section", class_=lambda value: value and "py-24" in str(value)
         )
-        assert timeline_section is not None
+        assert isinstance(timeline_section, Tag)
         assert "Our Story" in timeline_section.get_text()
         assert "Milestones" in timeline_section.get_text()
 
         items = timeline_section.find_all("li")
         assert len(items) == 2
-        date_labels = [item.find("span").get_text(strip=True) for item in items]
+        date_labels = []
+        for item in items:
+            span = item.find("span")
+            assert isinstance(span, Tag)
+            date_labels.append(span.get_text(strip=True))
         assert "2018" in date_labels and "2022" in date_labels
 
         image_tag = timeline_section.find("img")
