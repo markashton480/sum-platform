@@ -15,6 +15,7 @@ from sum_core.blocks.content import (
     HeroBlock,
     ImageBlock,
     ManifestoBlock,
+    PageHeaderBlock,
     PortfolioBlock,
     QuoteBlock,
     RichTextContentBlock,
@@ -63,6 +64,7 @@ class PageStreamBlock(StreamBlock):
     team_members = TeamMemberBlock(group="Sections")
 
     # Content Blocks
+    page_header = PageHeaderBlock(group="Page Content")
     editorial_header = EditorialHeaderBlock(group="Page Content")
     content = RichTextContentBlock(group="Page Content")
     quote = QuoteBlock(group="Page Content")

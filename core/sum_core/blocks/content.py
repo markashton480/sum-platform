@@ -208,6 +208,27 @@ class ManifestoBlock(blocks.StructBlock):
 # --- M2-008 New Content Blocks ---
 
 
+class PageHeaderBlock(blocks.StructBlock):
+    """
+    Interior page header with optional eyebrow, heading, and intro.
+    """
+
+    eyebrow = blocks.CharBlock(
+        required=False, help_text="Optional label above the heading."
+    )
+    heading = blocks.RichTextBlock(
+        required=False,
+        features=["italic", "bold"],
+        help_text="Main heading. Use italics for accent styling.",
+    )
+    intro = blocks.TextBlock(required=False, help_text="Short supporting intro text.")
+
+    class Meta:
+        icon = "title"
+        label = "Page Header"
+        template = "sum_core/blocks/page_header.html"
+
+
 class RichTextContentBlock(blocks.StructBlock):
     """
     A flexible block for general content sections.
