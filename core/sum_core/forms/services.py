@@ -24,6 +24,7 @@ from wagtail.models import Site
 
 # Time token settings
 TIME_TOKEN_LIFETIME_SECONDS = 3600  # 1 hour max validity
+RATE_LIMIT_WINDOW_SECONDS = 3600
 logger = logging.getLogger(__name__)
 
 
@@ -89,7 +90,7 @@ def check_rate_limit(
     Check if IP address has exceeded rate limit for this site.
 
     Uses Django cache to track submission counts. The counter automatically
-    expires after 1 hour.
+    expires after 1 hour and increments atomically to prevent race conditions.
 
     Args:
         ip_address: Client IP address
@@ -99,10 +100,15 @@ def check_rate_limit(
     Returns:
         SpamCheckResult with should_rate_limit=True if limit exceeded
     """
-    cache_key = get_rate_limit_cache_key(ip_address, site_id)
-    current_count = cache.get(cache_key, 0)
+    if max_per_hour <= 0:
+        return SpamCheckResult(is_spam=False)
 
-    if current_count >= max_per_hour:
+    cache_key = get_rate_limit_cache_key(ip_address, site_id)
+    new_count = _increment_rate_limit_counter(cache_key)
+    if new_count is None:
+        return SpamCheckResult(is_spam=False)
+
+    if new_count > max_per_hour:
         return SpamCheckResult(
             is_spam=False,
             reason="Rate limit exceeded",
@@ -116,26 +122,35 @@ def increment_rate_limit_counter(ip_address: str, site_id: int) -> None:
     """
     Increment the rate limit counter for an IP/site combination.
 
-    Call this AFTER a successful submission is processed.
+    Call this when you need to increment without running spam checks.
     """
     cache_key = get_rate_limit_cache_key(ip_address, site_id)
+    _increment_rate_limit_counter(cache_key)
+
+
+def _increment_rate_limit_counter(cache_key: str) -> int | None:
+    """Increment the rate limit counter, returning the updated value."""
     try:
-        if cache.add(cache_key, 1, timeout=3600):
-            return
+        if cache.add(cache_key, 1, timeout=RATE_LIMIT_WINDOW_SECONDS):
+            return 1
 
         try:
-            cache.incr(cache_key)
+            new_count = cast(int, cache.incr(cache_key))
         except (ValueError, NotImplementedError):
-            current_count = cache.get(cache_key, 0)
-            cache.set(cache_key, current_count + 1, timeout=3600)
-            return
+            current_count = cast(int, cache.get(cache_key, 0))
+            new_count = current_count + 1
+            cache.set(cache_key, new_count, timeout=RATE_LIMIT_WINDOW_SECONDS)
+            return new_count
 
         try:
-            cache.touch(cache_key, timeout=3600)
+            cache.touch(cache_key, timeout=RATE_LIMIT_WINDOW_SECONDS)
         except NotImplementedError:
-            return
+            pass
+
+        return new_count
     except Exception:
         logger.warning("Rate limit counter update failed", exc_info=True)
+        return None
 
 
 def generate_time_token() -> str:
@@ -229,7 +244,7 @@ def run_spam_checks(
 
     Checks are run in order of computational cost (cheapest first):
     1. Honeypot check (instant)
-    2. Rate limit check (cache lookup)
+    2. Rate limit check (atomic cache increment)
     3. Timing check (crypto verification)
 
     Args:

@@ -9,6 +9,7 @@ Dependencies: pytest, Django cache, sum_core.forms.services.
 from __future__ import annotations
 
 import time
+from concurrent.futures import ThreadPoolExecutor
 from unittest import mock
 
 import pytest
@@ -132,6 +133,22 @@ class TestIncrementRateLimitCounter:
 
         increment_rate_limit_counter("192.168.1.1", site_id=1)
         assert cache.get(cache_key) == 6
+
+    def test_increment_is_atomic_under_concurrency(self):
+        """Concurrent increments should not lose updates."""
+        ip_address = "192.168.1.1"
+        site_id = 1
+        cache_key = get_rate_limit_cache_key(ip_address, site_id)
+
+        def worker() -> None:
+            increment_rate_limit_counter(ip_address, site_id=site_id)
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(worker) for _ in range(50)]
+            for future in futures:
+                future.result()
+
+        assert cache.get(cache_key) == 50
 
 
 class TestTimeTokenGeneration:
