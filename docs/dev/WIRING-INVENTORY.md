@@ -222,6 +222,7 @@ STATICFILES_DIRS = [THEME_STATIC_DIR]
 | `EMAIL_BACKEND`                  | No        | `console`             | Email backend class                |
 | `EMAIL_HOST`, `EMAIL_PORT`, etc. | For SMTP  | localhost:25          | SMTP configuration                 |
 | `CELERY_BROKER_URL`              | For async | `memory://`           | Celery broker (Redis recommended)  |
+| `SUM_TRUSTED_PROXY_IPS`          | No        | `[]`                  | Trusted proxy IPs/CIDRs for client IP resolution |
 
 ### Per-Site vs Per-Project
 
