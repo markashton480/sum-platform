@@ -18,6 +18,7 @@
 ## Test Results
 - `source .venv/bin/activate && pytest -q tests/themes/test_theme_a_contact_form_rendering.py` (passed; warnings about Django URLField default scheme).
 - `source .venv/bin/activate && pytest -q tests/templates/test_form_blocks_rendering.py::test_contact_form_rendering tests/themes/test_theme_a_guardrails.py::TestThemeABuildFingerprint::test_fingerprint_is_current` (passed; warnings about Django URLField default scheme).
+- `source .venv/bin/activate && pytest -q tests/themes/test_theme_a_contact_form_rendering.py::test_theme_a_contact_form_floating_labels tests/themes/test_theme_a_guardrails.py::TestThemeABuildFingerprint::test_fingerprint_is_current` (passed; warnings about Django URLField default scheme).
 
 ## Decisions / Blockers
 - Kept form-object rendering with standard labels since widget class overrides are not available in templates.
