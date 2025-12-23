@@ -42,3 +42,25 @@ def test_untrusted_proxy_in_chain_stops_resolution():
     )
 
     assert get_client_ip(request) == "192.0.2.10"
+
+
+@override_settings(SUM_TRUSTED_PROXY_IPS=["10.0.0.0/8"])
+def test_trusted_proxy_cidr_uses_x_forwarded_for():
+    request = RequestFactory().get(
+        "/",
+        HTTP_X_FORWARDED_FOR="203.0.113.5",
+        REMOTE_ADDR="10.2.3.4",
+    )
+
+    assert get_client_ip(request) == "203.0.113.5"
+
+
+@override_settings(SUM_TRUSTED_PROXY_IPS=["10.0.0.1"])
+def test_invalid_forwarded_for_falls_back_to_remote_addr():
+    request = RequestFactory().get(
+        "/",
+        HTTP_X_FORWARDED_FOR="unknown",
+        REMOTE_ADDR="10.0.0.1",
+    )
+
+    assert get_client_ip(request) == "10.0.0.1"

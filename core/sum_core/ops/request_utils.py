@@ -15,6 +15,7 @@ from django.conf import settings
 from django.http import HttpRequest
 
 TRUSTED_PROXY_SETTING = "SUM_TRUSTED_PROXY_IPS"
+NetworkType = ipaddress.IPv4Network | ipaddress.IPv6Network
 
 
 def _normalize_trusted_proxy_entries(value: object) -> list[str]:
@@ -27,11 +28,11 @@ def _normalize_trusted_proxy_entries(value: object) -> list[str]:
     return []
 
 
-def _get_trusted_proxy_networks() -> list[ipaddress._BaseNetwork]:
+def _get_trusted_proxy_networks() -> list[NetworkType]:
     entries = _normalize_trusted_proxy_entries(
         getattr(settings, TRUSTED_PROXY_SETTING, [])
     )
-    networks: list[ipaddress._BaseNetwork] = []
+    networks: list[NetworkType] = []
     for entry in entries:
         try:
             networks.append(ipaddress.ip_network(entry, strict=False))
@@ -40,7 +41,7 @@ def _get_trusted_proxy_networks() -> list[ipaddress._BaseNetwork]:
     return networks
 
 
-def _is_trusted_proxy(ip_address: str, networks: list[ipaddress._BaseNetwork]) -> bool:
+def _is_trusted_proxy(ip_address: str, networks: list[NetworkType]) -> bool:
     try:
         ip_value = ipaddress.ip_address(ip_address)
     except ValueError:
@@ -78,4 +79,10 @@ def get_client_ip(request: HttpRequest) -> str:
     if not chain:
         return str(remote_addr)
 
-    return str(chain[-1])
+    candidate_ip = chain[-1]
+    try:
+        validated_ip = ipaddress.ip_address(candidate_ip)
+    except ValueError:
+        return str(remote_addr)
+
+    return str(validated_ip)
