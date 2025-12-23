@@ -14,6 +14,15 @@ from wagtail.models import Page, Site
 pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("theme_active_copy")]
 
 
+def _get_classes(tag) -> list[str]:
+    classes = tag.get("class")
+    if not classes:
+        return []
+    if isinstance(classes, list):
+        return [str(value) for value in classes]
+    return str(classes).split()
+
+
 def _create_image():
     image_model = get_image_model()
     f = BytesIO()
@@ -156,7 +165,7 @@ class TestThemeAImageBlock:
         )
         narrow_figure = narrow_soup.find("figure")
         assert narrow_figure is not None
-        narrow_classes = " ".join(narrow_figure.get("class", []))
+        narrow_classes = _get_classes(narrow_figure)
         assert "max-w-3xl" in narrow_classes
         assert "mx-auto" in narrow_classes
 
@@ -164,7 +173,7 @@ class TestThemeAImageBlock:
         wide_soup = BeautifulSoup(wide_response.content.decode("utf-8"), "html.parser")
         wide_figure = wide_soup.find("figure")
         assert wide_figure is not None
-        wide_classes = " ".join(wide_figure.get("class", []))
+        wide_classes = _get_classes(wide_figure)
         assert "-mx-6" in wide_classes
         assert "md:-mx-12" in wide_classes
         assert "lg:mx-0" in wide_classes
