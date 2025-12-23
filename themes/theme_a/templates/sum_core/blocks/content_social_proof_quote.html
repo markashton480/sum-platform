@@ -19,6 +19,7 @@
 
         {% if self.author or self.role or self.company %}
         <figcaption class="flex flex-col gap-2 text-sage-black/70 font-body reveal delay-100">
+          {% if self.author or self.company %}
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-sage-black/50" aria-hidden="true">—</span>
             {% if self.author %}
@@ -30,6 +31,7 @@
             </span>
             {% endif %}
           </div>
+          {% endif %}
           {% if self.role %}
           <span class="text-xs uppercase tracking-[0.3em] text-sage-label/50">{{ self.role }}</span>
           {% endif %}
