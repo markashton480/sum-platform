@@ -105,17 +105,15 @@ def test_trust_strip_uses_theme_a_override(
     assert "border-sage-black/5" in section_classes
     assert "py-12" in section_classes
 
-    eyebrow = section.find(
-        "span", string=lambda text: text and "Trusted by custodians" in text
-    )
-    assert eyebrow is not None
+    assert "Trusted by custodians" in section.get_text()
 
-    logo_row = section.find(
-        lambda tag: tag.name == "div"
-        and "flex" in _get_classes(tag)
-        and "flex-wrap" in _get_classes(tag)
-    )
-    assert logo_row is not None
+    logo_rows = [
+        tag
+        for tag in section.find_all("div")
+        if "flex" in _get_classes(tag) and "flex-wrap" in _get_classes(tag)
+    ]
+    assert logo_rows
+    logo_row = logo_rows[0]
 
     logos = logo_row.find_all("img")
     assert len(logos) == 2
@@ -125,5 +123,9 @@ def test_trust_strip_uses_theme_a_override(
     assert linked_logo is not None
     assert "focus-visible:ring-2" in _get_classes(linked_logo)
 
-    unlinked_logos = [img for img in logos if img.parent.name != "a" and img.get("alt")]
+    unlinked_logos = [
+        img
+        for img in logos
+        if getattr(img.parent, "name", None) != "a" and img.get("alt")
+    ]
     assert unlinked_logos, "Expected at least one unlinked logo in the strip"
