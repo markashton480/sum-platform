@@ -9,6 +9,7 @@ Dependencies: pytest, wagtail, django
 from __future__ import annotations
 
 import pytest
+from django.template.loader import get_template
 from django.test import Client
 from home.models import HomePage
 from wagtail.models import Page, Site
@@ -138,6 +139,15 @@ class TestThemeAStandardPage:
         content = response.content.decode("utf-8")
         # Theme A header has id="main-header", core header uses class="header"
         assert 'id="main-header"' in content
+
+
+def test_process_steps_template_resolves_to_theme_a(theme_active_copy) -> None:
+    template = get_template("sum_core/blocks/process_steps.html")
+    origin_name = str(getattr(template.origin, "name", ""))
+    assert (
+        str(theme_active_copy) in origin_name
+        or "themes/theme_a/templates" in origin_name
+    )
 
 
 class TestThemeAMegaMenu:
