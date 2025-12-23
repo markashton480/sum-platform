@@ -1,20 +1,20 @@
 {% load wagtailcore_tags form_tags %}
-<section class="py-24 bg-sage-oat">
-  <div class="container mx-auto px-4">
-    <div class="grid lg:grid-cols-12 gap-16 items-start">
+<section class="contact-form-block py-24 md:py-32 bg-sage-black text-sage-linen relative overflow-hidden">
+  <div class="container mx-auto px-6 relative z-10">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-start">
       <!-- Header Column -->
-      <div class="lg:col-span-5 reveal">
-        <header>
+      <div class="reveal pt-6 lg:pt-8 lg:sticky lg:top-32 lg:self-start">
+        <header class="max-w-md">
           {% if self.eyebrow %}
-            <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-sage-label mb-6">
+            <span class="text-sage-terra font-mono text-xs uppercase tracking-widest mb-6 block">
               {{ self.eyebrow }}
-            </div>
+            </span>
           {% endif %}
-          <div class="font-display text-4xl md:text-5xl text-sage-black mb-8">
+          <div class="font-display text-5xl md:text-6xl lg:text-7xl text-sage-linen mb-8 leading-none">
             {{ self.heading|richtext }}
           </div>
           {% if self.intro %}
-            <div class="text-lg text-sage-black/70 leading-relaxed font-body max-w-md">
+            <div class="font-accent text-xl md:text-2xl text-sage-oat/70 leading-relaxed max-w-md">
               {{ self.intro|richtext }}
             </div>
           {% endif %}
@@ -22,8 +22,8 @@
       </div>
 
       <!-- Form Column -->
-      <div class="lg:col-span-7 reveal delay-100">
-        <form action="/forms/submit/" method="post" novalidate class="bg-sage-linen rounded-sm p-10 md:p-12 shadow-sm border border-sage-black/5" data-form-type="contact" id="contact-form"
+      <div class="reveal delay-100">
+        <form action="/forms/submit/" method="post" novalidate class="space-y-8 md:space-y-12" data-form-type="contact" id="contact-form"
               data-success-message="{{ self.success_message|default:"Thanks, we'll be in touch shortly."|escapejs }}"
               data-error-message="Something went wrong. Please try again.">
           {% csrf_token %}
@@ -39,18 +39,18 @@
 
           {% if form %}
             {% for field in form %}
-              <div class="mb-8 {% if field.errors %}has-error{% endif %}">
-                <label for="{{ field.id_for_label }}" class="block text-[11px] font-bold uppercase tracking-widest text-sage-label mb-3">
+              <div class="relative group z-0 {% if field.errors %}has-error{% endif %}">
+                <label for="{{ field.id_for_label }}" class="block text-xs uppercase tracking-widest text-sage-linen/60 mb-2">
                   {{ field.label }}
                 </label>
-                <div class="relative">
+                <div>
                     {{ field }}
                 </div>
                 {% if field.help_text %}
-                  <span class="text-[11px] text-sage-black/40 mt-2 block italic">{{ field.help_text }}</span>
+                  <span class="text-xs text-sage-linen/50 mt-2 block">{{ field.help_text }}</span>
                 {% endif %}
                 {% if field.errors %}
-                  <span class="text-[11px] text-sage-moss mt-2 block font-bold" id="{{ field.auto_id }}_errors">
+                  <span class="text-xs text-sage-terra mt-2 block font-bold" id="{{ field.auto_id }}_errors">
                     {{ field.errors.0 }}
                   </span>
                 {% endif %}
@@ -58,40 +58,57 @@
             {% endfor %}
 
             {% if form.non_field_errors %}
-              <div class="mb-8 p-4 bg-sage-moss/5 rounded-sm border border-sage-moss/20">
+              <div class="p-4 bg-sage-terra/20 rounded-sm border border-sage-terra/30">
                 {% for error in form.non_field_errors %}
-                  <p class="text-sm text-sage-moss font-bold">{{ error }}</p>
+                  <p class="text-xs uppercase tracking-widest text-sage-terra font-mono">{{ error }}</p>
                 {% endfor %}
               </div>
             {% endif %}
 
           {% else %}
             <!-- Working form fields for frontend use -->
-            <div class="grid md:grid-cols-2 gap-8 mb-8">
-                <div>
-                    <label for="contact-name" class="block text-[11px] font-bold uppercase tracking-widest text-sage-label mb-3">Full Name</label>
-                    <input type="text" id="contact-name" name="name" class="w-full px-0 py-3 bg-transparent border-b border-sage-black/10 text-sage-black focus:outline-none focus:border-sage-moss transition-colors font-body" placeholder="James Sterling" required>
-                </div>
-                <div>
-                    <label for="contact-email" class="block text-[11px] font-bold uppercase tracking-widest text-sage-label mb-3">Email Address</label>
-                    <input type="email" id="contact-email" name="email" class="w-full px-0 py-3 bg-transparent border-b border-sage-black/10 text-sage-black focus:outline-none focus:border-sage-moss transition-colors font-body" placeholder="name@example.com" required>
-                </div>
+            <div class="relative group z-0">
+              <input type="text" id="contact-name" name="name" required placeholder=" "
+                     class="peer block w-full bg-transparent border-0 border-b-2 border-sage-linen/20 py-4 text-2xl font-display text-sage-linen placeholder-transparent focus:border-sage-terra transition-colors">
+              <label for="contact-name"
+                     class="absolute text-sage-linen/40 text-sm uppercase tracking-widest duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-focus:left-0 peer-focus:text-sage-terra peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-sage-linen/50 peer-focus:scale-75 peer-focus:-translate-y-6 cursor-text">
+                Full Name
+              </label>
             </div>
-            <div class="mb-8">
-                <label for="contact-phone" class="block text-[11px] font-bold uppercase tracking-widest text-sage-label mb-3">Phone (Optional)</label>
-                <input type="tel" id="contact-phone" name="phone" class="w-full px-0 py-3 bg-transparent border-b border-sage-black/10 text-sage-black focus:outline-none focus:border-sage-moss transition-colors font-body" placeholder="+44 ...">
+
+            <div class="relative group z-0">
+              <input type="email" id="contact-email" name="email" required placeholder=" "
+                     class="peer block w-full bg-transparent border-0 border-b-2 border-sage-linen/20 py-4 text-2xl font-display text-sage-linen placeholder-transparent focus:border-sage-terra transition-colors">
+              <label for="contact-email"
+                     class="absolute text-sage-linen/40 text-sm uppercase tracking-widest duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-focus:left-0 peer-focus:text-sage-terra peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-sage-linen/50 peer-focus:scale-75 peer-focus:-translate-y-6 cursor-text">
+                Email Address
+              </label>
             </div>
-            <div class="mb-12">
-                <label for="contact-message" class="block text-[11px] font-bold uppercase tracking-widest text-sage-label mb-3">How can we help?</label>
-                <textarea id="contact-message" name="message" class="w-full px-0 py-3 bg-transparent border-b border-sage-black/10 text-sage-black focus:outline-none focus:border-sage-moss transition-colors font-body min-h-[120px] resize-none" placeholder="Tell us about your project..."></textarea>
+
+            <div class="relative group z-0">
+              <input type="tel" id="contact-phone" name="phone" placeholder=" "
+                     class="peer block w-full bg-transparent border-0 border-b-2 border-sage-linen/20 py-4 text-2xl font-display text-sage-linen placeholder-transparent focus:border-sage-terra transition-colors">
+              <label for="contact-phone"
+                     class="absolute text-sage-linen/40 text-sm uppercase tracking-widest duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-focus:left-0 peer-focus:text-sage-terra peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-sage-linen/50 peer-focus:scale-75 peer-focus:-translate-y-6 cursor-text">
+                Phone (Optional)
+              </label>
+            </div>
+
+            <div class="relative group z-0">
+              <textarea id="contact-message" name="message" rows="3" required placeholder=" "
+                        class="peer block w-full bg-transparent border-0 border-b-2 border-sage-linen/20 py-4 text-xl font-body font-light text-sage-linen placeholder-transparent focus:border-sage-terra transition-colors resize-none"></textarea>
+              <label for="contact-message"
+                     class="absolute text-sage-linen/40 text-sm uppercase tracking-widest duration-300 transform -translate-y-6 scale-75 top-3 origin-[0] peer-focus:left-0 peer-focus:text-sage-terra peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-placeholder-shown:text-sage-linen/50 peer-focus:scale-75 peer-focus:-translate-y-6 cursor-text">
+                How can we help?
+              </label>
             </div>
           {% endif %}
 
           <!-- Form messages -->
-          <div role="alert" aria-live="polite" class="mb-8"></div>
+          <div class="form-messages" role="alert" aria-live="polite"></div>
 
-          <div>
-            <button type="submit" class="btn btn-primary w-full md:w-auto md:px-12">
+          <div class="pt-4">
+            <button type="submit" class="btn btn-primary btn-submit w-full md:w-auto">
               {{ self.submit_label|default:"Send enquiry" }}
             </button>
           </div>
@@ -112,27 +129,75 @@
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
+
     var formData = new FormData(form);
-    var messagesContainer = form.querySelector('[role="alert"]');
+    var submitBtn = form.querySelector('.btn-submit');
+    var messagesDiv = form.querySelector('.form-messages');
+    var originalBtnText = submitBtn.textContent;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    messagesDiv.innerHTML = '';
+    messagesDiv.className = 'form-messages';
+
+    var csrfInput = form.querySelector('input[name="csrfmiddlewaretoken"]');
+    var csrfToken = csrfInput ? csrfInput.value : '';
 
     fetch(form.action, {
       method: 'POST',
       body: formData,
+      credentials: 'same-origin',
       headers: {
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': csrfToken
       }
     })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-      if (data.success) {
-        messagesContainer.innerHTML = '<div class="p-4 bg-sage-moss/20 text-sage-black rounded-lg">' + form.dataset.successMessage + '</div>';
+    .then(function(response) {
+      return response.json().then(function(data) {
+        return { status: response.status, data: data };
+      });
+    })
+    .then(function(result) {
+      if (result.data.success) {
+        messagesDiv.className = 'form-messages form-messages--success';
+        var successMsg = document.createElement('p');
+        successMsg.className = 'form-success-msg';
+        successMsg.textContent = form.dataset.successMessage || 'Thank you for your submission.';
+        messagesDiv.innerHTML = '';
+        messagesDiv.appendChild(successMsg);
         form.reset();
       } else {
-        messagesContainer.innerHTML = '<div class="p-4 bg-primary/20 text-sage-black rounded-lg">' + form.dataset.errorMessage + '</div>';
+        messagesDiv.className = 'form-messages form-messages--error';
+        messagesDiv.innerHTML = '';
+        if (result.data.errors) {
+          for (var field in result.data.errors) {
+            result.data.errors[field].forEach(function(msg) {
+              var errorP = document.createElement('p');
+              errorP.className = 'form-error-msg';
+              errorP.textContent = msg;
+              messagesDiv.appendChild(errorP);
+            });
+          }
+        }
+        if (!messagesDiv.hasChildNodes()) {
+          var fallbackP = document.createElement('p');
+          fallbackP.className = 'form-error-msg';
+          fallbackP.textContent = form.dataset.errorMessage || 'Something went wrong. Please try again.';
+          messagesDiv.appendChild(fallbackP);
+        }
       }
     })
     .catch(function() {
-      messagesContainer.innerHTML = '<div class="p-4 bg-primary/20 text-sage-black rounded-lg">' + form.dataset.errorMessage + '</div>';
+      messagesDiv.className = 'form-messages form-messages--error';
+      var errorP = document.createElement('p');
+      errorP.className = 'form-error-msg';
+      errorP.textContent = form.dataset.errorMessage || 'Something went wrong. Please try again.';
+      messagesDiv.innerHTML = '';
+      messagesDiv.appendChild(errorP);
+    })
+    .finally(function() {
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalBtnText;
     });
   });
 })();
