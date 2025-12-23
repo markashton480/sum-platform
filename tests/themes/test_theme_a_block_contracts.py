@@ -14,6 +14,7 @@ REQUIRED_BLOCK_TEMPLATES = [
     "content_image.html",
     "content_buttons.html",
     "team_members.html",
+    "timeline.html",
 ]
 
 

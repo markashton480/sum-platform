@@ -169,6 +169,51 @@ class TeamMemberBlock(blocks.StructBlock):
         label = "Team Members"
 
 
+class TimelineItemBlock(blocks.StructBlock):
+    date_label = blocks.CharBlock(
+        required=True,
+        help_text="Short date label for the milestone (e.g. 2020, Q3 2024)",
+    )
+    heading = blocks.CharBlock(required=True, help_text="Milestone heading")
+    body = blocks.RichTextBlock(
+        required=True,
+        features=["bold", "italic", "link", "ol", "ul"],
+        help_text="Supporting copy for the milestone",
+    )
+    image = ImageChooserBlock(required=False, help_text="Optional supporting image")
+    image_alt = blocks.CharBlock(
+        required=False,
+        help_text="Alt text for the image. Provide when an image is set.",
+    )
+
+    class Meta:
+        icon = "date"
+        label = "Timeline Item"
+
+
+class TimelineBlock(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(
+        required=False, help_text="Optional accent label above the heading"
+    )
+    heading = blocks.RichTextBlock(
+        required=False,
+        features=["italic", "bold"],
+        help_text="Timeline section heading",
+    )
+    intro = blocks.RichTextBlock(
+        required=False,
+        features=["bold", "italic", "link"],
+        help_text="Short intro or description for the timeline",
+    )
+    items = blocks.ListBlock(TimelineItemBlock(), min_num=1)
+
+    class Meta:
+        template = "sum_core/blocks/timeline.html"
+        icon = "time"
+        label = "Timeline"
+        group = "Sections"
+
+
 class ManifestoBlock(blocks.StructBlock):
     """
     Centered prose section used for "manifesto"-style content blocks.

@@ -22,6 +22,7 @@ from sum_core.blocks.content import (
     SocialProofQuoteBlock,
     SpacerBlock,
     TeamMemberBlock,
+    TimelineBlock,
     TrustStripBlock,
 )
 from sum_core.blocks.forms import ContactFormBlock, QuoteRequestFormBlock
@@ -62,6 +63,7 @@ class PageStreamBlock(StreamBlock):
     manifesto = ManifestoBlock(group="Sections")
     portfolio = PortfolioBlock(group="Sections")
     team_members = TeamMemberBlock(group="Sections")
+    timeline = TimelineBlock(group="Sections")
 
     # Content Blocks
     page_header = PageHeaderBlock(group="Page Content")
