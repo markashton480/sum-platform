@@ -32,11 +32,11 @@ Result: **109 passed** (with existing Django URLField warning about default sche
 ## Evidence (Git)
 
 - `git log -n 5 --oneline`
+  - `a526a35 docs: add CM-06-04 follow-up report`
   - `9c55ad3 fix(navigation): [CM-06-04] footer effective settings + time-safe caching`
   - `cc7a5ca docs: new AGENTS.md added`
   - `a529b99 docs: removed AGENTS.md so I can refresh it automatically`
   - `162fabd Merge pull request #54 from markashton480/fix/M6-XXX-nav-active-nplus1`
-  - `db260d3 Merge pull request #53 from markashton480/fix/issue-30-atomic-rate-limit`
 
 - Files changed in implementation commit:
   - `core/sum_core/navigation/services.py`
