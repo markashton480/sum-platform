@@ -1,5 +1,11 @@
 # SUM Platform – CSS & Design System Guide
 
+## ARCHIVED
+
+## **Status**: Obsolete
+
+THIS IS NOW OBSOLETE. PLEASE SEE `docs/dev/THEME-GUIDE.md` for up-to-date information.
+
 > **Purpose:**
 > One place to understand **how CSS is structured** in `sum_core` and **how to use design tokens** when implementing or updating blocks. This is for both humans and AI agents.
 
