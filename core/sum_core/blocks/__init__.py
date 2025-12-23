@@ -22,6 +22,8 @@ from .content import (
     RichTextContentBlock,
     SocialProofQuoteBlock,
     SpacerBlock,
+    TimelineBlock,
+    TimelineItemBlock,
     TrustStripBlock,
 )
 from .forms import ContactFormBlock, QuoteRequestFormBlock
@@ -59,6 +61,8 @@ __all__ = [
     "StatsBlock",
     "ProcessStepsBlock",
     "FAQBlock",
+    "TimelineBlock",
+    "TimelineItemBlock",
     "RichTextContentBlock",
     "PageHeaderBlock",
     "EditorialHeaderBlock",

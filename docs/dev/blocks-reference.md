@@ -20,6 +20,7 @@
 | `trust_strip_logos`   | TrustStripBlock        | Sections     | Logo strip (certifications/partners) |
 | `stats`               | StatsBlock             | Sections     | Key metrics display                  |
 | `process`             | ProcessStepsBlock      | Sections     | Timeline/process steps               |
+| `timeline`            | TimelineBlock          | Sections     | Milestone timeline/history           |
 | `faq`                 | FAQBlock               | Sections     | FAQ accordion with JSON-LD           |
 | `page_header`         | PageHeaderBlock        | Page Content | Interior page header with breadcrumb |
 | `editorial_header`    | EditorialHeaderBlock   | Page Content | Page/article header                  |
@@ -261,6 +262,33 @@ Used within hero blocks for CTA buttons.
 | `number`      | IntegerBlock  | No       | Auto-numbered if omitted (1-20) |
 | `title`       | CharBlock     | Yes      | -                               |
 | `description` | RichTextBlock | No       | -                               |
+
+---
+
+### TimelineBlock
+
+**Key:** `timeline`  
+**Template:** `sum_core/blocks/timeline.html`  
+**Purpose:** Chronological history/milestones section with optional imagery and intro copy.
+
+#### Fields
+
+| Field     | Type                         | Required | Constraints                    | Notes                                   |
+| --------- | ---------------------------- | -------- | ------------------------------ | --------------------------------------- |
+| `eyebrow` | CharBlock                    | No       | -                              | Accent label above the heading          |
+| `heading` | RichTextBlock                | No       | features: `['italic', 'bold']` | Timeline heading                        |
+| `intro`   | RichTextBlock                | No       | features: `['bold', 'italic', 'link']` | Short intro/lede              |
+| `items`   | ListBlock(TimelineItemBlock) | Yes      | min: 1                         | Timeline milestones                     |
+
+### TimelineItemBlock (Child)
+
+| Field        | Type              | Required | Notes                                           |
+| ------------ | ----------------- | -------- | ----------------------------------------------- |
+| `date_label` | CharBlock         | Yes      | Short date marker (e.g., \"2020\", \"Q3 2024\")     |
+| `heading`    | CharBlock         | Yes      | Milestone heading                               |
+| `body`       | RichTextBlock     | Yes      | features: `['bold', 'italic', 'link', 'ol', 'ul']` |
+| `image`      | ImageChooserBlock | No       | Optional supporting image                       |
+| `image_alt`  | CharBlock         | No       | Provide when `image` is set for accessibility   |
 
 ---
 
