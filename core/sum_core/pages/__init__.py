@@ -25,6 +25,14 @@ def __getattr__(name: str):
         from sum_core.pages.services import ServicePage
 
         return ServicePage
+    if name == "BlogIndexPage":
+        from sum_core.pages.blog import BlogIndexPage
+
+        return BlogIndexPage
+    if name == "BlogPostPage":
+        from sum_core.pages.blog import BlogPostPage
+
+        return BlogPostPage
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -32,4 +40,6 @@ __all__ = [
     "StandardPage",
     "ServiceIndexPage",
     "ServicePage",
+    "BlogIndexPage",
+    "BlogPostPage",
 ]

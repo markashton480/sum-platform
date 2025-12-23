@@ -8,7 +8,14 @@ Dependencies: sum_core.pages.standard.StandardPage, sum_core.pages.services
 
 from __future__ import annotations
 
+from sum_core.pages.blog import BlogIndexPage, BlogPostPage
 from sum_core.pages.services import ServiceIndexPage, ServicePage
 from sum_core.pages.standard import StandardPage
 
-__all__ = ["StandardPage", "ServiceIndexPage", "ServicePage"]
+__all__ = [
+    "StandardPage",
+    "ServiceIndexPage",
+    "ServicePage",
+    "BlogIndexPage",
+    "BlogPostPage",
+]

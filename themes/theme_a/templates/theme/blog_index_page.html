@@ -1,0 +1,87 @@
+{% extends "theme/base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+  {# Page header section #}
+  <section class="section">
+    <div class="container">
+      <header class="section__header">
+        <div class="section__heading">
+          <h1 class="heading-xl">{{ page.title }}</h1>
+        </div>
+      </header>
+    </div>
+  </section>
+
+  {# Intro content area (StreamField) #}
+  {% if page.intro %}
+    {% for block in page.intro %}
+      {% include_block block %}
+    {% endfor %}
+  {% endif %}
+
+  <section class="section">
+    <div class="container">
+      {% if posts %}
+        <div class="grid gap-10 md:grid-cols-2">
+          {% for post in posts %}
+            <article class="border-t border-sage-black/20 pt-6 reveal-group delay-{{ forloop.counter0|add:1 }}00">
+              <a href="{% pageurl post %}" class="block group">
+                {% if post.featured_image %}
+                  <div class="aspect-[4/3] overflow-hidden bg-sage-oat mb-6">
+                    {% image post.featured_image fill-800x600 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" %}
+                  </div>
+                {% endif %}
+                <div class="flex items-center gap-3 text-xs uppercase tracking-widest text-sage-black/70 mb-3">
+                  <span>{{ post.date|date:"F j, Y" }}</span>
+                </div>
+                <h2 class="font-display text-2xl text-sage-black mb-3 group-hover:text-sage-terra">
+                  {{ post.title }}
+                </h2>
+                {% with post.excerpt|default:post.search_description as summary %}
+                  {% if summary %}
+                    <p class="text-body">{{ summary }}</p>
+                  {% endif %}
+                {% endwith %}
+                <div class="mt-4">
+                  <span class="btn btn--link">
+                    Read More
+                    <span aria-hidden="true">→</span>
+                  </span>
+                </div>
+              </a>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-body">No posts yet.</p>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if is_paginated %}
+    <nav class="section" aria-label="Blog pagination">
+      <div class="container">
+        <div class="flex items-center justify-between text-sm uppercase tracking-widest">
+          {% if posts.has_previous %}
+            <a href="?page={{ posts.previous_page_number }}" class="btn btn--link">
+              <span aria-hidden="true">←</span>
+              Previous
+            </a>
+          {% else %}
+            <span class="text-sage-black/50">Previous</span>
+          {% endif %}
+          <span>Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
+          {% if posts.has_next %}
+            <a href="?page={{ posts.next_page_number }}" class="btn btn--link">
+              Next
+              <span aria-hidden="true">→</span>
+            </a>
+          {% else %}
+            <span class="text-sage-black/50">Next</span>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+  {% endif %}
+{% endblock %}

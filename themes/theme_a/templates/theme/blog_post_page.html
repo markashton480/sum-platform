@@ -1,0 +1,32 @@
+{% extends "theme/base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block content %}
+  <section class="section">
+    <div class="container">
+      <header class="section__header">
+        <div class="section__heading">
+          <p class="text-xs uppercase tracking-widest text-sage-black/70 mb-3">
+            {{ page.date|date:"F j, Y" }}
+          </p>
+          <h1 class="heading-xl">{{ page.title }}</h1>
+          {% if page.excerpt %}
+            <p class="text-body mt-4">{{ page.excerpt }}</p>
+          {% endif %}
+        </div>
+      </header>
+
+      {% if page.featured_image %}
+        <div class="mt-8 aspect-[16/9] overflow-hidden bg-sage-oat">
+          {% image page.featured_image fill-1600x900 class="w-full h-full object-cover" %}
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if page.body %}
+    {% for block in page.body %}
+      {% include_block block %}
+    {% endfor %}
+  {% endif %}
+{% endblock %}
