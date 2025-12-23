@@ -143,7 +143,7 @@ class TestTimeTokenGeneration:
         parts = token.split(":")
         assert len(parts) == 2
         assert parts[0].isdigit()
-        assert len(parts[1]) == 16  # Truncated HMAC
+        assert len(parts[1]) == 64  # Full SHA-256 HMAC hexdigest
 
     def test_generates_unique_tokens(self):
         """Each call should generate a unique signature timing."""

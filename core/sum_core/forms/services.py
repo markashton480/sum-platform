@@ -139,7 +139,7 @@ def _sign_timestamp(timestamp: str) -> str:
     """Create HMAC signature for a timestamp."""
     key = settings.SECRET_KEY.encode()
     message = timestamp.encode()
-    return hmac.new(key, message, hashlib.sha256).hexdigest()[:16]
+    return hmac.new(key, message, hashlib.sha256).hexdigest()
 
 
 def check_timing(
