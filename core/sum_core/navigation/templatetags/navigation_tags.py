@@ -281,6 +281,13 @@ def _is_active_section(linked_page: Page | None, current_page: Page | None) -> b
     return bool(current_page.is_descendant_of(linked_page))
 
 
+def _get_ancestor_pks(current_page: Page | None) -> set[int]:
+    """Return current page ancestor PKs (inclusive) or an empty set."""
+    if current_page is None:
+        return set()
+    return set(current_page.get_ancestors(inclusive=True).values_list("pk", flat=True))
+
+
 def _is_current_path(
     href: str, request: HttpRequest | None, link_type: str | None = None
 ) -> bool:
@@ -542,10 +549,12 @@ def _apply_header_active_states(
     # Deep copy to avoid mutating cached data
     result: dict[str, Any] = copy.deepcopy(base_data)
 
+    ancestor_pks = _get_ancestor_pks(current_page)
+
     # Convert menu_items_base to menu_items with active states
     menu_items: list[dict[str, Any]] = []
     for item_base in result.get("menu_items_base", []):
-        item = _apply_item_active_state(item_base, current_page, request)
+        item = _apply_item_active_state(item_base, current_page, request, ancestor_pks)
         menu_items.append(item)
 
     result["menu_items"] = menu_items
@@ -605,6 +614,7 @@ def _apply_children_active_states(
     children_base: list[dict[str, Any]],
     current_page: Page | None,
     request: HttpRequest | None,
+    ancestor_pks: set[int],
 ) -> tuple[list[dict[str, Any]], bool]:
     """
     Recursively apply active states to children.
@@ -624,7 +634,7 @@ def _apply_children_active_states(
 
         if child_link_type == "page" and child_page_pk is not None:
             child_is_current = _is_current_page_by_pk(child_page_pk, current_page)
-            child_is_active = _is_active_section_by_pk(child_page_pk, current_page)
+            child_is_active = child_page_pk in ancestor_pks
         else:
             child_is_current = _is_current_path(child_href, request, child_link_type)
             child_is_active = child_is_current
@@ -632,7 +642,7 @@ def _apply_children_active_states(
         # Recursively process grandchildren
         grand_children_base = child_base.get("children_base", [])
         grand_children, grandchild_active = _apply_children_active_states(
-            grand_children_base, current_page, request
+            grand_children_base, current_page, request, ancestor_pks
         )
 
         # If any grandchild is active, this child is active
@@ -664,6 +674,7 @@ def _apply_item_active_state(
     item_base: dict[str, Any],
     current_page: Page | None,
     request: HttpRequest | None,
+    ancestor_pks: set[int],
 ) -> dict[str, Any]:
     """
     Apply active state to a single menu item and its children.
@@ -678,7 +689,7 @@ def _apply_item_active_state(
 
     if link_type == "page" and page_pk is not None:
         is_current = _is_current_page_by_pk(page_pk, current_page)
-        is_active = _is_active_section_by_pk(page_pk, current_page)
+        is_active = page_pk in ancestor_pks
     else:
         is_current = _is_current_path(href, request, link_type)
         is_active = is_current
@@ -686,7 +697,7 @@ def _apply_item_active_state(
     # Process children recursively
     children_base_list = item_base.get("children_base", [])
     children, child_active = _apply_children_active_states(
-        children_base_list, current_page, request
+        children_base_list, current_page, request, ancestor_pks
     )
 
     # If any child is active, parent should be active too
@@ -713,25 +724,6 @@ def _is_current_page_by_pk(page_pk: int, current_page: Page | None) -> bool:
     if current_page is None:
         return False
     return bool(current_page.pk == page_pk)
-
-
-def _is_active_section_by_pk(page_pk: int, current_page: Page | None) -> bool:
-    """
-    Check if current page matches the page PK or is a descendant.
-
-    Fetches the page from DB only when needed for descendant check.
-    """
-    if current_page is None:
-        return False
-    if current_page.pk == page_pk:
-        return True
-
-    # Need to fetch the page to check descendant relationship
-    try:
-        linked_page = Page.objects.get(pk=page_pk)
-        return bool(current_page.is_descendant_of(linked_page))
-    except Page.DoesNotExist:
-        return False
 
 
 @register.simple_tag(takes_context=True)

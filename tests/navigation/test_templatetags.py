@@ -16,6 +16,7 @@ Test Coverage:
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -24,6 +25,7 @@ from django.test import RequestFactory
 from sum_core.branding.models import SiteSettings
 from sum_core.navigation.models import FooterNavigation, HeaderNavigation
 from sum_core.navigation.templatetags.navigation_tags import (
+    _apply_header_active_states,
     _make_cache_key,
     footer_nav,
     header_nav,
@@ -371,6 +373,63 @@ class TestHeaderNavActiveDetection:
 
         # Roofing link is NOT active when viewing Services (parent)
         assert _is_active_section(child_page, parent_page) is False
+
+    def test_active_detection_uses_single_query(
+        self, default_site, request_factory, django_assert_num_queries
+    ):
+        """Active state computation should not scale queries with menu size."""
+        import uuid
+
+        root = Page.get_first_root_node()
+        suffix = uuid.uuid4().hex[:8]
+
+        parent_page = root.add_child(
+            instance=Page(title="Services", slug=f"nav-test-svc-{suffix}")
+        )
+        current_page = parent_page.add_child(
+            instance=Page(title="Roofing", slug=f"nav-test-roofing-{suffix}")
+        )
+        other_pages = [
+            root.add_child(
+                instance=Page(title=f"Page {i}", slug=f"nav-test-p{i}-{suffix}")
+            )
+            for i in range(6)
+        ]
+
+        menu_pages = [parent_page, current_page, *other_pages]
+
+        def _menu_item_base(page: Page) -> dict[str, Any]:
+            return {
+                "label": page.title,
+                "href": f"/{page.slug}/",
+                "is_external": False,
+                "opens_new_tab": False,
+                "attrs": {},
+                "attrs_str": "",
+                "has_children": False,
+                "children_base": [],
+                "_page_pk": page.pk,
+                "_link_type": "page",
+            }
+
+        base_data = {
+            "menu_items_base": [_menu_item_base(page) for page in menu_pages],
+            "show_phone": False,
+            "phone_number": "",
+            "phone_href": "",
+            "header_cta": {"enabled": False, "text": "", "href": "#", "attrs": {}},
+        }
+
+        request = request_factory.get("/")
+
+        with django_assert_num_queries(1):
+            result = _apply_header_active_states(base_data, current_page, request)
+
+        menu_items = result["menu_items"]
+        assert menu_items[0]["is_active"] is True
+        assert menu_items[0]["is_current"] is False
+        assert menu_items[1]["is_active"] is True
+        assert menu_items[1]["is_current"] is True
 
 
 # =============================================================================
