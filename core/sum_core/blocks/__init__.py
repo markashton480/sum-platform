@@ -18,8 +18,8 @@ from .content import (
     ManifestoBlock,
     PortfolioBlock,
     QuoteBlock,
-    SocialProofQuoteBlock,
     RichTextContentBlock,
+    SocialProofQuoteBlock,
     SpacerBlock,
     TrustStripBlock,
 )

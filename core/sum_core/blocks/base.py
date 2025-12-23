@@ -17,8 +17,8 @@ from sum_core.blocks.content import (
     ManifestoBlock,
     PortfolioBlock,
     QuoteBlock,
-    SocialProofQuoteBlock,
     RichTextContentBlock,
+    SocialProofQuoteBlock,
     SpacerBlock,
     TrustStripBlock,
 )
