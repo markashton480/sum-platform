@@ -19,11 +19,13 @@ Test Coverage:
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 import pytest
 from django.core.cache import cache
 from django.test import RequestFactory
+from django.utils import timezone
 from sum_core.branding.models import SiteSettings
 from sum_core.navigation.cache import (
     get_nav_cache_key,
@@ -201,7 +203,9 @@ class TestCacheStoresOnMiss:
         # Verify cached
         cached = cache.get(cache_key)
         assert cached is not None
-        assert cached == result
+        assert cached["copyright"]["raw"] == result["copyright"]["raw"]
+        assert "rendered" not in cached["copyright"]
+        assert result["copyright"]["rendered"]
 
     def test_sticky_cta_stores_on_miss(
         self, template_context, branding_settings, header_navigation, default_site
@@ -262,14 +266,41 @@ class TestCacheReturnsOnHit:
         cache_key = get_nav_cache_key(default_site.id, "footer")
 
         # Pre-populate cache with test data
-        test_data = {"tagline": "Cached Value", "test": True}
+        test_data = {
+            "tagline": "Cached Value",
+            "business": {"company_name": "Cached Co"},
+            "copyright": {"raw": "© {year} {company_name}."},
+        }
         cache.set(cache_key, test_data)
 
         # Call footer_nav - should return cached value
         result = footer_nav(template_context)
 
-        assert result == test_data
         assert result["tagline"] == "Cached Value"
+        assert "Cached Co" in result["copyright"]["rendered"]
+        assert str(timezone.now().year) in result["copyright"]["rendered"]
+
+        cached_after = cache.get(cache_key)
+        assert "rendered" not in cached_after["copyright"]
+
+    def test_footer_nav_renders_year_per_request(
+        self, template_context, branding_settings, footer_navigation, default_site
+    ):
+        """footer_nav renders time-dependent values after cache retrieval."""
+        with patch(
+            "sum_core.navigation.templatetags.navigation_tags.timezone.now",
+            return_value=datetime(2025, 1, 1, tzinfo=UTC),
+        ):
+            result_2025 = footer_nav(template_context)
+
+        with patch(
+            "sum_core.navigation.templatetags.navigation_tags.timezone.now",
+            return_value=datetime(2026, 1, 1, tzinfo=UTC),
+        ):
+            result_2026 = footer_nav(template_context)
+
+        assert "2025" in result_2025["copyright"]["rendered"]
+        assert "2026" in result_2026["copyright"]["rendered"]
 
 
 # =============================================================================

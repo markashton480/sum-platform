@@ -77,6 +77,7 @@ def empty_footer_navigation(default_site):
         site=default_site,
         defaults={
             "tagline": "",
+            "copyright_text": "",
             "social_facebook": "",
             "social_instagram": "",
             "social_linkedin": "",
@@ -86,6 +87,7 @@ def empty_footer_navigation(default_site):
     )
     # Ensure fields are empty
     nav.tagline = ""
+    nav.copyright_text = ""
     nav.social_facebook = ""
     nav.social_instagram = ""
     nav.social_linkedin = ""
@@ -102,6 +104,7 @@ def populated_footer_navigation(default_site):
         site=default_site,
         defaults={
             "tagline": "Footer Override Tagline",
+            "copyright_text": "© {year} Footer Company. All rights reserved.",
             "social_facebook": "https://facebook.com/footer",
             "social_instagram": "https://instagram.com/footer",
             "social_linkedin": "https://linkedin.com/footer",
@@ -110,6 +113,7 @@ def populated_footer_navigation(default_site):
         },
     )
     nav.tagline = "Footer Override Tagline"
+    nav.copyright_text = "© {year} Footer Company. All rights reserved."
     nav.social_facebook = "https://facebook.com/footer"
     nav.social_instagram = "https://instagram.com/footer"
     nav.social_linkedin = "https://linkedin.com/footer"
@@ -488,6 +492,26 @@ class TestReturnTypes:
         result = get_effective_footer_settings(default_site)
 
         assert isinstance(result.social, dict)
+
+
+class TestFooterCopyright:
+    """Tests for footer copyright field mapping."""
+
+    def test_footer_copyright_returns_navigation_value(
+        self, default_site, branding_settings, populated_footer_navigation
+    ):
+        """Footer settings include copyright from FooterNavigation."""
+        result = get_effective_footer_settings(default_site)
+
+        assert result.copyright_text == "© {year} Footer Company. All rights reserved."
+
+    def test_footer_copyright_defaults_to_empty(
+        self, default_site, branding_settings, empty_footer_navigation
+    ):
+        """Footer settings use empty string when copyright is missing."""
+        result = get_effective_footer_settings(default_site)
+
+        assert result.copyright_text == ""
 
 
 # =============================================================================

@@ -15,13 +15,13 @@ Test Coverage:
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
 from django.core.cache import cache
 from django.test import RequestFactory
+from django.utils import timezone
 from sum_core.branding.models import SiteSettings
 from sum_core.navigation.models import FooterNavigation, HeaderNavigation
 from sum_core.navigation.templatetags.navigation_tags import (
@@ -533,7 +533,7 @@ class TestFooterNavReturnsContext:
         """footer_nav replaces {year} placeholder in copyright."""
         result = footer_nav(template_context)
 
-        current_year = str(datetime.now().year)
+        current_year = str(timezone.now().year)
         assert current_year in result["copyright"]["rendered"]
 
     def test_copyright_company_placeholder(
@@ -552,6 +552,17 @@ class TestFooterNavReturnsContext:
 
         assert "{year}" in result["copyright"]["raw"]
         assert "{company_name}" in result["copyright"]["raw"]
+
+    def test_copyright_unknown_placeholder_safe(
+        self, template_context, branding_settings, footer_navigation
+    ):
+        """footer_nav leaves unknown placeholders untouched."""
+        footer_navigation.copyright_text = "© {year} {company_name} {unknown}."
+        footer_navigation.save()
+
+        result = footer_nav(template_context)
+
+        assert "{unknown}" in result["copyright"]["rendered"]
 
     def test_returns_empty_dict_without_request(self):
         """footer_nav returns empty dict if no request in context."""
@@ -690,7 +701,8 @@ class TestTagUsesCache:
         # Verify cached
         cached = cache.get(cache_key)
         assert cached is not None
-        assert cached == result1
+        assert cached["copyright"]["raw"] == result1["copyright"]["raw"]
+        assert "rendered" not in cached["copyright"]
 
     def test_sticky_cta_caches_result(
         self, template_context, branding_settings, header_navigation, default_site
@@ -713,7 +725,11 @@ class TestTagUsesCache:
         cache_key = _make_cache_key("footer", default_site.id)
 
         # Pre-populate cache with test data directly (bypass DB)
-        test_data = {"tagline": "Cached Value", "test": True}
+        test_data = {
+            "tagline": "Cached Value",
+            "business": {"company_name": "Cached Co"},
+            "copyright": {"raw": "© {year} {company_name}."},
+        }
         cache.set(cache_key, test_data)
 
         # Call should return cached value
@@ -721,7 +737,7 @@ class TestTagUsesCache:
 
         # Should match cached data
         assert result["tagline"] == "Cached Value"
-        assert result == test_data
+        assert "Cached Co" in result["copyright"]["rendered"]
 
     def test_cache_hit_does_not_rebuild(
         self, template_context, branding_settings, footer_navigation, default_site
@@ -736,17 +752,17 @@ class TestTagUsesCache:
         # Pre-populate cache with test data
         test_data = {
             "tagline": "Cached Tagline",
-            "copyright": {"rendered": "© 2025 Cached Company"},
-            "test": True,
+            "business": {"company_name": "Cached Company"},
+            "copyright": {"raw": "© {year} {company_name}"},
         }
         cache.set(cache_key, test_data)
 
         # Call should return cached value without querying DB
         result = footer_nav(template_context)
 
-        # Should match cached data exactly
+        # Should use cached base data
         assert result["tagline"] == "Cached Tagline"
-        assert result == test_data
+        assert "Cached Company" in result["copyright"]["rendered"]
 
     def test_cache_graceful_fallback_on_get_failure(
         self, template_context, branding_settings, footer_navigation

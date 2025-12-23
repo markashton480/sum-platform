@@ -14,13 +14,14 @@ Tags:
 from __future__ import annotations
 
 import copy
+import re
 from collections.abc import Callable
-from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 from django import template
 from django.conf import settings
 from django.core.cache import cache
+from django.utils import timezone
 from sum_core.navigation.cache import get_nav_cache_key
 from sum_core.navigation.models import FooterNavigation
 from sum_core.navigation.services import (
@@ -239,6 +240,20 @@ def _extract_cta_link(cta_link_stream: Any) -> dict[str, Any] | None:
     first_block = cta_link_stream[0]
     link_value = first_block.value if hasattr(first_block, "value") else first_block
     return _extract_link_data(link_value)
+
+
+def _render_footer_copyright(raw: str, company_name: str, year: int) -> str:
+    """Render footer copyright text with safe placeholder replacement."""
+    if not raw:
+        return ""
+
+    rendered = raw.replace("{year}", str(year)).replace(
+        "{company_name}", company_name or ""
+    )
+    rendered = re.sub(r"\s+\.", ".", rendered)
+    rendered = re.sub(r"\s+,", ",", rendered)
+    rendered = re.sub(r"\s{2,}", " ", rendered).strip()
+    return rendered
 
 
 # =============================================================================
@@ -860,21 +875,8 @@ def footer_nav(context: dict[str, Any]) -> dict[str, Any]:
             "address": footer_settings.address,
         }
 
-        # Copyright with placeholder replacement
-        copyright_raw = footer_nav_model.copyright_text or ""
-        current_year = datetime.now().year
-        copyright_rendered = copyright_raw.replace("{year}", str(current_year))
-        copyright_rendered = copyright_rendered.replace(
-            "{company_name}", footer_settings.company_name
-        )
-
-        # Clean up extra spaces when company_name is empty
-        # e.g., "© 2025 . All rights" -> "© 2025. All rights"
-        import re
-
-        copyright_rendered = re.sub(r"\s+\.", ".", copyright_rendered)
-        copyright_rendered = re.sub(r"\s+,", ",", copyright_rendered)
-        copyright_rendered = re.sub(r"\s{2,}", " ", copyright_rendered).strip()
+        # Copyright template (rendered later to avoid caching time-dependent text)
+        copyright_raw = footer_settings.copyright_text
 
         return {
             "tagline": footer_settings.tagline,
@@ -883,8 +885,19 @@ def footer_nav(context: dict[str, Any]) -> dict[str, Any]:
             "business": business,
             "copyright": {
                 "raw": copyright_raw,
-                "rendered": copyright_rendered,
             },
         }
 
-    return _cache_get_or_build(cache_key, build)
+    base_context = _cache_get_or_build(cache_key, build)
+    result = copy.deepcopy(base_context)
+
+    copyright_data = result.setdefault("copyright", {})
+    raw_text = str(copyright_data.get("raw") or "")
+    copyright_data["raw"] = raw_text
+    copyright_data["rendered"] = _render_footer_copyright(
+        raw_text,
+        result.get("business", {}).get("company_name", ""),
+        timezone.now().year,
+    )
+
+    return result
