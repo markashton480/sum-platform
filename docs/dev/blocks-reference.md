@@ -21,6 +21,7 @@
 | `stats`               | StatsBlock             | Sections     | Key metrics display                  |
 | `process`             | ProcessStepsBlock      | Sections     | Timeline/process steps               |
 | `faq`                 | FAQBlock               | Sections     | FAQ accordion with JSON-LD           |
+| `page_header`         | PageHeaderBlock        | Page Content | Interior page header with breadcrumb |
 | `editorial_header`    | EditorialHeaderBlock   | Page Content | Page/article header                  |
 | `content`             | RichTextContentBlock   | Page Content | General rich text content            |
 | `quote`               | QuoteBlock             | Page Content | Pull quote/blockquote                |
@@ -407,6 +408,22 @@ Used within hero blocks for CTA buttons.
 ---
 
 ## Content Blocks
+
+### PageHeaderBlock
+
+**Key:** `page_header`  
+**Template:** `sum_core/blocks/page_header.html`  
+**Purpose:** Interior page header with breadcrumbs, heading, and optional intro.
+
+#### Fields
+
+| Field     | Type          | Required | Constraints                    | Notes                       |
+| --------- | ------------- | -------- | ------------------------------ | -------------------------- |
+| `eyebrow` | CharBlock     | No       | -                              | Small label above heading  |
+| `heading` | RichTextBlock | No       | features: `['italic', 'bold']` | Falls back to page title   |
+| `intro`   | TextBlock     | No       | -                              | Short supporting intro     |
+
+---
 
 ### RichTextContentBlock
 
