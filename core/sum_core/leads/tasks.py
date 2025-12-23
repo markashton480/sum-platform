@@ -130,6 +130,8 @@ def send_lead_notification(
     # Get notification email address
     notification_email = getattr(settings, "LEAD_NOTIFICATION_EMAIL", "")
 
+    attempt_count = 0
+
     # Use select_for_update within a transaction for concurrency safety
     try:
         with transaction.atomic():
@@ -177,6 +179,7 @@ def send_lead_notification(
             lead.email_status = EmailStatus.IN_PROGRESS
             lead.email_attempts += 1
             lead.save(update_fields=["email_status", "email_attempts"])
+            attempt_count = lead.email_attempts
     except Lead.DoesNotExist:
         logger.error(
             "Lead not found for email notification",
@@ -267,7 +270,7 @@ def send_lead_notification(
                 extra={
                     "lead_id": lead_id,
                     "request_id": request_id or "-",
-                    "attempt": lead.email_attempts,
+                    "attempt": attempt_count,
                 },
             )
             raise
@@ -277,7 +280,7 @@ def send_lead_notification(
             extra={
                 "lead_id": lead_id,
                 "request_id": request_id or "-",
-                "attempts": lead.email_attempts,
+                "attempts": attempt_count,
             },
         )
         return
@@ -323,6 +326,7 @@ def send_lead_webhook(self, lead_id: int, request_id: str | None = None) -> None
     set_sentry_context(request_id=request_id, lead_id=lead_id, task="send_lead_webhook")
 
     webhook_url = getattr(settings, "ZAPIER_WEBHOOK_URL", "")
+    attempt_count = 0
 
     try:
         with transaction.atomic():
@@ -359,6 +363,7 @@ def send_lead_webhook(self, lead_id: int, request_id: str | None = None) -> None
             lead.webhook_status = WebhookStatus.IN_PROGRESS
             lead.webhook_attempts += 1
             lead.save(update_fields=["webhook_status", "webhook_attempts"])
+            attempt_count = lead.webhook_attempts
     except Lead.DoesNotExist:
         logger.error(
             "Lead not found for webhook notification",
@@ -401,7 +406,7 @@ def send_lead_webhook(self, lead_id: int, request_id: str | None = None) -> None
                 extra={
                     "lead_id": lead_id,
                     "request_id": request_id or "-",
-                    "attempt": lead.webhook_attempts,
+                    "attempt": attempt_count,
                 },
             )
             raise
@@ -436,7 +441,7 @@ def send_lead_webhook(self, lead_id: int, request_id: str | None = None) -> None
                 extra={
                     "lead_id": lead_id,
                     "request_id": request_id or "-",
-                    "attempt": lead.webhook_attempts,
+                    "attempt": attempt_count,
                 },
             )
             raise
@@ -491,7 +496,7 @@ def send_lead_webhook(self, lead_id: int, request_id: str | None = None) -> None
             extra={
                 "lead_id": lead_id,
                 "request_id": request_id or "-",
-                "attempt": lead.webhook_attempts,
+                "attempt": attempt_count,
                 "status_code": response.status_code,
             },
         )
@@ -549,6 +554,10 @@ def send_zapier_webhook(
         site_id=site_id,
         task="send_zapier_webhook",
     )
+
+    attempt_count = 0
+    site: Site | None = None
+    site_settings: SiteSettings | None = None
 
     try:
         with transaction.atomic():
@@ -639,6 +648,7 @@ def send_zapier_webhook(
                     "zapier_last_attempt_at",
                 ]
             )
+            attempt_count = lead.zapier_attempt_count
     except Lead.DoesNotExist:
         logger.error(
             "Lead not found for Zapier webhook",
@@ -648,6 +658,9 @@ def send_zapier_webhook(
                 "request_id": request_id or "-",
             },
         )
+        return
+
+    if site is None or site_settings is None:
         return
 
     # Build payload and send request
@@ -693,7 +706,7 @@ def send_zapier_webhook(
                 "lead_id": lead_id,
                 "site_id": site_id,
                 "request_id": request_id or "-",
-                "attempt": lead.zapier_attempt_count,
+                "attempt": attempt_count,
             },
         )
         raise requests.RequestException(error_message)
@@ -704,6 +717,6 @@ def send_zapier_webhook(
             "lead_id": lead_id,
             "site_id": site_id,
             "request_id": request_id or "-",
-            "attempts": lead.zapier_attempt_count,
+            "attempts": attempt_count,
         },
     )
