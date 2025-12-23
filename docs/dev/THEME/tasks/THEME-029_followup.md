@@ -2,7 +2,7 @@
 
 ## Summary
 - Rewrote Theme A ImageBlock template to use figure/figcaption structure, caption gating, and full-width layout rules.
-- Added image wrapper styling to match editorial wireframe while keeping reveal hooks intact.
+- Applied editorial image styling directly on the image element while keeping reveal hooks intact.
 - Regenerated Theme A compiled CSS + fingerprint after rebasing onto origin/develop.
 - Fixed isort ordering in core block modules to satisfy CI lint checks.
 
