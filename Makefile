@@ -1,4 +1,4 @@
-.PHONY: help lint test test-cli test-themes test-templates test-fast verify-source-intact format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref
+.PHONY: help lint test test-cli test-themes test-templates test-fast verify-source-intact format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref preflight
 
 MANAGE = python core/sum_core/test_project/manage.py
 
@@ -145,3 +145,6 @@ ifndef REF
 	$(error REF is required. Usage: make release-set-core-ref REF=v0.1.0)
 endif
 	python scripts/set_boilerplate_core_ref.py --ref $(REF)
+
+preflight: ## Run preflight sync against origin/develop
+	./scripts/codex_preflight.sh
