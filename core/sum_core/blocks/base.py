@@ -29,7 +29,7 @@ from sum_core.blocks.forms import ContactFormBlock, QuoteRequestFormBlock
 from sum_core.blocks.gallery import FeaturedCaseStudyBlock, GalleryBlock
 from sum_core.blocks.hero import HeroGradientBlock, HeroImageBlock
 from sum_core.blocks.process_faq import FAQBlock, ProcessStepsBlock
-from sum_core.blocks.services import ServiceCardsBlock
+from sum_core.blocks.services import ServiceCardsBlock, ServiceDetailBlock
 from sum_core.blocks.testimonials import TestimonialsBlock
 from sum_core.blocks.trust import StatsBlock
 from sum_core.blocks.trust import TrustStripBlock as TrustStripLogosBlock
@@ -49,6 +49,7 @@ class PageStreamBlock(StreamBlock):
     hero_image = HeroImageBlock(group="Hero")
     hero_gradient = HeroGradientBlock(group="Hero")
     service_cards = ServiceCardsBlock(group="Services")
+    service_detail = ServiceDetailBlock(group="Services")
     testimonials = TestimonialsBlock(group="Sections")
     gallery = GalleryBlock(group="Sections")
     featured_case_study = FeaturedCaseStudyBlock(group="Sections")

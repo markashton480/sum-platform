@@ -31,7 +31,7 @@ from .gallery import FeaturedCaseStudyBlock, GalleryBlock, GalleryImageBlock
 from .hero import HeroCTABlock, HeroGradientBlock, HeroImageBlock
 from .links import LINK_TYPE_CHOICES, UniversalLinkBlock, UniversalLinkValue
 from .process_faq import FAQBlock, ProcessStepsBlock
-from .services import ServiceCardItemBlock, ServiceCardsBlock
+from .services import ServiceCardItemBlock, ServiceCardsBlock, ServiceDetailBlock
 from .testimonials import TestimonialBlock, TestimonialsBlock
 from .trust import StatItemBlock, StatsBlock
 from .trust import TrustStripBlock as TrustStripLogosBlock
@@ -52,6 +52,7 @@ __all__ = [
     "PortfolioBlock",
     "ServiceCardsBlock",
     "ServiceCardItemBlock",
+    "ServiceDetailBlock",
     "TestimonialsBlock",
     "TestimonialBlock",
     "GalleryBlock",

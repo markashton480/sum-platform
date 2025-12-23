@@ -5,6 +5,7 @@ from tests.utils import REPO_ROOT
 THEME_A_REQUIRED_BLOCK_TEMPLATES = [
     "sum_core/blocks/process_steps.html",
     "sum_core/blocks/timeline.html",
+    "sum_core/blocks/service_detail.html",
 ]
 
 
