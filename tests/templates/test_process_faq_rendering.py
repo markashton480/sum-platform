@@ -73,7 +73,8 @@ def test_homepage_renders_process_and_faq_blocks():
     assert "bg-sage-oat/30" in content
     assert "Our Workflow" in content
     assert "How We Work" in content
-    assert "lg:grid-cols-5" in content
+    assert "lg:grid-cols-2" in content
+    assert "lg:sticky" in content
     assert "border-sage-black/5" in content
 
     # Check steps content
