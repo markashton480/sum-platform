@@ -447,6 +447,7 @@ Used within hero blocks for CTA buttons.
 | `image`      | ImageChooserBlock | Yes      | -                         |
 | `alt_text`   | CharBlock         | Yes      | -                         |
 | `title`      | CharBlock         | Yes      | -                         |
+| `category`   | CharBlock         | No       | max: 50                  |
 | `location`   | CharBlock         | No       | e.g. "Kensington, London" |
 | `services`   | CharBlock         | No       | e.g. "Solar • Battery"    |
 | `constraint` | CharBlock         | No       | max: 100                  |

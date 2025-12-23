@@ -1,12 +1,22 @@
 {% load wagtailcore_tags wagtailimages_tags %}
 
 <section id="portfolio-{{ block.id }}" data-block-id="{{ block.id }}" class="py-24 bg-sage-linen">
-    <div class="max-w-7xl mx-auto px-6 mb-12 flex justify-between items-end">
+    <div class="max-w-7xl mx-auto px-6 mb-12 flex justify-between items-end flex-col md:flex-row md:items-end gap-6">
         <div>
             {% if self.eyebrow %}
                 <span class="text-sage-terra font-accent italic text-2xl block mb-2">{{ self.eyebrow }}</span>
             {% endif %}
             <h2 class="font-display text-4xl text-sage-black">{{ self.heading|richtext }}</h2>
+            {% if categories|length >= 2 %}
+                <nav class="mt-6 flex flex-wrap gap-3 text-xs font-bold uppercase tracking-widest">
+                    <a href="{{ request.path }}" class="px-4 py-2 border border-sage-black/20 transition-colors {% if not active_category %}bg-sage-black text-sage-linen{% else %}text-sage-black hover:border-sage-terra hover:text-sage-terra{% endif %}">All</a>
+                    {% for category in categories %}
+                        {% with category_slug=category|slugify %}
+                            <a href="{{ request.path }}?category={{ category_slug }}" class="px-4 py-2 border border-sage-black/20 transition-colors {% if active_category == category_slug %}bg-sage-black text-sage-linen{% else %}text-sage-black hover:border-sage-terra hover:text-sage-terra{% endif %}">{{ category }}</a>
+                        {% endwith %}
+                    {% endfor %}
+                </nav>
+            {% endif %}
         </div>
         {% if self.view_all_link and self.view_all_label %}
             <a href="{{ self.view_all_link }}" class="hidden md:block text-xs font-bold uppercase tracking-widest border-b border-sage-black/20 pb-1 hover:border-sage-terra transition-colors py-2">{{ self.view_all_label }}</a>
@@ -18,7 +28,7 @@
 
         <div class="flex overflow-x-auto md:grid md:grid-cols-3 gap-8 px-6 md:px-0 md:max-w-7xl md:mx-auto pb-8 md:pb-0 no-scrollbar snap-x snap-mandatory">
 
-            {% for item in self.items %}
+            {% for item in filtered_items %}
                 {% if item.link_url %}
                 <a href="{{ item.link_url }}" class="portfolio-card block min-w-[85vw] md:min-w-0 relative group/card cursor-pointer snap-center reveal {% if forloop.counter == 2 %}delay-100{% elif forloop.counter == 3 %}delay-200{% endif %} focus:outline-none focus:ring-4 focus:ring-sage-terra">
                 {% else %}

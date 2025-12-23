@@ -2,6 +2,7 @@ from io import BytesIO
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import RequestFactory
 from PIL import Image as PILImage
 from sum_core.blocks.content import PortfolioBlock
 from wagtail.images import get_image_model
@@ -141,3 +142,55 @@ def test_portfolio_view_all_conditional():
     }
     html_missing = block.render(block.to_python(data_missing))
     assert "Explore More" not in html_missing
+
+
+def test_portfolio_filter_bar_when_multiple_categories(image):
+    block = PortfolioBlock()
+    block_data = {
+        "heading": "<h1>Projects</h1>",
+        "items": [
+            {
+                "image": image.id,
+                "alt_text": "A",
+                "title": "Project A",
+                "category": "Residential",
+            },
+            {
+                "image": image.id,
+                "alt_text": "B",
+                "title": "Project B",
+                "category": "Commercial",
+            },
+        ],
+    }
+    request = RequestFactory().get("/portfolio/")
+    html = block.render(block.to_python(block_data), context={"request": request})
+    assert "All" in html
+    assert "Residential" in html
+    assert "Commercial" in html
+    assert "?category=residential" in html
+
+
+def test_portfolio_filters_by_querystring(image):
+    block = PortfolioBlock()
+    block_data = {
+        "heading": "<h1>Projects</h1>",
+        "items": [
+            {
+                "image": image.id,
+                "alt_text": "A",
+                "title": "Project A",
+                "category": "Residential",
+            },
+            {
+                "image": image.id,
+                "alt_text": "B",
+                "title": "Project B",
+                "category": "Commercial",
+            },
+        ],
+    }
+    request = RequestFactory().get("/portfolio/", {"category": "commercial"})
+    html = block.render(block.to_python(block_data), context={"request": request})
+    assert "Project A" not in html
+    assert "Project B" in html
