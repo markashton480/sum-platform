@@ -120,6 +120,7 @@ def test_theme_a_button_group_template_and_styles(
 
 def test_theme_a_button_group_alignment_classes(client: Client, theme_active_copy):
     cases = [
+        ("left", "justify-start"),
         ("center", "justify-center"),
         ("right", "justify-end"),
     ]
