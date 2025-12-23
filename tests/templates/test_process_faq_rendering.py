@@ -70,11 +70,11 @@ def test_homepage_renders_process_and_faq_blocks():
     content = response.content.decode()
 
     # --- Process Block Checks ---
-    assert "bg-sage-linen" in content
+    assert "bg-sage-oat/30" in content
     assert "Our Workflow" in content
     assert "How We Work" in content
-    assert "lg:grid-cols-12" in content
-    assert "border-sage-moss/20" in content
+    assert "lg:grid-cols-5" in content
+    assert "border-sage-black/5" in content
 
     # Check steps content
     assert "Step One" in content
