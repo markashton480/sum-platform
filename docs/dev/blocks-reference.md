@@ -12,6 +12,7 @@
 | `hero_gradient`       | HeroGradientBlock      | Hero         | Gradient background hero             |
 | `service_cards`       | ServiceCardsBlock      | Services     | Service card grid section            |
 | `testimonials`        | TestimonialsBlock      | Sections     | Customer testimonial cards           |
+| `team_members`        | TeamMemberBlock        | Sections     | Team member grid section             |
 | `gallery`             | GalleryBlock           | Sections     | Image gallery grid                   |
 | `featured_case_study` | FeaturedCaseStudyBlock | Sections     | Large highlighted case study         |
 | `manifesto`           | ManifestoBlock         | Sections     | Centered manifesto/prose section     |
@@ -154,6 +155,34 @@ Used within hero blocks for CTA buttons.
 
 - If no photo provided, initials are displayed as fallback.
 - Rating displays as stars (1-5).
+
+---
+
+## Team Members Block
+
+### TeamMemberBlock
+
+**Key:** `team_members`  
+**Template:** `sum_core/blocks/team_members.html`  
+**Purpose:** Team member grid section with photo, name, role, and bio.
+
+#### Fields
+
+| Field     | Type                           | Required | Constraints                    | Notes                       |
+| --------- | ------------------------------ | -------- | ------------------------------ | --------------------------- |
+| `eyebrow` | CharBlock                      | No       | max: 100                       | Small label above heading   |
+| `heading` | RichTextBlock                  | No       | features: `['bold', 'italic']` | Section heading             |
+| `members` | ListBlock(TeamMemberItemBlock) | Yes      | min: 1, max: 12                | Team member cards           |
+
+### TeamMemberItemBlock (Child Block)
+
+| Field      | Type              | Required | Notes                        |
+| ---------- | ----------------- | -------- | ---------------------------- |
+| `photo`    | ImageChooserBlock | Yes      | Rendered via Wagtail renditions |
+| `alt_text` | CharBlock         | Yes      | Accessible description for the photo |
+| `name`     | CharBlock         | Yes      | -                            |
+| `role`     | CharBlock         | No       | e.g. "Founder"               |
+| `bio`      | TextBlock         | No       | Short description            |
 
 ---
 
