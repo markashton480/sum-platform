@@ -11,6 +11,7 @@
 | `hero_image`          | HeroImageBlock         | Hero         | Full-width image hero with overlay   |
 | `hero_gradient`       | HeroGradientBlock      | Hero         | Gradient background hero             |
 | `service_cards`       | ServiceCardsBlock      | Services     | Service card grid section            |
+| `service_detail`      | ServiceDetailBlock     | Services     | Two-column service section           |
 | `testimonials`        | TestimonialsBlock      | Sections     | Customer testimonial cards           |
 | `team_members`        | TeamMemberBlock        | Sections     | Team member grid section             |
 | `gallery`             | GalleryBlock           | Sections     | Image gallery grid                   |
@@ -124,6 +125,26 @@ Used within hero blocks for CTA buttons.
 | `description` | RichTextBlock     | No       | Limited features             |
 | `link_url`    | URLBlock          | No       | -                            |
 | `link_label`  | CharBlock         | No       | Defaults to "Learn more"     |
+
+### ServiceDetailBlock
+
+**Key:** `service_detail`  
+**Template:** `sum_core/blocks/service_detail.html`  
+**Purpose:** Reusable service section with headline, rich copy, optional highlights, and flexible media alignment.
+
+#### Fields
+
+| Field        | Type              | Required | Constraints                         | Notes                                       |
+| ------------ | ----------------- | -------- | ----------------------------------- | ------------------------------------------- |
+| `eyebrow`    | CharBlock         | No       | max: 120                            | Short label above heading                   |
+| `heading`    | RichTextBlock     | Yes      | features: `['italic', 'bold']`      | Section heading                             |
+| `body`       | RichTextBlock     | Yes      | features: `['bold', 'italic', 'link', 'ol', 'ul']` | Core service description           |
+| `highlights` | ListBlock(CharBlock) | No    | -                                   | Optional bullet points                      |
+| `image`      | ImageChooserBlock | No       | -                                   | Optional supporting image                   |
+| `image_alt`  | CharBlock         | No       | max: 150                            | Recommended when image is provided          |
+| `layout`     | ChoiceBlock       | No       | `image_left/image_right/no_image`   | Controls desktop alignment                  |
+| `cta_text`   | CharBlock         | No       | max: 80                             | CTA label (requires URL to render)          |
+| `cta_url`    | URLBlock          | No       | -                                   | CTA link (requires label to render)         |
 
 ---
 
