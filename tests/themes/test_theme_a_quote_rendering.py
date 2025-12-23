@@ -43,7 +43,9 @@ def _create_standard_page_with_quote(
 
 
 class TestThemeAQuoteBlock:
-    def test_quote_block_renders_theme_template(self, client: Client, theme_active_copy) -> None:
+    def test_quote_block_renders_theme_template(
+        self, client: Client, theme_active_copy
+    ) -> None:
         page = _create_standard_page_with_quote(
             "quote-theme-a",
             "Quiet craft.\nLoud result.",
@@ -84,7 +86,9 @@ class TestThemeAQuoteBlock:
             "",
         )
         author_response = client.get(author_page.url)
-        author_soup = BeautifulSoup(author_response.content.decode("utf-8"), "html.parser")
+        author_soup = BeautifulSoup(
+            author_response.content.decode("utf-8"), "html.parser"
+        )
         author_caption = author_soup.find("figcaption")
         assert author_caption is not None
         assert "Rowan Lee" in author_caption.get_text()
