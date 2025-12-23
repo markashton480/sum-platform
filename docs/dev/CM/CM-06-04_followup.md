@@ -54,3 +54,61 @@ Result: **109 passed** (with existing Django URLField warning about default sche
 - [x] Notes on risks/surprises
 - [x] Tests run with results
 - [x] Follow-up report filed at `docs/dev/CM/CM-06-04_followup.md`
+
+---
+
+# CM-06-04 Follow-up Report (Lead Tasks)
+
+**Task**: Fix lead notification retry bookkeeping + move side-effects out of transactions  
+**Branch**: fix/cm-06-04-leads-task-tx-retry  
+**Date**: 2025-12-23  
+**Status**: ✅ Complete
+
+## Summary
+
+Refactored lead notification tasks to persist attempt/error tracking across retries and moved email/webhook/Zapier side effects outside transactional locks. Added in-progress statuses for email/webhook/Zapier, enforced durable retry bookkeeping, and added tests that assert non-atomic side effects plus retry persistence for email/webhook/Zapier.
+
+## Changes
+
+- Added IN_PROGRESS status for email, webhook, and Zapier integrations.
+- Split lead notification tasks into short DB transactions with side effects outside atomic blocks.
+- Persisted attempt counters and last_error/status_code updates before retrying.
+- Added retry persistence + atomic boundary tests and hardened Zapier site fixture setup.
+
+## Tests
+
+```bash
+./.venv/bin/python -m pytest tests/leads/test_notification_tasks.py tests/leads/test_zapier.py
+```
+
+Result: **28 passed** (with existing warnings about URLField default scheme and sentry scope deprecation).
+
+## Risks / Notes
+
+- Moderate risk: behavior changes to integration status flow; mitigated by explicit IN_PROGRESS gate and targeted tests.
+- No schema migrations needed; choices updated in code only.
+
+## Evidence (Git)
+
+- `git log -n 5 --oneline`
+  - `6147c6c fix(leads): [CM-06-04] persist attempts across retries; move side-effects out of transactions`
+  - `e2318e9 docs: THEME-028`
+  - `b1ea58e docs: THEME-028`
+  - `1467a75 Merge pull request #58 from markashton480/chore/THEME-026-codex-preflight`
+  - `553ca19 chore(THEME-026): add Codex preflight script + prompt template`
+
+- Files changed:
+  - `core/sum_core/leads/models.py`
+  - `core/sum_core/leads/tasks.py`
+  - `tests/leads/test_notification_tasks.py`
+  - `tests/leads/test_zapier.py`
+  - `docs/dev/CM/CM-06-04_followup.md`
+
+## Work Report Evidence Checklist
+
+- [x] `git status`
+- [x] `git log -n 5 --oneline`
+- [x] High-level list of files changed
+- [x] Notes on risks/surprises
+- [x] Tests run with results
+- [x] Follow-up report filed at `docs/dev/CM/CM-06-04_followup.md`
