@@ -92,7 +92,7 @@ def test_render_content_blocks():
     assert "Primary Btn" in content
 
     # Spacer
-    assert "h-24" in content
+    assert "h-16" in content
 
     # Divider
-    assert "border-sage-black/20" in content
+    assert "border-sage-terra" in content
