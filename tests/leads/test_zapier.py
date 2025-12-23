@@ -9,6 +9,9 @@ from unittest.mock import patch
 
 import pytest
 import requests
+from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
+from django.db import connection
 from sum_core.branding.models import SiteSettings
 from sum_core.integrations.zapier import (
     ZapierResult,
@@ -17,13 +20,33 @@ from sum_core.integrations.zapier import (
 )
 from sum_core.leads.models import Lead, ZapierStatus
 from sum_core.leads.tasks import send_zapier_webhook
-from wagtail.models import Site
+from wagtail.models import Locale, Page, Site
 
 
 @pytest.fixture
 def site(db):
     """Get or create the default test site."""
-    return Site.objects.get(is_default_site=True)
+    Locale.objects.get_or_create(language_code=settings.LANGUAGE_CODE)
+    root_page = Page.get_first_root_node()
+    if root_page is None:
+        content_type = ContentType.objects.get_for_model(Page)
+        root_page = Page.add_root(
+            instance=Page(title="Root", slug="root", content_type=content_type)
+        )
+    site, _ = Site.objects.get_or_create(
+        is_default_site=True,
+        defaults={
+            "hostname": "localhost",
+            "root_page": root_page,
+            "site_name": "Test Site",
+        },
+    )
+    if site.root_page_id is None:
+        site.root_page = root_page
+        site.hostname = site.hostname or "localhost"
+        site.site_name = site.site_name or "Test Site"
+        site.save(update_fields=["root_page", "hostname", "site_name"])
+    return site
 
 
 @pytest.fixture
@@ -215,6 +238,31 @@ class TestSendZapierWebhookTask:
             assert lead.zapier_status == ZapierStatus.FAILED
             assert lead.zapier_attempt_count >= 1
             assert "Server Error" in lead.zapier_last_error
+
+    @pytest.mark.django_db(transaction=True)
+    def test_webhook_retry_persists_attempts_and_error(self, lead, site, site_settings):
+        """Retry path persists attempts and error details outside transactions."""
+
+        def failing_request(*args, **kwargs):
+            assert connection.in_atomic_block is False
+            return ZapierResult(
+                success=False, status_code=500, error_message="Server Error"
+            )
+
+        with (
+            patch(
+                "sum_core.integrations.zapier.send_zapier_request",
+                side_effect=failing_request,
+            ),
+            patch("sum_core.leads.tasks.ZAPIER_MAX_RETRIES", 1),
+        ):
+            with pytest.raises(requests.RequestException):
+                send_zapier_webhook(lead.id, site.id)
+
+        lead.refresh_from_db()
+        assert lead.zapier_attempt_count == 1
+        assert "Server Error" in lead.zapier_last_error
+        assert lead.zapier_status == ZapierStatus.IN_PROGRESS
 
     def test_webhook_idempotency(self, lead, site, site_settings):
         """Task does not resend if already marked SENT."""

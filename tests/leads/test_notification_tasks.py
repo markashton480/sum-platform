@@ -10,6 +10,7 @@ from unittest.mock import patch
 import pytest
 import requests
 from django.core import mail
+from django.db import connection
 from django.test import override_settings
 from sum_core.leads.models import EmailStatus, Lead, WebhookStatus
 from sum_core.leads.tasks import send_lead_notification, send_lead_webhook
@@ -90,6 +91,30 @@ class TestEmailNotificationTask:
             assert lead.email_attempts >= 1
             assert "SMTP Down" in lead.email_last_error
 
+    @override_settings(LEAD_NOTIFICATION_EMAIL="notify@example.com")
+    @pytest.mark.django_db(transaction=True)
+    def test_email_retry_persists_attempts_and_error(self, lead):
+        """Retry path persists attempt count and error outside transactions."""
+
+        def fail_send(*args, **kwargs):
+            assert connection.in_atomic_block is False
+            raise Exception("SMTP Down")
+
+        with (
+            patch(
+                "django.core.mail.EmailMultiAlternatives.send",
+                side_effect=fail_send,
+            ),
+            patch("sum_core.leads.tasks.MAX_RETRIES", 1),
+        ):
+            with pytest.raises(Exception):
+                send_lead_notification(lead.id)
+
+        lead.refresh_from_db()
+        assert lead.email_attempts == 1
+        assert "SMTP Down" in lead.email_last_error
+        assert lead.email_status == EmailStatus.IN_PROGRESS
+
 
 @pytest.mark.django_db
 class TestWebhookNotificationTask:
@@ -138,6 +163,31 @@ class TestWebhookNotificationTask:
             # attempts incremented before checking retries
             assert lead.webhook_attempts >= 1
             assert lead.webhook_last_status_code == 500
+
+    @override_settings(ZAPIER_WEBHOOK_URL="https://hooks.zapier.com/test")
+    @pytest.mark.django_db(transaction=True)
+    def test_webhook_retry_persists_attempts_and_error(self, lead):
+        """Retry path persists attempts and error details outside transactions."""
+
+        def failing_post(*args, **kwargs):
+            assert connection.in_atomic_block is False
+            response = type(
+                "Response", (), {"ok": False, "status_code": 500, "text": "Error"}
+            )()
+            return response
+
+        with (
+            patch("requests.post", side_effect=failing_post),
+            patch("sum_core.leads.tasks.MAX_RETRIES", 1),
+        ):
+            with pytest.raises(requests.RequestException):
+                send_lead_webhook(lead.id)
+
+        lead.refresh_from_db()
+        assert lead.webhook_attempts == 1
+        assert lead.webhook_last_status_code == 500
+        assert "HTTP 500" in lead.webhook_last_error
+        assert lead.webhook_status == WebhookStatus.IN_PROGRESS
 
     @override_settings(ZAPIER_WEBHOOK_URL="https://hooks.zapier.com/test")
     def test_webhook_retry_on_timeout(self, lead):

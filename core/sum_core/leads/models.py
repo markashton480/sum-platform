@@ -29,6 +29,7 @@ class EmailStatus(models.TextChoices):
     """Status of email notification delivery."""
 
     PENDING = "pending", "Pending"
+    IN_PROGRESS = "in_progress", "In progress"
     SENT = "sent", "Sent"
     FAILED = "failed", "Failed"
 
@@ -37,6 +38,7 @@ class WebhookStatus(models.TextChoices):
     """Status of webhook notification delivery."""
 
     PENDING = "pending", "Pending"
+    IN_PROGRESS = "in_progress", "In progress"
     SENT = "sent", "Sent"
     FAILED = "failed", "Failed"
     DISABLED = "disabled", "Disabled"
@@ -46,6 +48,7 @@ class ZapierStatus(models.TextChoices):
     """Status of Zapier webhook delivery (M4-007)."""
 
     PENDING = "pending", "Pending"
+    IN_PROGRESS = "in_progress", "In progress"
     SENT = "sent", "Sent"
     FAILED = "failed", "Failed"
     DISABLED = "disabled", "Disabled"
