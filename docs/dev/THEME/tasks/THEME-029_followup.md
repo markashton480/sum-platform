@@ -4,8 +4,11 @@
 - Rewrote Theme A ImageBlock template to use figure/figcaption structure, caption gating, and full-width layout rules.
 - Added image wrapper styling to match editorial wireframe while keeping reveal hooks intact.
 - Regenerated Theme A compiled CSS + fingerprint after rebasing onto origin/develop.
+- Fixed isort ordering in core block modules to satisfy CI lint checks.
 
 ## Files Modified/Created
+- core/sum_core/blocks/__init__.py
+- core/sum_core/blocks/base.py
 - themes/theme_a/templates/sum_core/blocks/content_image.html
 - themes/theme_a/static/theme_a/css/main.css
 - themes/theme_a/static/theme_a/css/.build_fingerprint
