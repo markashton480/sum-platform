@@ -138,6 +138,32 @@ class PortfolioBlock(blocks.StructBlock):
         label = "Portfolio Gallery"
 
 
+class TeamMemberItemBlock(blocks.StructBlock):
+    photo = ImageChooserBlock(required=True)
+    name = blocks.CharBlock(required=True)
+    role = blocks.CharBlock(required=False)
+    bio = blocks.TextBlock(required=False)
+
+    class Meta:
+        icon = "user"
+        label = "Team Member"
+
+
+class TeamMemberBlock(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(required=False, help_text="Small label above heading")
+    heading = blocks.RichTextBlock(
+        required=False,
+        features=["bold", "italic"],
+        help_text="Section heading. Use italics for accent styling.",
+    )
+    members = blocks.ListBlock(TeamMemberItemBlock(), min_num=1, max_num=12)
+
+    class Meta:
+        template = "sum_core/blocks/team_members.html"
+        icon = "group"
+        label = "Team Members"
+
+
 class ManifestoBlock(blocks.StructBlock):
     """
     Centered prose section used for "manifesto"-style content blocks.
