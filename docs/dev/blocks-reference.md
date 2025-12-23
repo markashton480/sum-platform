@@ -31,6 +31,8 @@
 | `buttons`             | ButtonGroupBlock       | Page Content | CTA button group                     |
 | `spacer`              | SpacerBlock            | Page Content | Vertical spacing control             |
 | `divider`             | DividerBlock           | Page Content | Horizontal divider line              |
+| `table_of_contents`   | TableOfContentsBlock   | Page Content | In-page navigation list for anchors  |
+| `legal_section`       | LegalSectionBlock      | Page Content | Anchored legal section               |
 | `contact_form`        | ContactFormBlock       | Forms        | Contact form section                 |
 | `quote_request_form`  | QuoteRequestFormBlock  | Forms        | Quote request form section           |
 
@@ -340,6 +342,50 @@ Used within hero blocks for CTA buttons.
 
 - Automatically generates valid FAQPage JSON-LD schema.
 - If `allow_multiple_open` is `False`, opening one item closes others.
+
+---
+
+## Legal Blocks
+
+### TableOfContentsBlock
+
+**Key:** `table_of_contents`  
+**Template:** `sum_core/blocks/table_of_contents.html`  
+**Purpose:** Author-friendly table of contents for legal pages. Links jump to anchored legal sections on the same page.
+
+#### Fields
+
+| Field   | Type                                 | Required | Constraints | Notes                                             |
+| ------- | ------------------------------------ | -------- | ----------- | ------------------------------------------------- |
+| `items` | ListBlock(TableOfContentsItemBlock)  | Yes      | min: 1      | Provide anchors that match `LegalSectionBlock`s.  |
+
+### TableOfContentsItemBlock (Child Block)
+
+| Field    | Type      | Required | Notes                                               |
+| -------- | --------- | -------- | --------------------------------------------------- |
+| `label`  | CharBlock | Yes      | Text shown in the TOC list.                         |
+| `anchor` | CharBlock | Yes      | Anchor ID (kebab-case recommended) used in links.   |
+
+---
+
+### LegalSectionBlock
+
+**Key:** `legal_section`  
+**Template:** `sum_core/blocks/legal_section.html`  
+**Purpose:** Anchored legal content section with explicit IDs so TOC links resolve reliably.
+
+#### Fields
+
+| Field    | Type            | Required | Constraints                           | Notes                                        |
+| -------- | --------------- | -------- | ------------------------------------- | -------------------------------------------- |
+| `anchor` | CharBlock       | Yes      | -                                     | Anchor ID used by TOC links; keep stable.    |
+| `heading`| CharBlock       | Yes      | -                                     | Section heading (renders as `<h2>`).         |
+| `body`   | RichTextBlock   | Yes      | features: `['h3','h4','bold','italic','link','ol','ul']` | Legal body copy; no H1/H2 here. |
+
+#### Notes
+
+- Anchors are slugified in templates; use lowercase + hyphens for predictability.
+- Pair each `legal_section` with a matching `table_of_contents` entry.
 
 ---
 

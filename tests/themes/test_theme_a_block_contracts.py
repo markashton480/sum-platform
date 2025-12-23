@@ -13,6 +13,8 @@ REQUIRED_BLOCK_TEMPLATES = [
     "content_quote.html",
     "content_image.html",
     "content_buttons.html",
+    "table_of_contents.html",
+    "legal_section.html",
     "team_members.html",
     "timeline.html",
 ]

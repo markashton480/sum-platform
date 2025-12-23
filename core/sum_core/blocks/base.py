@@ -14,6 +14,7 @@ from sum_core.blocks.content import (
     FeaturesListBlock,
     HeroBlock,
     ImageBlock,
+    LegalSectionBlock,
     ManifestoBlock,
     PageHeaderBlock,
     PortfolioBlock,
@@ -21,6 +22,7 @@ from sum_core.blocks.content import (
     RichTextContentBlock,
     SocialProofQuoteBlock,
     SpacerBlock,
+    TableOfContentsBlock,
     TeamMemberBlock,
     TimelineBlock,
     TrustStripBlock,
@@ -69,6 +71,8 @@ class PageStreamBlock(StreamBlock):
     # Content Blocks
     page_header = PageHeaderBlock(group="Page Content")
     editorial_header = EditorialHeaderBlock(group="Page Content")
+    table_of_contents = TableOfContentsBlock(group="Page Content")
+    legal_section = LegalSectionBlock(group="Page Content")
     content = RichTextContentBlock(group="Page Content")
     quote = QuoteBlock(group="Page Content")
     social_proof_quote = SocialProofQuoteBlock(group="Page Content")

@@ -126,6 +126,8 @@ Showroom body contains:
 - **`trust_strip`** (text-only)
 - **`editorial_header`**
 - **`content`**
+- **`table_of_contents`**
+- **`legal_section`** (multiple)
 - **`quote`**
 - **`image_block`**
 - **`buttons`**

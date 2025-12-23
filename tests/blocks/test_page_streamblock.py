@@ -63,3 +63,8 @@ class TestPageStreamBlock:
         assert "manifesto" in block.child_blocks
         assert "portfolio" in block.child_blocks
         assert "featured_case_study" in block.child_blocks
+
+    def test_page_streamblock_includes_legal_blocks(self) -> None:
+        block = PageStreamBlock()
+        assert "table_of_contents" in block.child_blocks
+        assert "legal_section" in block.child_blocks

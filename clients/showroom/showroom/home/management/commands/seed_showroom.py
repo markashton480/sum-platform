@@ -837,6 +837,43 @@ class Command(BaseCommand):
                     },
                 },
                 {
+                    "type": "table_of_contents",
+                    "value": {
+                        "items": [
+                            {"label": "Scope of Works", "anchor": "scope-of-works"},
+                            {"label": "Payments", "anchor": "payments"},
+                            {"label": "Warranty", "anchor": "warranty"},
+                        ]
+                    },
+                },
+                {
+                    "type": "legal_section",
+                    "value": {
+                        "anchor": "scope-of-works",
+                        "heading": "Scope of Works",
+                        "body": "<p>Legal sections ensure anchors and typography render correctly.</p>"
+                        "<ul><li>Use clear subheadings.</li><li>Keep lists readable.</li></ul>",
+                    },
+                },
+                {
+                    "type": "legal_section",
+                    "value": {
+                        "anchor": "payments",
+                        "heading": "Payments",
+                        "body": "<p>Payment terms render as rich text.</p>"
+                        "<p><strong>Pro tip:</strong> keep anchor IDs stable to avoid broken links.</p>",
+                    },
+                },
+                {
+                    "type": "legal_section",
+                    "value": {
+                        "anchor": "warranty",
+                        "heading": "Warranty",
+                        "body": "<p>Warranty language can mix paragraphs and lists.</p>"
+                        "<ul><li>Outline coverage.</li><li>Clarify exclusions.</li></ul>",
+                    },
+                },
+                {
                     "type": "quote",
                     "value": {
                         "quote": "Design systems are what keep themes consistent as they scale.",
