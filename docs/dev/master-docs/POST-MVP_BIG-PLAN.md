@@ -481,6 +481,12 @@ Must support these UI elements from compiled HTML design:
 - [ ] Body content (StreamField)
 - [ ] CTA placements (using DynamicFormBlock — see Section 7.1.1)
 
+**REFERENCE DESIGNS**
+theme_a/templates/sum_core/pages/blog_index_page.html
+theme_a/templates/sum_core/pages/blog_post_page.html 
+
+**Theme Guide:** docs/dev/THEME-GUIDE.md for theme implementation details.
+
 **Data Model:**
 - `BlogIndexPage` (listing with pagination)
 - `BlogPostPage` (individual posts)
