@@ -12,6 +12,7 @@ import hashlib
 import hmac
 import time
 from dataclasses import dataclass
+from typing import cast
 
 from django.conf import settings
 from django.core.cache import cache
@@ -262,4 +263,4 @@ def get_client_ip(request: HttpRequest) -> str:
 
     Handles X-Forwarded-For header for proxied requests.
     """
-    return request_get_client_ip(request)
+    return cast(str, request_get_client_ip(request))
