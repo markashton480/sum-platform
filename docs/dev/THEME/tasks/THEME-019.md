@@ -90,12 +90,12 @@ Implement Theme A’s override for `TestimonialsBlock` to match the Sage & Stone
 
 6. Run full validation
    - [x] `pytest -q tests/themes/test_theme_a_testimonials_rendering.py`
-   - [ ] `make test`
+   - [x] `make test`
 
 ## Testing Requirements
 
 - [x] Run: `pytest -q tests/themes/test_theme_a_testimonials_rendering.py`
-- [ ] Run: `make test`
+- [x] Run: `make test`
 - [ ] Expected: all green
 
 ## Documentation Updates

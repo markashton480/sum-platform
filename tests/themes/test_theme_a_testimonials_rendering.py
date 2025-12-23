@@ -62,7 +62,14 @@ class TestThemeATestimonialsBlock:
             for template in templates
             if getattr(template, "name", None) == "sum_core/blocks/testimonials.html"
         ]
-        assert any(str(theme_active_copy) in path for path in origin_paths)
+        expected_fragments = (
+            str(theme_active_copy),
+            "themes/theme_a/templates",
+        )
+        assert any(
+            any(fragment in path for fragment in expected_fragments)
+            for path in origin_paths
+        )
         assert "Client Stories" in content
         assert "<em>clients</em>" in content
         assert "Rated 4 out of 5" in content

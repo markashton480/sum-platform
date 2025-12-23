@@ -240,8 +240,8 @@ def test_standard_page_renders_testimonials_block() -> None:
     assert "What People" in content
     assert "Excellent service" in content
     assert "Jane Doe" in content
-    assert "grid grid-cols-1" in content
-    assert "bg-sage-darkmoss" in content
+    assert "overflow-x-auto" in content
+    assert "bg-sage-black" in content
 
 
 def test_standard_page_renders_faq_block() -> None:

@@ -41,8 +41,8 @@ def test_homepage_renders_testimonials_block(wagtail_default_site):
     content = response.content.decode()
 
     # Check layout classes
-    assert "bg-sage-darkmoss" in content
-    assert "grid grid-cols-1" in content
+    assert "bg-sage-black" in content
+    assert "overflow-x-auto" in content
 
     # Check content
     assert "Testimonials" in content
@@ -51,17 +51,9 @@ def test_homepage_renders_testimonials_block(wagtail_default_site):
     assert "Alice Smith" in content
 
     # Check ratings render
-    # There are 2 testimonials, each has 5 star spans. Total 10 star spans.
-    assert (
-        content.count('aria-hidden="true">★</span>')
-        + content.count('aria-hidden="true">☆</span>')
-        == 10
-    )
-
-    # First one is 5 stars (5 filled)
-    # Second one is 4 stars (4 filled)
-    # Total filled stars = 9
-    assert content.count('aria-hidden="true">★</span>') == 9
+    assert 'aria-label="Rated 5 out of 5"' in content
+    assert 'aria-label="Rated 4 out of 5"' in content
+    assert content.count("★</span>") == 10
 
 
 def test_homepage_renders_gallery_block(wagtail_default_site):
