@@ -73,7 +73,7 @@ class HomePage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         This is used by Wagtail admin UI, but also helps prevent programmatic
         misuse when callers respect the standard Wagtail create APIs.
         """
-        return bool(parent.is_root() and super().can_create_at(parent))
+        return parent.is_root() and super().can_create_at(parent)
 
     def clean(self) -> None:
         """
