@@ -175,6 +175,24 @@ def _sign_timestamp(timestamp: str) -> str:
     return hmac.new(key, message, hashlib.sha256).hexdigest()
 
 
+def _log_time_token_issue(
+    message: str,
+    *,
+    status: str,
+    reason: str,
+    min_seconds: int,
+) -> None:
+    extra = {
+        "event": "form_time_token",
+        "time_token_status": status,
+        "time_token_reason": reason,
+        "min_seconds": min_seconds,
+        "metric_name": f"forms.time_token.{status}",
+        "metric_value": 1,
+    }
+    logger.warning(message, extra=extra)
+
+
 def check_timing(
     time_token: str,
     min_seconds: int,
@@ -191,12 +209,23 @@ def check_timing(
     """
     if not time_token:
         # No token provided - could be legitimate (JS disabled, old cache)
-        # Fall through without blocking, but log in production
+        _log_time_token_issue(
+            "Time token missing; timing check skipped",
+            status="missing",
+            reason="missing",
+            min_seconds=min_seconds,
+        )
         return SpamCheckResult(is_spam=False)
 
     parts = time_token.split(":", 1)
     if len(parts) != 2:
         # Malformed token - suspicious but not definitive
+        _log_time_token_issue(
+            "Time token malformed; rejecting submission",
+            status="malformed",
+            reason="format",
+            min_seconds=min_seconds,
+        )
         return SpamCheckResult(is_spam=True, reason="Invalid time token format")
 
     timestamp_str, signature = parts
@@ -204,12 +233,24 @@ def check_timing(
     # Verify signature
     expected_signature = _sign_timestamp(timestamp_str)
     if not hmac.compare_digest(signature, expected_signature):
+        _log_time_token_issue(
+            "Time token signature mismatch; rejecting submission",
+            status="invalid_signature",
+            reason="signature",
+            min_seconds=min_seconds,
+        )
         return SpamCheckResult(is_spam=True, reason="Invalid time token signature")
 
     # Check token age
     try:
         token_time = int(timestamp_str)
     except ValueError:
+        _log_time_token_issue(
+            "Time token timestamp invalid; rejecting submission",
+            status="malformed",
+            reason="timestamp",
+            min_seconds=min_seconds,
+        )
         return SpamCheckResult(is_spam=True, reason="Invalid timestamp in time token")
 
     current_time = int(time.time())
