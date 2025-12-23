@@ -17,6 +17,7 @@ from sum_core.blocks.content import (
     ManifestoBlock,
     PortfolioBlock,
     QuoteBlock,
+    SocialProofQuoteBlock,
     RichTextContentBlock,
     SpacerBlock,
     TrustStripBlock,
@@ -63,6 +64,7 @@ class PageStreamBlock(StreamBlock):
     editorial_header = EditorialHeaderBlock(group="Page Content")
     content = RichTextContentBlock(group="Page Content")
     quote = QuoteBlock(group="Page Content")
+    social_proof_quote = SocialProofQuoteBlock(group="Page Content")
     image_block = ImageBlock(group="Page Content")
     buttons = ButtonGroupBlock(group="Page Content")
     spacer = SpacerBlock(group="Page Content")
