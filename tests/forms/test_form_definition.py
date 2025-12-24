@@ -93,6 +93,20 @@ def test_notification_emails_accepts_valid_list(wagtail_default_site):
 
 
 @pytest.mark.django_db
+def test_notification_emails_rejects_empty_entries(wagtail_default_site):
+    """Empty entries between commas should raise validation errors."""
+    form_def = FormDefinition(
+        site=wagtail_default_site,
+        name="Alerts Form",
+        slug="alerts",
+        notification_emails="admin@example.com, , support@example.com",
+    )
+
+    with pytest.raises(ValidationError):
+        form_def.full_clean()
+
+
+@pytest.mark.django_db
 def test_webhook_requires_url_when_enabled(wagtail_default_site):
     """Webhook URL is required when webhook delivery is enabled."""
     form_def = FormDefinition(
