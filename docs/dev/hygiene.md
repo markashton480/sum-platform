@@ -28,6 +28,7 @@ The following directories are **excluded** from linting, type-checking, and cove
 
 - `clients/` — Generated or transient client scaffolds (e.g., `cli-check-*`, `cli-theme-*`)
 - `boilerplate/` — Template files with intentionally unresolvable placeholders
+- `cli/sum_cli/boilerplate/` — Synced copy of the boilerplate used by the CLI scaffolder
 
 **Rationale:** These directories contain generated code, transient test artifacts, or template placeholders that would cause false-positive lint/mypy errors if processed as standard Python.
 
