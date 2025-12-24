@@ -142,5 +142,6 @@ explicit_package_bases = true
 exclude = [
     "/(build|dist|\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|venv|_build|buck-out)/",
     "^boilerplate/",
+    "^cli/sum_cli/boilerplate/",
     "^clients/",
 ]

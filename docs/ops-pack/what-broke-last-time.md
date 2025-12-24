@@ -94,6 +94,16 @@
 
 ---
 
+## Site: sum-platform (Core)
+
+**Date:** 2025-12-24  
+**Version:** v0.7.1-dev  
+**Symptom:** `make release-check` failed because mypy recursed into `cli/sum_cli/boilerplate/` (synced copy of `boilerplate/`) and tripped on template-only type errors.  
+**Fix:** Added mypy excludes for both `boilerplate/` and `cli/sum_cli/boilerplate/` in `pyproject.toml` and documented the exclusions in `docs/dev/hygiene.md`; drift check `make check-cli-boilerplate` left intact.  
+**Follow-up:** Keep both boilerplate directories excluded from lint/type checks when adding new tooling, and rerun `make release-check` after syncing boilerplate into the CLI.
+
+---
+
 _(No further entries)_
 
 ---
