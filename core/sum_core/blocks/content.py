@@ -505,3 +505,58 @@ class DividerBlock(blocks.StructBlock):
         icon = "horizontalrule"
         label = "Divider"
         template = "sum_core/blocks/content_divider.html"
+
+
+class TableOfContentsItemBlock(blocks.StructBlock):
+    """
+    Single entry for the TableOfContentsBlock.
+    """
+
+    label = blocks.CharBlock(required=True, help_text="Link label shown in the TOC.")
+    anchor = blocks.CharBlock(
+        required=True,
+        help_text="Anchor ID (e.g. terms-intro) that matches a LegalSectionBlock.",
+    )
+
+    class Meta:
+        icon = "link"
+        label = "TOC Item"
+
+
+class TableOfContentsBlock(blocks.StructBlock):
+    """
+    Table of contents for legal pages.
+    """
+
+    items = blocks.ListBlock(
+        TableOfContentsItemBlock(),
+        min_num=1,
+        help_text="Add links that point to anchors on the same page.",
+    )
+
+    class Meta:
+        icon = "list-ol"
+        label = "Table of Contents"
+        template = "sum_core/blocks/table_of_contents.html"
+
+
+class LegalSectionBlock(blocks.StructBlock):
+    """
+    Anchored legal section with heading + rich text body.
+    """
+
+    anchor = blocks.CharBlock(
+        required=True,
+        help_text="Anchor ID used for in-page links (use lowercase with hyphens).",
+    )
+    heading = blocks.CharBlock(required=True, help_text="Section heading.")
+    body = blocks.RichTextBlock(
+        required=True,
+        features=["h3", "h4", "bold", "italic", "link", "ol", "ul"],
+        help_text="Section content. Use H3/H4 for nested headings; avoid H1/H2.",
+    )
+
+    class Meta:
+        icon = "doc-full"
+        label = "Legal Section"
+        template = "sum_core/blocks/legal_section.html"
