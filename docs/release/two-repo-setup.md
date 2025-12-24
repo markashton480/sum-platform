@@ -1,161 +1,268 @@
-# Name: release-sync.yml
-# Path: .github/workflows/release-sync.yml
-# Purpose: Automatically sync releases from sum-platform (private) to sum-core (public)
-# Family: Release automation
-# Dependencies: scripts/sync_to_public.py
+# Two-Repo Setup Guide
 
-name: Release Sync
+> **One-time setup** for the sum-platform / sum-core two-repository model.
 
-on:
-  # Trigger on merge to main (release PRs)
-  push:
-    branches:
-      - main
-    paths:
-      - 'core/**'
-      - 'boilerplate/**'
-      - 'docs/public/**'
-      - 'pyproject.toml'
+---
 
-  # Manual trigger for re-syncs or debugging
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to tag (e.g., v0.6.0). Leave empty for sync-only.'
-        required: false
-        type: string
-      dry_run:
-        description: 'Dry run (no push)'
-        required: false
-        type: boolean
-        default: false
+## Overview
 
-permissions:
-  contents: read
+This guide walks through setting up:
+1. The public `sum-core` repository
+2. Deploy keys for automated sync
+3. GitHub Actions secrets
+4. Initial sync and verification
 
-jobs:
-  sync:
-    name: Sync to Public Repository
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
+---
 
-    # Only run if commit message indicates a release
-    # OR if manually triggered
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      contains(github.event.head_commit.message, 'chore(release)')
+## Prerequisites
 
-    steps:
-      - name: Checkout sum-platform
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Full history for tags
+- Admin access to your GitHub organization
+- SSH key generation capability
+- `gh` CLI installed (optional but recommended)
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+---
 
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+## Step 1: Create Public Repository
 
-      - name: Set up SSH for public repo
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SUM_CORE_DEPLOY_KEY }}
+### Via GitHub UI
 
-      - name: Extract version from commit (auto)
-        if: github.event_name == 'push'
-        id: extract_version
-        run: |
-          # Try to extract version from commit message
-          # Expected format: "chore(release): v0.6.0" or "chore(release): prepare v0.6.0"
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          VERSION=$(echo "$COMMIT_MSG" | grep -oP 'v\d+\.\d+\.\d+' | head -1 || echo "")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Extracted version: $VERSION"
+1. Go to https://github.com/organizations/ORG/repositories/new
+2. Repository name: `sum-core`
+3. Description: "SUM Platform Core - Wagtail site boilerplate framework"
+4. Visibility: **Public**
+5. Initialize with: README (optional, will be overwritten)
+6. Create repository
 
-      - name: Determine version
-        id: version
-        run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-          else
-            VERSION="${{ steps.extract_version.outputs.version }}"
-          fi
+### Via CLI
 
-          # Normalize version (ensure v prefix)
-          if [ -n "$VERSION" ] && [[ ! "$VERSION" =~ ^v ]]; then
-            VERSION="v$VERSION"
-          fi
+```bash
+gh repo create markashton480/sum-core \
+    --public \
+    --description "SUM Platform Core - Wagtail site boilerplate framework"
+```
 
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Final version: $VERSION"
+---
 
-      - name: Run sync script
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-          DRY_RUN: ${{ github.event.inputs.dry_run }}
-        run: |
-          ARGS=""
+## Step 2: Generate Deploy Key
 
-          if [ -n "$VERSION" ]; then
-            ARGS="$ARGS --version $VERSION"
-          fi
+The sync workflow needs push access to `sum-core`. A deploy key is more secure than a PAT.
 
-          if [ "$DRY_RUN" = "true" ]; then
-            ARGS="$ARGS --no-push"
-          fi
+```bash
+# Generate dedicated key pair
+ssh-keygen -t ed25519 -C "sum-core-deploy" -f ~/.ssh/sum-core-deploy -N ""
 
-          python scripts/sync_to_public.py $ARGS
+# Display public key (add to sum-core)
+cat ~/.ssh/sum-core-deploy.pub
 
-      - name: Verify sync (if version provided)
-        if: steps.version.outputs.version != '' && github.event.inputs.dry_run != 'true'
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          # Verify tag exists on public repo
-          git ls-remote --tags git@github.com:markashton480/sum-core.git | grep -q "$VERSION" || {
-            echo "❌ Tag $VERSION not found on sum-core"
-            exit 1
-          }
-          echo "✅ Tag $VERSION verified on sum-core"
+# Display private key (add to sum-platform secrets)
+cat ~/.ssh/sum-core-deploy
+```
 
-      - name: Create GitHub Release (if version provided)
-        if: steps.version.outputs.version != '' && github.event.inputs.dry_run != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.SUM_CORE_PAT }}
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          # Generate release notes from recent commits
-          NOTES=$(git log $(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo HEAD~10)..HEAD --oneline --no-merges | head -20)
+### Add Public Key to sum-core
 
-          # Create release on public repo
-          gh release create "$VERSION" \
-            --repo markashton480/sum-core \
-            --title "Release $VERSION" \
-            --notes "## Changes
+1. Go to `https://github.com/markashton480/sum-core/settings/keys`
+2. Click "Add deploy key"
+3. Title: `sum-platform-sync`
+4. Key: Paste the **public** key (`.pub` file contents)
+5. ☑️ Allow write access
+6. Add key
 
-          $NOTES
+### Add Private Key to sum-platform Secrets
 
-          ## Installation
+1. Go to `https://github.com/ORG/sum-platform/settings/secrets/actions`
+2. Click "New repository secret"
+3. Name: `SUM_CORE_DEPLOY_KEY`
+4. Secret: Paste the **private** key contents
+5. Add secret
 
-          \`\`\`bash
-          pip install \"sum_core @ git+https://github.com/markashton480/sum-core.git@$VERSION\"
-          \`\`\`
-          " || echo "Release may already exist"
+---
 
-  notify:
-    name: Notify on Failure
-    runs-on: ubuntu-latest
-    needs: sync
-    if: failure()
+## Step 3: Create PAT for GitHub Releases (Optional)
 
-    steps:
-      - name: Report failure
-        run: |
-          echo "❌ Release sync failed!"
-          echo "Check the workflow logs for details."
-          # Add Slack/email notification here if desired
+If you want the workflow to create GitHub Releases on `sum-core`:
+
+1. Go to https://github.com/settings/tokens
+2. Generate new token (classic)
+3. Name: `sum-core-releases`
+4. Scopes: `repo` (full control)
+5. Generate token
+6. Add to sum-platform secrets as `SUM_CORE_PAT`
+
+---
+
+## Step 4: Update Configuration
+
+### In `scripts/sync_to_public.py`
+
+Replace `ORG` with your actual organization:
+
+```python
+# Line ~47
+public_repo_url: str = "git@github.com:YOUR_markashton480/sum-core.git"
+```
+
+### In `.github/workflows/release-sync.yml`
+
+Replace `ORG` with your actual organization (multiple locations):
+
+```yaml
+# Search and replace "markashton480/sum-core" with "YOUR_markashton480/sum-core"
+```
+
+### In `boilerplate/requirements.txt`
+
+Ensure it references the public repo:
+
+```
+sum_core @ git+https://github.com/YOUR_markashton480/sum-core.git@SUM_CORE_GIT_REF
+```
+
+---
+
+## Step 5: Initial Sync
+
+Perform the first sync manually to populate `sum-core`:
+
+```bash
+# From sum-platform root
+cd /path/to/sum-platform
+
+# Activate virtualenv
+source .venv/bin/activate
+
+# Run sync without tagging (initial population)
+python scripts/sync_to_public.py
+
+# Verify
+cd /tmp/sum-core-sync/sum-core
+git log --oneline -5
+ls -la
+```
+
+---
+
+## Step 6: Create Initial Tag
+
+```bash
+# Still in sum-core directory
+cd /tmp/sum-core-sync/sum-core
+
+# Create initial tag
+git tag -a v0.1.0 -m "Initial release"
+git push origin v0.1.0
+```
+
+---
+
+## Step 7: Verify End-to-End
+
+```bash
+# Test pip install
+python -m venv /tmp/verify-sum
+source /tmp/verify-sum/bin/activate
+pip install "sum_core @ git+https://github.com/YOUR_markashton480/sum-core.git@v0.1.0"
+python -c "import sum_core; print('✅ Success')"
+
+# Cleanup
+deactivate
+rm -rf /tmp/verify-sum
+```
+
+---
+
+## Step 8: Test Automated Workflow
+
+Trigger a test release:
+
+```bash
+# In sum-platform
+git checkout develop
+echo "# Test" >> README.md
+git add README.md
+git commit -m "chore(release): test v0.1.1"
+git push origin develop
+
+# Create PR and merge to main
+gh pr create --base main --head develop --title "Test release v0.1.1"
+# Merge via UI with squash
+
+# Watch the action
+gh run watch
+```
+
+---
+
+## Troubleshooting
+
+### "Permission denied (publickey)"
+
+- Verify deploy key is added to `sum-core` with write access
+- Verify private key is in `sum-platform` secrets as `SUM_CORE_DEPLOY_KEY`
+- Check key format (should start with `-----BEGIN OPENSSH PRIVATE KEY-----`)
+
+### "Repository not found"
+
+- Verify `sum-core` exists and is public
+- Check the URL in `sync_to_public.py` matches exactly
+
+### Workflow doesn't trigger
+
+- Ensure commit message contains `chore(release)`
+- Check that changed files match the path filters in the workflow
+- Try manual trigger via Actions tab
+
+### Tag already exists
+
+- Never delete pushed tags
+- Use next patch version instead
+
+---
+
+## Files to Remove After Migration
+
+Once the new workflow is verified, remove these obsolete files:
+
+```bash
+# From sum-platform root
+rm docs/dev/git_strategy.md
+rm docs/dev/git-policy.md
+rm docs/dev/release-workflow.md
+rm docs/dev/release-checklist.md
+
+# Keep these (consolidated versions)
+# docs/dev/GIT_STRATEGY.md (new)
+# docs/dev/RELEASE_RUNBOOK.md (new)
+# docs/dev/RELEASE_AGENT_PROMPT.md (new)
+```
+
+---
+
+## Secrets Summary
+
+| Secret | Repository | Purpose |
+|--------|------------|---------|
+| `SUM_CORE_DEPLOY_KEY` | sum-platform | SSH key to push to sum-core |
+| `SUM_CORE_PAT` | sum-platform | (Optional) Create GitHub Releases |
+
+---
+
+## Repository Settings Summary
+
+### sum-core (public)
+
+- Visibility: Public
+- Default branch: `main`
+- Deploy keys: `sum-platform-sync` (write access)
+
+### sum-platform (private)
+
+- Visibility: Private
+- Default branch: `develop`
+- Branch protection on `main`:
+  - Require PR
+  - Require status checks (`lint-and-test`)
+  - Require linear history
+- Secrets: `SUM_CORE_DEPLOY_KEY`, `SUM_CORE_PAT`
+
+---
+
