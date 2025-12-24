@@ -64,6 +64,7 @@ class EffectiveFooterSettings:
 
     Fields:
         tagline: Footer tagline (FooterNavigation override, Branding fallback)
+        copyright_text: Footer copyright text (FooterNavigation only)
         social: Canonical social media links dict
         company_name: From Branding SiteSettings
         phone_number: From Branding SiteSettings
@@ -72,6 +73,7 @@ class EffectiveFooterSettings:
     """
 
     tagline: str = ""
+    copyright_text: str = ""
     social: dict[str, str] = field(default_factory=dict)
     company_name: str = ""
     phone_number: str = ""
@@ -220,6 +222,7 @@ def get_effective_footer_settings(
 
     Field mappings:
         - tagline: FooterNavigation.tagline → SiteSettings.tagline
+        - copyright_text: FooterNavigation.copyright_text
         - social.facebook: FooterNavigation.social_facebook → SiteSettings.facebook_url
         - social.instagram: FooterNavigation.social_instagram → SiteSettings.instagram_url
         - social.linkedin: FooterNavigation.social_linkedin → SiteSettings.linkedin_url
@@ -272,6 +275,7 @@ def get_effective_footer_settings(
 
     return EffectiveFooterSettings(
         tagline=tagline,
+        copyright_text=footer_nav.copyright_text or "",
         social=social.to_dict(),
         company_name=branding.company_name or "",
         phone_number=branding.phone_number or "",

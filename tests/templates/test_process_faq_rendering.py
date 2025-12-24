@@ -70,12 +70,12 @@ def test_homepage_renders_process_and_faq_blocks():
     content = response.content.decode()
 
     # --- Process Block Checks ---
-    assert 'class="section process"' in content
+    assert "bg-sage-oat/30" in content
     assert "Our Workflow" in content
     assert "How We Work" in content
-    assert "process-layout" in content
-    assert "process-rail-container" in content
-    assert "process-step-item" in content
+    assert "lg:grid-cols-2" in content
+    assert "lg:sticky" in content
+    assert "border-sage-black/5" in content
 
     # Check steps content
     assert "Step One" in content
@@ -90,11 +90,10 @@ def test_homepage_renders_process_and_faq_blocks():
     # We can check structure though.
 
     # --- FAQ Block Checks ---
-    assert 'class="section faq-section"' in content
     assert "data-faq-block" in content
     assert 'data-allow-multiple="false"' in content
     assert "Common Questions" in content
-    assert "faq-item" in content
+    assert "accordion-item" in content
 
     # Check questions and answers
     assert "Is this real?" in content

@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
   # Enable manual workflow dispatch for debugging/ad-hoc runs
   workflow_dispatch:
 
@@ -17,10 +17,81 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint-and-test:
+  # ---------------------------------------------------------------------------
+  # LINT: Run linting first; all test jobs depend on this passing
+  # ---------------------------------------------------------------------------
+  lint:
     runs-on: ubuntu-latest
-    # Prevent hung jobs - 15 minutes should be more than enough for lint+test
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./core[dev]
+
+      - name: Run lint checks
+        run: make lint
+
+  # ---------------------------------------------------------------------------
+  # TEST-TEMPLATES: Template loading order gate (fast fail)
+  # ---------------------------------------------------------------------------
+  test-templates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: lint
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./core[dev]
+
+      - name: Run template loading tests
+        run: make test-templates
+
+      - name: Verify source integrity
+        run: make verify-source-intact
+
+  # ---------------------------------------------------------------------------
+  # TEST-FULL: Run the full test suite
+  # ---------------------------------------------------------------------------
+  test-full:
+    runs-on: ubuntu-latest
     timeout-minutes: 15
+    needs: lint
 
     steps:
       - name: Checkout repository
@@ -45,18 +116,97 @@ jobs:
           pip install -e ./core[dev]
 
       - name: Clean stale artifacts
-        # Remove only known transient artifacts that can cause test pollution:
-        # - .coverage: stale coverage data from previous runs
-        # - .pytest_cache: pytest cache that may contain stale test results
-        # - clients/cli-check-*, clients/cli-theme-*: generated scaffolds from CLI tests
-        # These paths are safe to remove as they are all regenerated during test runs.
         run: |
           rm -f .coverage
           rm -rf .pytest_cache
           rm -rf clients/cli-check-* clients/cli-theme-*
 
-      - name: Run lint checks
-        run: make lint
-
       - name: Run tests
         run: make test
+
+      - name: Verify source integrity
+        run: make verify-source-intact
+
+  # ---------------------------------------------------------------------------
+  # TEST-CLI: Run CLI test slice
+  # ---------------------------------------------------------------------------
+  test-cli:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: lint
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./core[dev]
+
+      - name: Clean stale artifacts
+        run: |
+          rm -f .coverage
+          rm -rf .pytest_cache
+          rm -rf clients/cli-check-* clients/cli-theme-*
+
+      - name: Run CLI test slice
+        run: make test-cli
+
+      - name: Verify source integrity
+        run: make verify-source-intact
+
+  # ---------------------------------------------------------------------------
+  # TEST-THEMES: Run themes test slice
+  # ---------------------------------------------------------------------------
+  test-themes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: lint
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ./core[dev]
+
+      - name: Clean stale artifacts
+        run: |
+          rm -f .coverage
+          rm -rf .pytest_cache
+          rm -rf clients/cli-check-* clients/cli-theme-*
+
+      - name: Run themes test slice
+        run: make test-themes
+
+      - name: Verify source integrity
+        run: make verify-source-intact

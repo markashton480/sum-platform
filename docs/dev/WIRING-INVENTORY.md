@@ -63,6 +63,41 @@ urlpatterns = [
 
 ---
 
+## Theme Wiring (v0.6+)
+
+### What Lives Where
+
+- **Canonical themes (platform repo)**: `themes/<theme_slug>/...`
+- **Active theme (client project)**: `clients/<client>/theme/active/...` (copied at `sum init` time)
+
+### Template Resolution Order (Highest Priority First)
+
+Configure Django templates so the theme wins, but core remains a fallback:
+
+1. `clients/<client>/theme/active/templates/`
+2. `clients/<client>/templates/overrides/`
+3. `sum_core/templates/` (via `APP_DIRS=True`)
+
+### Static Files Expectations
+
+- Theme static assets live under: `theme/active/static/<theme_slug>/...`
+- Theme CSS convention: `static/<theme_slug>/css/main.css` (compiled output, committed)
+- Theme JS convention: `static/<theme_slug>/js/main.js` (optional)
+
+In Django settings, ensure theme statics are included first (example pattern):
+
+```python
+THEME_STATIC_DIR = BASE_DIR / "theme" / "active" / "static"
+STATICFILES_DIRS = [THEME_STATIC_DIR]
+```
+
+### Database Reminder (Dev Parity)
+
+- Real development parity expects Postgres via `DJANGO_DB_*` env vars.
+- `core/sum_core/test_project/` has an SQLite fallback for convenience, but it is not the target production parity.
+
+---
+
 ## Feature Area: Branding & Design Tokens
 
 ### What Core Provides
@@ -72,7 +107,7 @@ urlpatterns = [
   - Brand colours (primary, secondary, accent, background, text, surface)
   - Typography (heading_font, body_font - Google Fonts names)
   - Logos (header, footer, favicon, og_default_image)
-  - Business info (company name, phone, email, address)
+  - Business info (company name, established year, phone, email, address)
   - Social links (Facebook, Instagram, LinkedIn, Twitter, YouTube, TikTok)
 
 - **Template tags** (from `sum_core.templatetags.branding_tags`):
@@ -187,6 +222,7 @@ urlpatterns = [
 | `EMAIL_BACKEND`                  | No        | `console`             | Email backend class                |
 | `EMAIL_HOST`, `EMAIL_PORT`, etc. | For SMTP  | localhost:25          | SMTP configuration                 |
 | `CELERY_BROKER_URL`              | For async | `memory://`           | Celery broker (Redis recommended)  |
+| `SUM_TRUSTED_PROXY_IPS`          | No        | `[]`                  | Trusted proxy IPs/CIDRs for client IP resolution |
 
 ### Per-Site vs Per-Project
 

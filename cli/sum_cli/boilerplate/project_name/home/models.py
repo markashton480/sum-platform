@@ -11,7 +11,6 @@ Features:
 - Breadcrumb support via BreadcrumbMixin
 - Only one HomePage allowed per site
 """
-
 from __future__ import annotations
 
 from django.core.exceptions import ValidationError

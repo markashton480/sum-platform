@@ -1,0 +1,92 @@
+{% load wagtailcore_tags %}
+
+<section class="py-24 md:py-32 bg-sage-linen relative" data-faq-block data-allow-multiple="{{ self.allow_multiple_open|yesno:'true,false' }}">
+    <div class="max-w-4xl mx-auto px-6">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-16 border-b-2 border-sage-black/10 pb-6 reveal">
+            <div>
+                {% if self.eyebrow %}
+                    <span class="font-accent italic text-2xl text-sage-terra mb-2 block">{{ self.eyebrow }}</span>
+                {% endif %}
+                <h2 class="font-display text-4xl md:text-5xl text-sage-black">{{ self.heading|richtext }}</h2>
+            </div>
+        </div>
+
+        <div class="divide-y divide-sage-black/10 border-b border-sage-black/10">
+            {% for item in self.items %}
+                <div class="group reveal accordion-item" aria-expanded="false">
+                    <button class="w-full text-left flex items-start justify-between py-8 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-terra focus-visible:ring-inset"
+                            id="btn-faq-{{ block.id }}-{{ forloop.counter }}"
+                            aria-controls="faq-ans-{{ block.id }}-{{ forloop.counter }}"
+                            type="button">
+                        <div class="flex items-baseline gap-6 md:gap-10">
+                            <span class="font-mono text-xs text-sage-terra font-bold shrink-0">{% if forloop.counter < 10 %}0{% endif %}{{ forloop.counter }}.</span>
+                            <span class="font-display text-2xl md:text-3xl text-sage-black group-hover:text-sage-terra transition-colors pr-4">{{ item.question }}</span>
+                        </div>
+                        <span class="accordion-icon font-display text-3xl font-light text-sage-black/30 transition-all duration-500 shrink-0 origin-center" aria-hidden="true">+</span>
+                    </button>
+
+                    <div id="faq-ans-{{ block.id }}-{{ forloop.counter }}" class="accordion-grid-wrapper" role="region" aria-labelledby="btn-faq-{{ block.id }}-{{ forloop.counter }}">
+                        <div class="accordion-inner pl-0 md:pl-[4.5rem]">
+                            <div class="pb-8 font-accent text-xl text-sage-label leading-relaxed italic max-w-2xl">
+                                {{ item.answer|richtext }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% if faq_schema_json %}
+    <script type="application/ld+json">
+        {{ faq_schema_json|safe }}
+    </script>
+{% endif %}
+
+<script>
+(function() {
+  'use strict';
+  var faqBlock = document.querySelector('[data-faq-block]');
+  if (!faqBlock) return;
+
+  var allowMultiple = faqBlock.dataset.allowMultiple === 'true';
+  var items = faqBlock.querySelectorAll('.accordion-item');
+
+  items.forEach(function(item) {
+    var button = item.querySelector('button');
+    var content = item.querySelector('.accordion-grid-wrapper');
+    var icon = item.querySelector('.accordion-icon');
+
+    button.addEventListener('click', function() {
+      var isOpen = item.getAttribute('aria-expanded') === 'true';
+
+      if (!allowMultiple) {
+        items.forEach(function(otherItem) {
+          if (otherItem !== item) {
+            otherItem.setAttribute('aria-expanded', 'false');
+            otherItem.querySelector('.accordion-grid-wrapper').classList.remove('open');
+            var otherIcon = otherItem.querySelector('.accordion-icon');
+            if (otherIcon) {
+                otherIcon.style.transform = 'rotate(0deg)';
+                otherIcon.style.opacity = '0.3';
+            }
+          }
+        });
+      }
+
+      if (isOpen) {
+        item.setAttribute('aria-expanded', 'false');
+        content.classList.remove('open');
+        icon.style.transform = 'rotate(0deg)';
+        icon.style.opacity = '0.3';
+      } else {
+        item.setAttribute('aria-expanded', 'true');
+        content.classList.add('open');
+        icon.style.transform = 'rotate(45deg)';
+        icon.style.opacity = '1';
+      }
+    });
+  });
+})();
+</script>

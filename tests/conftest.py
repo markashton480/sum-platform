@@ -8,12 +8,22 @@ Dependencies: Django test utilities, pytest.
 
 from __future__ import annotations
 
+import logging
+import re
+import shutil
 import sys
+from importlib import metadata
 from pathlib import Path
 
 import pytest
+from django.conf import settings
+from django.template import engines
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
+from tests.utils import REPO_ROOT, create_filesystem_sandbox, get_protected_paths
+from tests.utils.safe_cleanup import safe_rmtree as safe_cleanup_rmtree
+
+# Use centralized REPO_ROOT from tests.utils.fixtures
+ROOT_DIR = REPO_ROOT
 CORE_DIR = ROOT_DIR / "core"
 TEST_PROJECT_DIR = CORE_DIR / "sum_core" / "test_project"
 
@@ -22,6 +32,110 @@ if str(CORE_DIR) not in sys.path:
 
 if str(TEST_PROJECT_DIR) not in sys.path:
     sys.path.insert(0, str(TEST_PROJECT_DIR))
+
+logger = logging.getLogger(__name__)
+
+
+def _resolve_sum_core_version() -> str | None:
+    try:
+        import sum_core
+
+        version = getattr(sum_core, "__version__", None)
+        if version:
+            return str(version)
+    except Exception:
+        # If importing sum_core or reading __version__ fails, fall back to package metadata.
+        logger.debug(
+            "Failed to resolve sum_core version from import; falling back to package metadata.",
+            exc_info=True,
+        )
+
+    try:
+        return metadata.version("sum-core")
+    except metadata.PackageNotFoundError:
+        return None
+    except Exception:
+        logger.debug(
+            "Failed to resolve sum-core version from package metadata.",
+            exc_info=True,
+        )
+        return None
+
+
+def _parse_major_minor(version: str) -> tuple[int, int] | None:
+    match = re.match(r"^(\d+)\.(\d+)", version)
+    if not match:
+        return None
+    return int(match.group(1)), int(match.group(2))
+
+
+def _sum_core_major_minor() -> tuple[int, int] | None:
+    version = _resolve_sum_core_version()
+    if not version:
+        logger.warning(
+            "sum_core version could not be determined; skipping version-based marker logic."
+        )
+        return None
+
+    parsed = _parse_major_minor(version)
+    if not parsed:
+        logger.warning(
+            "sum_core version %r could not be parsed; skipping version-based marker logic.",
+            version,
+        )
+        return None
+
+    return parsed
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config, items: list[pytest.Item]
+) -> None:
+    parsed_version = _sum_core_major_minor()
+    if not parsed_version:
+        return
+
+    # Resolve a human-readable version string for clearer skip messages.
+    raw_version = _resolve_sum_core_version()
+    display_version = raw_version or f"{parsed_version[0]}.{parsed_version[1]}"
+
+    # Treat pre-release versions on the 0.6 line (e.g. "0.6.0-alpha") as legacy,
+    # since theme support is only guaranteed for final 0.6+ releases.
+    is_prerelease = bool(
+        raw_version and re.search(r"[-.]?(alpha|beta|rc|dev|pre|a|b)", raw_version)
+    )
+    is_legacy_line = parsed_version < (0, 6) or (
+        parsed_version[:2] == (0, 6) and is_prerelease
+    )
+
+    if is_legacy_line:
+        skip_marker = pytest.mark.skip(
+            reason=(
+                "Requires theme support (sum_core >= 0.6); "
+                f"skipping on version {display_version}"
+            )
+        )
+        for item in items:
+            if "requires_themes" in item.keywords:
+                item.add_marker(skip_marker)
+    else:
+        skip_marker = pytest.mark.skip(
+            reason=(
+                f"Legacy test for 0.5.x only; skipping on version {display_version}"
+            )
+        )
+        for item in items:
+            if "legacy_only" in item.keywords:
+                item.add_marker(skip_marker)
+
+
+def _reset_django_template_loaders() -> None:
+    engine = engines["django"].engine
+    loaders = getattr(engine, "template_loaders", [])
+    for loader in loaders:
+        reset = getattr(loader, "reset", None)
+        if callable(reset):
+            reset()
 
 
 @pytest.fixture(scope="session")
@@ -123,6 +237,102 @@ def _reset_homepage_between_tests(db) -> None:
     for homepage in HomePage.objects.all():
         homepage.delete()
     Site.clear_site_root_paths_cache()
+
+
+@pytest.fixture(scope="session")
+def repo_root() -> Path:
+    """Return resolved repository root Path (single source of truth).
+
+    This fixture provides a consistent way to access the repo root across
+    all test slices without duplicating path resolution logic.
+    """
+    return REPO_ROOT
+
+
+@pytest.fixture(scope="session")
+def protected_paths() -> tuple[str, ...]:
+    """Return canonical list of protected repo directory names.
+
+    These are directories that tests must never modify or delete.
+    Useful for assertions in test teardowns or guardrail fixtures.
+    """
+    return get_protected_paths()
+
+
+@pytest.fixture(scope="session")
+def safe_rmtree(tmp_path_factory):
+    """
+    Guarded shutil.rmtree for tests.
+
+    Refuse to delete:
+    - any path containing .git
+    - the repo root itself
+    - any path outside pytest's temp root
+    """
+    tmp_root = Path(tmp_path_factory.getbasetemp()).resolve()
+    repo_root = ROOT_DIR.resolve()
+
+    def _safe_rmtree(path: Path) -> None:
+        safe_cleanup_rmtree(path, repo_root=repo_root, tmp_base=tmp_root)
+
+    return _safe_rmtree
+
+
+@pytest.fixture
+def filesystem_sandbox(request, tmp_path_factory):
+    repo_root = ROOT_DIR.resolve()
+    tmp_base = Path(tmp_path_factory.getbasetemp()).resolve()
+    return create_filesystem_sandbox(repo_root, tmp_base, request)
+
+
+@pytest.fixture(scope="module")
+def theme_active_copy(tmp_path_factory, safe_rmtree):
+    """Install Theme A templates into an isolated theme/active sandbox."""
+
+    repo_root = ROOT_DIR.resolve()
+    source_templates_dir = repo_root / "themes" / "theme_a" / "templates"
+
+    if not source_templates_dir.exists():
+        raise RuntimeError(
+            f"Theme A templates not found at {source_templates_dir}."
+            " The theme guardrails fixture requires canonical templates."
+        )
+
+    active_root_dir = Path(tmp_path_factory.mktemp("theme-active"))
+    active_templates_dir = active_root_dir / "templates"
+    active_templates_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(source_templates_dir, active_templates_dir, dirs_exist_ok=True)
+
+    original_theme_templates_dir = Path(settings.THEME_TEMPLATES_DIR)
+    original_theme_template_dirs = list(getattr(settings, "THEME_TEMPLATE_DIRS", []))
+    original_template_dirs = list(settings.TEMPLATES[0]["DIRS"])
+
+    normalized_theme_dirs = (
+        [Path(entry) for entry in original_theme_template_dirs]
+        if original_theme_template_dirs
+        else [original_theme_templates_dir]
+    )
+
+    new_theme_dirs: list[Path] = [active_templates_dir]
+    for directory in normalized_theme_dirs:
+        if directory != active_templates_dir:
+            new_theme_dirs.append(directory)
+
+    settings.THEME_TEMPLATE_DIRS = new_theme_dirs
+    settings.THEME_TEMPLATES_DIR = str(active_templates_dir)
+    client_overrides_dir = Path(settings.CLIENT_OVERRIDES_DIR)
+    settings.TEMPLATES[0]["DIRS"] = [*new_theme_dirs, client_overrides_dir]
+
+    _reset_django_template_loaders()
+
+    try:
+        yield active_templates_dir
+    finally:
+        settings.THEME_TEMPLATE_DIRS = original_theme_template_dirs
+        settings.THEME_TEMPLATES_DIR = str(original_theme_templates_dir)
+        settings.TEMPLATES[0]["DIRS"] = original_template_dirs
+        _reset_django_template_loaders()
+        safe_rmtree(active_root_dir)
 
 
 @pytest.fixture

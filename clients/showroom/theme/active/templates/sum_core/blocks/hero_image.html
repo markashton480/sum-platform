@@ -1,0 +1,128 @@
+{% load wagtailimages_tags wagtailcore_tags %}
+
+{% if self.layout == 'full' %}
+<section id="hero" class="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden bg-sage-black">
+    <!-- Background Image -->
+    <div class="absolute inset-0 z-0 overflow-hidden">
+        {% image self.image original as hero_img %}
+        <img id="hero-image" src="{{ hero_img.url }}"
+             alt="{{ self.image_alt }}"
+             class="w-full h-[120%] object-cover object-center -translate-y-10 origin-center will-change-transform">
+
+        {% if self.overlay_opacity == 'light' %}
+            <div class="absolute inset-0 bg-black/20"></div>
+        {% elif self.overlay_opacity == 'medium' %}
+            <div class="absolute inset-0 bg-black/40"></div>
+        {% elif self.overlay_opacity == 'strong' %}
+            <div class="absolute inset-0 bg-black/60"></div>
+        {% endif %}
+    </div>
+
+    <div class="relative z-10 text-center px-4 max-w-5xl mx-auto mt-20">
+        {% if self.status %}
+            <p class="reveal font-accent text-sage-oat text-xl md:text-2xl italic mb-6">{{ self.status }}</p>
+        {% endif %}
+
+        <h1 class="reveal delay-100 font-display text-5xl md:text-7xl lg:text-8xl text-sage-linen mb-8 leading-tight">
+            {{ self.headline|richtext }}
+        </h1>
+
+        {% if self.subheadline %}
+            <p class="reveal delay-200 text-sage-linen max-w-lg mx-auto mb-12 text-base md:text-lg tracking-wide font-light drop-shadow-md">
+                {{ self.subheadline }}
+            </p>
+        {% endif %}
+
+        {% if self.ctas %}
+            <div class="reveal delay-300 flex flex-col items-center gap-6">
+                <div class="flex flex-col sm:flex-row gap-6 justify-center items-center w-full">
+                    {% for cta in self.ctas %}
+                        {% if forloop.first %}
+                            <a href="{{ cta.url }}" class="inline-block bg-sage-terra text-white px-12 py-5 text-base font-bold uppercase tracking-widest hover:bg-sage-black transition-colors duration-300 shadow-lg">
+                                {{ cta.label }}
+                            </a>
+                        {% else %}
+                            <a href="{{ cta.url }}" class="group inline-flex items-center space-x-3 text-sage-linen border border-sage-linen/30 rounded-none px-6 py-4 transition-colors duration-300 cursor-pointer backdrop-blur-sm hover:bg-sage-linen hover:text-sage-black hover:border-sage-linen">
+                                <span class="uppercase tracking-[0.2em] text-sm font-bold">{{ cta.label }}</span>
+                                <svg class="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% else %}
+<section class="section hero">
+    <div class="container">
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+            {# Content Column #}
+            <div class="reveal-group">
+                {% if self.status %}
+                    <div class="reveal reveal-text mb-6">
+                        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sage-black/10 text-sage-black text-sm font-body">
+                            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                            {{ self.status }}
+                        </span>
+                    </div>
+                {% endif %}
+
+                <div class="reveal reveal-text delay-100">
+                    <div class="font-display text-4xl md:text-5xl lg:text-6xl leading-tight text-sage-black">
+                        {{ self.headline|richtext }}
+                    </div>
+                </div>
+
+                {% if self.subheadline %}
+                    <div class="reveal reveal-text delay-200 mt-6 text-lg md:text-xl text-sage-black/80 leading-relaxed max-w-xl">
+                        {{ self.subheadline }}
+                    </div>
+                {% endif %}
+
+                {% if self.ctas %}
+                    <div class="reveal reveal-text delay-300 flex flex-wrap gap-4 mt-8">
+                        {% for cta in self.ctas %}
+                            <a href="{{ cta.url }}"
+                               class="btn {% if cta.style == 'primary' %}btn-primary{% elif cta.style == 'secondary' %}btn-outline{% else %}btn-outline{% endif %}"
+                               {% if cta.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                                {{ cta.label }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Visual Column #}
+            <div class="reveal-group relative">
+                <div class="reveal relative rounded-2xl overflow-hidden shadow-xl">
+                    {% image self.image width-800 class="w-full h-auto object-cover" %}
+
+                    {% if self.overlay_opacity == 'light' %}
+                        <div class="absolute inset-0 bg-sage-black/10 pointer-events-none"></div>
+                    {% elif self.overlay_opacity == 'medium' %}
+                        <div class="absolute inset-0 bg-sage-black/25 pointer-events-none"></div>
+                    {% elif self.overlay_opacity == 'strong' %}
+                        <div class="absolute inset-0 bg-sage-black/40 pointer-events-none"></div>
+                    {% endif %}
+                </div>
+
+                {% if self.floating_card_label or self.floating_card_value %}
+                    <div class="absolute -bottom-6 -left-6 bg-sage-linen border border-sage-black/10 rounded-xl shadow-lg p-6 max-w-[200px]">
+                        {% if self.floating_card_label %}
+                            <div class="text-sm text-sage-black/60 font-body uppercase tracking-wider mb-1">
+                                {{ self.floating_card_label }}
+                            </div>
+                        {% endif %}
+                        {% if self.floating_card_value %}
+                            <div class="font-display text-3xl text-sage-black leading-tight">
+                                {{ self.floating_card_value }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}

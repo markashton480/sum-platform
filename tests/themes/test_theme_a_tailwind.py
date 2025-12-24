@@ -4,12 +4,14 @@ Path: tests/themes/test_theme_a_tailwind.py
 Purpose: Automated tests proving Theme A has compiled Tailwind CSS and no legacy core bleed.
          These tests are part of the v0.6 Theme Toolchain v1 contract (M6-A-001).
 Family: sum_core tests
-Dependencies: sum_core.themes, pathlib
+Dependencies: pathlib
 """
 
 from __future__ import annotations
 
 from pathlib import Path
+
+from tests.utils import REPO_ROOT
 
 
 class TestThemeATailwindCSS:
@@ -24,17 +26,8 @@ class TestThemeATailwindCSS:
     @staticmethod
     def _get_theme_a_css_path() -> Path:
         """Get the path to Theme A's compiled main.css."""
-        repo_root = Path(__file__).resolve().parents[2]
         return (
-            repo_root
-            / "core"
-            / "sum_core"
-            / "themes"
-            / "theme_a"
-            / "static"
-            / "theme_a"
-            / "css"
-            / "main.css"
+            REPO_ROOT / "themes" / "theme_a" / "static" / "theme_a" / "css" / "main.css"
         )
 
     def test_compiled_css_exists(self) -> None:
@@ -118,18 +111,17 @@ class TestThemeATailwindToolchain:
     @staticmethod
     def _get_theme_a_path() -> Path:
         """Get the path to Theme A directory."""
-        repo_root = Path(__file__).resolve().parents[2]
-        return repo_root / "core" / "sum_core" / "themes" / "theme_a"
+        return REPO_ROOT / "themes" / "theme_a"
 
     def test_package_json_exists(self) -> None:
         """package.json must exist for maintainer toolchain."""
         theme_path = self._get_theme_a_path()
-        assert (theme_path / "package.json").exists()
+        assert (theme_path / "tailwind" / "package.json").exists()
 
     def test_tailwind_config_exists(self) -> None:
         """tailwind.config.js must exist."""
         theme_path = self._get_theme_a_path()
-        assert (theme_path / "tailwind.config.js").exists()
+        assert (theme_path / "tailwind" / "tailwind.config.js").exists()
 
     def test_input_css_exists(self) -> None:
         """input.css (Tailwind source) must exist."""
@@ -139,8 +131,8 @@ class TestThemeATailwindToolchain:
     def test_lockfile_exists(self) -> None:
         """npm-shrinkwrap.json or package-lock.json must exist for reproducible builds."""
         theme_path = self._get_theme_a_path()
-        has_shrinkwrap = (theme_path / "npm-shrinkwrap.json").exists()
-        has_lockfile = (theme_path / "package-lock.json").exists()
+        has_shrinkwrap = (theme_path / "tailwind" / "npm-shrinkwrap.json").exists()
+        has_lockfile = (theme_path / "tailwind" / "package-lock.json").exists()
         assert has_shrinkwrap or has_lockfile, (
             "No npm lockfile found. Add npm-shrinkwrap.json or package-lock.json "
             "to prevent build drift."

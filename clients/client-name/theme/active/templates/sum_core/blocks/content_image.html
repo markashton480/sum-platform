@@ -1,0 +1,15 @@
+{% load wagtailimages_tags %}
+<div class="py-12">
+  <div class="container {% if not self.full_width %}max-w-5xl{% else %}max-w-screen-2xl{% endif %} mx-auto px-4">
+    <figure class="reveal">
+      <div class="rounded-sm overflow-hidden shadow-sm border border-sage-black/5 bg-sage-oat">
+        {% image self.image width-2400 alt=self.alt_text class="w-full h-auto object-cover" %}
+      </div>
+      {% if self.caption %}
+      <figcaption class="mt-4 text-[11px] font-bold uppercase tracking-widest text-sage-label/60 border-l border-sage-moss/30 pl-3">
+        {{ self.caption }}
+      </figcaption>
+      {% endif %}
+    </figure>
+  </div>
+</div>

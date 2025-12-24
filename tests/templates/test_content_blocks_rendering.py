@@ -75,24 +75,24 @@ def test_render_content_blocks():
     # 4. Verify HTML Output (Tokens & Classes)
 
     # Rich Text
-    assert "content-block--rich-text" in content
-    assert "rich-text" in content
+    assert "prose-sage" in content
+    assert "Rich Heading" in content
     assert "Rich Heading" in content
 
     # Quote
-    assert "quote-block" in content
+    assert "bg-sage-oat/30" in content
     assert "This is a quote." in content
     assert "Author Name" in content
-    assert "quote-line" in content
+    assert "font-display text-3xl" in content
 
     # Buttons
-    assert "button-group--center" in content
+    assert "justify-center" in content
     assert "btn-primary" in content
-    assert "btn-secondary" in content
+    assert "btn-outline" in content
     assert "Primary Btn" in content
 
     # Spacer
-    assert "content-spacer--large" in content
+    assert "h-16" in content
 
     # Divider
-    assert "content-divider--accent" in content
+    assert "border-sage-terra" in content

@@ -4,7 +4,6 @@ URL routing for this client project.
 Includes all sum_core endpoints plus Wagtail page serving.
 Replace 'project_name' with your actual project name after copying.
 """
-
 from __future__ import annotations
 
 from django.conf import settings

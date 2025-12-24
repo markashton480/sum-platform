@@ -103,6 +103,7 @@ class SiteSettings(BaseSiteSetting):
         blank=True,
         help_text="Company or brand name displayed across the site.",
     )
+    established_year = models.IntegerField(null=True, blank=True)
     tagline = models.CharField(
         max_length=255,
         blank=True,
@@ -223,6 +224,7 @@ class SiteSettings(BaseSiteSetting):
         MultiFieldPanel(
             [
                 FieldPanel("company_name"),
+                FieldPanel("established_year"),
                 FieldPanel("tagline"),
                 FieldPanel("phone_number"),
                 FieldPanel("email"),

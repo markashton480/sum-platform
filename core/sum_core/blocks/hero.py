@@ -61,6 +61,14 @@ class HeroImageBlock(BaseHeroBlock):
         default="medium",
         help_text="Dark overlay opacity for text contrast",
     )
+    layout = blocks.ChoiceBlock(
+        choices=[
+            ("split", "Split (Image Right)"),
+            ("full", "Full (Background Image)"),
+        ],
+        default="split",
+        help_text="Choose the hero layout style.",
+    )
 
     # Floating Card Fields
     floating_card_label = blocks.CharBlock(

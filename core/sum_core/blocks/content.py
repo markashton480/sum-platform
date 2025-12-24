@@ -5,6 +5,7 @@ Purpose: Define StructBlocks for rich content sections (Hero, Features, Portfoli
 Family: Used by StreamFields in pages.
 """
 
+from django.utils.text import slugify
 from wagtail import blocks
 from wagtail.images.blocks import ImageChooserBlock
 
@@ -104,8 +105,16 @@ class PortfolioItemBlock(blocks.StructBlock):
     image = ImageChooserBlock(required=True)
     alt_text = blocks.CharBlock(required=True, help_text="Alt text for accessibility.")
     title = blocks.CharBlock(required=True)
+    category = blocks.CharBlock(
+        required=False,
+        max_length=50,
+        help_text="Optional filter label, e.g. Residential, Commercial.",
+    )
     location = blocks.CharBlock(required=False, help_text="e.g. Kensington, London")
     services = blocks.CharBlock(required=False, help_text="e.g. Solar • Battery")
+    constraint = blocks.CharBlock(max_length=100, required=False)
+    material = blocks.CharBlock(max_length=100, required=False)
+    outcome = blocks.CharBlock(max_length=100, required=False)
     link_url = blocks.URLBlock(
         required=False, help_text="Link to full project case study"
     )
@@ -123,7 +132,44 @@ class PortfolioBlock(blocks.StructBlock):
         help_text="Main heading. Use italics for accent styling.",
     )
     intro = blocks.TextBlock(required=False, help_text="Short lead text")
+    view_all_link = blocks.URLBlock(required=False, label="View All Link")
+    view_all_label = blocks.CharBlock(
+        required=False, max_length=50, label="View All Label"
+    )
     items = blocks.ListBlock(PortfolioItemBlock(), min_num=1, max_num=12)
+
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context=parent_context)
+        items = list(value.get("items", []))
+        categories = []
+        for item in items:
+            category = (item.get("category") or "").strip()
+            if category and category not in categories:
+                categories.append(category)
+
+        request = parent_context.get("request") if parent_context else None
+        active_category = ""
+        if request:
+            active_category = request.GET.get("category", "").strip()
+
+        if active_category:
+            filtered_items = [
+                item
+                for item in items
+                if (item.get("category") or "").strip()
+                and slugify((item.get("category") or "").strip()) == active_category
+            ]
+        else:
+            filtered_items = items
+
+        context.update(
+            {
+                "categories": categories,
+                "active_category": active_category,
+                "filtered_items": filtered_items,
+            }
+        )
+        return context
 
     class Meta:
         template = "sum_core/blocks/portfolio.html"
@@ -131,7 +177,140 @@ class PortfolioBlock(blocks.StructBlock):
         label = "Portfolio Gallery"
 
 
+class TeamMemberItemBlock(blocks.StructBlock):
+    photo = ImageChooserBlock(
+        required=True, help_text="Team member headshot or portrait."
+    )
+    alt_text = blocks.CharBlock(required=True, help_text="Alt text for accessibility.")
+    name = blocks.CharBlock(required=True, help_text="Full name.")
+    role = blocks.CharBlock(required=False, help_text="Role or title.")
+    bio = blocks.TextBlock(required=False, help_text="Short bio (1-2 sentences).")
+
+    class Meta:
+        icon = "user"
+        label = "Team Member"
+
+
+class TeamMemberBlock(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(
+        max_length=100, required=False, help_text="Small label above heading"
+    )
+    heading = blocks.RichTextBlock(
+        required=False,
+        features=["bold", "italic"],
+        help_text="Section heading. Use italics for accent styling.",
+    )
+    members = blocks.ListBlock(TeamMemberItemBlock(), min_num=1, max_num=12)
+
+    class Meta:
+        template = "sum_core/blocks/team_members.html"
+        icon = "group"
+        label = "Team Members"
+
+
+class TimelineItemBlock(blocks.StructBlock):
+    date_label = blocks.CharBlock(
+        required=True,
+        help_text="Short date label for the milestone (e.g. 2020, Q3 2024)",
+    )
+    heading = blocks.CharBlock(required=True, help_text="Milestone heading")
+    body = blocks.RichTextBlock(
+        required=True,
+        features=["bold", "italic", "link", "ol", "ul"],
+        help_text="Supporting copy for the milestone",
+    )
+    image = ImageChooserBlock(required=False, help_text="Optional supporting image")
+    image_alt = blocks.CharBlock(
+        required=False,
+        help_text="Alt text for the image. Provide when an image is set.",
+    )
+
+    class Meta:
+        icon = "date"
+        label = "Timeline Item"
+
+
+class TimelineBlock(blocks.StructBlock):
+    eyebrow = blocks.CharBlock(
+        required=False, help_text="Optional accent label above the heading"
+    )
+    heading = blocks.RichTextBlock(
+        required=False,
+        features=["italic", "bold"],
+        help_text="Timeline section heading",
+    )
+    intro = blocks.RichTextBlock(
+        required=False,
+        features=["bold", "italic", "link"],
+        help_text="Short intro or description for the timeline",
+    )
+    items = blocks.ListBlock(TimelineItemBlock(), min_num=1)
+
+    class Meta:
+        template = "sum_core/blocks/timeline.html"
+        icon = "time"
+        label = "Timeline"
+        group = "Sections"
+
+
+class ManifestoBlock(blocks.StructBlock):
+    """
+    Centered prose section used for "manifesto"-style content blocks.
+
+    Designed to match Theme A wireframes: eyebrow + heading + rich prose + optional quote.
+    """
+
+    eyebrow = blocks.CharBlock(
+        max_length=100,
+        required=False,
+        help_text="Optional accent label above the heading (e.g. “The Manifesto”).",
+    )
+
+    heading = blocks.RichTextBlock(
+        required=True,
+        features=["italic", "bold"],
+        help_text="Main heading. Use Italic for accent styling.",
+    )
+
+    body = blocks.RichTextBlock(
+        required=True,
+        features=["bold", "italic", "link", "ol", "ul"],
+        help_text="Main prose content. Use paragraphs and lists.",
+    )
+
+    quote = blocks.TextBlock(
+        required=False,
+        help_text="Optional pull quote shown beneath the prose content.",
+    )
+
+    class Meta:
+        template = "sum_core/blocks/manifesto.html"
+        icon = "doc-full"
+        label = "Manifesto"
+
+
 # --- M2-008 New Content Blocks ---
+
+
+class PageHeaderBlock(blocks.StructBlock):
+    """
+    Interior page header with optional eyebrow, heading, and intro.
+    """
+
+    eyebrow = blocks.CharBlock(
+        required=False, help_text="Optional label above the heading."
+    )
+    heading = blocks.RichTextBlock(
+        required=False,
+        features=["italic", "bold"],
+        help_text="Main heading. Use italics for accent styling.",
+    )
+    intro = blocks.TextBlock(required=False, help_text="Short supporting intro text.")
+
+    class Meta:
+        icon = "title"
+        label = "Page Header"
+        template = "sum_core/blocks/page_header.html"
 
 
 class RichTextContentBlock(blocks.StructBlock):
@@ -204,6 +383,25 @@ class QuoteBlock(blocks.StructBlock):
         icon = "openquote"
         label = "Editorial Quote"
         template = "sum_core/blocks/content_quote.html"
+
+
+class SocialProofQuoteBlock(blocks.StructBlock):
+    """
+    Editorial quote with optional social proof metadata.
+    """
+
+    quote = blocks.TextBlock(
+        label="Quote Text", help_text="Editorial quote (1-3 sentences)."
+    )
+    logo = ImageChooserBlock(required=False, help_text="Optional company logo.")
+    author = blocks.CharBlock(required=False)
+    role = blocks.CharBlock(required=False)
+    company = blocks.CharBlock(required=False)
+
+    class Meta:
+        icon = "openquote"
+        label = "Social Proof Quote"
+        template = "sum_core/blocks/content_social_proof_quote.html"
 
 
 class ImageBlock(blocks.StructBlock):
@@ -307,3 +505,58 @@ class DividerBlock(blocks.StructBlock):
         icon = "horizontalrule"
         label = "Divider"
         template = "sum_core/blocks/content_divider.html"
+
+
+class TableOfContentsItemBlock(blocks.StructBlock):
+    """
+    Single entry for the TableOfContentsBlock.
+    """
+
+    label = blocks.CharBlock(required=True, help_text="Link label shown in the TOC.")
+    anchor = blocks.CharBlock(
+        required=True,
+        help_text="Anchor ID (e.g. terms-intro) that matches a LegalSectionBlock.",
+    )
+
+    class Meta:
+        icon = "link"
+        label = "TOC Item"
+
+
+class TableOfContentsBlock(blocks.StructBlock):
+    """
+    Table of contents for legal pages.
+    """
+
+    items = blocks.ListBlock(
+        TableOfContentsItemBlock(),
+        min_num=1,
+        help_text="Add links that point to anchors on the same page.",
+    )
+
+    class Meta:
+        icon = "list-ol"
+        label = "Table of Contents"
+        template = "sum_core/blocks/table_of_contents.html"
+
+
+class LegalSectionBlock(blocks.StructBlock):
+    """
+    Anchored legal section with heading + rich text body.
+    """
+
+    anchor = blocks.CharBlock(
+        required=True,
+        help_text="Anchor ID used for in-page links (use lowercase with hyphens).",
+    )
+    heading = blocks.CharBlock(required=True, help_text="Section heading.")
+    body = blocks.RichTextBlock(
+        required=True,
+        features=["h3", "h4", "bold", "italic", "link", "ol", "ul"],
+        help_text="Section content. Use H3/H4 for nested headings; avoid H1/H2.",
+    )
+
+    class Meta:
+        icon = "doc-full"
+        label = "Legal Section"
+        template = "sum_core/blocks/legal_section.html"

@@ -3,51 +3,18 @@ Name: Theme A Rendering Tests
 Path: tests/themes/test_theme_a_rendering.py
 Purpose: Integration tests proving Theme A (Sage & Stone) renders correctly with critical DOM hooks
 Family: sum_core tests
-Dependencies: sum_core.themes, pytest, wagtail, django
+Dependencies: pytest, wagtail, django
 """
 
 from __future__ import annotations
 
-import shutil
-from pathlib import Path
-
 import pytest
-from django.conf import settings
-from django.template import engines
+from django.template.loader import get_template
 from django.test import Client
 from home.models import HomePage
 from wagtail.models import Page, Site
 
-pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture(scope="module", autouse=True)
-def active_theme_a():
-    """
-    Install Theme A templates into a simulated client-owned theme/active/templates/
-    directory and ensure it is first in template resolution.
-    """
-    repo_root = Path(__file__).resolve().parents[2]
-    source_templates_dir = (
-        repo_root / "core" / "sum_core" / "themes" / "theme_a" / "templates"
-    )
-    active_templates_dir = Path(settings.THEME_TEMPLATES_DIR)
-    active_root_dir = active_templates_dir.parent.parent
-
-    if active_root_dir.exists():
-        shutil.rmtree(active_root_dir)
-
-    active_templates_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(source_templates_dir, active_templates_dir, dirs_exist_ok=True)
-    for loader in engines["django"].engine.template_loaders:
-        if hasattr(loader, "reset"):
-            loader.reset()
-    yield
-    if active_root_dir.exists():
-        shutil.rmtree(active_root_dir)
-    for loader in engines["django"].engine.template_loaders:
-        if hasattr(loader, "reset"):
-            loader.reset()
+pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("theme_active_copy")]
 
 
 class TestThemeAHomePage:
@@ -172,6 +139,15 @@ class TestThemeAStandardPage:
         content = response.content.decode("utf-8")
         # Theme A header has id="main-header", core header uses class="header"
         assert 'id="main-header"' in content
+
+
+def test_process_steps_template_resolves_to_theme_a(theme_active_copy) -> None:
+    template = get_template("sum_core/blocks/process_steps.html")
+    origin_name = str(getattr(template.origin, "name", ""))
+    assert (
+        str(theme_active_copy) in origin_name
+        or "themes/theme_a/templates" in origin_name
+    )
 
 
 class TestThemeAMegaMenu:

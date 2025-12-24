@@ -6,12 +6,13 @@ Environment-specific settings should be placed in local.py or production.py.
 
 Replace 'project_name' with your actual project name after copying.
 """
-
 from __future__ import annotations
 
 import json
 import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 
 # =============================================================================
 # Core Django Settings
@@ -22,6 +23,43 @@ BASE_DIR: Path = Path(__file__).resolve().parent.parent.parent
 # =============================================================================
 # Theme Configuration
 # =============================================================================
+#
+# Per THEME-ARCHITECTURE-SPECv1, themes are copied into the client project
+# at init-time. Runtime template/static resolution uses theme/active/, NOT
+# sum_core. The .sum/theme.json file is for provenance tracking only.
+#
+
+
+def _get_canonical_theme_root() -> Path | None:
+    """
+    Optional dev override to load templates/static directly from canonical theme.
+
+    Controlled via SUM_CANONICAL_THEME_ROOT. If set, we validate the path and
+    prefer canonical assets ahead of theme/active.
+    """
+
+    canonical_root_env = os.getenv("SUM_CANONICAL_THEME_ROOT")
+    if not canonical_root_env:
+        return None
+
+    canonical_root = Path(canonical_root_env)
+    templates_dir = canonical_root / "templates"
+
+    if not canonical_root.exists():
+        raise ImproperlyConfigured(
+            f"SUM_CANONICAL_THEME_ROOT='{canonical_root_env}' does not exist. "
+            "Expected <root>/templates and optional <root>/static. "
+            "Unset SUM_CANONICAL_THEME_ROOT to disable."
+        )
+
+    if not templates_dir.exists():
+        raise ImproperlyConfigured(
+            f"SUM_CANONICAL_THEME_ROOT='{canonical_root_env}' is missing required "
+            "<root>/templates. Expected layout: <root>/templates and optional "
+            "<root>/static. Unset SUM_CANONICAL_THEME_ROOT to disable."
+        )
+
+    return canonical_root
 
 
 def _get_project_theme_slug() -> str | None:
@@ -40,7 +78,8 @@ def _get_project_theme_slug() -> str | None:
     try:
         with theme_file.open("r", encoding="utf-8") as f:
             config = json.load(f)
-        return str(config.get("theme"))
+        theme_value = config.get("theme")
+        return theme_value if isinstance(theme_value, str) else None
     except (json.JSONDecodeError, OSError):
         return None
 
@@ -50,19 +89,28 @@ def _get_theme_template_dirs() -> list[Path]:
     Get template directories for the active theme.
 
     Per THEME-ARCHITECTURE-SPECv1, templates are resolved from:
+    0. SUM_CANONICAL_THEME_ROOT/templates (optional dev override, highest priority)
     1. theme/active/templates/ (client-owned theme)
     2. templates/overrides/ (client-specific overrides)
     3. APP_DIRS (sum_core fallback)
 
     Returns:
-        List of theme template directory paths (empty if no theme)
+        List of theme template directory paths (empty if no theme installed)
     """
+    canonical_theme_root = _get_canonical_theme_root()
+
+    theme_template_dirs: list[Path] = []
+    if canonical_theme_root:
+        theme_template_dirs.append(canonical_theme_root / "templates")
+
     theme_templates_dir = BASE_DIR / "theme" / "active" / "templates"
     if theme_templates_dir.exists():
-        return [theme_templates_dir]
-    return []
+        theme_template_dirs.append(theme_templates_dir)
+
+    return theme_template_dirs
 
 
+# Theme slug from provenance (for logging/debugging only)
 THEME_SLUG = _get_project_theme_slug()
 
 # SECURITY WARNING: keep the secret key used in production secret!
@@ -129,6 +177,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             # Per THEME-ARCHITECTURE-SPECv1, resolution order:
+            # 0. SUM_CANONICAL_THEME_ROOT/templates (optional dev override)
             # 1. theme/active/templates/ (client-owned theme)
             # 2. templates/overrides/ (client-specific overrides)
             # 3. APP_DIRS (sum_core fallback)
@@ -187,6 +236,7 @@ def _get_theme_static_dirs() -> list[Path]:
     Get static directories for the active theme.
 
     Per THEME-ARCHITECTURE-SPECv1, static files are resolved from:
+    0. SUM_CANONICAL_THEME_ROOT/static/ (optional dev override, highest priority)
     1. theme/active/static/ (client-owned theme, highest priority)
     2. static/ (client-specific statics)
     3. APP_DIRS (sum_core fallback)
@@ -194,15 +244,25 @@ def _get_theme_static_dirs() -> list[Path]:
     Returns:
         List of theme static directory paths (empty if no theme installed)
     """
+    canonical_theme_root = _get_canonical_theme_root()
+
+    static_dirs: list[Path] = []
+    if canonical_theme_root:
+        canonical_static_dir = canonical_theme_root / "static"
+        if canonical_static_dir.exists():
+            static_dirs.append(canonical_static_dir)
+
     theme_static_dir = BASE_DIR / "theme" / "active" / "static"
     if theme_static_dir.exists():
-        return [theme_static_dir]
-    return []
+        static_dirs.append(theme_static_dir)
+
+    return static_dirs
 
 
 STATIC_URL: str = "/static/"
 STATICFILES_DIRS: list[Path] = [
     # Per THEME-ARCHITECTURE-SPECv1, resolution order:
+    # 0. SUM_CANONICAL_THEME_ROOT/static/ (optional dev override)
     # 1. theme/active/static/ (client-owned theme, highest priority)
     # 2. static/ (client-specific statics)
     *_get_theme_static_dirs(),

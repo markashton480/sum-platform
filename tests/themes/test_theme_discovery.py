@@ -1,39 +1,47 @@
 """
 Name: Theme Discovery Tests
 Path: tests/themes/test_theme_discovery.py
-Purpose: Unit tests for theme discovery and validation
-Family: sum_core tests
-Dependencies: sum_core.themes, pytest
+Purpose: Unit tests for theme discovery and validation (Theme Architecture Spec v1)
+Family: Platform tests
+Dependencies: sum_cli.themes_registry, pytest
 """
 
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pytest
-from sum_core.themes import (
+
+from tests.utils import REPO_ROOT
+
+sys.path.insert(0, str(REPO_ROOT / "cli"))
+
+from sum_cli.themes_registry import (  # noqa: E402
     ThemeManifest,
     ThemeNotFoundError,
+    ThemeValidationError,
     discover_themes,
     get_theme,
-    get_theme_static_dir,
-    get_theme_template_dir,
     list_themes,
+    resolve_theme_dir,
 )
 
 
-def test_discover_themes_finds_theme_a() -> None:
-    """Test that theme discovery finds the built-in theme_a."""
-    themes = discover_themes()
+def test_discover_themes_finds_theme_a(monkeypatch) -> None:
+    """Test that theme discovery finds theme_a from repo-root themes/."""
+    monkeypatch.chdir(REPO_ROOT)
+    themes = discover_themes(REPO_ROOT / "themes")
 
     assert len(themes) >= 1
     theme_slugs = [t.slug for t in themes]
     assert "theme_a" in theme_slugs
 
 
-def test_get_theme_returns_valid_manifest() -> None:
+def test_get_theme_returns_valid_manifest(monkeypatch) -> None:
     """Test that get_theme returns a valid ThemeManifest for theme_a."""
+    monkeypatch.chdir(REPO_ROOT)
     theme = get_theme("theme_a")
 
     assert isinstance(theme, ThemeManifest)
@@ -43,14 +51,16 @@ def test_get_theme_returns_valid_manifest() -> None:
     assert theme.version == "1.0.0"
 
 
-def test_get_theme_raises_on_invalid_slug() -> None:
+def test_get_theme_raises_on_invalid_slug(monkeypatch) -> None:
     """Test that get_theme raises ThemeNotFoundError for invalid slugs."""
+    monkeypatch.chdir(REPO_ROOT)
     with pytest.raises(ThemeNotFoundError, match="not found"):
         get_theme("nonexistent_theme")
 
 
-def test_list_themes_returns_sorted() -> None:
+def test_list_themes_returns_sorted(monkeypatch) -> None:
     """Test that list_themes returns themes sorted by slug."""
+    monkeypatch.chdir(REPO_ROOT)
     themes = list_themes()
 
     assert len(themes) >= 1
@@ -58,9 +68,11 @@ def test_list_themes_returns_sorted() -> None:
     assert slugs == sorted(slugs)
 
 
-def test_get_theme_template_dir_returns_path() -> None:
-    """Test that get_theme_template_dir returns a valid path."""
-    template_dir = get_theme_template_dir("theme_a")
+def test_theme_template_dir_exists(monkeypatch) -> None:
+    """Theme A templates/ directory must exist."""
+    monkeypatch.chdir(REPO_ROOT)
+    theme_dir = resolve_theme_dir("theme_a")
+    template_dir = theme_dir / "templates"
 
     assert isinstance(template_dir, Path)
     assert template_dir.exists()
@@ -68,9 +80,11 @@ def test_get_theme_template_dir_returns_path() -> None:
     assert template_dir.name == "templates"
 
 
-def test_get_theme_static_dir_returns_path() -> None:
-    """Test that get_theme_static_dir returns a valid path."""
-    static_dir = get_theme_static_dir("theme_a")
+def test_theme_static_dir_exists(monkeypatch) -> None:
+    """Theme A static/ directory must exist."""
+    monkeypatch.chdir(REPO_ROOT)
+    theme_dir = resolve_theme_dir("theme_a")
+    static_dir = theme_dir / "static"
 
     assert isinstance(static_dir, Path)
     assert static_dir.exists()
@@ -128,7 +142,7 @@ def test_theme_manifest_from_dict() -> None:
     assert manifest.version == "2.0.0"
 
 
-def test_get_theme_validates_slug_mismatch(tmp_path: Path) -> None:
+def test_get_theme_validates_slug_mismatch(tmp_path: Path, monkeypatch) -> None:
     """Test that get_theme raises error when directory name doesn't match manifest slug."""
     # Create a fake theme directory
     themes_dir = tmp_path / "themes"
@@ -147,9 +161,9 @@ def test_get_theme_validates_slug_mismatch(tmp_path: Path) -> None:
     manifest_file = wrong_slug_dir / "theme.json"
     manifest_file.write_text(json.dumps(manifest_data), encoding="utf-8")
 
-    # We can't easily test this without modifying THEMES_DIR,
-    # but the validation logic is there in get_theme()
-    # This test documents the expected behavior
+    monkeypatch.setenv("SUM_THEME_PATH", str(themes_dir))
+    with pytest.raises(ThemeValidationError, match="slug mismatch"):
+        get_theme("wrong_slug")
 
 
 def test_invalid_json_in_manifest(tmp_path: Path) -> None:
@@ -164,6 +178,5 @@ def test_invalid_json_in_manifest(tmp_path: Path) -> None:
     manifest_file = bad_theme_dir / "theme.json"
     manifest_file.write_text("{ invalid json", encoding="utf-8")
 
-    # discover_themes should skip this theme
-    # (We can't easily test this without modifying THEMES_DIR)
-    # This test documents the expected behavior
+    themes = discover_themes(themes_dir)
+    assert themes == []

@@ -12,12 +12,11 @@ These are the **operational runbooks** you use weekly/monthly in production.
 
 ### Release a new version
 
-**Primary:** [`docs/ops-pack/release-checklist.md`](ops-pack/release-checklist.md)  
-Use this checklist end-to-end to cut a new tag and verify it.
+**Primary:** [`docs/ops-pack/release-runbook.md`](ops-pack/release-runbook.md)  
+Complete release process from version selection to verification.
 
 **References:**
 
-- [Release workflow (canonical)](dev/release-workflow.md) — versioning rules, tag discipline
 - [Git strategy](dev/git_strategy.md) — branching and commit conventions
 - [Hygiene standards](dev/hygiene.md) — lint/test/pre-release checks
 - [CLI usage](dev/cli.md) — `sum init` and `sum check` behavior
@@ -43,7 +42,7 @@ Run this when upgrading a live site to a new core version.
 **References:**
 
 - [Post-MVP Practice Loop](dev/master-docs/POST-MVP_BIG-PLAN.md) — practice cycle expectations
-- [Release workflow](dev/release-workflow.md) — version pinning discipline
+- [Release runbook](ops-pack/release-runbook.md) — version pinning discipline
 
 ---
 
@@ -82,10 +81,8 @@ Update these after every deploy/upgrade cycle to maintain institutional knowledg
 
 ### Git policy (operational summary)
 
-**Primary:** [`docs/ops-pack/git-policy.md`](ops-pack/git-policy.md)  
-Quick operational guide to branching, tagging, and safe-to-ship rules.
-
-**Reference:** [Git strategy (detailed)](dev/git_strategy.md)
+**Primary:** [`docs/dev/git_strategy.md`](dev/git_strategy.md)  
+Branching model, commit conventions, and version tagging rules.
 
 ---
 
@@ -141,7 +138,11 @@ When troubleshooting or researching **"why did we decide X?"** or **"what change
 
 ## 📖 Complete Documentation Map
 
-For a comprehensive index of all documentation:
+For the definitive guide to the entire platform:
+
+**[The SUM Platform Handbook](HANDBOOK.md)** — **Start here!**
+
+For a comprehensive inventory of every document:
 
 **[DDD.md (Documentation Documentation Document)](DDD.md)**
 
@@ -151,7 +152,7 @@ For a comprehensive index of all documentation:
 
 **I want to…**
 
-- **Ship a new version** → [`ops-pack/release-checklist.md`](ops-pack/release-checklist.md)
+- **Ship a new version** → [`ops-pack/release-runbook.md`](ops-pack/release-runbook.md)
 - **Deploy a fresh site** → [`ops-pack/deploy-runbook.md`](ops-pack/deploy-runbook.md)
 - **Upgrade a live site** → [`ops-pack/upgrade-runbook.md`](ops-pack/upgrade-runbook.md)
 - **Undo a bad deploy** → [`ops-pack/rollback-runbook.md`](ops-pack/rollback-runbook.md)

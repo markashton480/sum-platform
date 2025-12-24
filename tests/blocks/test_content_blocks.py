@@ -3,10 +3,13 @@ from sum_core.blocks.content import (
     ButtonGroupBlock,
     DividerBlock,
     ImageBlock,
+    ManifestoBlock,
+    PortfolioItemBlock,
     QuoteBlock,
     RichTextContentBlock,
     SpacerBlock,
 )
+from sum_core.blocks.gallery import FeaturedCaseStudyBlock
 from wagtail import blocks
 
 
@@ -64,3 +67,65 @@ def test_divider_block_definition():
     choices = [c[0] for c in block.child_blocks["style"].field.choices]
     assert "muted" in choices
     assert "accent" in choices
+
+
+@pytest.mark.django_db
+def test_portfolio_item_block_metadata_fields():
+    block = PortfolioItemBlock()
+    assert "constraint" in block.child_blocks
+    assert "material" in block.child_blocks
+    assert "outcome" in block.child_blocks
+
+
+@pytest.mark.django_db
+def test_manifesto_block_definition():
+    block = ManifestoBlock()
+    assert isinstance(block, blocks.StructBlock)
+    assert "eyebrow" in block.child_blocks
+    assert "heading" in block.child_blocks
+    assert "body" in block.child_blocks
+    assert "quote" in block.child_blocks
+    assert "cta_label" not in block.child_blocks
+    assert "cta_url" not in block.child_blocks
+
+    # Check required fields
+    assert block.child_blocks["heading"].required
+    assert block.child_blocks["body"].required
+    assert not block.child_blocks["eyebrow"].required
+    assert not block.child_blocks["quote"].required
+
+
+@pytest.mark.django_db
+def test_featured_case_study_block_definition():
+    block = FeaturedCaseStudyBlock()
+    assert isinstance(block, blocks.StructBlock)
+
+    # Check fields
+    expected_fields = [
+        "eyebrow",
+        "heading",
+        "intro",
+        "points",
+        "cta_text",
+        "cta_url",
+        "image",
+        "image_alt",
+        "stats_label",
+        "stats_value",
+    ]
+    for field in expected_fields:
+        assert field in block.child_blocks
+
+    # Check requiredness
+    assert block.child_blocks["heading"].required
+    assert block.child_blocks["image"].required
+    assert block.child_blocks["image_alt"].required
+
+    # Check non-required
+    assert not block.child_blocks["eyebrow"].required
+    assert not block.child_blocks["intro"].required
+    assert not block.child_blocks["points"].required
+    assert not block.child_blocks["cta_text"].required
+    assert not block.child_blocks["cta_url"].required
+    assert not block.child_blocks["stats_label"].required
+    assert not block.child_blocks["stats_value"].required

@@ -387,16 +387,26 @@ Themes (selected at init, fixed)
 
 **Example Theme File Structure:**
 ```
-sum_core/themes/theme_a/
+themes/theme_a/
+├── theme.json
 ├── templates/
-│   ├── base.html
-│   ├── home_page.html
-│   └── components/
+│   ├── theme/
+│   │   ├── base.html
+│   │   ├── home_page.html
+│   │   └── includes/
+│   └── sum_core/                  # optional theme-level overrides for core templates
 ├── static/
-│   ├── css/
-│   │   └── theme_a.css (Tailwind build output)
-│   └── js/
-└── tailwind.config.js
+│   └── theme_a/
+│       ├── css/
+│       │   ├── input.css          # Tailwind source (do not edit main.css directly)
+│       │   └── main.css           # compiled Tailwind output (committed)
+│       └── js/
+│           └── main.js
+└── tailwind/
+    ├── tailwind.config.js
+    ├── postcss.config.js
+    ├── package.json
+    └── npm-shrinkwrap.json
 ```
 
 ---
@@ -413,8 +423,8 @@ sum_core/themes/theme_a/
 | **Blog Templates** | `sum_core/templates/sum_core/pages/` | blog_index_page.html, blog_post_page.html |
 | **Dynamic Forms Model** | `sum_core/forms/` | FormDefinition as Wagtail Snippet |
 | **DynamicFormBlock** | `sum_core/blocks/` | StreamField block for form placement |
-| **Theme Templates** | `sum_core/themes/theme_a/templates/` | Theme-specific layouts |
-| **Theme Styles** | `sum_core/themes/theme_a/static/` | Tailwind builds |
+| **Theme Templates** | `themes/theme_a/templates/` | Theme-specific layouts (copied into client at init) |
+| **Theme Styles** | `themes/theme_a/static/` | Tailwind builds (copied into client at init) |
 
 **Forbidden:**
 - ❌ New top-level packages like `sum_blog` or `sum_forms_dynamic`
@@ -470,6 +480,12 @@ Must support these UI elements from compiled HTML design:
 - [ ] Reading time display
 - [ ] Body content (StreamField)
 - [ ] CTA placements (using DynamicFormBlock — see Section 7.1.1)
+
+**REFERENCE DESIGNS**
+theme_a/templates/sum_core/pages/blog_index_page.html
+theme_a/templates/sum_core/pages/blog_post_page.html 
+
+**Theme Guide:** docs/dev/THEME-GUIDE.md for theme implementation details.
 
 **Data Model:**
 - `BlogIndexPage` (listing with pagination)
@@ -975,9 +991,9 @@ These are **deliberately deferred** beyond client-ready declaration:
 **2. Theme Distribution Method**
 
 **Decision:**
-- Themes ship **inside `sum_core`** for versions 0.6.x–0.7.x
-- Location: `sum_core/themes/theme_a/`, `sum_core/themes/theme_b/`, etc.
-- Revisit separate theme packages only once multiple themes exist and real friction is felt
+- Canonical theme sources live at repo root `themes/` (Theme Architecture Spec v1).
+- `sum init --theme <slug>` copies the selected theme into the client project at `clients/<client>/theme/active/`.
+- Bundling themes inside the CLI package is optional later (once multiple themes exist and real friction is felt).
 
 **Rationale:** Simpler distribution and versioning; avoids premature abstraction.
 
@@ -1317,7 +1333,7 @@ The **0.6.x and later** release lines **may add new modules** under existing dir
 | `sum_core/pages/` | StandardPage, ServicePage (untouched) | BlogIndexPage, BlogPostPage (new models) |
 | `sum_core/blocks/` | Existing blocks (untouched) | DynamicFormBlock (new block) |
 | `sum_core/forms/` | Existing form handling (untouched) | FormDefinition model (new feature) |
-| `sum_core/themes/` | N/A | New directory (additive) |
+| `themes/` | N/A | New directory (additive) |
 
 **Examples of Forbidden Work:**
 

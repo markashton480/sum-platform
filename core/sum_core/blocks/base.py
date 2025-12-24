@@ -14,17 +14,24 @@ from sum_core.blocks.content import (
     FeaturesListBlock,
     HeroBlock,
     ImageBlock,
+    LegalSectionBlock,
+    ManifestoBlock,
+    PageHeaderBlock,
     PortfolioBlock,
     QuoteBlock,
     RichTextContentBlock,
+    SocialProofQuoteBlock,
     SpacerBlock,
+    TableOfContentsBlock,
+    TeamMemberBlock,
+    TimelineBlock,
     TrustStripBlock,
 )
 from sum_core.blocks.forms import ContactFormBlock, QuoteRequestFormBlock
-from sum_core.blocks.gallery import GalleryBlock
+from sum_core.blocks.gallery import FeaturedCaseStudyBlock, GalleryBlock
 from sum_core.blocks.hero import HeroGradientBlock, HeroImageBlock
 from sum_core.blocks.process_faq import FAQBlock, ProcessStepsBlock
-from sum_core.blocks.services import ServiceCardsBlock
+from sum_core.blocks.services import ServiceCardsBlock, ServiceDetailBlock
 from sum_core.blocks.testimonials import TestimonialsBlock
 from sum_core.blocks.trust import StatsBlock
 from sum_core.blocks.trust import TrustStripBlock as TrustStripLogosBlock
@@ -44,8 +51,10 @@ class PageStreamBlock(StreamBlock):
     hero_image = HeroImageBlock(group="Hero")
     hero_gradient = HeroGradientBlock(group="Hero")
     service_cards = ServiceCardsBlock(group="Services")
+    service_detail = ServiceDetailBlock(group="Services")
     testimonials = TestimonialsBlock(group="Sections")
     gallery = GalleryBlock(group="Sections")
+    featured_case_study = FeaturedCaseStudyBlock(group="Sections")
     hero = HeroBlock(group="Legacy Sections")  # Keeping specific hero type separate
     trust_strip = TrustStripBlock(group="Sections")
     trust_strip_logos = TrustStripLogosBlock(group="Sections")
@@ -54,12 +63,19 @@ class PageStreamBlock(StreamBlock):
     faq = FAQBlock(group="Sections")
     features = FeaturesListBlock(group="Sections")
     comparison = ComparisonBlock(group="Sections")
+    manifesto = ManifestoBlock(group="Sections")
     portfolio = PortfolioBlock(group="Sections")
+    team_members = TeamMemberBlock(group="Sections")
+    timeline = TimelineBlock(group="Sections")
 
     # Content Blocks
+    page_header = PageHeaderBlock(group="Page Content")
     editorial_header = EditorialHeaderBlock(group="Page Content")
+    table_of_contents = TableOfContentsBlock(group="Page Content")
+    legal_section = LegalSectionBlock(group="Page Content")
     content = RichTextContentBlock(group="Page Content")
     quote = QuoteBlock(group="Page Content")
+    social_proof_quote = SocialProofQuoteBlock(group="Page Content")
     image_block = ImageBlock(group="Page Content")
     buttons = ButtonGroupBlock(group="Page Content")
     spacer = SpacerBlock(group="Page Content")

@@ -10,17 +10,22 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import logging
 import time
 from dataclasses import dataclass
+from typing import cast
 
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpRequest
 from sum_core.forms.models import FormConfiguration
+from sum_core.ops.request_utils import get_client_ip as request_get_client_ip
 from wagtail.models import Site
 
 # Time token settings
 TIME_TOKEN_LIFETIME_SECONDS = 3600  # 1 hour max validity
+RATE_LIMIT_WINDOW_SECONDS = 3600
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -85,7 +90,7 @@ def check_rate_limit(
     Check if IP address has exceeded rate limit for this site.
 
     Uses Django cache to track submission counts. The counter automatically
-    expires after 1 hour.
+    expires after 1 hour and increments atomically to prevent race conditions.
 
     Args:
         ip_address: Client IP address
@@ -95,10 +100,15 @@ def check_rate_limit(
     Returns:
         SpamCheckResult with should_rate_limit=True if limit exceeded
     """
-    cache_key = get_rate_limit_cache_key(ip_address, site_id)
-    current_count = cache.get(cache_key, 0)
+    if max_per_hour <= 0:
+        return SpamCheckResult(is_spam=False)
 
-    if current_count >= max_per_hour:
+    cache_key = get_rate_limit_cache_key(ip_address, site_id)
+    new_count = _increment_rate_limit_counter(cache_key)
+    if new_count is None:
+        return SpamCheckResult(is_spam=False)
+
+    if new_count > max_per_hour:
         return SpamCheckResult(
             is_spam=False,
             reason="Rate limit exceeded",
@@ -112,12 +122,35 @@ def increment_rate_limit_counter(ip_address: str, site_id: int) -> None:
     """
     Increment the rate limit counter for an IP/site combination.
 
-    Call this AFTER a successful submission is processed.
+    Call this when you need to increment without running spam checks.
     """
     cache_key = get_rate_limit_cache_key(ip_address, site_id)
-    current_count = cache.get(cache_key, 0)
-    # Set/update with 1 hour expiry
-    cache.set(cache_key, current_count + 1, timeout=3600)
+    _increment_rate_limit_counter(cache_key)
+
+
+def _increment_rate_limit_counter(cache_key: str) -> int | None:
+    """Increment the rate limit counter, returning the updated value."""
+    try:
+        if cache.add(cache_key, 1, timeout=RATE_LIMIT_WINDOW_SECONDS):
+            return 1
+
+        try:
+            new_count = cast(int, cache.incr(cache_key))
+        except (ValueError, NotImplementedError):
+            current_count = cast(int, cache.get(cache_key, 0))
+            new_count = current_count + 1
+            cache.set(cache_key, new_count, timeout=RATE_LIMIT_WINDOW_SECONDS)
+            return new_count
+
+        try:
+            cache.touch(cache_key, timeout=RATE_LIMIT_WINDOW_SECONDS)
+        except NotImplementedError:
+            pass
+
+        return new_count
+    except Exception:
+        logger.warning("Rate limit counter update failed", exc_info=True)
+        return None
 
 
 def generate_time_token() -> str:
@@ -139,7 +172,25 @@ def _sign_timestamp(timestamp: str) -> str:
     """Create HMAC signature for a timestamp."""
     key = settings.SECRET_KEY.encode()
     message = timestamp.encode()
-    return hmac.new(key, message, hashlib.sha256).hexdigest()[:16]
+    return hmac.new(key, message, hashlib.sha256).hexdigest()
+
+
+def _log_time_token_issue(
+    message: str,
+    *,
+    status: str,
+    reason: str,
+    min_seconds: int,
+) -> None:
+    extra = {
+        "event": "form_time_token",
+        "time_token_status": status,
+        "time_token_reason": reason,
+        "min_seconds": min_seconds,
+        "metric_name": f"forms.time_token.{status}",
+        "metric_value": 1,
+    }
+    logger.warning(message, extra=extra)
 
 
 def check_timing(
@@ -158,12 +209,23 @@ def check_timing(
     """
     if not time_token:
         # No token provided - could be legitimate (JS disabled, old cache)
-        # Fall through without blocking, but log in production
+        _log_time_token_issue(
+            "Time token missing; timing check skipped",
+            status="missing",
+            reason="missing",
+            min_seconds=min_seconds,
+        )
         return SpamCheckResult(is_spam=False)
 
     parts = time_token.split(":", 1)
     if len(parts) != 2:
         # Malformed token - suspicious but not definitive
+        _log_time_token_issue(
+            "Time token malformed; rejecting submission",
+            status="malformed",
+            reason="format",
+            min_seconds=min_seconds,
+        )
         return SpamCheckResult(is_spam=True, reason="Invalid time token format")
 
     timestamp_str, signature = parts
@@ -171,12 +233,24 @@ def check_timing(
     # Verify signature
     expected_signature = _sign_timestamp(timestamp_str)
     if not hmac.compare_digest(signature, expected_signature):
+        _log_time_token_issue(
+            "Time token signature mismatch; rejecting submission",
+            status="invalid_signature",
+            reason="signature",
+            min_seconds=min_seconds,
+        )
         return SpamCheckResult(is_spam=True, reason="Invalid time token signature")
 
     # Check token age
     try:
         token_time = int(timestamp_str)
     except ValueError:
+        _log_time_token_issue(
+            "Time token timestamp invalid; rejecting submission",
+            status="malformed",
+            reason="timestamp",
+            min_seconds=min_seconds,
+        )
         return SpamCheckResult(is_spam=True, reason="Invalid timestamp in time token")
 
     current_time = int(time.time())
@@ -211,7 +285,7 @@ def run_spam_checks(
 
     Checks are run in order of computational cost (cheapest first):
     1. Honeypot check (instant)
-    2. Rate limit check (cache lookup)
+    2. Rate limit check (atomic cache increment)
     3. Timing check (crypto verification)
 
     Args:
@@ -250,10 +324,4 @@ def get_client_ip(request: HttpRequest) -> str:
 
     Handles X-Forwarded-For header for proxied requests.
     """
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        # Take the first IP in the chain (original client)
-        ip = x_forwarded_for.split(",")[0].strip()
-    else:
-        ip = request.META.get("REMOTE_ADDR", "")
-    return str(ip)
+    return cast(str, request_get_client_ip(request))

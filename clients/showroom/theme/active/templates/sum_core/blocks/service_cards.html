@@ -1,0 +1,60 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+
+<section class="py-24 bg-sage-linen">
+    <div class="container mx-auto px-4">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+            <div class="max-w-2xl">
+                {% if self.eyebrow %}
+                    <span class="reveal block text-[10px] font-bold text-sage-label uppercase tracking-[0.2em] mb-4">{{ self.eyebrow }}</span>
+                {% endif %}
+                <h2 class="reveal delay-100 font-display text-4xl md:text-5xl text-sage-black leading-tight tracking-tight">
+                    {{ self.heading|richtext }}
+                </h2>
+            </div>
+            {% if self.view_all_link %}
+                <div class="reveal delay-200">
+                    <a href="{{ self.view_all_link }}" class="btn--link">
+                        {{ self.view_all_label|default:"View All Services" }}
+                        <span>&rarr;</span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if self.cards %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {% for card in self.cards %}
+                    <article class="reveal delay-{{ forloop.counter0|add:1 }}00 group bg-sage-oat/20 border border-sage-black/5 p-10 rounded-sm hover:bg-sage-linen hover:shadow-xl hover:shadow-sage-black/5 transition-all duration-500">
+                        <div class="flex justify-between items-start mb-12">
+                            <span class="font-display text-sm text-sage-moss font-bold">{% if forloop.counter < 10 %}0{% endif %}{{ forloop.counter }}</span>
+                            {% if card.image %}
+                                <div class="w-12 h-12 rounded-sm overflow-hidden">
+                                    {% image card.image fill-48x48 class="w-full h-full object-cover" %}
+                                </div>
+                            {% elif card.icon %}
+                                <div class="w-12 h-12 rounded-sm bg-sage-linen border border-sage-moss/20 flex items-center justify-center text-sage-moss group-hover:bg-sage-moss group-hover:text-sage-linen transition-colors duration-500">
+                                    <span class="text-xl">{{ card.icon }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <h3 class="font-display text-2xl text-sage-black mb-4 tracking-tight">{{ card.title }}</h3>
+
+                        {% if card.description %}
+                            <div class="text-sage-black/60 text-base leading-relaxed mb-10 font-body">
+                                {{ card.description|richtext }}
+                            </div>
+                        {% endif %}
+
+                        {% if card.link_url %}
+                            <a href="{{ card.link_url }}" class="btn--link">
+                                {{ card.link_label|default:"Learn More" }}
+                                <span>&rarr;</span>
+                            </a>
+                        {% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>

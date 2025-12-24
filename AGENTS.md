@@ -1,64 +1,66 @@
-# SUM Platform – Cursor Global Rules
+# Repository Guidelines
 
-## Project Context
+SUM Platform is a Django/Wagtail monorepo. The primary product is the installable
+package in `core/sum_core`; everything else supports development, testing, or
+scaffolding.
 
-- This repo is **SUM Platform**:
-  - `core/sum_core/` – reusable Django/Wagtail core package.
-  - `boilerplate/` – starter client project.
-  - `cli/` – `sum` CLI for scaffolding client sites.
-  - `docs/` – architecture, dev guides, ADRs.
-- Goal: provide a fast-launch core for multiple Wagtail sites (home improvement trades).
+## Project Structure & Module Organization
 
-## Design Tokens
-- This project has a design token system as outlined in `docs/dev/design/css-architecture-and-tokens.md`
-- Always check and follow the existing design tokens
-- Never hard code values
-- Only create new design tokens when absolutely necessary.
-- The objective is uniformity.
+- `core/sum_core/`: core platform apps and reusable features.
+- `core/sum_core/test_project/`: test harness used by CI and local dev.
+- `cli/`: `sum` CLI and its test suite.
+- `clients/sum_client/`: canonical consumer example.
+- `tests/`: repo-level tests for core and templates.
+- `themes/`, `media/`: theme assets and fixtures.
+- `boilerplate/`: generated project templates (not linted).
+- `docs/`, `infrastructure/`, `scripts/`: documentation, ops tooling, helpers.
 
-## Environment & Tooling
+## Build, Test, and Development Commands
 
-- Use **Python 3.12** in a **virtualenv at repo root**:
-  - Create: `python -m venv .venv`
-  - Activate (WSL / Linux): `source .venv/bin/activate`
-- After activation, install core + dev deps as needed:
-  - `pip install -e ./core`
-  - If a dev requirements file exists, install it too (e.g. `pip install -r requirements-dev.txt`).
-- Use **pytest / pytest-django** for tests (no `manage.py test`).
-- Linting / formatting / tests are driven via **Makefile**:
-  - `make lint` – lint/checks (Ruff, etc.).
-  - `make test` – run the test suite.
-  - Use these as the default commands when “run tests” or “run lint” is requested.
+```bash
+make install-dev   # editable install of core + dev tooling
+make run           # migrate and run the test project
+make lint          # ruff + mypy + black + isort checks
+make format        # auto-format (black + isort)
+make test          # full pytest suite with coverage
+make test-fast     # CLI + themes slices
+make db-up         # start local Postgres via docker-compose
+```
 
-## Git & Branching Conventions
+## Configuration & Environment
 
-- Default branch is **`main`** (must remain stable).
-- For each task/ticket, create a branch from `main`:
-  - Example: `git checkout -b feat/m0-001-monorepo-tooling`
-- Prefer **small, focused commits** using these prefixes:
-  - `feature:<scope>-<description>` – new user-facing behaviour or styling.
-  - `fix:<scope>-<description>` – bug fixes (including CSS bugs).
-  - `chore:<description>` – tooling, infra, refactors that don’t change behaviour.
-  - `docs:<description>` – documentation-only changes.
-  - `refactor:<scope>-<description>` – internal code reshaping.
-- Never commit directly to `main`; always go via a feature/fix branch.
+- Use the repo-root `.venv` for all commands; activate it or call
+  `./.venv/bin/python -m pytest` to ensure the right dependencies.
+- Store local settings in a repo-root `.env` (DB credentials, secrets).
+- For Postgres dev, set `DJANGO_DB_*` in `.env` and run `make db-up`.
 
-## Code & Testing Guidelines
+## Coding Style & Naming Conventions
 
-- Treat `core/sum_core` as the **primary product**:
-  - Keep it installable (`pip install -e ./core`).
-  - Prefer small, modular Django apps and well-scoped changes.
-- When adding functionality:
-  - Put reusable logic into `sum_core` where possible.
-  - Add / update **pytest tests** near the code you touch.
-  - Ensure `make lint` and `make test` pass **after activating `.venv`**:
-    - `source .venv/bin/activate && make lint`
-    - `source .venv/bin/activate && make test`
-- Prefer updating existing patterns (blocks, pages, leads, branding, etc.) over inventing new structures, unless explicitly asked.
+- Python 3.12+, 4-space indentation, Black line length 88.
+- Linting: Ruff (`ruff check . --config pyproject.toml`), type-checking: mypy.
+- Formatting: Black + isort (`make format`).
+- Tests: `test_*.py` or `*_test.py`, classes `Test*`, functions `test_*`.
 
-## Scope for Agents
+## Testing Guidelines
 
-- Assume working directory is the **repo root**.
-- Don’t introduce new top-level directories unless clearly justified.
-- Avoid heavy CI/infra changes unless the task explicitly targets them.
-- Keep changes aligned with the technical spec and implementation plan; update docs/ADRs if you make architectural changes.
+- Framework: pytest with pytest-cov; HTML coverage output in `htmlcov/`.
+- Test locations: `tests/` and `cli/tests/` (configured in `pyproject.toml`).
+- Use markers when appropriate (e.g., `unit`, `integration`, `requires_themes`).
+
+## Commit & Pull Request Guidelines
+
+- Commit style follows a conventional pattern: `type: summary` or
+  `type(SCOPE): summary` (e.g., `fix:forms-atomic-rate-limit`).
+- Integration branch is `develop`; PRs typically merge into `develop`.
+- `main` is protected; release PRs go `develop -> main` and must pass
+  the `lint-and-test` CI check.
+- PRs should include a brief summary, testing notes, and links to relevant issues.
+- GitHub CLI (`gh`) is authenticated here; agents should use it for PR creation,
+  updates, and status checks instead of the web UI.
+
+## Agent-Specific Notes
+
+- This is a platform, not a demo project. Avoid implementing features only in the
+test harness; core behavior should live in `core/sum_core/`. See
+`docs/dev/AGENT-ORIENTATION.md` for the rationale.
+- When unsure, the main documentation entrypoint is `docs/dev/DDD.md`.

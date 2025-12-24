@@ -1,0 +1,310 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /home/mark/workspaces/sum-platform/.venv/bin/python
+cachedir: .pytest_cache
+django: version: 5.2.9, settings: sum_core.test_project.test_project.settings (from ini)
+rootdir: /home/mark/workspaces/sum-platform
+configfile: pyproject.toml
+plugins: django-4.11.1, cov-7.0.0, Faker-39.0.0
+collecting ... collected 49 items
+
+tests/themes/test_test_project_theme_wiring.py::test_repo_root_theme_a_exists PASSED [  2%]
+tests/themes/test_test_project_theme_wiring.py::test_test_project_candidates_include_repo_root_theme_a PASSED [  4%]
+tests/themes/test_theme_a_featured_case_study.py::TestThemeAFeaturedCaseStudyBlock::test_featured_case_study_rendering FAILED [  6%]
+tests/themes/test_theme_a_guardrails.py::TestThemeABuildFingerprint::test_fingerprint_file_exists PASSED [  8%]
+tests/themes/test_theme_a_guardrails.py::TestThemeABuildFingerprint::test_fingerprint_is_current PASSED [ 10%]
+tests/themes/test_theme_a_guardrails.py::TestThemeACompiledCSSValidity::test_compiled_css_exists PASSED [ 12%]
+tests/themes/test_theme_a_guardrails.py::TestThemeACompiledCSSValidity::test_compiled_css_non_trivial_size PASSED [ 14%]
+tests/themes/test_theme_a_guardrails.py::TestThemeACompiledCSSValidity::test_compiled_css_contains_flex_utility PASSED [ 16%]
+tests/themes/test_theme_a_guardrails.py::TestThemeACompiledCSSValidity::test_compiled_css_contains_hidden_utility PASSED [ 18%]
+tests/themes/test_theme_a_guardrails.py::TestThemeACompiledCSSValidity::test_compiled_css_contains_required_component_selectors PASSED [ 20%]
+tests/themes/test_theme_a_guardrails.py::TestThemeACompiledCSSValidity::test_no_legacy_core_css_import_statement PASSED [ 22%]
+tests/themes/test_theme_a_guardrails.py::TestThemeACompiledCSSValidity::test_no_legacy_core_css_reference PASSED [ 24%]
+tests/themes/test_theme_a_guardrails.py::TestThemeACompiledCSSValidity::test_no_at_import_statements PASSED [ 26%]
+tests/themes/test_theme_a_guardrails.py::TestThemeAGuardrailsIntegration::test_fingerprint_module_is_runnable PASSED [ 28%]
+tests/themes/test_theme_a_guardrails.py::TestThemeAGuardrailsIntegration::test_all_required_inputs_exist PASSED [ 30%]
+tests/themes/test_theme_a_guardrails.py::TestThemeAGuardrailsIntegration::test_templates_directory_has_html_files PASSED [ 32%]
+tests/themes/test_theme_a_manifesto.py::TestThemeAManifestoBlock::test_manifesto_block_uses_theme_template PASSED [ 34%]
+tests/themes/test_theme_a_rendering.py::TestThemeAHomePage::test_homepage_renders_with_200 PASSED [ 36%]
+tests/themes/test_theme_a_rendering.py::TestThemeAHomePage::test_homepage_contains_theme_marker PASSED [ 38%]
+tests/themes/test_theme_a_rendering.py::TestThemeAHomePage::test_homepage_contains_main_header_id PASSED [ 40%]
+tests/themes/test_theme_a_rendering.py::TestThemeAHomePage::test_homepage_contains_main_id PASSED [ 42%]
+tests/themes/test_theme_a_rendering.py::TestThemeAHomePage::test_homepage_contains_mobile_menu_elements PASSED [ 44%]
+tests/themes/test_theme_a_rendering.py::TestThemeAHomePage::test_homepage_loads_theme_css PASSED [ 46%]
+tests/themes/test_theme_a_rendering.py::TestThemeAHomePage::test_homepage_loads_theme_js PASSED [ 48%]
+tests/themes/test_theme_a_rendering.py::TestThemeAHomePage::test_homepage_has_skip_link PASSED [ 51%]
+tests/themes/test_theme_a_rendering.py::TestThemeAHomePage::test_homepage_has_scroll_smooth PASSED [ 53%]
+tests/themes/test_theme_a_rendering.py::TestThemeAStandardPage::test_standard_page_renders_with_200 PASSED [ 55%]
+tests/themes/test_theme_a_rendering.py::TestThemeAStandardPage::test_standard_page_uses_theme_a_template PASSED [ 57%]
+tests/themes/test_theme_a_rendering.py::TestThemeAMegaMenu::test_mega_menu_mobile_menu_present PASSED [ 59%]
+tests/themes/test_theme_a_tailwind.py::TestThemeATailwindCSS::test_compiled_css_exists PASSED [ 61%]
+tests/themes/test_theme_a_tailwind.py::TestThemeATailwindCSS::test_compiled_css_non_trivial_size PASSED [ 63%]
+tests/themes/test_theme_a_tailwind.py::TestThemeATailwindCSS::test_compiled_css_contains_tailwind_utilities PASSED [ 65%]
+tests/themes/test_theme_a_tailwind.py::TestThemeATailwindCSS::test_no_legacy_core_css_import PASSED [ 67%]
+tests/themes/test_theme_a_tailwind.py::TestThemeATailwindCSS::test_css_variables_for_branding PASSED [ 69%]
+tests/themes/test_theme_a_tailwind.py::TestThemeATailwindCSS::test_theme_a_custom_components_present PASSED [ 71%]
+tests/themes/test_theme_a_tailwind.py::TestThemeATailwindToolchain::test_package_json_exists PASSED [ 73%]
+tests/themes/test_theme_a_tailwind.py::TestThemeATailwindToolchain::test_tailwind_config_exists PASSED [ 75%]
+tests/themes/test_theme_a_tailwind.py::TestThemeATailwindToolchain::test_input_css_exists PASSED [ 77%]
+tests/themes/test_theme_a_tailwind.py::TestThemeATailwindToolchain::test_lockfile_exists PASSED [ 79%]
+tests/themes/test_theme_discovery.py::test_discover_themes_finds_theme_a PASSED [ 81%]
+tests/themes/test_theme_discovery.py::test_get_theme_returns_valid_manifest PASSED [ 83%]
+tests/themes/test_theme_discovery.py::test_get_theme_raises_on_invalid_slug PASSED [ 85%]
+tests/themes/test_theme_discovery.py::test_list_themes_returns_sorted PASSED [ 87%]
+tests/themes/test_theme_discovery.py::test_theme_template_dir_exists PASSED [ 89%]
+tests/themes/test_theme_discovery.py::test_theme_static_dir_exists PASSED [ 91%]
+tests/themes/test_theme_discovery.py::test_theme_manifest_validation PASSED [ 93%]
+tests/themes/test_theme_discovery.py::test_theme_manifest_from_dict PASSED [ 95%]
+tests/themes/test_theme_discovery.py::test_get_theme_validates_slug_mismatch PASSED [ 97%]
+tests/themes/test_theme_discovery.py::test_invalid_json_in_manifest PASSED [100%]
+
+=================================== FAILURES ===================================
+_____ TestThemeAFeaturedCaseStudyBlock.test_featured_case_study_rendering ______
+
+self = <tests.themes.test_theme_a_featured_case_study.TestThemeAFeaturedCaseStudyBlock object at 0x77aad3ff4fe0>
+client = <django.test.client.Client object at 0x77aad332a3c0>
+image = <Image: Test Image>
+
+    def test_featured_case_study_rendering(self, client: Client, image) -> None:
+        """Test that FeaturedCaseStudyBlock renders with Theme A classes and structure."""
+
+        # Create a page
+        root = Page.get_first_root_node()
+        homepage = HomePage(title="Theme Test Home", slug="theme-home-fcs")
+        root.add_child(instance=homepage)
+
+        site = Site.objects.get(is_default_site=True)
+        site.root_page = homepage
+        site.save()
+        Site.clear_site_root_paths_cache()
+
+        # Create StandardPage with FeaturedCaseStudyBlock
+        block_data = [
+            (
+                "featured_case_study",
+                {
+                    "eyebrow": "Project 001",
+                    "heading": "Solar Installation",
+                    "intro": "<p>A great project.</p>",
+                    "points": ["Efficient", "Sustainable", "Cost-effective"],
+                    "cta_text": "View Case Study",
+                    "cta_url": "https://example.com/case-study",
+                    "image": image.id,
+                    "image_alt": "Solar panels on roof",
+                    "stats_label": "Savings",
+                    "stats_value": "£5,000",
+                },
+            )
+        ]
+
+        standard = StandardPage(
+            title="FCS Test", slug="fcs-test", body=block_data
+        )
+>       homepage.add_child(instance=standard)
+
+tests/themes/test_theme_a_featured_case_study.py:105:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv/lib/python3.12/site-packages/treebeard/mp_tree.py:1039: in add_child
+    return MP_AddChildHandler(self, **kwargs).process()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/treebeard/mp_tree.py:364: in process
+    newobj.save()
+/usr/lib/python3.12/contextlib.py:81: in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/wagtail/models/pages.py:751: in save
+    result = super().save(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/modelcluster/models.py:202: in save
+    super().save(update_fields=real_update_fields, **kwargs)
+.venv/lib/python3.12/site-packages/django/db/models/base.py:902: in save
+    self.save_base(
+.venv/lib/python3.12/site-packages/django/db/models/base.py:1008: in save_base
+    updated = self._save_table(
+.venv/lib/python3.12/site-packages/django/db/models/base.py:1169: in _save_table
+    results = self._do_insert(
+.venv/lib/python3.12/site-packages/django/db/models/base.py:1210: in _do_insert
+    return manager._insert(
+.venv/lib/python3.12/site-packages/django/db/models/manager.py:87: in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/django/db/models/query.py:1873: in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py:1881: in execute_sql
+    for sql, params in self.as_sql():
+                       ^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py:1806: in as_sql
+    self.prepare_value(field, self.pre_save_val(field, obj))
+.venv/lib/python3.12/site-packages/django/db/models/sql/compiler.py:1741: in prepare_value
+    return field.get_db_prep_save(value, connection=self.connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1012: in get_db_prep_save
+    return self.get_db_prep_value(value, connection=connection, prepared=False)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/wagtail/fields.py:212: in get_db_prep_value
+    value = self.get_prep_value(value)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/wagtail/fields.py:200: in get_prep_value
+    return self.stream_block.get_prep_value(value)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/wagtail/blocks/stream_block.py:347: in get_prep_value
+    return value.get_prep_value()
+           ^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/wagtail/blocks/stream_block.py:742: in get_prep_value
+    prep_value.append(item.get_prep_value())
+                      ^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/wagtail/blocks/stream_block.py:528: in get_prep_value
+    "value": self.block.get_prep_value(self.value),
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.12/site-packages/wagtail/blocks/struct_block.py:243: in get_prep_value
+    name: self.child_blocks[name].get_prep_value(val)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <wagtail.images.blocks.ImageChooserBlock object at 0x77aad66c6330>
+value = 1
+
+    def get_prep_value(self, value):
+        # the native value (a model instance or None) should serialise to a PK or None
+        if value is None:
+            return None
+        else:
+>           return value.pk
+                   ^^^^^^^^
+E           AttributeError: 'int' object has no attribute 'pk'
+
+.venv/lib/python3.12/site-packages/wagtail/blocks/field_block.py:850: AttributeError
+----------------------------- Captured stderr call -----------------------------
+[2025-12-20 20:58:42,701] [INFO] [wagtail] [-] Page created: "Theme Test Home" id=3 content_type=home.HomePage path=/theme-home-fcs/
+------------------------------ Captured log call -------------------------------
+INFO     wagtail:pages.py:773 Page created: "Theme Test Home" id=3 content_type=home.HomePage path=/theme-home-fcs/
+=============================== warnings summary ===============================
+.venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1148
+.venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1148
+.venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1148
+.venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1148
+.venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1148
+.venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1148
+.venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1148
+  /home/mark/workspaces/sum-platform/.venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1148: RemovedInDjango60Warning: The default scheme will be changed from 'http' to 'https' in Django 6.0. Pass the forms.URLField.assume_scheme argument to silence this warning, or set the FORMS_URLFIELD_ASSUME_HTTPS transitional setting to True to opt into using 'https' as the new default scheme.
+    return form_class(**defaults)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.3-final-0 ________________
+
+Name                                                                    Stmts   Miss  Cover   Missing
+-----------------------------------------------------------------------------------------------------
+check_links.py                                                             66     66     0%   6-144
+cli/__init__.py                                                             0      0   100%
+cli/sum_cli/__init__.py                                                     1      0   100%
+cli/sum_cli/__main__.py                                                     5      5     0%   1-9
+cli/sum_cli/cli.py                                                         26     26     0%   1-58
+cli/sum_cli/commands/__init__.py                                            1      1     0%   1
+cli/sum_cli/commands/check.py                                             245    245     0%   1-535
+cli/sum_cli/commands/init.py                                              172    172     0%   1-288
+cli/sum_cli/commands/themes.py                                             21     21     0%   9-42
+cli/sum_cli/themes_registry.py                                             92     13    86%   56, 66, 96, 100, 107, 120, 157-161, 170, 175
+cli/sum_cli/util.py                                                        34     34     0%   1-84
+core/__init__.py                                                            0      0   100%
+core/sum_core/__init__.py                                                   2      0   100%
+core/sum_core/analytics/__init__.py                                         0      0   100%
+core/sum_core/analytics/apps.py                                             4      0   100%
+core/sum_core/analytics/dashboard.py                                       34     28    18%   24-94
+core/sum_core/analytics/templatetags/__init__.py                            0      0   100%
+core/sum_core/analytics/templatetags/analytics_tags.py                     28      5    82%   28, 35, 42, 60, 66
+core/sum_core/analytics/wagtail_hooks.py                                   21      7    67%   19, 23, 27-35, 40
+core/sum_core/apps.py                                                       8      0   100%
+core/sum_core/blocks/__init__.py                                           13      0   100%
+core/sum_core/blocks/base.py                                               43      0   100%
+core/sum_core/blocks/content.py                                           148      0   100%
+core/sum_core/blocks/forms.py                                              24      0   100%
+core/sum_core/blocks/gallery.py                                            33      0   100%
+core/sum_core/blocks/hero.py                                               34      0   100%
+core/sum_core/blocks/links.py                                             120     86    28%   69-94, 110-144, 149, 164-173, 185-197, 207-212, 300-350
+core/sum_core/blocks/process_faq.py                                        50     12    76%   95-123
+core/sum_core/blocks/services.py                                           25      0   100%
+core/sum_core/blocks/testimonials.py                                       19      0   100%
+core/sum_core/blocks/trust.py                                              32      0   100%
+core/sum_core/branding/__init__.py                                          0      0   100%
+core/sum_core/branding/forms.py                                            29     14    52%   56-57, 61-75
+core/sum_core/branding/models.py                                           60      4    93%   294-297
+core/sum_core/branding/panels.py                                           16      6    62%   27-28, 34-36, 40
+core/sum_core/branding/templatetags/__init__.py                             0      0   100%
+core/sum_core/branding/templatetags/branding_tags.py                      111     33    70%   42, 52, 63, 70-82, 90-102, 113, 118-124, 128, 132, 139, 143, 176, 182, 200
+core/sum_core/branding/theme_presets.py                                    16      3    81%   78-80
+core/sum_core/celery.py                                                     8      8     0%   9-33
+core/sum_core/forms/__init__.py                                             1      0   100%
+core/sum_core/forms/admin.py                                                9      0   100%
+core/sum_core/forms/apps.py                                                 6      0   100%
+core/sum_core/forms/models.py                                              23      5    78%   70, 80-83, 88
+core/sum_core/forms/services.py                                            82     56    32%   45-47, 56, 73-76, 98-108, 117-120, 133-135, 140-142, 159-196, 230-244, 253-259
+core/sum_core/forms/urls.py                                                 5      0   100%
+core/sum_core/forms/views.py                                              127    103    19%   59-133, 144-156, 160-164, 168, 176-215, 224-270, 295-336
+core/sum_core/integrations/__init__.py                                      0      0   100%
+core/sum_core/integrations/zapier.py                                       27     13    52%   47, 91-122
+core/sum_core/leads/__init__.py                                             1      0   100%
+core/sum_core/leads/admin.py                                               30      3    90%   111-112, 116
+core/sum_core/leads/apps.py                                                 9      0   100%
+core/sum_core/leads/attribution.py                                         47     42    11%   41-61, 83-97, 121-162
+core/sum_core/leads/models.py                                             105     20    81%   226, 290-299, 303-317
+core/sum_core/leads/services.py                                            67     41    39%   78-139, 154-205, 220-223, 232-238
+core/sum_core/leads/tasks.py                                              204    180    12%   43, 78, 117-281, 312-475, 510-662
+core/sum_core/leads/wagtail_admin.py                                       85     34    60%   32-40, 164, 184-198, 207-220, 233-258
+core/sum_core/leads/wagtail_hooks.py                                        5      0   100%
+core/sum_core/models.py                                                     3      0   100%
+core/sum_core/navigation/__init__.py                                        1      0   100%
+core/sum_core/navigation/apps.py                                            8      0   100%
+core/sum_core/navigation/blocks.py                                         28      0   100%
+core/sum_core/navigation/cache.py                                          91     26    71%   99-101, 123-127, 178-179, 194-203, 213-231
+core/sum_core/navigation/models.py                                         50      0   100%
+core/sum_core/navigation/services.py                                       66      1    98%   140
+core/sum_core/navigation/templatetags/__init__.py                           0      0   100%
+core/sum_core/navigation/templatetags/navigation_tags.py                  346    232    33%   79-83, 89-91, 116-219, 239-241, 257, 260, 265-267, 276-281, 292-297, 316-390, 434, 438, 465-466, 497-517, 548-549, 562-601, 613-660, 672-697, 713-715, 724-734, 759, 763, 814, 818, 829-856
+core/sum_core/ops/__init__.py                                               0      0   100%
+core/sum_core/ops/health.py                                                66     47    29%   41-51, 57-61, 65-73, 82-97, 101-139
+core/sum_core/ops/logging.py                                               29     10    66%   49-93, 119
+core/sum_core/ops/middleware.py                                            23      0   100%
+core/sum_core/ops/sentry.py                                                50     38    24%   43-56, 78-122, 133-147
+core/sum_core/ops/urls.py                                                   3      0   100%
+core/sum_core/ops/views.py                                                  8      3    62%   9-13
+core/sum_core/pages/__init__.py                                            12      7    42%   20-28
+core/sum_core/pages/apps.py                                                 7      0   100%
+core/sum_core/pages/mixins.py                                              67     12    82%   73, 76, 98, 108-112, 148, 154, 164, 168
+core/sum_core/pages/models.py                                               4      0   100%
+core/sum_core/pages/services.py                                            42     11    74%   63-69, 131-139
+core/sum_core/pages/standard.py                                            24      1    96%   70
+core/sum_core/seo/__init__.py                                               0      0   100%
+core/sum_core/seo/robots.py                                                23     17    26%   25-56, 66
+core/sum_core/seo/schema.py                                                99     66    33%   28, 34-60, 72, 76, 95, 112-135, 145-171, 186-217, 232-234
+core/sum_core/seo/sitemap.py                                               52     42    19%   34-94, 103-113, 125-134, 146-156
+core/sum_core/seo/templatetags/__init__.py                                  0      0   100%
+core/sum_core/seo/templatetags/seo_tags.py                                127     37    71%   21-23, 44-50, 76, 78-81, 112, 130-135, 160-163, 196, 205, 209-211, 215-217, 223-225
+core/sum_core/seo/urls.py                                                   6      0   100%
+core/sum_core/templatetags/__init__.py                                      0      0   100%
+core/sum_core/templatetags/branding_tags.py                                 2      0   100%
+core/sum_core/templatetags/form_tags.py                                    22     10    55%   34-35, 63-93, 108
+core/sum_core/test_project/__init__.py                                      0      0   100%
+core/sum_core/test_project/home/__init__.py                                 0      0   100%
+core/sum_core/test_project/home/apps.py                                     5      0   100%
+core/sum_core/test_project/home/management/__init__.py                      0      0   100%
+core/sum_core/test_project/home/management/commands/__init__.py             0      0   100%
+core/sum_core/test_project/home/management/commands/setup_homepage.py      19     19     0%   5-37
+core/sum_core/test_project/home/models.py                                  34      7    79%   74, 86, 95-101
+core/sum_core/test_project/manage.py                                        8      8     0%   9-20
+core/sum_core/test_project/test_project/__init__.py                         0      0   100%
+core/sum_core/test_project/test_project/settings.py                        99     12    88%   55, 165-173, 182, 185
+core/sum_core/test_project/test_project/urls.py                            11      1    91%   29
+core/sum_core/test_project/test_project/wsgi.py                             5      5     0%   9-17
+core/sum_core/themes/__init__.py                                           80     80     0%   9-162
+core/sum_core/utils/__init__.py                                             2      0   100%
+core/sum_core/utils/contact.py                                              9      4    56%   40-45
+infrastructure/__init__.py                                                  0      0   100%
+scripts/__init__.py                                                         0      0   100%
+scripts/set_boilerplate_core_ref.py                                        83     83     0%   15-191
+-----------------------------------------------------------------------------------------------------
+TOTAL                                                                    3988   2065    48%
+Coverage HTML written to dir htmlcov
+=========================== short test summary info ============================
+FAILED tests/themes/test_theme_a_featured_case_study.py::TestThemeAFeaturedCaseStudyBlock::test_featured_case_study_rendering - AttributeError: 'int' object has no attribute 'pk'
+================== 1 failed, 48 passed, 7 warnings in 48.43s ===================

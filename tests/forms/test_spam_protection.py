@@ -8,7 +8,9 @@ Dependencies: pytest, Django cache, sum_core.forms.services.
 
 from __future__ import annotations
 
+import logging
 import time
+from concurrent.futures import ThreadPoolExecutor
 from unittest import mock
 
 import pytest
@@ -133,6 +135,22 @@ class TestIncrementRateLimitCounter:
         increment_rate_limit_counter("192.168.1.1", site_id=1)
         assert cache.get(cache_key) == 6
 
+    def test_increment_is_atomic_under_concurrency(self):
+        """Concurrent increments should not lose updates."""
+        ip_address = "192.168.1.1"
+        site_id = 1
+        cache_key = get_rate_limit_cache_key(ip_address, site_id)
+
+        def worker() -> None:
+            increment_rate_limit_counter(ip_address, site_id=site_id)
+
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = [executor.submit(worker) for _ in range(50)]
+            for future in futures:
+                future.result()
+
+        assert cache.get(cache_key) == 50
+
 
 class TestTimeTokenGeneration:
     """Tests for time token generation."""
@@ -143,7 +161,7 @@ class TestTimeTokenGeneration:
         parts = token.split(":")
         assert len(parts) == 2
         assert parts[0].isdigit()
-        assert len(parts[1]) == 16  # Truncated HMAC
+        assert len(parts[1]) == 64  # Full SHA-256 HMAC hexdigest
 
     def test_generates_unique_tokens(self):
         """Each call should generate a unique signature timing."""
@@ -164,11 +182,39 @@ class TestTimingCheck:
         result = check_timing("", min_seconds=3)
         assert not result.is_spam
 
+    def test_empty_token_logs_warning(self, caplog_propagate):
+        """Missing time token should log a warning for observability."""
+        with caplog_propagate("sum_core.forms.services", "sum_core") as caplog:
+            with caplog.at_level(logging.WARNING):
+                result = check_timing("", min_seconds=3)
+
+        assert not result.is_spam
+        assert any(
+            getattr(record, "time_token_status", "") == "missing"
+            and getattr(record, "time_token_reason", "") == "missing"
+            and getattr(record, "metric_name", "") == "forms.time_token.missing"
+            for record in caplog.records
+        )
+
     def test_malformed_token_is_spam(self):
         """Malformed token should be rejected."""
         result = check_timing("not-a-valid-token", min_seconds=3)
         assert result.is_spam
         assert "format" in result.reason.lower()
+
+    def test_malformed_token_logs_warning(self, caplog_propagate):
+        """Malformed time token should log a warning for monitoring."""
+        with caplog_propagate("sum_core.forms.services", "sum_core") as caplog:
+            with caplog.at_level(logging.WARNING):
+                result = check_timing("not-a-valid-token", min_seconds=3)
+
+        assert result.is_spam
+        assert any(
+            getattr(record, "time_token_status", "") == "malformed"
+            and getattr(record, "time_token_reason", "") == "format"
+            and getattr(record, "metric_name", "") == "forms.time_token.malformed"
+            for record in caplog.records
+        )
 
     def test_invalid_signature_is_spam(self):
         """Token with invalid signature should be rejected."""
@@ -176,6 +222,22 @@ class TestTimingCheck:
         result = check_timing(fake_token, min_seconds=3)
         assert result.is_spam
         assert "signature" in result.reason.lower()
+
+    def test_invalid_signature_logs_warning(self, caplog_propagate):
+        """Invalid signatures should log a warning for monitoring."""
+        fake_token = "1234567890:fakesignature00"
+        with caplog_propagate("sum_core.forms.services", "sum_core") as caplog:
+            with caplog.at_level(logging.WARNING):
+                result = check_timing(fake_token, min_seconds=3)
+
+        assert result.is_spam
+        assert any(
+            getattr(record, "time_token_status", "") == "invalid_signature"
+            and getattr(record, "time_token_reason", "") == "signature"
+            and getattr(record, "metric_name", "")
+            == "forms.time_token.invalid_signature"
+            for record in caplog.records
+        )
 
     def test_valid_token_after_min_seconds_passes(self):
         """Valid token submitted after min_seconds should pass."""

@@ -15,18 +15,26 @@ from .content import (
     FeaturesListBlock,
     HeroBlock,
     ImageBlock,
+    LegalSectionBlock,
+    ManifestoBlock,
+    PageHeaderBlock,
     PortfolioBlock,
     QuoteBlock,
     RichTextContentBlock,
+    SocialProofQuoteBlock,
     SpacerBlock,
+    TableOfContentsBlock,
+    TableOfContentsItemBlock,
+    TimelineBlock,
+    TimelineItemBlock,
     TrustStripBlock,
 )
 from .forms import ContactFormBlock, QuoteRequestFormBlock
-from .gallery import GalleryBlock, GalleryImageBlock
+from .gallery import FeaturedCaseStudyBlock, GalleryBlock, GalleryImageBlock
 from .hero import HeroCTABlock, HeroGradientBlock, HeroImageBlock
 from .links import LINK_TYPE_CHOICES, UniversalLinkBlock, UniversalLinkValue
 from .process_faq import FAQBlock, ProcessStepsBlock
-from .services import ServiceCardItemBlock, ServiceCardsBlock
+from .services import ServiceCardItemBlock, ServiceCardsBlock, ServiceDetailBlock
 from .testimonials import TestimonialBlock, TestimonialsBlock
 from .trust import StatItemBlock, StatsBlock
 from .trust import TrustStripBlock as TrustStripLogosBlock
@@ -43,20 +51,30 @@ __all__ = [
     "TrustStripItemBlock",
     "FeaturesListBlock",
     "ComparisonBlock",
+    "ManifestoBlock",
     "PortfolioBlock",
     "ServiceCardsBlock",
     "ServiceCardItemBlock",
+    "ServiceDetailBlock",
     "TestimonialsBlock",
     "TestimonialBlock",
     "GalleryBlock",
     "GalleryImageBlock",
+    "FeaturedCaseStudyBlock",
     "StatItemBlock",
     "StatsBlock",
     "ProcessStepsBlock",
     "FAQBlock",
+    "TimelineBlock",
+    "TimelineItemBlock",
     "RichTextContentBlock",
+    "PageHeaderBlock",
     "EditorialHeaderBlock",
+    "TableOfContentsBlock",
+    "TableOfContentsItemBlock",
+    "LegalSectionBlock",
     "QuoteBlock",
+    "SocialProofQuoteBlock",
     "ImageBlock",
     "ButtonGroupBlock",
     "SpacerBlock",

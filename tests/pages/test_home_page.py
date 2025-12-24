@@ -53,8 +53,8 @@ def test_home_page_cannot_create_second_homepage() -> None:
     assert "Only one HomePage is allowed" in str(excinfo.value)
 
 
-def test_home_page_template_uses_sum_core_base() -> None:
-    """theme/home_page.html renders via sum_core fallback base."""
+def test_home_page_template_uses_theme_base() -> None:
+    """theme/home_page.html renders via the active theme base."""
     root = Page.get_first_root_node()
     homepage = HomePage(title="Test Home", slug="test-home-template")
     root.add_child(instance=homepage)
@@ -70,9 +70,10 @@ def test_home_page_template_uses_sum_core_base() -> None:
     )
     rendered = template.render(RequestContext(request, {"page": homepage}))
 
-    assert "sum_core/css/main.css" in rendered
-    assert "<header" in rendered
-    assert "<footer" in rendered
+    assert "theme_a/css/main.css" in rendered
+    assert "<!-- THEME: theme_a -->" in rendered
+    assert 'id="main-header"' in rendered
+    assert 'id="mobile-menu"' in rendered
 
 
 def test_home_page_renders_streamfield_content() -> None:
@@ -174,9 +175,48 @@ def test_home_page_renders_service_cards() -> None:
     assert "Comprehensive Solutions" in rendered
     assert "Our Services" in rendered
     assert "Service 1" in rendered
-    assert "services__grid" in rendered
-    assert "services__card" in rendered
-    assert "btn--link" in rendered
+    assert "grid-cols-3" in rendered
+    assert "bg-sage-oat/30" in rendered
+
+
+def test_home_page_renders_manifesto_block() -> None:
+    """Test that HomePage renders ManifestoBlock content."""
+    root = Page.get_first_root_node()
+
+    stream_block = PageStreamBlock()
+    manifesto_data = {
+        "eyebrow": "The Manifesto",
+        "heading": "Good kitchens don't age. They <em>season</em>.",
+        "body": "<p>In a market saturated with disposable luxury...</p>",
+        "quote": "We build with solid timber, repairable joinery, and finishes designed to patina — not peel.",
+    }
+
+    stream_data = stream_block.to_python(
+        [
+            {
+                "type": "manifesto",
+                "value": manifesto_data,
+            }
+        ]
+    )
+
+    homepage = HomePage(
+        title="Test Home with Manifesto", slug="test-home-manifesto", body=stream_data
+    )
+    root.add_child(instance=homepage)
+
+    site = Site.objects.get(is_default_site=True)
+    site.root_page = homepage
+    site.save()
+
+    request = RequestFactory().get("/", HTTP_HOST=site.hostname or "localhost")
+    template = Template("{% extends 'theme/home_page.html' %}")
+    rendered = template.render(RequestContext(request, {"page": homepage}))
+
+    assert "The Manifesto" in rendered
+    assert "Good kitchens don't age" in rendered
+    assert "disposable luxury" in rendered
+    assert "repairable joinery" in rendered
 
 
 def test_home_page_clean_validates_when_root_page() -> None:

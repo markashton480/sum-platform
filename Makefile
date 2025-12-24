@@ -1,4 +1,4 @@
-.PHONY: help lint test format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref
+.PHONY: help lint test test-cli test-themes test-templates test-fast verify-source-intact format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref preflight
 
 MANAGE = python core/sum_core/test_project/manage.py
 
@@ -18,18 +18,33 @@ install-dev:
 lint: ## Run all linting and typechecking (strict)
 	ruff check . --config pyproject.toml
 	mypy core cli tests
-	black --check core cli tests
-	isort --check-only core cli tests
+	black --check --exclude '(?:^|/)(clients)/' core cli tests
+	isort --settings-path pyproject.toml --check-only core cli tests
 
 lint-strict: lint
 
 format: ## Auto-format code
-	black .
+	black --exclude '(?:^|/)(clients)/' .
 	isort .
 
 
 test: ## Run tests with pytest
 	python -m pytest
+
+test-cli: ## Run CLI test slice only
+	python -m pytest cli/tests -q
+
+test-themes: ## Run themes test slice only
+	python -m pytest tests/themes -q
+
+test-templates: ## Run template loading order tests (fast gate)
+	python -m pytest tests/templates/test_template_loading_order.py -q
+
+test-fast: ## Run high-signal test slices (CLI + themes)
+	python -m pytest cli/tests tests/themes -q
+
+verify-source-intact: ## Verify tests did not modify protected repo paths
+	bash scripts/verify_source_intact.sh
 
 run: ## Initial for local dev (may be wired to Docker later)
 	$(MANAGE) migrate --noinput
@@ -130,3 +145,6 @@ ifndef REF
 	$(error REF is required. Usage: make release-set-core-ref REF=v0.1.0)
 endif
 	python scripts/set_boilerplate_core_ref.py --ref $(REF)
+
+preflight: ## Run preflight sync against origin/develop
+	./scripts/codex_preflight.sh

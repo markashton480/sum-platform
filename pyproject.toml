@@ -93,8 +93,12 @@ DJANGO_SETTINGS_MODULE = "sum_core.test_project.test_project.settings"
 markers = [
     "unit: Unit tests",
     "integration: Integration tests",
+    "regression: Regression tests",
     "slow: Slow running tests",
     "django_db: Tests that require database access",
+    "requires_themes: Tests that require sum_core 0.6+ theme support",
+    "legacy_only: Tests intended to run on sum_core 0.5.x",
+    "loopsite: Loopsite-specific tests",
 ]
 
 [tool.coverage.run]
@@ -138,5 +142,6 @@ explicit_package_bases = true
 exclude = [
     "/(build|dist|\\.eggs|\\.git|\\.hg|\\.mypy_cache|\\.tox|\\.venv|venv|_build|buck-out)/",
     "^boilerplate/",
+    "^cli/sum_cli/boilerplate/",
     "^clients/",
 ]

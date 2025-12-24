@@ -1,0 +1,5 @@
+{% comment %}
+Spacer block - adds vertical spacing between content blocks
+Size options: small (2rem), medium (4rem), large (6rem)
+{% endcomment %}
+<div class="{% if self.size == 'small' %}h-8{% elif self.size == 'large' %}h-24{% else %}h-16{% endif %}"></div>
