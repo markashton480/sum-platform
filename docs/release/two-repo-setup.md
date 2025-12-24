@@ -98,7 +98,7 @@ Replace `ORG` with your actual organization:
 
 ```python
 # Line ~47
-public_repo_url: str = "git@github.com:YOUR_markashton480/sum-core.git"
+public_repo_url: str = "git@github.com:markashton480/sum-core.git"
 ```
 
 ### In `.github/workflows/release-sync.yml`
@@ -106,7 +106,7 @@ public_repo_url: str = "git@github.com:YOUR_markashton480/sum-core.git"
 Replace `ORG` with your actual organization (multiple locations):
 
 ```yaml
-# Search and replace "markashton480/sum-core" with "YOUR_markashton480/sum-core"
+# Search and replace "markashton480/sum-core" with "markashton480/sum-core"
 ```
 
 ### In `boilerplate/requirements.txt`
@@ -114,7 +114,7 @@ Replace `ORG` with your actual organization (multiple locations):
 Ensure it references the public repo:
 
 ```
-sum_core @ git+https://github.com/YOUR_markashton480/sum-core.git@SUM_CORE_GIT_REF
+sum_core @ git+https://github.com/markashton480/sum-core.git@SUM_CORE_GIT_REF
 ```
 
 ---
@@ -160,7 +160,7 @@ git push origin v0.1.0
 # Test pip install
 python -m venv /tmp/verify-sum
 source /tmp/verify-sum/bin/activate
-pip install "sum_core @ git+https://github.com/YOUR_markashton480/sum-core.git@v0.1.0"
+pip install "sum_core @ git+https://github.com/markashton480/sum-core.git@v0.1.0"
 python -c "import sum_core; print('✅ Success')"
 
 # Cleanup
