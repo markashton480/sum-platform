@@ -1,31 +1,33 @@
 # Name: release-sync.yml
 # Path: .github/workflows/release-sync.yml
 # Purpose: Automatically sync releases from sum-platform (private) to sum-core (public)
-# Family: Release automation
 # Dependencies: scripts/sync_to_public.py
 
 name: Release Sync
 
 on:
-  # Trigger on merge to main (release PRs)
   push:
     branches:
       - main
     paths:
-      - 'core/**'
-      - 'boilerplate/**'
-      - 'docs/public/**'
-      - 'pyproject.toml'
+      - "core/**"
+      - "boilerplate/**"
+      - "docs/public/**"
+      - "pyproject.toml"
+      - "README.md"
+      - "LICENSE"
+      # Handy so pipeline changes can be tested via push:
+      - "scripts/sync_to_public.py"
+      - ".github/workflows/release-sync.yml"
 
-  # Manual trigger for re-syncs or debugging
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to tag (e.g., v0.6.0). Leave empty for sync-only.'
+        description: "Version to tag (e.g., v0.6.0). Leave empty for sync-only."
         required: false
         type: string
       dry_run:
-        description: 'Dry run (no push)'
+        description: "Dry run (no push)"
         required: false
         type: boolean
         default: false
@@ -39,22 +41,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    # Only run if commit message indicates a release
-    # OR if manually triggered
+    # Only run on main when it's a release commit, OR when manually triggered
     if: |
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.head_commit.message, 'chore(release)')
+
+    env:
+      SUM_CORE_REPO: markashton480/sum-core
+      SUM_CORE_SSH_URL: git@github.com:markashton480/sum-core.git
 
     steps:
       - name: Checkout sum-platform
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for tags
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Configure Git
         run: |
@@ -66,12 +71,15 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SUM_CORE_DEPLOY_KEY }}
 
+      - name: Add github.com to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
       - name: Extract version from commit (auto)
         if: github.event_name == 'push'
         id: extract_version
         run: |
-          # Try to extract version from commit message
-          # Expected format: "chore(release): v0.6.0" or "chore(release): prepare v0.6.0"
           COMMIT_MSG="${{ github.event.head_commit.message }}"
           VERSION=$(echo "$COMMIT_MSG" | grep -oP 'v\d+\.\d+\.\d+' | head -1 || echo "")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -80,13 +88,15 @@ jobs:
       - name: Determine version
         id: version
         run: |
-          if [ -n "${{ github.event.inputs.version }}" ]; then
+          VERSION=""
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.version }}" ]; then
             VERSION="${{ github.event.inputs.version }}"
           else
             VERSION="${{ steps.extract_version.outputs.version }}"
           fi
 
-          # Normalize version (ensure v prefix)
+          # Normalize: ensure leading v
           if [ -n "$VERSION" ] && [[ ! "$VERSION" =~ ^v ]]; then
             VERSION="v$VERSION"
           fi
@@ -94,12 +104,25 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Final version: $VERSION"
 
+      - name: Determine dry run
+        id: dry
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            echo "dry_run=true" >> $GITHUB_OUTPUT
+          else
+            echo "dry_run=false" >> $GITHUB_OUTPUT
+          fi
+          echo "Dry run: ${{ github.event_name }} => $(cat $GITHUB_OUTPUT | grep dry_run | cut -d= -f2)"
+
       - name: Run sync script
         env:
           VERSION: ${{ steps.version.outputs.version }}
-          DRY_RUN: ${{ github.event.inputs.dry_run }}
+          DRY_RUN: ${{ steps.dry.outputs.dry_run }}
+          PUBLIC_URL: ${{ env.SUM_CORE_SSH_URL }}
         run: |
-          ARGS=""
+          set -euo pipefail
+
+          ARGS="--public-repo-url $PUBLIC_URL"
 
           if [ -n "$VERSION" ]; then
             ARGS="$ARGS --version $VERSION"
@@ -111,30 +134,50 @@ jobs:
 
           python scripts/sync_to_public.py $ARGS
 
-      - name: Verify sync (if version provided)
-        if: steps.version.outputs.version != '' && github.event.inputs.dry_run != 'true'
+      - name: Verify tag on sum-core (if version provided)
+        if: steps.version.outputs.version != '' && steps.dry.outputs.dry_run != 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
+          PUBLIC_URL: ${{ env.SUM_CORE_SSH_URL }}
         run: |
-          # Verify tag exists on public repo
-          git ls-remote --tags git@github.com:markashton480/sum-core.git | grep -q "$VERSION" || {
+          set -euo pipefail
+          git ls-remote --tags "$PUBLIC_URL" | grep -q "$VERSION" || {
             echo "❌ Tag $VERSION not found on sum-core"
             exit 1
           }
           echo "✅ Tag $VERSION verified on sum-core"
 
-      - name: Create GitHub Release (if version provided)
-        if: steps.version.outputs.version != '' && github.event.inputs.dry_run != 'true'
+      - name: Create GitHub Release page (optional)
+        if: steps.version.outputs.version != '' && steps.dry.outputs.dry_run != 'true'
         env:
           GH_TOKEN: ${{ secrets.SUM_CORE_PAT }}
           VERSION: ${{ steps.version.outputs.version }}
+          SUM_CORE_REPO: ${{ env.SUM_CORE_REPO }}
         run: |
-          # Generate release notes from recent commits
-          NOTES=$(git log $(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo HEAD~10)..HEAD --oneline --no-merges | head -20)
+          set -euo pipefail
 
-          # Create release on public repo
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "ℹ️  SUM_CORE_PAT not set; skipping GitHub Release page creation."
+            exit 0
+          fi
+
+          # If release already exists, do nothing
+          if gh release view "$VERSION" --repo "$SUM_CORE_REPO" >/dev/null 2>&1; then
+            echo "ℹ️  Release $VERSION already exists on $SUM_CORE_REPO; skipping."
+            exit 0
+          fi
+
+          # Notes: changes since previous chore(release) commit on sum-platform main.
+          mapfile -t RELEASE_COMMITS < <(git log --grep='^chore\\(release\\):' -n 2 --format=%H)
+          if [ "${#RELEASE_COMMITS[@]}" -eq 2 ]; then
+            PREV="${RELEASE_COMMITS[1]}"
+            NOTES=$(git log "$PREV"..HEAD --oneline --no-merges | head -50)
+          else
+            NOTES=$(git log -n 50 --oneline --no-merges)
+          fi
+
           gh release create "$VERSION" \
-            --repo markashton480/sum-core \
+            --repo "$SUM_CORE_REPO" \
             --title "Release $VERSION" \
             --notes "## Changes
 
@@ -143,9 +186,9 @@ jobs:
           ## Installation
 
           \`\`\`bash
-          pip install \"sum_core @ git+https://github.com/markashton480/sum-core.git@$VERSION\"
+          pip install \"sum_core @ git+https://github.com/$SUM_CORE_REPO.git@$VERSION\"
           \`\`\`
-          " || echo "Release may already exist"
+          "
 
   notify:
     name: Notify on Failure
@@ -158,4 +201,3 @@ jobs:
         run: |
           echo "❌ Release sync failed!"
           echo "Check the workflow logs for details."
-          # Add Slack/email notification here if desired
