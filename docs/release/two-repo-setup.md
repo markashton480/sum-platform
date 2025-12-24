@@ -106,7 +106,7 @@ public_repo_url: str = "git@github.com:markashton480/sum-core.git"
 Replace `ORG` with your actual organization (multiple locations):
 
 ```yaml
-# Search and replace "markashton480/sum-core" with "markashton480/sum-core"
+# Search and replace "ORG/sum-core" with "markashton480/sum-core"
 ```
 
 ### In `boilerplate/requirements.txt`
@@ -114,7 +114,7 @@ Replace `ORG` with your actual organization (multiple locations):
 Ensure it references the public repo:
 
 ```
-sum_core @ git+https://github.com/markashton480/sum-core.git@SUM_CORE_GIT_REF
+sum-core @ git+https://github.com/markashton480/sum-core.git@SUM_CORE_GIT_REF#subdirectory=core
 ```
 
 ---
@@ -265,4 +265,3 @@ rm docs/dev/release-checklist.md
 - Secrets: `SUM_CORE_DEPLOY_KEY`, `SUM_CORE_PAT`
 
 ---
-

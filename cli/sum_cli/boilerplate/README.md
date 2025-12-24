@@ -172,7 +172,7 @@ This project depends on `sum_core` from the SUM Platform monorepo.
 By default, `requirements.txt` references a specific git tag of `sum_core`:
 
 ```
-sum-core @ git+https://github.com/ORG/REPO.git@SUM_CORE_GIT_REF#subdirectory=core
+sum-core @ git+https://github.com/markashton480/sum-core.git@SUM_CORE_GIT_REF#subdirectory=core
 ```
 
 **Before deploying**, replace `SUM_CORE_GIT_REF` with the actual version tag (e.g., `v0.1.0`).

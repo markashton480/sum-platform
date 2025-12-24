@@ -146,7 +146,7 @@ git checkout main
 git pull origin main
 
 # Run sync script
-python scripts/sync_to_public.py --version v0.6.0
+python scripts/sync_to_public.py --public-repo-url git@github.com:markashton480/sum-core.git --version v0.6.0
 ```
 
 The sync:
