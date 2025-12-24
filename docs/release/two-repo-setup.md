@@ -26,7 +26,7 @@ This guide walks through setting up:
 
 ### Via GitHub UI
 
-1. Go to https://github.com/organizations/ORG/repositories/new
+1. Go to https://github.com/organizations/markashton480/repositories/new
 2. Repository name: `sum-core`
 3. Description: "SUM Platform Core - Wagtail site boilerplate framework"
 4. Visibility: **Public**
@@ -69,7 +69,7 @@ cat ~/.ssh/sum-core-deploy
 
 ### Add Private Key to sum-platform Secrets
 
-1. Go to `https://github.com/ORG/sum-platform/settings/secrets/actions`
+1. Go to `https://github.com/markashton480/sum-platform/settings/secrets/actions`
 2. Click "New repository secret"
 3. Name: `SUM_CORE_DEPLOY_KEY`
 4. Secret: Paste the **private** key contents
@@ -131,7 +131,7 @@ cd /path/to/sum-platform
 source .venv/bin/activate
 
 # Run sync without tagging (initial population)
-python scripts/sync_to_public.py
+python scripts/sync_to_public.py --public-repo-url
 
 # Verify
 cd /tmp/sum-core-sync/sum-core

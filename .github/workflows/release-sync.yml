@@ -1,14 +1,14 @@
 # Name: release-sync.yml
 # Path: .github/workflows/release-sync.yml
 # Purpose: Automatically sync releases from sum-platform (private) to sum-core (public)
+# Family: Release automation
 # Dependencies: scripts/sync_to_public.py
 
 name: Release Sync
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - "core/**"
       - "boilerplate/**"
@@ -16,7 +16,6 @@ on:
       - "pyproject.toml"
       - "README.md"
       - "LICENSE"
-      # Handy so pipeline changes can be tested via push:
       - "scripts/sync_to_public.py"
       - ".github/workflows/release-sync.yml"
 
@@ -41,7 +40,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
-    # Only run on main when it's a release commit, OR when manually triggered
     if: |
       github.event_name == 'workflow_dispatch' ||
       contains(github.event.head_commit.message, 'chore(release)')
@@ -96,7 +94,6 @@ jobs:
             VERSION="${{ steps.extract_version.outputs.version }}"
           fi
 
-          # Normalize: ensure leading v
           if [ -n "$VERSION" ] && [[ ! "$VERSION" =~ ^v ]]; then
             VERSION="v$VERSION"
           fi
@@ -112,7 +109,7 @@ jobs:
           else
             echo "dry_run=false" >> $GITHUB_OUTPUT
           fi
-          echo "Dry run: ${{ github.event_name }} => $(cat $GITHUB_OUTPUT | grep dry_run | cut -d= -f2)"
+          echo "Dry run: $(cat $GITHUB_OUTPUT | grep dry_run | cut -d= -f2)"
 
       - name: Run sync script
         env:
@@ -161,17 +158,18 @@ jobs:
             exit 0
           fi
 
-          # If release already exists, do nothing
           if gh release view "$VERSION" --repo "$SUM_CORE_REPO" >/dev/null 2>&1; then
             echo "ℹ️  Release $VERSION already exists on $SUM_CORE_REPO; skipping."
             exit 0
           fi
 
-          # Notes: changes since previous chore(release) commit on sum-platform main.
-          mapfile -t RELEASE_COMMITS < <(git log --grep='^chore\\(release\\):' -n 2 --format=%H)
-          if [ "${#RELEASE_COMMITS[@]}" -eq 2 ]; then
-            PREV="${RELEASE_COMMITS[1]}"
-            NOTES=$(git log "$PREV"..HEAD --oneline --no-merges | head -50)
+          # Build notes from the synced public repo clone produced by the script
+          cd sum-core-public
+          git fetch --tags origin || true
+
+          PREV_TAG=$(git tag --list 'v*' --sort=-creatordate | sed -n '2p' || true)
+          if [ -n "$PREV_TAG" ]; then
+            NOTES=$(git log "${PREV_TAG}..${VERSION}" --oneline --no-merges | head -50)
           else
             NOTES=$(git log -n 50 --oneline --no-merges)
           fi

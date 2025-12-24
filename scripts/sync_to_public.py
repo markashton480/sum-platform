@@ -316,7 +316,9 @@ def main() -> int:
         if version and push:
             # Extract org/repo from git URL
             repo_path_str = config.public_repo_url.split(":")[-1].replace(".git", "")
-            print(f"\n📦 Release: https://github.com/{repo_path_str}/releases/tag/{version}")
+            print(
+                f"\n📦 Release: https://github.com/{repo_path_str}/releases/tag/{version}"
+            )
 
         return 0
 
