@@ -18,68 +18,82 @@ A Django/Wagtail foundation for launching lead-focused websites for home improve
 ### Requirements
 
 - Python 3.12+
-- PostgreSQL (recommended) or SQLite
+- PostgreSQL (recommended for production)
 
-### Install from PyPI
+### Install SUM Core
 
-```bash
-pip install sum-core
-```
-
-### Create a New Project
+Install from the public repository:
 
 ```bash
-django-admin startproject myproject
-cd myproject
+pip install "sum_core @ git+https://github.com/markashton480/sum-core.git@v0.5.0"
 ```
 
-Add to your `INSTALLED_APPS` in `settings.py`:
+For the latest development version:
+
+```bash
+pip install "sum_core @ git+https://github.com/markashton480/sum-core.git@main"
+```
+
+### Configure Your Django Project
+
+Add SUM Core apps to your `INSTALLED_APPS` in `settings.py`:
 
 ```python
 INSTALLED_APPS = [
-    # ... Django apps
-    'wagtail.contrib.forms',
-    'wagtail.contrib.redirects',
-    'wagtail.embeds',
-    'wagtail.sites',
-    'wagtail.users',
-    'wagtail.snippets',
-    'wagtail.documents',
-    'wagtail.images',
-    'wagtail.search',
-    'wagtail.admin',
-    'wagtail',
-    'modelcluster',
-    'taggit',
-
+    # Django core
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    # Wagtail core
+    "wagtail",
+    "wagtail.admin",
+    "wagtail.users",
+    "wagtail.images",
+    "wagtail.documents",
+    "wagtail.snippets",
+    "wagtail.sites",
+    "wagtail.search",
+    "wagtail.contrib.forms",
+    "wagtail.contrib.settings",
+    "wagtail.contrib.redirects",
+    # Wagtail dependencies
+    "modelcluster",
+    "taggit",
     # SUM Core apps
-    'sum_core',
-    'sum_core.analytics',
-    'sum_core.blocks',
-    'sum_core.branding',
-    'sum_core.forms',
-    'sum_core.navigation',
-    'sum_core.ops',
-    'sum_core.pages',
-    'sum_core.seo',
-
-    # Your apps
-    'home',  # Create your HomePage model here
+    "sum_core",
+    "sum_core.pages",
+    "sum_core.navigation",
+    "sum_core.leads",
+    "sum_core.forms",
+    "sum_core.analytics",
+    "sum_core.seo",
+    # Your client-specific apps
+    "home",  # Create your HomePage model here
 ]
 ```
 
-Include SUM Core URLs in your `urls.py`:
+Wire up URLs in `urls.py`:
 
 ```python
 from django.urls import path, include
+from wagtail import urls as wagtail_urls
+from wagtail.admin import urls as wagtailadmin_urls
+from wagtail.documents import urls as wagtaildocs_urls
 
 urlpatterns = [
-    path('', include('sum_core.urls')),
-    # ... other patterns
+    path("admin/", include(wagtailadmin_urls)),
+    path("documents/", include(wagtaildocs_urls)),
+    path("forms/", include("sum_core.forms.urls")),
+    path("", include("sum_core.ops.urls")),      # /health/
+    path("", include("sum_core.seo.urls")),      # sitemap.xml, robots.txt
+    path("", include(wagtail_urls)),             # Must be last
 ]
 ```
 
-Run migrations:
+Run migrations and create a superuser:
 
 ```bash
 python manage.py migrate
@@ -128,9 +142,6 @@ SENTRY_DSN=https://...
 - **[sum_client](clients/sum_client/)**: Reference implementation showing recommended project structure
 - **[showroom](clients/showroom/)**: Demonstration site with sample content
 
-## Support
-
-For issues, questions, or contributions, please see the [repository documentation](docs/dev/DEV-README.md).
 
 ## License
 
