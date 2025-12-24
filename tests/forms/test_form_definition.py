@@ -79,6 +79,20 @@ def test_notification_emails_validation(wagtail_default_site):
 
 
 @pytest.mark.django_db
+def test_notification_emails_accepts_valid_list(wagtail_default_site):
+    """Valid comma-separated emails should pass validation."""
+    form_def = FormDefinition(
+        site=wagtail_default_site,
+        name="Newsletter Form",
+        slug="newsletter",
+        notification_emails="admin@example.com, support@example.com",
+    )
+
+    form_def.full_clean()
+    assert form_def.notification_emails == "admin@example.com, support@example.com"
+
+
+@pytest.mark.django_db
 def test_webhook_requires_url_when_enabled(wagtail_default_site):
     """Webhook URL is required when webhook delivery is enabled."""
     form_def = FormDefinition(
@@ -91,3 +105,36 @@ def test_webhook_requires_url_when_enabled(wagtail_default_site):
 
     with pytest.raises(ValidationError):
         form_def.full_clean()
+
+
+@pytest.mark.django_db
+def test_webhook_accepts_valid_url_when_enabled(wagtail_default_site):
+    """Valid webhook URL should pass validation when enabled."""
+    form_def = FormDefinition(
+        site=wagtail_default_site,
+        name="API Form",
+        slug="api-form",
+        webhook_enabled=True,
+        webhook_url="https://api.example.com/webhook",
+    )
+
+    form_def.full_clean()
+    assert form_def.webhook_url == "https://api.example.com/webhook"
+
+
+@pytest.mark.django_db
+def test_auto_reply_fields_persist(wagtail_default_site):
+    """Auto-reply fields should store provided values."""
+    form_def = FormDefinition.objects.create(
+        site=wagtail_default_site,
+        name="Auto Reply Form",
+        slug="auto-reply",
+        auto_reply_enabled=True,
+        auto_reply_subject="Thanks for reaching out",
+        auto_reply_body="We'll get back to you shortly.",
+    )
+
+    form_def.refresh_from_db()
+    assert form_def.auto_reply_enabled is True
+    assert form_def.auto_reply_subject == "Thanks for reaching out"
+    assert form_def.auto_reply_body == "We'll get back to you shortly."
