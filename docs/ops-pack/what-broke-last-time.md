@@ -44,20 +44,13 @@
 
 ## Log Entries
 
-## Site: sum-platform (Core)
-
-**Date:** 2025-12-24  
-**Version:** v0.5.0 → v0.5.1  
-**Symptom:** Pip install from public tag failed (`project.name` was `Straight Up Marketing Platform`, not a valid PEP 508 identifier). Release verification broke at `pip install "sum_core @ git+...@v0.5.0"`.  
-**Fix:** Set `project.name` to `sum-core` in the monorepo `pyproject.toml`, bumped versioning to v0.5.1, regenerated boilerplate pinning, and re-ran release flow.  
-**Follow-up:** Keep `project.name` PEP 508-compliant before tagging; add a quick `pip install "sum_core @ git+...@<tag>"` check when cutting releases.
 
 ---
 
 ## Site: sum-platform (Core)
 
 **Date:** 2025-12-18  
-**Version:** v0.7.0-dev  
+**Version:** v0.4.0-dev  
 **Symptom:** `make lint` reported success despite 32 type errors and Zero Python files checked by Black.  
 **Fix:** Restored Black `include` regex; updated `Makefile` to enforce root Ruff config and make Mypy failure gating; implemented `MYPY_SOFT=1` mode.  
 **Follow-up:** Tools now truthfully fail. Ensure "QA Tooling Sanity" check is part of future toolchain audits.
@@ -67,7 +60,7 @@
 ## Site: sum-platform (Core)
 
 **Date:** 2025-12-21  
-**Version:** v0.7.1-dev  
+**Version:** v0.4.1-dev  
 **Symptom:** Theme Delete Drama regression resurfaced in CI when destructive cleanup quietly targeted repo assets, threatening `themes/theme_a` during CLI/theme tests.  
 **Fix:** Introduced `tests/utils/safe_cleanup.py`, the `filesystem_sandbox` fixture, and autouse fixtures for CLI/theme tests so `safe_rmtree` only ever runs inside pytest’s sandbox, added unit/regression tests that trip on a missing `themes/theme_a`, and enforced a CI guard that verifies the directory exists and no protected paths changed.  
 **Follow-up:** Keep this entry visible before running destructive test suites to remind maintainers that guard rails are in place and to review them when adding new cleanup logic.
@@ -77,7 +70,7 @@
 ## Site: sum-platform (Core)
 
 **Date:** 2025-12-21  
-**Version:** v0.7.1-dev  
+**Version:** v0.4.1-dev  
 **Symptom:** Template overrides (THEME-15-A) passed when run alone but failed in the full suite because `RUNNING_TESTS` altered template resolution order and tests mutated `settings.TEMPLATES` per module.  
 **Fix:** Rewired `core/sum_core/test_project/test_project/settings.py` to load theme/active templates first with deterministic candidate lists, introduced the shared `theme_active_copy` fixture, and added `tests/templates/test_template_loading_order.py` + wiring guards to prove template origins stay stable.  
 **Follow-up:** Any new template fixtures should plug into `theme_active_copy` (or equivalent override_settings usage) instead of hand-editing `settings.TEMPLATES`; add regression tests whenever template precedence changes.
@@ -87,7 +80,7 @@
 ## Site: sum-platform (Core)
 
 **Date:** 2025-12-21  
-**Version:** v0.7.1-dev  
+**Version:** v0.4.1-dev  
 **Symptom:** `make lint` failed in CI due to Ruff UP032 in boilerplate settings and an unused variable in CLI theme init tests.  
 **Fix:** Converted `str.format` calls to f-strings in both boilerplate settings templates and removed the unused `project_root` assignment in `cli/tests/test_theme_init.py`.  
 **Follow-up:** Keep the boilerplate + CLI scaffold templates in the lint scope so future edits don’t bypass Ruff.
@@ -97,7 +90,7 @@
 ## Site: sum-platform (Core)
 
 **Date:** 2025-12-21  
-**Version:** v0.7.1-dev  
+**Version:** v0.4.1-dev  
 **Symptom:** `make lint` failed in CI with mypy `[no-redef]` error in boilerplate optional import pattern. Pattern was: standalone type annotation, then `from x import X as <same_name>` in try block.  
 **Fix:** Removed standalone annotation, let the import be the first definition of the name, added `type: ignore[assignment,misc]` to the except branch where `None` is assigned.  
 **Follow-up:** When writing optional imports in boilerplate, avoid annotating the name before importing into it. Use pattern: `try: from x import X as _X / except: _X = None  # type: ignore` then assign to properly typed variable.
@@ -107,80 +100,23 @@
 ## Site: sum-platform (Core)
 
 **Date:** 2025-12-24  
-**Version:** v0.7.1-dev  
+**Version:** v0.5.1  → v0.5.2
 **Symptom:** `make release-check` failed because mypy recursed into `cli/sum_cli/boilerplate/` (synced copy of `boilerplate/`) and tripped on template-only type errors.  
 **Fix:** Added mypy excludes for both `boilerplate/` and `cli/sum_cli/boilerplate/` in `pyproject.toml` and documented the exclusions in `docs/dev/hygiene.md`; drift check `make check-cli-boilerplate` left intact.  
 **Follow-up:** Keep both boilerplate directories excluded from lint/type checks when adding new tooling, and rerun `make release-check` after syncing boilerplate into the CLI.
 
 ---
 
-_(No further entries)_
+## Site: sum-platform (Core)
 
+**Date:** 2025-12-24  
+**Version:** v0.5.0 → v0.5.1  
+**Symptom:** Pip install from public tag failed (`project.name` was `Straight Up Marketing Platform`, not a valid PEP 508 identifier). Release verification broke at `pip install "sum_core @ git+...@v0.5.0"`.  
+**Fix:** Set `project.name` to `sum-core` in the monorepo `pyproject.toml`, bumped versioning to v0.5.1, regenerated boilerplate pinning, and re-ran release flow.  
+**Follow-up:** Keep `project.name` PEP 508-compliant before tagging; add a quick `pip install "sum_core @ git+...@<tag>"` check when cutting releases.
 ---
 
-## Example Entries
 
-### Example 1: Static Files Not Collected
-
-```markdown
-## Site: acme-kitchens
-
-**Date:** 2025-12-17  
-**Version:** v0.6.0 → v0.6.1  
-**Symptom:** After upgrade, all CSS/JS returned 404. Site rendered without styling.  
-**Fix:** Re-ran `python manage.py collectstatic --noinput`, reloaded Caddy.  
-**Follow-up:** Add `collectstatic` check to deploy script to fail early if it doesn't run.
-
----
-```
-
----
-
-### Example 2: Migration Failure
-
-```markdown
-## Site: sage-and-stone
-
-**Date:** 2025-12-18  
-**Version:** v0.6.1 → v0.7.0  
-**Symptom:** Migration failed with "relation already exists" error. Service wouldn't start.  
-**Fix:** Rolled back to v0.6.1 using rollback runbook. Investigated migration state, found manual DB change from earlier. Faked migration in dev, re-attempted upgrade successfully next day.  
-**Follow-up:** Document migration troubleshooting steps in runbook. Consider adding `showmigrations` check before running migrations.
-
----
-```
-
----
-
-### Example 3: Redis Not Running
-
-```markdown
-## Site: lintel-demo
-
-**Date:** 2025-12-19  
-**Version:** Initial deploy v0.6.2  
-**Symptom:** `/health/` returned 503 (unhealthy), Redis connection refused.  
-**Fix:** Redis service wasn't enabled on VPS. Ran `sudo systemctl enable --now redis-server`, health endpoint immediately returned 200.  
-**Follow-up:** Add Redis service check to deploy runbook prerequisites. Consider adding to provision script.
-
----
-```
-
----
-
-### Example 4: Environment Variable Missing
-
-```markdown
-## Site: acme-kitchens
-
-**Date:** 2025-12-20  
-**Version:** v0.6.2 → v0.7.0  
-**Symptom:** Service failed to start after upgrade. Logs showed `KeyError: 'NEW_SETTING'`.  
-**Fix:** New version required `NEW_SETTING` env var. Added to `.env`, restarted service.  
-**Follow-up:** Check release notes for required env vars before upgrade. Add env var validation to deploy script or health check.
-
----
-```
 
 ---
 
