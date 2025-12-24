@@ -39,6 +39,7 @@ from sum_core.navigation.models import FooterNavigation, HeaderNavigation
 from sum_core.pages import ServiceIndexPage, ServicePage, StandardPage
 from wagtail.models import Page, Site
 
+PILImage: Any | None
 try:
     from PIL import Image as PILImage
 except Exception:  # pragma: no cover
@@ -88,7 +89,7 @@ class Command(BaseCommand):
         )
 
     @transaction.atomic
-    def handle(self, *args: Any, **options: dict[str, Any]) -> None:
+    def handle(self, *args: Any, **options: Any) -> None:
         slugs = _ShowroomSlugs()
 
         home_page_model = self._resolve_home_page_model(options.get("homepage_model"))

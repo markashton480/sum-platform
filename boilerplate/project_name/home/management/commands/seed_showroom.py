@@ -32,14 +32,14 @@ from django.apps import apps
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import transaction
-from wagtail.models import Page, Site
-
 from sum_core.blocks import PageStreamBlock
 from sum_core.branding.models import SiteSettings
 from sum_core.navigation.cache import invalidate_nav_cache
 from sum_core.navigation.models import FooterNavigation, HeaderNavigation
 from sum_core.pages import ServiceIndexPage, ServicePage, StandardPage
+from wagtail.models import Page, Site
 
+PILImage: Any | None
 try:
     from PIL import Image as PILImage
 except Exception:  # pragma: no cover
@@ -89,7 +89,7 @@ class Command(BaseCommand):
         )
 
     @transaction.atomic
-    def handle(self, *args: Any, **options: dict[str, Any]) -> None:
+    def handle(self, *args: Any, **options: Any) -> None:
         slugs = _ShowroomSlugs()
 
         home_page_model = self._resolve_home_page_model(options.get("homepage_model"))
