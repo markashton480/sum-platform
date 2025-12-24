@@ -61,6 +61,7 @@ class ChoiceHandlingMixin:
     """Shared handling for converting raw choices into StreamValue."""
 
     choice_field_name = "choices"
+    child_blocks: dict[str, blocks.Block]
 
     def _coerce_choices(self, value: dict) -> dict:
         choices_value = value.get(self.choice_field_name, [])
