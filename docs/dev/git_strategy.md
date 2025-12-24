@@ -306,5 +306,5 @@ git tag -a v0.6.0 -m "Release v0.6.0"
 
 ## Related Documents
 
-- [`RELEASE_RUNBOOK.md`](RELEASE_RUNBOOK.md) — Complete release process
-- [`RELEASE_AGENT_PROMPT.md`](RELEASE_AGENT_PROMPT.md) — AI agent instructions
+- [`../ops-pack/release-runbook.md`](../ops-pack/release-runbook.md) — Complete release process
+- [`../release/agent-prompt.md`](../release/agent-prompt.md) — AI agent instructions

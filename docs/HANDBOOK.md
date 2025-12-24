@@ -627,7 +627,7 @@ For a full inventory of every document in this repository, see the **[Documentat
 - [Post-MVP Expansion Plan](dev/master-docs/POST-MVP_BIG-PLAN.md)
 - [Product Requirements (PRD)](dev/master-docs/prd-sum-platform-v1.1.md)
 - [Theme Architecture Spec v1](dev/master-docs/THEME-ARCHITECTURE-SPECv1.md)
-- [Release Workflow](dev/release-workflow.md)
+- [Release Runbook](ops-pack/release-runbook.md)
 
 ---
 

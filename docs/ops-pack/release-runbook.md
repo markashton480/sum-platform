@@ -356,5 +356,5 @@ Release automation is handled by:
 
 ## Related Documents
 
-- [`GIT_STRATEGY.md`](GIT_STRATEGY.md) — Branch model and conventions
-- [`RELEASE_AGENT_PROMPT.md`](RELEASE_AGENT_PROMPT.md) — AI agent instructions
+- [`../dev/git_strategy.md`](../dev/git_strategy.md) — Branch model and conventions
+- [`../release/agent-prompt.md`](../release/agent-prompt.md) — AI agent instructions

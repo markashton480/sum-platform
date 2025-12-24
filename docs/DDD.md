@@ -18,6 +18,15 @@ docs/
 ├── HANDBOOK.md                        # The master guide (Start here!)
 ├── DDD.md                              # This document
 ├── ROUTER.md                           # Quick operational links
+├── ops-pack/                          # Operational runbooks
+│   ├── release-runbook.md             # Release process
+│   ├── deploy-runbook.md              # VPS deployment
+│   ├── upgrade-runbook.md             # Site upgrades
+│   └── [other operational guides]     # Rollback, smoke tests, etc.
+├── release/                           # Release automation
+│   ├── agent-prompt.md                # AI agent instructions
+│   ├── sync-to-public.py              # Sync script
+│   └── release-sync.yml               # GitHub Actions workflow
 └── dev/                               # All development documentation
     ├── master-docs/                   # Core strategic documents
     ├── [individual reference files]   # Implementation guides
@@ -167,11 +176,38 @@ docs/
 - **`decisions.md`** - Architectural decisions log
   - Docker deferral decision and rationale
 - **`git_strategy.md`** - Git workflow and branching strategy
-- **`release-workflow.md`** - Release process documentation
 
 ---
 
 ## 🚀 Operations & Deployment
+
+### Ops Pack (`docs/ops-pack/`)
+
+**Hot path operational runbooks** for day-to-day operations:
+
+- **`release-runbook.md`** - Complete release process (unified)
+  - Version selection, preparation, sync to public repo
+  - Tag creation and verification
+  - Replaces legacy `release-checklist.md` and `release-workflow.md`
+- **`deploy-runbook.md`** - Fresh VPS deployment
+  - Step-by-step from bare VPS to running site
+- **`upgrade-runbook.md`** - Upgrade existing sites
+  - Core version updates and migration workflow
+- **`rollback-runbook.md`** - Rollback procedures
+  - Recovery from failed deployments
+- **`smoke-tests.md`** - Quick verification (10-15 min)
+- **`full-verification.md`** - Complete verification (30-60 min)
+- **`loop-sites-matrix.md`** - Loop sites tracking
+- **`what-broke-last-time.md`** - Deployment issue log
+
+### Release Automation (`docs/release/`)
+
+Tooling and scripts for the two-repo release flow:
+
+- **`agent-prompt.md`** - AI agent instructions for releases
+- **`sync-to-public.py`** - Python script to sync `sum-platform` → `sum-core`
+- **`release-sync.yml`** - GitHub Actions workflow template
+- **`two-repo-setup.md`** - Two-repository model documentation
 
 ### Deployment Documentation (`docs/dev/deploy/`)
 
@@ -256,9 +292,12 @@ These are preserved for audit purposes but excluded from this functional documen
 
 ### For Operations & Deployment
 
-1. **Production setup:** `deploy/vps-golden-path.md`
-2. **CLI usage:** `cli.md`
-3. **Quality standards:** `reviews/daily_code_review.md`
+1. **Release a new version:** `ops-pack/release-runbook.md`
+2. **Deploy fresh site:** `ops-pack/deploy-runbook.md`
+3. **Upgrade existing site:** `ops-pack/upgrade-runbook.md`
+4. **Production setup (detailed):** `dev/deploy/vps-golden-path.md`
+5. **Git workflow:** `dev/git_strategy.md`
+6. **CLI usage:** `dev/cli.md`
 
 ### For Strategic Planning
 
