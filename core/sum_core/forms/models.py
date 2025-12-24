@@ -11,7 +11,7 @@ from __future__ import annotations
 from django.core.exceptions import ValidationError
 from django.core.validators import EmailValidator
 from django.db import models
-from wagtail import blocks
+from sum_core.forms.fields import FormFieldsStreamBlock
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.fields import StreamField
 from wagtail.models import Site
@@ -122,16 +122,6 @@ def validate_comma_separated_emails(value: str) -> None:
         raise ValidationError(errors)
 
 
-class FormFieldsStreamBlock(blocks.StreamBlock):
-    """Placeholder block until dynamic form fields are implemented in BLOG.002."""
-
-    class Meta:
-        min_num = 0
-        max_num = None
-        label = "Form fields"
-        help_text = "Dynamic form field blocks will be added in BLOG.002."
-
-
 class FormDefinition(models.Model):
     """
     Reusable form definition for dynamic forms.
@@ -157,7 +147,7 @@ class FormDefinition(models.Model):
         FormFieldsStreamBlock(required=False),
         blank=True,
         use_json_field=True,
-        help_text="Form field blocks will be added in BLOG.002.",
+        help_text="Form field blocks for dynamic forms.",
     )
     success_message = models.TextField(
         default="Thank you for your submission!",
