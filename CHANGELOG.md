@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.5.1] - 2025-12-24
+### Fixed
+- Packaging: set PEP 508-compliant project name (`sum-core`) so pip installs from git tags work again.
+
 ## [v0.5.0] - 2025-12-24
 
 ### Added
