@@ -57,6 +57,22 @@ class FormFieldBlock(blocks.StructBlock):
         return cleaned
 
 
+class ChoiceHandlingMixin:
+    """Shared handling for converting raw choices into StreamValue."""
+
+    choice_field_name = "choices"
+
+    def _coerce_choices(self, value: dict) -> dict:
+        choices_value = value.get(self.choice_field_name, [])
+        if not isinstance(choices_value, StreamValue):
+            choices_value = self.child_blocks[self.choice_field_name].to_python(
+                choices_value
+            )
+            value = {**value, self.choice_field_name: choices_value}
+
+        return value
+
+
 class ChoiceOptionBlock(blocks.StructBlock):
     """Option for select, checkbox group, and radio button fields."""
 
@@ -145,7 +161,7 @@ class TextareaBlock(FormFieldBlock):
         label = "Textarea"
 
 
-class SelectBlock(FormFieldBlock):
+class SelectBlock(ChoiceHandlingMixin, FormFieldBlock):
     choices = ChoiceOptionsStreamBlock(required=True)
     allow_multiple = blocks.BooleanBlock(
         required=False,
@@ -158,12 +174,7 @@ class SelectBlock(FormFieldBlock):
         label = "Select"
 
     def clean(self, value, **kwargs):
-        choices_value = value.get("choices", [])
-        if not isinstance(choices_value, StreamValue):
-            choices_value = self.child_blocks["choices"].to_python(choices_value)
-            value = {**value, "choices": choices_value}
-
-        return super().clean(value, **kwargs)
+        return super().clean(self._coerce_choices(value), **kwargs)
 
 
 class CheckboxBlock(FormFieldBlock):
@@ -178,7 +189,7 @@ class CheckboxBlock(FormFieldBlock):
         label = "Checkbox"
 
 
-class CheckboxGroupBlock(FormFieldBlock):
+class CheckboxGroupBlock(ChoiceHandlingMixin, FormFieldBlock):
     choices = ChoiceOptionsStreamBlock(required=True)
 
     class Meta:
@@ -186,15 +197,10 @@ class CheckboxGroupBlock(FormFieldBlock):
         label = "Checkbox group"
 
     def clean(self, value, **kwargs):
-        choices_value = value.get("choices", [])
-        if not isinstance(choices_value, StreamValue):
-            choices_value = self.child_blocks["choices"].to_python(choices_value)
-            value = {**value, "choices": choices_value}
-
-        return super().clean(value, **kwargs)
+        return super().clean(self._coerce_choices(value), **kwargs)
 
 
-class RadioButtonsBlock(FormFieldBlock):
+class RadioButtonsBlock(ChoiceHandlingMixin, FormFieldBlock):
     choices = ChoiceOptionsStreamBlock(required=True)
 
     class Meta:
@@ -202,12 +208,7 @@ class RadioButtonsBlock(FormFieldBlock):
         label = "Radio buttons"
 
     def clean(self, value, **kwargs):
-        choices_value = value.get("choices", [])
-        if not isinstance(choices_value, StreamValue):
-            choices_value = self.child_blocks["choices"].to_python(choices_value)
-            value = {**value, "choices": choices_value}
-
-        return super().clean(value, **kwargs)
+        return super().clean(self._coerce_choices(value), **kwargs)
 
 
 class FileUploadBlock(FormFieldBlock):
@@ -241,6 +242,15 @@ class SectionHeadingBlock(blocks.StructBlock):
     class Meta:
         icon = "title"
         label = "Section heading"
+
+    def clean(self, value, **kwargs):
+        cleaned = super().clean(value, **kwargs)
+        if "level" not in cleaned:
+            default = self.child_blocks["level"].get_default()
+            if default is not None:
+                cleaned["level"] = default
+
+        return cleaned
 
 
 class HelpTextBlock(blocks.StructBlock):

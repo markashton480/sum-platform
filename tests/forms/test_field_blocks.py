@@ -257,6 +257,14 @@ def test_section_heading_block_supports_levels():
     assert cleaned["level"] == "h3"
 
 
+def test_section_heading_block_defaults_level():
+    """SectionHeadingBlock should default to h2 when level is omitted."""
+    block = SectionHeadingBlock()
+    cleaned = block.clean({"heading": "Contact details"})
+
+    assert cleaned["level"] == "h2"
+
+
 def test_help_text_block_accepts_rich_text():
     """HelpTextBlock should allow rich text content."""
     block = HelpTextBlock()

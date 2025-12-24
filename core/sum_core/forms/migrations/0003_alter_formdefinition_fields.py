@@ -297,6 +297,7 @@ class Migration(migrations.Migration):
                         [],
                         {
                             "choices": [("h2", "H2"), ("h3", "H3"), ("h4", "H4")],
+                            "default": "h2",
                             "help_text": "Heading level.",
                         },
                     ),
