@@ -46,6 +46,16 @@
 
 ## Site: sum-platform (Core)
 
+**Date:** 2025-12-24  
+**Version:** v0.5.0 → v0.5.1  
+**Symptom:** Pip install from public tag failed (`project.name` was `Straight Up Marketing Platform`, not a valid PEP 508 identifier). Release verification broke at `pip install "sum_core @ git+...@v0.5.0"`.  
+**Fix:** Set `project.name` to `sum-core` in the monorepo `pyproject.toml`, bumped versioning to v0.5.1, regenerated boilerplate pinning, and re-ran release flow.  
+**Follow-up:** Keep `project.name` PEP 508-compliant before tagging; add a quick `pip install "sum_core @ git+...@<tag>"` check when cutting releases.
+
+---
+
+## Site: sum-platform (Core)
+
 **Date:** 2025-12-18  
 **Version:** v0.7.0-dev  
 **Symptom:** `make lint` reported success despite 32 type errors and Zero Python files checked by Black.  
