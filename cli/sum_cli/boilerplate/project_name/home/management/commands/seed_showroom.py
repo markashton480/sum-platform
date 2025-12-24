@@ -55,6 +55,8 @@ class _ShowroomSlugs:
     service_one: str = "solar-installation"
     service_two: str = "roofing"
     kitchen_sink: str = "kitchen-sink"
+    terms: str = "terms"
+    privacy: str = "privacy"
 
 
 class Command(BaseCommand):
@@ -87,18 +89,10 @@ class Command(BaseCommand):
         )
 
     @transaction.atomic
-    def handle(self, *args: Any, **options: dict[str, Any]) -> None:
+    def handle(self, *args: Any, **options: Any) -> None:
         slugs = _ShowroomSlugs()
 
-        homepage_model = options.get("homepage_model")
-        hostname = options.get("hostname")
-        port = options.get("port")
-
-        homepage_model = homepage_model if isinstance(homepage_model, str) else None
-        hostname = hostname if isinstance(hostname, str) else None
-        port = port if isinstance(port, int) else None
-
-        home_page_model = self._resolve_home_page_model(homepage_model)
+        home_page_model = self._resolve_home_page_model(options.get("homepage_model"))
         if home_page_model is None:
             self.stdout.write(
                 self.style.ERROR(
@@ -108,7 +102,9 @@ class Command(BaseCommand):
             return
 
         root = Page.get_first_root_node()
-        site = self._get_or_create_default_site(hostname, port, root)
+        site = self._get_or_create_default_site(
+            options.get("hostname"), options.get("port"), root
+        )
 
         if options.get("clear"):
             self._clear_showroom(
@@ -125,6 +121,12 @@ class Command(BaseCommand):
         )
         contact = self._get_or_create_standard_page(
             parent=home, title="Contact", slug=slugs.contact
+        )
+        terms = self._get_or_create_standard_page(
+            parent=home, title="Terms", slug=slugs.terms
+        )
+        privacy = self._get_or_create_standard_page(
+            parent=home, title="Privacy", slug=slugs.privacy
         )
         kitchen_sink = self._get_or_create_standard_page(
             parent=home, title="Kitchen Sink", slug=slugs.kitchen_sink
@@ -191,6 +193,12 @@ class Command(BaseCommand):
         contact.body = self._build_contact_stream(images=images)
         contact.save_revision().publish()
 
+        terms.body = self._build_terms_stream()
+        terms.save_revision().publish()
+
+        privacy.body = self._build_privacy_stream()
+        privacy.save_revision().publish()
+
         # Site settings (branding + navigation)
         self._seed_branding(site=site, images=images)
         self._seed_navigation(
@@ -201,6 +209,8 @@ class Command(BaseCommand):
             services_index=services_index,
             service_one=service_one,
             service_two=service_two,
+            terms=terms,
+            privacy=privacy,
         )
         invalidate_nav_cache(site.id)
 
@@ -210,6 +220,8 @@ class Command(BaseCommand):
         self.stdout.write(f"  - Kitchen Sink: {kitchen_sink.url}")
         self.stdout.write(f"  - Services: {services_index.url}")
         self.stdout.write(f"  - Contact: {contact.url}")
+        self.stdout.write(f"  - Terms: {terms.url}")
+        self.stdout.write(f"  - Privacy: {privacy.url}")
 
     # -----------------------------------------------------------------------------
     # Model resolution / site helpers
@@ -1023,6 +1035,66 @@ class Command(BaseCommand):
             ]
         )
 
+    def _build_terms_stream(self) -> Any:
+        return self._build_legal_stream(
+            heading="Terms & Conditions",
+            intro=(
+                "Ground rules for exploring the showroom content. Use this page to check "
+                "long-form typography and list styling."
+            ),
+            body=(
+                "<h3>Acceptable use</h3>"
+                "<p>This seeded content is a demo only. It helps you preview layouts, not store production data.</p>"
+                "<ul><li>Keep experiments to non-sensitive information.</li>"
+                "<li>Use the contact links to simulate user journeys.</li>"
+                "<li>Reset anytime by re-running the seed command.</li></ul>"
+                "<h3>Liability</h3>"
+                "<p>Everything here ships as-is for testing and visual QA. Replace with client-approved copy before launch.</p>"
+                "<h3>Questions</h3>"
+                "<p>Email hello@example.com if you spot an issue with the seeded pages.</p>"
+            ),
+        )
+
+    def _build_privacy_stream(self) -> Any:
+        return self._build_legal_stream(
+            heading="Privacy Notice",
+            intro=(
+                "How this showroom handles demo requests and placeholder contact data. "
+                "Use it to validate headings, paragraphs, and list rhythm."
+            ),
+            body=(
+                "<h3>What we collect</h3>"
+                "<ul><li>Basic contact details entered into demo forms.</li>"
+                "<li>Non-identifying analytics used only for local testing.</li></ul>"
+                "<h3>How we use it</h3>"
+                "<p>Submissions route to the default email in Branding settings so themes can demonstrate form flows.</p>"
+                "<h3>Staying in control</h3>"
+                "<p>Clear data by re-running the seed command with <code>--clear</code> or by deleting pages in Wagtail admin.</p>"
+            ),
+        )
+
+    def _build_legal_stream(self, *, heading: str, intro: str, body: str) -> Any:
+        stream_block = PageStreamBlock()
+        return stream_block.to_python(
+            [
+                {
+                    "type": "editorial_header",
+                    "value": {
+                        "align": "center",
+                        "eyebrow": "Legal",
+                        "heading": f"<p>{heading}</p>",
+                    },
+                },
+                {
+                    "type": "content",
+                    "value": {
+                        "align": "left",
+                        "body": f"<p>{intro}</p>{body}",
+                    },
+                },
+            ]
+        )
+
     # -----------------------------------------------------------------------------
     # Branding & Navigation
     # -----------------------------------------------------------------------------
@@ -1050,6 +1122,8 @@ class Command(BaseCommand):
         services_index: Page,
         service_one: Page,
         service_two: Page,
+        terms: Page,
+        privacy: Page,
     ) -> None:
         # HeaderNavigation / FooterNavigation are StreamField-based settings.
         header = HeaderNavigation.for_site(site)
@@ -1230,6 +1304,26 @@ class Command(BaseCommand):
                             "link_type": "page",
                             "page": contact.id,
                             "link_text": "Contact",
+                            "open_in_new_tab": False,
+                        },
+                    ],
+                },
+            },
+            {
+                "type": "section",
+                "value": {
+                    "title": "Legal",
+                    "links": [
+                        {
+                            "link_type": "page",
+                            "page": terms.id,
+                            "link_text": "Terms",
+                            "open_in_new_tab": False,
+                        },
+                        {
+                            "link_type": "page",
+                            "page": privacy.id,
+                            "link_text": "Privacy",
                             "open_in_new_tab": False,
                         },
                     ],

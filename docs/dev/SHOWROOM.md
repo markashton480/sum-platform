@@ -87,6 +87,8 @@ Under the HomePage, the command creates:
 - **`StandardPage`**: `showroom` → `/showroom/`
 - **`StandardPage`**: `kitchen-sink` → `/kitchen-sink/`
 - **`StandardPage`**: `contact` → `/contact/`
+- **`StandardPage`**: `terms` → `/terms/`
+- **`StandardPage`**: `privacy` → `/privacy/`
 - **`ServiceIndexPage`**: `services` → `/services/`
   - **`ServicePage`**: `solar-installation` → `/services/solar-installation/`
   - **`ServicePage`**: `roofing` → `/services/roofing/`
@@ -166,6 +168,13 @@ Contact page body contains:
 - **`content`**
 - **`contact_form`**
 
+### Legal pages (`/terms/`, `/privacy/`)
+
+Legal pages provide long-form placeholder copy to validate typography:
+
+- **`editorial_header`** (center aligned, "Legal" eyebrow)
+- **`content`** with multi-section rich text (paragraphs, headings, lists, inline code for commands)
+
 ---
 
 ## Navigation + branding seeding
@@ -188,9 +197,11 @@ Seeds:
 - **Header menu items**: Home, Services (with submenu), Showroom, Contact
 - **Header CTA**: enabled + points to Contact
 - **Sticky CTA**: enabled, phone enabled, button enabled pointing to Contact
-- **Footer sections**: “Company” and “Services”
-  - Includes a variety of `UniversalLinkBlock` link types: page, url, email, phone
-  - Explicitly adds a "Kitchen Sink" link to the footer for easy access.
+- **Footer sections**: Explore, Services, Company, Legal
+  - Explore: Home, Showroom, Kitchen Sink
+  - Services: index + both example service pages
+  - Company: Contact
+  - Legal: Terms + Privacy pages, ensuring footer legal links resolve to real pages
 
 Note: footer `tagline` and `social_*` are intentionally set blank so the footer demonstrates **effective settings fallback** to Branding (see `sum_core.navigation.services.get_effective_footer_settings`).
 
