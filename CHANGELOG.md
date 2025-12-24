@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.5.2] - 2025-12-24
+### Fixed
+- Packaging: limit setuptools discovery to `sum_core` (exclude boilerplate) so pip installs from git tags succeed.
+
 ## [v0.5.1] - 2025-12-24
 ### Fixed
 - Packaging: set PEP 508-compliant project name (`sum-core`) so pip installs from git tags work again.
