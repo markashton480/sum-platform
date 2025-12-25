@@ -25,6 +25,10 @@ def __getattr__(name: str):
         from sum_core.pages.services import ServicePage
 
         return ServicePage
+    if name == "Category":
+        from sum_core.pages.blog import Category
+
+        return Category
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -32,4 +36,5 @@ __all__ = [
     "StandardPage",
     "ServiceIndexPage",
     "ServicePage",
+    "Category",
 ]
