@@ -23,7 +23,6 @@ from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.template.loader import render_to_string
 from django.utils import timezone
-from django.utils.html import escape
 from sum_core.ops.sentry import set_sentry_context
 
 logger = logging.getLogger(__name__)
@@ -37,6 +36,7 @@ RETRY_BACKOFF = 60  # seconds; exponential backoff uses 60, 120, 240
 WEBHOOK_TIMEOUT = 10  # seconds
 NAME_TOKEN = re.compile(r"{{\s*name\s*}}")
 NAME_NEWLINE = re.compile(r"[\r\n]+")
+NAME_CONTROL = re.compile(r"[\x00-\x1F\x7F]")
 
 
 def _parse_recipients(emails: str) -> list[str]:
@@ -163,9 +163,9 @@ def _build_webhook_payload(
 
 
 def _interpolate_name(template: str, name: str) -> str:
-    """Replace the {{name}} placeholder with the submitter's name."""
+    """Replace the {{name}} placeholder with a sanitized name for plain text."""
     safe_name = NAME_NEWLINE.sub(" ", str(name or "")).strip()
-    safe_name = escape(safe_name)
+    safe_name = NAME_CONTROL.sub("", safe_name)
     return NAME_TOKEN.sub(safe_name, template)
 
 

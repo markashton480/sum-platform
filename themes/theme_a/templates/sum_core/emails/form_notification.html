@@ -20,20 +20,20 @@
 <body>
     <div class="container">
         <h1>New Form Submission</h1>
-        <p>A new <strong>{{ form_definition.name }}</strong> submission has been received.</p>
+        <p>A new <strong>{{ form_definition.name|escape }}</strong> submission has been received.</p>
 
         <h2>Contact Details</h2>
-        <div class="field"><span class="label">Name:</span> <span class="value">{{ lead.name }}</span></div>
-        <div class="field"><span class="label">Email:</span> <span class="value"><a href="mailto:{{ lead.email|urlencode }}">{{ lead.email }}</a></span></div>
+        <div class="field"><span class="label">Name:</span> <span class="value">{{ lead.name|escape }}</span></div>
+        <div class="field"><span class="label">Email:</span> <span class="value"><a href="mailto:{{ lead.email|urlencode|escape }}">{{ lead.email|escape }}</a></span></div>
         {% if lead.phone %}
-        <div class="field"><span class="label">Phone:</span> <span class="value"><a href="tel:{{ lead.phone|urlencode }}">{{ lead.phone }}</a></span></div>
+        <div class="field"><span class="label">Phone:</span> <span class="value"><a href="tel:{{ lead.phone|urlencode|escape }}">{{ lead.phone|escape }}</a></span></div>
         {% endif %}
 
         <h2>Message</h2>
-        <div class="field">{{ lead.message|linebreaksbr }}</div>
+        <div class="field">{{ lead.message|default_if_none:""|escape|linebreaksbr }}</div>
 
         <h2>Submission Info</h2>
-        <div class="field"><span class="label">Form:</span> <span class="value">{{ form_definition.name }} ({{ form_definition.slug }})</span></div>
+        <div class="field"><span class="label">Form:</span> <span class="value">{{ form_definition.name|escape }} ({{ form_definition.slug|escape }})</span></div>
         <div class="field"><span class="label">Submitted At:</span> <span class="value">{{ lead.submitted_at|date:"N j, Y, P" }}</span></div>
 
         {% if lead.form_data %}
@@ -59,7 +59,7 @@
         {% endif %}
 
         <div class="footer">
-            <p>This is an automated notification from {{ form_definition.site.hostname }}.</p>
+            <p>This is an automated notification from {{ form_definition.site.hostname|escape }}.</p>
             <p>Lead ID: {{ lead.id }}</p>
         </div>
     </div>

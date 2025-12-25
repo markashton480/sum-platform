@@ -149,7 +149,7 @@ class TestDynamicFormTasks:
         assert "\n" not in subject
         assert "\r" not in subject
 
-    def test_auto_reply_escapes_html_in_name(self, lead, form_definition):
+    def test_auto_reply_preserves_plain_text_name(self, lead, form_definition):
         lead.name = "<script>alert('xss')</script>"
         lead.save(update_fields=["name"])
 
@@ -159,8 +159,9 @@ class TestDynamicFormTasks:
         assert len(mail.outbox) == 1
         subject = mail.outbox[0].subject
         body = mail.outbox[0].body
-        assert "<script>" not in subject
-        assert "<script>" not in body
+        assert "<script>" in subject
+        assert "<script>" in body
+        assert "&lt;script&gt;" not in subject
 
     def test_webhook_payload(self, lead, form_definition):
         mock_response = Mock()
