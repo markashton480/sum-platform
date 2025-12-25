@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.5.3] - 2025-12-25
+### Changed
+- Release sync staging now defaults to `/tmp/sum-core-sync` (outside the repo) to prevent accidental gitlinks; docs updated to match.
+
 ## [v0.5.2] - 2025-12-24
 ### Fixed
 - Packaging: limit setuptools discovery to `sum_core` (exclude boilerplate) so pip installs from git tags succeed.

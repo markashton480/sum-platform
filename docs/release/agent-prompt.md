@@ -168,7 +168,7 @@ python scripts/sync_to_public.py --public-repo-url git@github.com:markashton480/
 ```
 
 **What the sync does:**
-1. Clones/updates `sum-core` locally
+1. Clones/updates `sum-core` locally (default path: `/tmp/sum-core-sync`; do not keep clones inside the repo)
 2. Removes existing content (except `.git`)
 3. Copies: `core/`, `boilerplate/`, `docs/public/` → `docs/`, `pyproject.toml`, `README.md`, `LICENSE`
 4. Commits: `chore(release): sync v0.6.0 from sum-platform`
@@ -177,8 +177,8 @@ python scripts/sync_to_public.py --public-repo-url git@github.com:markashton480/
 ### Phase 7: Create Tag
 
 ```bash
-# In sum-core directory
-cd /tmp/sum-core  # or wherever sync script cloned it
+# In sum-core directory (default clone path: /tmp/sum-core-sync)
+cd /tmp/sum-core-sync  # or wherever sync script cloned it
 
 git checkout main
 git pull origin main
