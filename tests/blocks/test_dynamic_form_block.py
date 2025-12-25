@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import pytest
 from bs4 import BeautifulSoup
-from django.test import Client
+from django.test import Client, RequestFactory
 from home.models import HomePage
 from sum_core.blocks.base import PageStreamBlock
 from sum_core.blocks.forms import DynamicFormBlock
-from sum_core.forms.models import FormDefinition
+from sum_core.forms.models import ActiveFormDefinitionChooseView, FormDefinition
 from sum_core.pages.models import StandardPage
 from wagtail.models import Page, Site
 
@@ -88,7 +88,7 @@ class TestDynamicFormBlock:
         assert value["success_redirect_url"] == ""
 
     def test_only_active_forms_visible_in_chooser(
-        self, wagtail_default_site: Site
+        self, wagtail_default_site: Site, rf: RequestFactory
     ) -> None:
         active_form = _create_form_definition(wagtail_default_site, name="Active Form")
         inactive_form = _create_form_definition(
@@ -97,7 +97,14 @@ class TestDynamicFormBlock:
         inactive_form.is_active = False
         inactive_form.save(update_fields=["is_active"])
 
-        chooser_qs = FormDefinition.snippet_viewset.chooser_viewset.get_object_list()
+        request = rf.get("/", HTTP_HOST=wagtail_default_site.hostname)
+        request.site = wagtail_default_site
+
+        view = ActiveFormDefinitionChooseView()
+        view.request = request
+        view.model = FormDefinition
+
+        chooser_qs = view.get_object_list()
         slugs = set(chooser_qs.values_list("slug", flat=True))
 
         assert active_form.slug in slugs
@@ -138,3 +145,30 @@ class TestDynamicFormBlock:
         assert block_el.get("data-style") == "modal"
         assert "Form: CTA Form" in block_el.text
         assert "Form rendering will be implemented in BLOG.006" in block_el.text
+
+    def test_chooser_filters_to_current_site(
+        self, wagtail_default_site: Site, rf: RequestFactory
+    ) -> None:
+        other_home = HomePage(title="Alt Home", slug="alt-home")
+        root = Page.get_first_root_node()
+        root.add_child(instance=other_home)
+        other_site = Site.objects.create(
+            hostname="alt.test", root_page=other_home, is_default_site=False
+        )
+        Site.clear_site_root_paths_cache()
+
+        site_form = _create_form_definition(wagtail_default_site, name="Site Form")
+        _create_form_definition(other_site, name="Other Site Form")
+
+        request = rf.get("/", HTTP_HOST=wagtail_default_site.hostname)
+        request.site = wagtail_default_site
+
+        view = ActiveFormDefinitionChooseView()
+        view.request = request
+        view.model = FormDefinition
+
+        queryset = view.get_object_list()
+        slugs = set(queryset.values_list("slug", flat=True))
+
+        assert site_form.slug in slugs
+        assert "other-site-form" not in slugs
