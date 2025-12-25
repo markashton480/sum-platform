@@ -21,6 +21,11 @@
       <link rel="icon" href="{{ favicon_rendition.url }}">
     {% endif %}
 
+    {# Expose consent version for cookie_consent.js #}
+    {% if site_settings.cookie_banner_enabled %}
+      <meta name="sum:cookie-consent-version" content="{{ site_settings.cookie_consent_version }}">
+    {% endif %}
+
     <!-- Branding Fonts -->
     {% branding_fonts %}
 
@@ -49,6 +54,7 @@
     {% include "theme/includes/sticky_cta.html" %}
 
     <!-- Main JS -->
+    <script src="{% static 'sum_core/js/cookie_consent.js' %}" defer></script>
     <script src="{% static 'sum_core/js/event_tracking.js' %}" defer></script>
     <script src="{% static 'sum_core/js/main.js' %}"></script>
     <script src="{% static 'sum_core/js/navigation.js' %}"></script>
