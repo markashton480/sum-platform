@@ -14,7 +14,7 @@ import requests
 from django.core import mail
 from sum_core.forms.models import FormDefinition
 from sum_core.forms.tasks import send_auto_reply, send_form_notification, send_webhook
-from sum_core.leads.models import Lead
+from sum_core.leads.models import EmailStatus, Lead, WebhookStatus
 
 
 @pytest.fixture(autouse=True)
@@ -49,6 +49,9 @@ def lead(form_definition):
         email="jane@example.com",
         message="Need a quote",
         form_type=form_definition.slug,
+        form_notification_status=EmailStatus.PENDING,
+        auto_reply_status=EmailStatus.PENDING,
+        form_webhook_status=WebhookStatus.PENDING,
         form_data={"service": "Roofing"},
         landing_page_url="https://example.com/landing",
         page_url="https://example.com/contact",
@@ -65,16 +68,29 @@ class TestDynamicFormTasks:
     def test_form_notification_sends_email(self, lead, form_definition):
         send_form_notification(lead.id, form_definition.id)
 
+        lead.refresh_from_db()
         assert len(mail.outbox) == 1
         email = mail.outbox[0]
         assert email.to == ["admin@example.com"]
         assert "Dynamic Contact" in email.subject
         assert "Roofing" in email.body
         assert email.alternatives
+        assert lead.form_notification_status == EmailStatus.SENT
+        assert lead.form_notification_sent_at is not None
 
     def test_form_notification_skips_when_disabled(self, lead, form_definition):
         form_definition.email_notification_enabled = False
         form_definition.save(update_fields=["email_notification_enabled"])
+
+        send_form_notification(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert len(mail.outbox) == 0
+        assert lead.form_notification_status == EmailStatus.DISABLED
+
+    def test_form_notification_idempotent(self, lead, form_definition):
+        lead.form_notification_status = EmailStatus.SENT
+        lead.save(update_fields=["form_notification_status"])
 
         send_form_notification(lead.id, form_definition.id)
 
@@ -83,11 +99,32 @@ class TestDynamicFormTasks:
     def test_auto_reply_sends_email(self, lead, form_definition):
         send_auto_reply(lead.id, form_definition.id)
 
+        lead.refresh_from_db()
         assert len(mail.outbox) == 1
         email = mail.outbox[0]
         assert email.to == [lead.email]
         assert "Jane Doe" in email.subject
         assert "Jane Doe" in email.body
+        assert lead.auto_reply_status == EmailStatus.SENT
+        assert lead.auto_reply_sent_at is not None
+
+    def test_auto_reply_skips_when_disabled(self, lead, form_definition):
+        form_definition.auto_reply_enabled = False
+        form_definition.save(update_fields=["auto_reply_enabled"])
+
+        send_auto_reply(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert len(mail.outbox) == 0
+        assert lead.auto_reply_status == EmailStatus.DISABLED
+
+    def test_auto_reply_idempotent(self, lead, form_definition):
+        lead.auto_reply_status = EmailStatus.SENT
+        lead.save(update_fields=["auto_reply_status"])
+
+        send_auto_reply(lead.id, form_definition.id)
+
+        assert len(mail.outbox) == 0
 
     def test_auto_reply_skips_without_email(self, lead, form_definition):
         lead.email = ""
@@ -95,13 +132,19 @@ class TestDynamicFormTasks:
 
         send_auto_reply(lead.id, form_definition.id)
 
+        lead.refresh_from_db()
         assert len(mail.outbox) == 0
+        assert lead.auto_reply_status == EmailStatus.FAILED
+        assert "Submitter email" in lead.auto_reply_last_error
 
     def test_webhook_payload(self, lead, form_definition):
         mock_response = Mock()
         mock_response.raise_for_status.return_value = None
+        mock_response.status_code = 200
 
-        with patch("requests.post", return_value=mock_response) as mock_post:
+        with patch(
+            "sum_core.forms.tasks.requests.post", return_value=mock_response
+        ) as mock_post:
             send_webhook(lead.id, form_definition.id)
 
         assert mock_post.called
@@ -112,11 +155,27 @@ class TestDynamicFormTasks:
         assert payload["submission"]["data"]["service"] == "Roofing"
         assert payload["attribution"]["utm_source"] == "google"
 
+        lead.refresh_from_db()
+        assert lead.form_webhook_status == WebhookStatus.SENT
+        assert lead.form_webhook_sent_at is not None
+        assert lead.form_webhook_last_status_code == 200
+
     def test_webhook_skips_when_disabled(self, lead, form_definition):
         form_definition.webhook_enabled = False
         form_definition.save(update_fields=["webhook_enabled"])
 
-        with patch("requests.post") as mock_post:
+        with patch("sum_core.forms.tasks.requests.post") as mock_post:
+            send_webhook(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert not mock_post.called
+        assert lead.form_webhook_status == WebhookStatus.DISABLED
+
+    def test_webhook_idempotent(self, lead, form_definition):
+        lead.form_webhook_status = WebhookStatus.SENT
+        lead.save(update_fields=["form_webhook_status"])
+
+        with patch("sum_core.forms.tasks.requests.post") as mock_post:
             send_webhook(lead.id, form_definition.id)
 
         assert not mock_post.called
@@ -132,7 +191,18 @@ class TestDynamicFormTasks:
             with pytest.raises(Exception):
                 send_form_notification(lead.id, form_definition.id)
 
+        lead.refresh_from_db()
+        assert lead.form_notification_status == EmailStatus.IN_PROGRESS
+        assert "SMTP" in lead.form_notification_last_error
+
     def test_webhook_retries_on_failure(self, lead, form_definition):
-        with patch("requests.post", side_effect=requests.RequestException("Boom")):
+        with patch(
+            "sum_core.forms.tasks.requests.post",
+            side_effect=requests.RequestException("Boom"),
+        ):
             with pytest.raises(requests.RequestException):
                 send_webhook(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert lead.form_webhook_status == WebhookStatus.IN_PROGRESS
+        assert "Boom" in lead.form_webhook_last_error

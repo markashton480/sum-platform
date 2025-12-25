@@ -9,6 +9,7 @@ Dependencies: FormConfiguration, Lead service, Django cache, Wagtail Site.
 from __future__ import annotations
 
 import json
+import logging
 import re
 from typing import Any
 from uuid import uuid4
@@ -27,6 +28,8 @@ from sum_core.forms.services import SpamCheckResult, run_spam_checks
 from sum_core.leads.services import AttributionData, create_lead_from_submission
 from sum_core.ops.request_utils import get_client_ip
 from wagtail.models import Site
+
+logger = logging.getLogger(__name__)
 
 # UK phone validation regex - accepts common UK formats
 # Matches: 07xxx, +447xxx, 0044 7xxx, 01xxx, 02xxx, 03xxx, etc.
@@ -204,7 +207,7 @@ class FormSubmissionView(View):
 
         # Queue notification tasks AFTER lead is safely persisted
         self._queue_notification_tasks(lead, site.id, request)
-        self._queue_dynamic_form_tasks(lead.id, form_definition.id)
+        self._queue_dynamic_form_tasks(lead, form_definition, request)
 
         return JsonResponse(
             {
@@ -561,41 +564,137 @@ class FormSubmissionView(View):
             lead.zapier_last_error = f"Failed to queue task: {str(e)[:500]}"
             lead.save(update_fields=["zapier_status", "zapier_last_error"])
 
-    def _queue_dynamic_form_tasks(self, lead_id: int, form_definition_id: int) -> None:
+    def _queue_dynamic_form_tasks(
+        self, lead, form_definition: FormDefinition, request
+    ) -> None:
         """Queue async tasks for dynamic form notifications and webhooks."""
-        import logging
-
         from sum_core.forms.tasks import (
             send_auto_reply,
             send_form_notification,
             send_webhook,
         )
+        from sum_core.leads.models import EmailStatus, WebhookStatus
 
-        logger = logging.getLogger(__name__)
+        request_id = getattr(request, "request_id", None)
+        update_fields: list[str] = []
 
-        try:
-            send_form_notification.delay(lead_id, form_definition_id)
-        except Exception:
-            logger.exception(
-                "Failed to queue form notification task",
-                extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
+        queue_form_notification = False
+        if form_definition.email_notification_enabled:
+            if form_definition.notification_emails.strip():
+                lead.form_notification_status = EmailStatus.PENDING
+                lead.form_notification_last_error = ""
+                update_fields.extend(
+                    ["form_notification_status", "form_notification_last_error"]
+                )
+                queue_form_notification = True
+            else:
+                lead.form_notification_status = EmailStatus.FAILED
+                lead.form_notification_last_error = (
+                    "No notification recipients configured"
+                )
+                update_fields.extend(
+                    ["form_notification_status", "form_notification_last_error"]
+                )
+        else:
+            lead.form_notification_status = EmailStatus.DISABLED
+            lead.form_notification_last_error = ""
+            update_fields.extend(
+                ["form_notification_status", "form_notification_last_error"]
             )
 
-        try:
-            send_auto_reply.delay(lead_id, form_definition_id)
-        except Exception:
-            logger.exception(
-                "Failed to queue auto reply task",
-                extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
-            )
+        submitter_email = (lead.email or lead.form_data.get("email") or "").strip()
+        queue_auto_reply = False
+        if form_definition.auto_reply_enabled:
+            if submitter_email:
+                lead.auto_reply_status = EmailStatus.PENDING
+                lead.auto_reply_last_error = ""
+                update_fields.extend(["auto_reply_status", "auto_reply_last_error"])
+                queue_auto_reply = True
+            else:
+                lead.auto_reply_status = EmailStatus.FAILED
+                lead.auto_reply_last_error = "Submitter email missing"
+                update_fields.extend(["auto_reply_status", "auto_reply_last_error"])
+        else:
+            lead.auto_reply_status = EmailStatus.DISABLED
+            lead.auto_reply_last_error = ""
+            update_fields.extend(["auto_reply_status", "auto_reply_last_error"])
 
-        try:
-            send_webhook.delay(lead_id, form_definition_id)
-        except Exception:
-            logger.exception(
-                "Failed to queue form webhook task",
-                extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
-            )
+        queue_webhook = False
+        if form_definition.webhook_enabled:
+            if form_definition.webhook_url:
+                lead.form_webhook_status = WebhookStatus.PENDING
+                lead.form_webhook_last_error = ""
+                update_fields.extend(["form_webhook_status", "form_webhook_last_error"])
+                queue_webhook = True
+            else:
+                lead.form_webhook_status = WebhookStatus.FAILED
+                lead.form_webhook_last_error = "Webhook URL missing"
+                update_fields.extend(["form_webhook_status", "form_webhook_last_error"])
+        else:
+            lead.form_webhook_status = WebhookStatus.DISABLED
+            lead.form_webhook_last_error = ""
+            update_fields.extend(["form_webhook_status", "form_webhook_last_error"])
+
+        if update_fields:
+            lead.save(update_fields=sorted(set(update_fields)))
+
+        if queue_form_notification:
+            try:
+                send_form_notification.delay(
+                    lead.id, form_definition.id, request_id=request_id
+                )
+            except Exception as exc:
+                logger.exception(
+                    "Failed to queue form notification task",
+                    extra={
+                        "lead_id": lead.id,
+                        "form_definition_id": form_definition.id,
+                    },
+                )
+                lead.form_notification_status = EmailStatus.FAILED
+                lead.form_notification_last_error = (
+                    f"Failed to queue task: {str(exc)[:500]}"
+                )
+                lead.save(
+                    update_fields=[
+                        "form_notification_status",
+                        "form_notification_last_error",
+                    ]
+                )
+
+        if queue_auto_reply:
+            try:
+                send_auto_reply.delay(
+                    lead.id, form_definition.id, request_id=request_id
+                )
+            except Exception as exc:
+                logger.exception(
+                    "Failed to queue auto reply task",
+                    extra={
+                        "lead_id": lead.id,
+                        "form_definition_id": form_definition.id,
+                    },
+                )
+                lead.auto_reply_status = EmailStatus.FAILED
+                lead.auto_reply_last_error = f"Failed to queue task: {str(exc)[:500]}"
+                lead.save(update_fields=["auto_reply_status", "auto_reply_last_error"])
+
+        if queue_webhook:
+            try:
+                send_webhook.delay(lead.id, form_definition.id, request_id=request_id)
+            except Exception as exc:
+                logger.exception(
+                    "Failed to queue form webhook task",
+                    extra={
+                        "lead_id": lead.id,
+                        "form_definition_id": form_definition.id,
+                    },
+                )
+                lead.form_webhook_status = WebhookStatus.FAILED
+                lead.form_webhook_last_error = f"Failed to queue task: {str(exc)[:500]}"
+                lead.save(
+                    update_fields=["form_webhook_status", "form_webhook_last_error"]
+                )
 
 
 # Convenience function-based view for URL routing

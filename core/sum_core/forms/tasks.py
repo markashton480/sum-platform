@@ -9,30 +9,55 @@ Dependencies: Celery, Django email backend, HTTP client, Lead model.
 from __future__ import annotations
 
 import logging
+import re
 
 import requests
 from celery import shared_task
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
-from django.template import Context, Template
+from django.core.validators import validate_email
 from django.template.loader import render_to_string
 from django.utils import timezone
+from sum_core.ops.sentry import set_sentry_context
 
 logger = logging.getLogger(__name__)
 
 MAX_RETRIES = 3
 RETRY_BACKOFF = 60  # seconds; exponential backoff uses 60, 120, 240
 WEBHOOK_TIMEOUT = 10  # seconds
+NAME_TOKEN = re.compile(r"{{\s*name\s*}}")
 
 
 def _parse_recipients(emails: str) -> list[str]:
-    return [email.strip() for email in emails.split(",") if email.strip()]
+    """
+    Parse a comma-separated string of email addresses into a cleaned list.
+
+    Invalid email addresses are ignored and logged for observability.
+    """
+    recipients: list[str] = []
+    for raw_email in emails.split(","):
+        email = raw_email.strip()
+        if not email:
+            continue
+        try:
+            validate_email(email)
+        except ValidationError:
+            logger.warning("Invalid notification email", extra={"email": email})
+            continue
+        recipients.append(email)
+    return recipients
 
 
 def _build_webhook_payload(lead, form_definition) -> dict:
+    """
+    Build the webhook payload for dynamic form submissions.
+
+    The payload includes form metadata, submission data, and attribution fields.
+    """
     return {
         "event": "form.submitted",
-        "timestamp": timezone.now().isoformat(),
+        "timestamp": (lead.submitted_at or timezone.now()).isoformat(),
         "form": {
             "id": form_definition.id,
             "name": form_definition.name,
@@ -55,6 +80,11 @@ def _build_webhook_payload(lead, form_definition) -> dict:
     }
 
 
+def _interpolate_name(template: str, name: str) -> str:
+    """Replace the {{name}} placeholder with the submitter's name."""
+    return NAME_TOKEN.sub(name, template)
+
+
 @shared_task(
     bind=True,
     max_retries=MAX_RETRIES,
@@ -63,28 +93,116 @@ def _build_webhook_payload(lead, form_definition) -> dict:
     retry_backoff=True,
     retry_backoff_max=300,
 )
-def send_form_notification(self, lead_id: int, form_definition_id: int) -> None:
+def send_form_notification(
+    self,
+    lead_id: int,
+    form_definition_id: int,
+    request_id: str | None = None,
+) -> None:
     """
     Send email notification to admin recipients when a dynamic form is submitted.
     """
+    from django.db import transaction
     from sum_core.forms.models import FormDefinition
-    from sum_core.leads.models import Lead
+    from sum_core.leads.models import EmailStatus, Lead
+
+    set_sentry_context(
+        request_id=request_id,
+        lead_id=lead_id,
+        task="send_form_notification",
+    )
 
     try:
-        lead = Lead.objects.get(id=lead_id)
         form_definition = FormDefinition.objects.get(id=form_definition_id)
-    except (Lead.DoesNotExist, FormDefinition.DoesNotExist):
+    except FormDefinition.DoesNotExist:
+        Lead.objects.filter(id=lead_id).update(
+            form_notification_status=EmailStatus.FAILED,
+            form_notification_last_error="Form definition missing",
+        )
         logger.warning(
-            "Skipping form notification: lead or form definition missing",
+            "Skipping form notification: form definition missing",
             extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
         )
         return
 
-    if not form_definition.email_notification_enabled:
-        return
-
     recipients = _parse_recipients(form_definition.notification_emails)
-    if not recipients:
+
+    attempt_count = 0
+    try:
+        with transaction.atomic():
+            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+
+            if lead.form_notification_status == EmailStatus.SENT:
+                logger.info(
+                    "Form notification already sent, skipping",
+                    extra={
+                        "lead_id": lead_id,
+                        "request_id": request_id or "-",
+                    },
+                )
+                return
+
+            if (
+                lead.form_notification_status == EmailStatus.IN_PROGRESS
+                and self.request.retries == 0
+            ):
+                logger.info(
+                    "Form notification already in progress, skipping",
+                    extra={
+                        "lead_id": lead_id,
+                        "request_id": request_id or "-",
+                    },
+                )
+                return
+
+            if lead.form_notification_status == EmailStatus.DISABLED:
+                logger.info(
+                    "Form notification disabled, skipping",
+                    extra={
+                        "lead_id": lead_id,
+                        "request_id": request_id or "-",
+                    },
+                )
+                return
+
+            if not form_definition.email_notification_enabled:
+                lead.form_notification_status = EmailStatus.DISABLED
+                lead.form_notification_last_error = ""
+                lead.save(
+                    update_fields=[
+                        "form_notification_status",
+                        "form_notification_last_error",
+                    ]
+                )
+                return
+
+            if not recipients:
+                lead.form_notification_status = EmailStatus.FAILED
+                lead.form_notification_last_error = (
+                    "No notification recipients configured"
+                )
+                lead.save(
+                    update_fields=[
+                        "form_notification_status",
+                        "form_notification_last_error",
+                    ]
+                )
+                return
+
+            lead.form_notification_status = EmailStatus.IN_PROGRESS
+            lead.form_notification_attempts += 1
+            lead.save(
+                update_fields=[
+                    "form_notification_status",
+                    "form_notification_attempts",
+                ]
+            )
+            attempt_count = lead.form_notification_attempts
+    except Lead.DoesNotExist:
+        logger.warning(
+            "Skipping form notification: lead missing",
+            extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
+        )
         return
 
     context = {"lead": lead, "form_definition": form_definition}
@@ -97,6 +215,32 @@ def send_form_notification(self, lead_id: int, form_definition_id: int) -> None:
         plain_message = render_to_string(
             "sum_core/emails/form_notification.txt", context
         )
+    except Exception as exc:
+        error_message = f"Template render failed: {str(exc)[:500]}"
+        try:
+            with transaction.atomic():
+                lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+                lead.form_notification_status = EmailStatus.FAILED
+                lead.form_notification_last_error = error_message
+                lead.save(
+                    update_fields=[
+                        "form_notification_status",
+                        "form_notification_last_error",
+                    ]
+                )
+        except Lead.DoesNotExist:
+            logger.warning(
+                "Form notification lead missing during error update",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
+            return
+        logger.error(
+            "Form notification template render failed",
+            extra={"lead_id": lead_id, "request_id": request_id or "-"},
+        )
+        return
+
+    try:
         send_mail(
             subject=subject,
             message=plain_message,
@@ -106,7 +250,74 @@ def send_form_notification(self, lead_id: int, form_definition_id: int) -> None:
             fail_silently=False,
         )
     except Exception as exc:
-        raise self.retry(exc=exc, countdown=RETRY_BACKOFF * (2**self.request.retries))
+        error_message = str(exc)[:500]
+        try:
+            with transaction.atomic():
+                lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+                lead.form_notification_last_error = error_message
+                lead.form_notification_status = (
+                    EmailStatus.IN_PROGRESS
+                    if self.request.retries < MAX_RETRIES
+                    else EmailStatus.FAILED
+                )
+                lead.save(
+                    update_fields=[
+                        "form_notification_status",
+                        "form_notification_last_error",
+                    ]
+                )
+        except Lead.DoesNotExist:
+            logger.warning(
+                "Form notification lead missing during error update",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
+            return
+
+        if self.request.retries < MAX_RETRIES:
+            logger.warning(
+                "Form notification failed, will retry",
+                extra={
+                    "lead_id": lead_id,
+                    "request_id": request_id or "-",
+                    "attempt": attempt_count,
+                },
+            )
+            raise
+
+        logger.error(
+            "Form notification failed permanently",
+            extra={
+                "lead_id": lead_id,
+                "request_id": request_id or "-",
+                "attempts": attempt_count,
+            },
+        )
+        return
+
+    try:
+        with transaction.atomic():
+            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+            lead.form_notification_status = EmailStatus.SENT
+            lead.form_notification_sent_at = timezone.now()
+            lead.form_notification_last_error = ""
+            lead.save(
+                update_fields=[
+                    "form_notification_status",
+                    "form_notification_sent_at",
+                    "form_notification_last_error",
+                ]
+            )
+    except Lead.DoesNotExist:
+        logger.warning(
+            "Form notification lead missing during success update",
+            extra={"lead_id": lead_id, "request_id": request_id or "-"},
+        )
+        return
+
+    logger.info(
+        "Form notification sent successfully",
+        extra={"lead_id": lead_id, "request_id": request_id or "-"},
+    )
 
 
 @shared_task(
@@ -117,35 +328,105 @@ def send_form_notification(self, lead_id: int, form_definition_id: int) -> None:
     retry_backoff=True,
     retry_backoff_max=300,
 )
-def send_auto_reply(self, lead_id: int, form_definition_id: int) -> None:
-    """Send auto-reply email to the submitter."""
+def send_auto_reply(
+    self,
+    lead_id: int,
+    form_definition_id: int,
+    request_id: str | None = None,
+) -> None:
+    """
+    Send auto-reply email to the submitter.
+    """
+    from django.db import transaction
     from sum_core.forms.models import FormDefinition
-    from sum_core.leads.models import Lead
+    from sum_core.leads.models import EmailStatus, Lead
+
+    set_sentry_context(
+        request_id=request_id,
+        lead_id=lead_id,
+        task="send_auto_reply",
+    )
 
     try:
-        lead = Lead.objects.get(id=lead_id)
         form_definition = FormDefinition.objects.get(id=form_definition_id)
-    except (Lead.DoesNotExist, FormDefinition.DoesNotExist):
+    except FormDefinition.DoesNotExist:
+        Lead.objects.filter(id=lead_id).update(
+            auto_reply_status=EmailStatus.FAILED,
+            auto_reply_last_error="Form definition missing",
+        )
         logger.warning(
-            "Skipping auto reply: lead or form definition missing",
+            "Skipping auto reply: form definition missing",
             extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
         )
         return
 
-    if not form_definition.auto_reply_enabled:
-        return
+    attempt_count = 0
+    try:
+        with transaction.atomic():
+            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
 
-    submitter_email = lead.email or lead.form_data.get("email")
-    if not submitter_email:
+            if lead.auto_reply_status == EmailStatus.SENT:
+                logger.info(
+                    "Auto reply already sent, skipping",
+                    extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                )
+                return
+
+            if (
+                lead.auto_reply_status == EmailStatus.IN_PROGRESS
+                and self.request.retries == 0
+            ):
+                logger.info(
+                    "Auto reply already in progress, skipping",
+                    extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                )
+                return
+
+            if lead.auto_reply_status == EmailStatus.DISABLED:
+                logger.info(
+                    "Auto reply disabled, skipping",
+                    extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                )
+                return
+
+            if not form_definition.auto_reply_enabled:
+                lead.auto_reply_status = EmailStatus.DISABLED
+                lead.auto_reply_last_error = ""
+                lead.save(update_fields=["auto_reply_status", "auto_reply_last_error"])
+                return
+
+            submitter_email = (lead.email or lead.form_data.get("email") or "").strip()
+            if not submitter_email:
+                lead.auto_reply_status = EmailStatus.FAILED
+                lead.auto_reply_last_error = "Submitter email missing"
+                lead.save(update_fields=["auto_reply_status", "auto_reply_last_error"])
+                return
+
+            try:
+                validate_email(submitter_email)
+            except ValidationError:
+                lead.auto_reply_status = EmailStatus.FAILED
+                lead.auto_reply_last_error = "Submitter email invalid"
+                lead.save(update_fields=["auto_reply_status", "auto_reply_last_error"])
+                return
+
+            lead.auto_reply_status = EmailStatus.IN_PROGRESS
+            lead.auto_reply_attempts += 1
+            lead.save(update_fields=["auto_reply_status", "auto_reply_attempts"])
+            attempt_count = lead.auto_reply_attempts
+    except Lead.DoesNotExist:
+        logger.warning(
+            "Skipping auto reply: lead missing",
+            extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
+        )
         return
 
     subject = form_definition.auto_reply_subject or "Thank you for contacting us"
     body = form_definition.auto_reply_body or form_definition.success_message
 
     name = lead.name or lead.form_data.get("name", "there")
-    context = Context({"name": name})
-    subject = Template(subject).render(context)
-    body = Template(body).render(context)
+    subject = _interpolate_name(subject, name)
+    body = _interpolate_name(body, name)
 
     try:
         send_mail(
@@ -156,33 +437,171 @@ def send_auto_reply(self, lead_id: int, form_definition_id: int) -> None:
             fail_silently=False,
         )
     except Exception as exc:
-        raise self.retry(exc=exc, countdown=RETRY_BACKOFF * (2**self.request.retries))
+        error_message = str(exc)[:500]
+        try:
+            with transaction.atomic():
+                lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+                lead.auto_reply_last_error = error_message
+                lead.auto_reply_status = (
+                    EmailStatus.IN_PROGRESS
+                    if self.request.retries < MAX_RETRIES
+                    else EmailStatus.FAILED
+                )
+                lead.save(update_fields=["auto_reply_status", "auto_reply_last_error"])
+        except Lead.DoesNotExist:
+            logger.warning(
+                "Auto reply lead missing during error update",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
+            return
+
+        if self.request.retries < MAX_RETRIES:
+            logger.warning(
+                "Auto reply failed, will retry",
+                extra={
+                    "lead_id": lead_id,
+                    "request_id": request_id or "-",
+                    "attempt": attempt_count,
+                },
+            )
+            raise
+
+        logger.error(
+            "Auto reply failed permanently",
+            extra={
+                "lead_id": lead_id,
+                "request_id": request_id or "-",
+                "attempts": attempt_count,
+            },
+        )
+        return
+
+    try:
+        with transaction.atomic():
+            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+            lead.auto_reply_status = EmailStatus.SENT
+            lead.auto_reply_sent_at = timezone.now()
+            lead.auto_reply_last_error = ""
+            lead.save(
+                update_fields=[
+                    "auto_reply_status",
+                    "auto_reply_sent_at",
+                    "auto_reply_last_error",
+                ]
+            )
+    except Lead.DoesNotExist:
+        logger.warning(
+            "Auto reply lead missing during success update",
+            extra={"lead_id": lead_id, "request_id": request_id or "-"},
+        )
+        return
+
+    logger.info(
+        "Auto reply sent successfully",
+        extra={"lead_id": lead_id, "request_id": request_id or "-"},
+    )
 
 
 @shared_task(
     bind=True,
     max_retries=MAX_RETRIES,
     default_retry_delay=RETRY_BACKOFF,
-    autoretry_for=(Exception,),
+    autoretry_for=(requests.RequestException,),
     retry_backoff=True,
     retry_backoff_max=300,
 )
-def send_webhook(self, lead_id: int, form_definition_id: int) -> None:
-    """Send webhook with form submission data."""
+def send_webhook(
+    self,
+    lead_id: int,
+    form_definition_id: int,
+    request_id: str | None = None,
+) -> None:
+    """
+    Send webhook with form submission data.
+    """
+    from django.db import transaction
     from sum_core.forms.models import FormDefinition
-    from sum_core.leads.models import Lead
+    from sum_core.leads.models import Lead, WebhookStatus
+
+    set_sentry_context(
+        request_id=request_id,
+        lead_id=lead_id,
+        task="send_form_webhook",
+    )
 
     try:
-        lead = Lead.objects.get(id=lead_id)
         form_definition = FormDefinition.objects.get(id=form_definition_id)
-    except (Lead.DoesNotExist, FormDefinition.DoesNotExist):
+    except FormDefinition.DoesNotExist:
+        Lead.objects.filter(id=lead_id).update(
+            form_webhook_status=WebhookStatus.FAILED,
+            form_webhook_last_error="Form definition missing",
+        )
         logger.warning(
-            "Skipping webhook: lead or form definition missing",
+            "Skipping webhook: form definition missing",
             extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
         )
         return
 
-    if not form_definition.webhook_enabled or not form_definition.webhook_url:
+    attempt_count = 0
+    try:
+        with transaction.atomic():
+            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+
+            if lead.form_webhook_status == WebhookStatus.SENT:
+                logger.info(
+                    "Form webhook already sent, skipping",
+                    extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                )
+                return
+
+            if (
+                lead.form_webhook_status == WebhookStatus.IN_PROGRESS
+                and self.request.retries == 0
+            ):
+                logger.info(
+                    "Form webhook already in progress, skipping",
+                    extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                )
+                return
+
+            if lead.form_webhook_status == WebhookStatus.DISABLED:
+                logger.info(
+                    "Form webhook disabled, skipping",
+                    extra={"lead_id": lead_id, "request_id": request_id or "-"},
+                )
+                return
+
+            if not form_definition.webhook_enabled:
+                lead.form_webhook_status = WebhookStatus.DISABLED
+                lead.form_webhook_last_error = ""
+                lead.save(
+                    update_fields=[
+                        "form_webhook_status",
+                        "form_webhook_last_error",
+                    ]
+                )
+                return
+
+            if not form_definition.webhook_url:
+                lead.form_webhook_status = WebhookStatus.FAILED
+                lead.form_webhook_last_error = "Webhook URL missing"
+                lead.save(
+                    update_fields=[
+                        "form_webhook_status",
+                        "form_webhook_last_error",
+                    ]
+                )
+                return
+
+            lead.form_webhook_status = WebhookStatus.IN_PROGRESS
+            lead.form_webhook_attempts += 1
+            lead.save(update_fields=["form_webhook_status", "form_webhook_attempts"])
+            attempt_count = lead.form_webhook_attempts
+    except Lead.DoesNotExist:
+        logger.warning(
+            "Skipping webhook: lead missing",
+            extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
+        )
         return
 
     payload = _build_webhook_payload(lead, form_definition)
@@ -196,4 +615,76 @@ def send_webhook(self, lead_id: int, form_definition_id: int) -> None:
         )
         response.raise_for_status()
     except requests.RequestException as exc:
-        raise self.retry(exc=exc, countdown=RETRY_BACKOFF * (2**self.request.retries))
+        status_code = getattr(getattr(exc, "response", None), "status_code", None)
+        error_message = str(exc)[:500]
+        try:
+            with transaction.atomic():
+                lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+                lead.form_webhook_last_error = error_message
+                lead.form_webhook_last_status_code = status_code
+                lead.form_webhook_status = (
+                    WebhookStatus.IN_PROGRESS
+                    if self.request.retries < MAX_RETRIES
+                    else WebhookStatus.FAILED
+                )
+                lead.save(
+                    update_fields=[
+                        "form_webhook_status",
+                        "form_webhook_last_error",
+                        "form_webhook_last_status_code",
+                    ]
+                )
+        except Lead.DoesNotExist:
+            logger.warning(
+                "Form webhook lead missing during error update",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
+            return
+
+        if self.request.retries < MAX_RETRIES:
+            logger.warning(
+                "Form webhook failed, will retry",
+                extra={
+                    "lead_id": lead_id,
+                    "request_id": request_id or "-",
+                    "attempt": attempt_count,
+                },
+            )
+            raise
+
+        logger.error(
+            "Form webhook failed permanently",
+            extra={
+                "lead_id": lead_id,
+                "request_id": request_id or "-",
+                "attempts": attempt_count,
+            },
+        )
+        return
+
+    try:
+        with transaction.atomic():
+            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+            lead.form_webhook_status = WebhookStatus.SENT
+            lead.form_webhook_sent_at = timezone.now()
+            lead.form_webhook_last_error = ""
+            lead.form_webhook_last_status_code = response.status_code
+            lead.save(
+                update_fields=[
+                    "form_webhook_status",
+                    "form_webhook_sent_at",
+                    "form_webhook_last_error",
+                    "form_webhook_last_status_code",
+                ]
+            )
+    except Lead.DoesNotExist:
+        logger.warning(
+            "Form webhook lead missing during success update",
+            extra={"lead_id": lead_id, "request_id": request_id or "-"},
+        )
+        return
+
+    logger.info(
+        "Form webhook sent successfully",
+        extra={"lead_id": lead_id, "request_id": request_id or "-"},
+    )

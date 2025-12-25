@@ -16,7 +16,7 @@ Submission Info
 - Submitted At: {{ lead.submitted_at }}
 
 {% if lead.form_data %}Additional Fields
-{% for key, value in lead.form_data.items %}- {{ key }}: {% if value.name %}{{ value.name }}{% elif value.path %}{{ value.path }}{% else %}{{ value }}{% endif %}
+{% for key, value in lead.form_data.items %}- {{ key }}: {% if value.name %}{{ value.name|default_if_none:"" }}{% elif value.path %}{{ value.path|default_if_none:"" }}{% else %}{{ value|default_if_none:"" }}{% endif %}
 {% endfor %}
 {% endif %}
 

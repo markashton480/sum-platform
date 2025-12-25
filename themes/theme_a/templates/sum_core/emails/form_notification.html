@@ -24,13 +24,13 @@
 
         <h2>Contact Details</h2>
         <div class="field"><span class="label">Name:</span> <span class="value">{{ lead.name }}</span></div>
-        <div class="field"><span class="label">Email:</span> <span class="value"><a href="mailto:{{ lead.email }}">{{ lead.email }}</a></span></div>
+        <div class="field"><span class="label">Email:</span> <span class="value"><a href="mailto:{{ lead.email|urlencode }}">{{ lead.email }}</a></span></div>
         {% if lead.phone %}
-        <div class="field"><span class="label">Phone:</span> <span class="value"><a href="tel:{{ lead.phone }}">{{ lead.phone }}</a></span></div>
+        <div class="field"><span class="label">Phone:</span> <span class="value"><a href="tel:{{ lead.phone|urlencode }}">{{ lead.phone }}</a></span></div>
         {% endif %}
 
         <h2>Message</h2>
-        <div class="field">{{ lead.message }}</div>
+        <div class="field">{{ lead.message|linebreaksbr }}</div>
 
         <h2>Submission Info</h2>
         <div class="field"><span class="label">Form:</span> <span class="value">{{ form_definition.name }} ({{ form_definition.slug }})</span></div>
@@ -48,9 +48,9 @@
             <tbody>
                 {% for key, value in lead.form_data.items %}
                 <tr>
-                    <td>{{ key }}</td>
+                    <td>{{ key|escape }}</td>
                     <td>
-                        {% if value.name %}{{ value.name }}{% elif value.path %}{{ value.path }}{% else %}{{ value }}{% endif %}
+                        {% if value.name %}{{ value.name|escape }}{% elif value.path %}{{ value.path|escape }}{% else %}{{ value|escape }}{% endif %}
                     </td>
                 </tr>
                 {% endfor %}
