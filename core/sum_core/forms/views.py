@@ -11,14 +11,19 @@ from __future__ import annotations
 import json
 import re
 from typing import Any
+from uuid import uuid4
 
+from django.core.files.storage import default_storage
+from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import validate_email
-from django.http import JsonResponse
+from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
+from django.utils.text import get_valid_filename
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
-from sum_core.forms.models import FormConfiguration
-from sum_core.forms.services import run_spam_checks
+from sum_core.forms.dynamic import DynamicFormGenerator
+from sum_core.forms.models import FormConfiguration, FormDefinition
+from sum_core.forms.services import SpamCheckResult, run_spam_checks
 from sum_core.leads.services import AttributionData, create_lead_from_submission
 from sum_core.ops.request_utils import get_client_ip
 from wagtail.models import Site
@@ -68,10 +73,18 @@ class FormSubmissionView(View):
                 status=400,
             )
 
-        # Get form configuration
+        # Check if this is a dynamic form submission
+        if data.get("form_definition_id"):
+            return self._handle_dynamic_form_submission(request, data, site)
+
+        return self._handle_static_form_submission(request, data, site)
+
+    def _handle_static_form_submission(
+        self, request, data: dict[str, Any], site: Site
+    ) -> JsonResponse:
+        """Process legacy/static form submissions."""
         config = self._get_config(site)
 
-        # Run spam checks
         spam_result = run_spam_checks(
             form_data=data,
             ip_address=get_client_ip(request),
@@ -81,27 +94,9 @@ class FormSubmissionView(View):
             rate_limit_per_hour=config.rate_limit_per_ip_per_hour,
             min_seconds_to_submit=config.min_seconds_to_submit,
         )
-
-        if spam_result.should_rate_limit:
-            return JsonResponse(
-                {"success": False, "errors": {"__all__": ["Too many requests"]}},
-                status=429,
-            )
-
-        if spam_result.is_spam:
-            # Return 400 for spam (indistinguishable from validation error to bots)
-            is_xhr = request.headers.get("X-Requested-With") == "XMLHttpRequest"
-            if is_xhr and spam_result.reason.startswith("Submitted too quickly"):
-                message = "Please wait a moment and try again."
-            elif is_xhr and spam_result.reason == "Time token expired":
-                message = "Please refresh the page and try again."
-            else:
-                message = "Invalid submission"
-
-            return JsonResponse(
-                {"success": False, "errors": {"__all__": [message]}},
-                status=400,
-            )
+        spam_response = self._spam_response(spam_result, request)
+        if spam_response:
+            return spam_response
 
         # Validate required fields
         validation_errors = self._validate_submission(data, config)
@@ -128,6 +123,99 @@ class FormSubmissionView(View):
             {
                 "success": True,
                 "message": "Thank you for your submission",
+                "lead_id": lead.id,
+            },
+            status=200,
+        )
+
+    def _handle_dynamic_form_submission(
+        self, request, data: dict[str, Any], site: Site
+    ) -> JsonResponse:
+        """Process dynamic form submissions from FormDefinition."""
+        form_definition_id = data.get("form_definition_id")
+        form_definition = self._get_form_definition(form_definition_id, site)
+        if form_definition is None:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "errors": {"__all__": ["Form definition not found"]},
+                },
+                status=400,
+            )
+
+        if not form_definition.is_active:
+            return JsonResponse(
+                {"success": False, "errors": {"__all__": ["Form is inactive"]}},
+                status=400,
+            )
+
+        config = self._get_config(site)
+        if config.honeypot_field_name != "website":
+            if data.get(config.honeypot_field_name):
+                spam_response = self._spam_response(
+                    SpamCheckResult(is_spam=True, reason="Honeypot field filled"),
+                    request,
+                )
+                if spam_response:
+                    return spam_response
+
+        spam_result = run_spam_checks(
+            form_data=data,
+            ip_address=get_client_ip(request),
+            site_id=site.id,
+            time_token=data.get("_time_token", ""),
+            honeypot_field_name="website",
+            rate_limit_per_hour=config.rate_limit_per_ip_per_hour,
+            min_seconds_to_submit=config.min_seconds_to_submit,
+        )
+        spam_response = self._spam_response(spam_result, request)
+        if spam_response:
+            return spam_response
+
+        form_class = DynamicFormGenerator(form_definition).generate_form_class()
+        form_payload = request.POST if request.POST else data
+        form = form_class(data=form_payload, files=request.FILES)
+
+        if not form.is_valid():
+            return JsonResponse(
+                {"success": False, "errors": self._format_form_errors(form)},
+                status=400,
+            )
+
+        lead_field_errors = self._validate_dynamic_lead_fields(form.cleaned_data)
+        if lead_field_errors:
+            return JsonResponse(
+                {"success": False, "errors": lead_field_errors},
+                status=400,
+            )
+
+        form_data = self._build_dynamic_form_data(form, form_definition, request)
+        attribution = self._build_attribution_data(data, request)
+
+        try:
+            lead = create_lead_from_submission(
+                name=form.cleaned_data.get("name", ""),
+                email=form.cleaned_data.get("email", ""),
+                message=form.cleaned_data.get("message", ""),
+                form_type=form_definition.slug,
+                phone=form.cleaned_data.get("phone"),
+                form_data=form_data if form_data else None,
+                attribution=attribution,
+            )
+        except ValueError as e:
+            return JsonResponse(
+                {"success": False, "errors": {"__all__": [str(e)]}},
+                status=400,
+            )
+
+        # Queue notification tasks AFTER lead is safely persisted
+        self._queue_notification_tasks(lead, site.id, request)
+
+        return JsonResponse(
+            {
+                "success": True,
+                "message": form_definition.success_message
+                or "Thank you for your submission!",
                 "lead_id": lead.id,
             },
             status=200,
@@ -207,6 +295,133 @@ class FormSubmissionView(View):
                 errors["form_type"] = ["Form type is required"]
 
         return errors
+
+    def _validate_dynamic_lead_fields(self, cleaned_data: dict[str, Any]) -> dict:
+        """Ensure required lead fields exist in dynamic form submissions."""
+        required_fields = {
+            "name": "Name is required",
+            "email": "Email is required",
+            "message": "Message is required",
+        }
+        errors: dict[str, list[str]] = {}
+        for field, message in required_fields.items():
+            value = cleaned_data.get(field, "")
+            if not str(value).strip():
+                errors[field] = [message]
+        return errors
+
+    def _build_dynamic_form_data(
+        self, form, form_definition: FormDefinition, request: HttpRequest
+    ) -> dict[str, Any]:
+        """Extract non-core dynamic fields, persisting uploads to storage."""
+        standard_fields = {"name", "email", "message", "phone"}
+        data: dict[str, Any] = {}
+        for field_name, value in form.cleaned_data.items():
+            if field_name in standard_fields:
+                continue
+            if isinstance(value, UploadedFile):
+                data[field_name] = self._store_uploaded_file(
+                    value, form_definition, field_name
+                )
+            else:
+                data[field_name] = value
+
+        data["ip_address"] = get_client_ip(request)
+        return data
+
+    def _store_uploaded_file(
+        self,
+        uploaded_file: UploadedFile,
+        form_definition: FormDefinition,
+        field_name: str,
+    ) -> dict[str, Any]:
+        """Save uploaded file to storage and return metadata for form_data."""
+        safe_name = get_valid_filename(uploaded_file.name or "upload")
+        unique_name = f"{uuid4().hex}_{safe_name}"
+        path = f"forms/{form_definition.slug}/{field_name}/{unique_name}"
+        saved_path = default_storage.save(path, uploaded_file)
+        return {
+            "name": uploaded_file.name,
+            "path": saved_path,
+            "size": uploaded_file.size,
+            "content_type": uploaded_file.content_type,
+        }
+
+    def _build_attribution_data(
+        self, data: dict[str, Any], request: HttpRequest
+    ) -> AttributionData:
+        """Build AttributionData for dynamic form submissions."""
+
+        def pick(*values: str) -> str:
+            return next((value for value in values if value), "")
+
+        referrer = request.META.get("HTTP_REFERER", "")
+        return AttributionData(
+            utm_source=pick(
+                data.get("utm_source", ""), request.GET.get("utm_source", "")
+            ),
+            utm_medium=pick(
+                data.get("utm_medium", ""), request.GET.get("utm_medium", "")
+            ),
+            utm_campaign=pick(
+                data.get("utm_campaign", ""), request.GET.get("utm_campaign", "")
+            ),
+            utm_term=pick(data.get("utm_term", ""), request.GET.get("utm_term", "")),
+            utm_content=pick(
+                data.get("utm_content", ""), request.GET.get("utm_content", "")
+            ),
+            landing_page_url=pick(
+                data.get("landing_page_url", ""), referrer, request.path
+            ),
+            page_url=pick(data.get("page_url", ""), referrer),
+            referrer_url=pick(data.get("referrer_url", ""), referrer),
+        )
+
+    def _format_form_errors(self, form) -> dict[str, list[str]]:
+        """Convert Django form errors to JSON-serializable dict."""
+        errors: dict[str, list[str]] = {}
+        for field, messages in form.errors.get_json_data().items():
+            errors[field] = [entry.get("message", "") for entry in messages]
+        return errors
+
+    def _get_form_definition(
+        self, form_definition_id: str | None, site: Site
+    ) -> FormDefinition | None:
+        """Fetch a form definition for the current site."""
+        if not form_definition_id:
+            return None
+        try:
+            form_definition_pk = int(form_definition_id)
+        except (TypeError, ValueError):
+            return None
+        return FormDefinition.objects.filter(pk=form_definition_pk, site=site).first()
+
+    def _spam_response(
+        self, spam_result: SpamCheckResult, request: HttpRequest
+    ) -> JsonResponse | None:
+        """Return a JsonResponse for spam/rate-limit results."""
+        if spam_result.should_rate_limit:
+            return JsonResponse(
+                {"success": False, "errors": {"__all__": ["Too many requests"]}},
+                status=429,
+            )
+
+        if spam_result.is_spam:
+            # Return 400 for spam (indistinguishable from validation error to bots)
+            is_xhr = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            if is_xhr and spam_result.reason.startswith("Submitted too quickly"):
+                message = "Please wait a moment and try again."
+            elif is_xhr and spam_result.reason == "Time token expired":
+                message = "Please refresh the page and try again."
+            else:
+                message = "Invalid submission"
+
+            return JsonResponse(
+                {"success": False, "errors": {"__all__": [message]}},
+                status=400,
+            )
+
+        return None
 
     def _create_lead(self, data: dict, site: Site):
         """

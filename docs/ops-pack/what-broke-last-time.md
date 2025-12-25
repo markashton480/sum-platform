@@ -46,6 +46,16 @@
 
 ## Site: sum-platform (Core)
 
+**Date:** 2025-12-25  
+**Version:** v0.7.1-dev  
+**Symptom:** `make format` rewrote files inside `.venv/`, because the target ran Black and isort against `.` with no `.venv` exclusion.  
+**Fix:** Scoped `make format` to `core`, `cli`, `tests`, and set isort to use `pyproject.toml`, preventing tool runs inside `.venv`.  
+**Follow-up:** Keep format targets scoped to tracked source dirs; avoid running formatters at repo root.
+
+---
+
+## Site: sum-platform (Core)
+
 **Date:** 2025-12-24  
 **Version:** v0.5.0 → v0.5.1  
 **Symptom:** Pip install from public tag failed (`project.name` was `Straight Up Marketing Platform`, not a valid PEP 508 identifier). Release verification broke at `pip install "sum_core @ git+...@v0.5.0"`.  
