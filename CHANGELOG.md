@@ -2,7 +2,7 @@
 
 ## [v0.5.3] - 2025-12-25
 ### Changed
-- Release sync staging now defaults to `/tmp/sum-core-sync` (outside the repo) to prevent accidental gitlinks; docs updated to match.
+- Sync staging now defaults to `/tmp/sum-core-sync` to avoid accidental gitlinks; release docs updated.
 
 ## [v0.5.2] - 2025-12-24
 ### Fixed

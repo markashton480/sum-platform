@@ -168,7 +168,7 @@ python scripts/sync_to_public.py --public-repo-url git@github.com:markashton480/
 ```
 
 **What the sync does:**
-1. Clones/updates `sum-core` locally (default path: `/tmp/sum-core-sync`; do not keep clones inside the repo)
+1. Clones/updates `sum-core` locally (default: `/tmp/sum-core-sync`, not inside the repo)
 2. Removes existing content (except `.git`)
 3. Copies: `core/`, `boilerplate/`, `docs/public/` → `docs/`, `pyproject.toml`, `README.md`, `LICENSE`
 4. Commits: `chore(release): sync v0.6.0 from sum-platform`
