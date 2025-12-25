@@ -10,9 +10,10 @@ from __future__ import annotations
 from typing import cast
 
 from django.core.exceptions import ValidationError
-from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.core.paginator import Paginator
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.html import strip_tags
 from sum_core.blocks import PageStreamBlock
@@ -120,7 +121,7 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         verbose_name = "Blog Index Page"
         verbose_name_plural = "Blog Index Pages"
 
-    def get_posts(self):
+    def get_posts(self) -> models.QuerySet[BlogPostPage]:
         """Return live BlogPostPage children ordered by published date."""
         return (
             BlogPostPage.objects.child_of(self)
@@ -130,7 +131,9 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
             .order_by("-published_date")
         )
 
-    def get_posts_by_category(self, category: Category):
+    def get_posts_by_category(
+        self, category: Category
+    ) -> models.QuerySet[BlogPostPage]:
         """Return blog posts filtered by category."""
         return self.get_posts().filter(category=category)
 
@@ -153,11 +156,25 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
                 {"title": "Only one BlogIndexPage is allowed per site."}
             )
 
+    def save(self, *args, **kwargs):
+        """Enforce singleton validation even for programmatic saves."""
+        self.clean()
+        super().save(*args, **kwargs)
+
     def get_context(self, request, *args, **kwargs):
-        """Add pagination and category filtering to template context."""
+        """
+        Add pagination and category filtering to template context.
+
+        Query params:
+        - category: category slug to filter
+        - page: 1-based page number
+        If request is None, defaults to first page with no filter.
+        Categories are annotated with post_count for listing use.
+        """
         context = super().get_context(request, *args, **kwargs)
 
-        posts = self.get_posts()
+        all_posts = self.get_posts()
+        posts = all_posts
         query_params = request.GET if request is not None else {}
         category_slug = query_params.get("category")
         selected_category = None
@@ -165,22 +182,21 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         if category_slug:
             try:
                 selected_category = Category.objects.get(slug=category_slug)
-                posts = self.get_posts_by_category(selected_category)
+                posts = posts.filter(category=selected_category)
             except Category.DoesNotExist:
                 selected_category = None
 
         paginator = Paginator(posts, self.posts_per_page)
         page_num = query_params.get("page", 1)
-
-        try:
-            paginated_posts = paginator.page(page_num)
-        except PageNotAnInteger:
-            paginated_posts = paginator.page(1)
-        except EmptyPage:
-            paginated_posts = paginator.page(paginator.num_pages)
+        paginated_posts = paginator.get_page(page_num)
 
         context["posts"] = paginated_posts
-        context["categories"] = Category.objects.all()
+        context["categories"] = Category.objects.annotate(
+            post_count=Count(
+                "blog_posts",
+                filter=Q(blog_posts__in=all_posts),
+            )
+        )
         context["selected_category"] = selected_category
 
         return context
