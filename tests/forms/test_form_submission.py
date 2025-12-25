@@ -74,7 +74,7 @@ def make_valid_submission_data(time_token: str = "") -> dict:
     }
 
 
-def option(value: str, label: str) -> tuple[str, dict[str, str]]:
+def make_select_option(value: str, label: str) -> tuple[str, dict[str, str]]:
     """Helper to define select options for dynamic forms."""
     return ("option", {"value": value, "label": label})
 
@@ -99,7 +99,7 @@ def create_dynamic_form_definition(wagtail_site, *, is_active: bool = True):
                 {
                     "field_name": "service",
                     "label": "Service",
-                    "choices": [option("roofing", "Roofing")],
+                    "choices": [make_select_option("roofing", "Roofing")],
                     "allow_multiple": False,
                 },
             ),
@@ -834,8 +834,11 @@ class TestDynamicFormSubmission:
         assert response.status_code == 200
         lead = Lead.objects.latest("submitted_at")
         file_payload = lead.form_data["attachment"]
-        assert file_payload["name"] == "resume.pdf"
-        assert default_storage.exists(file_payload["path"])
+        try:
+            assert file_payload["name"] == "resume.pdf"
+            assert default_storage.exists(file_payload["path"])
+        finally:
+            default_storage.delete(file_payload["path"])
 
 
 @pytest.mark.django_db

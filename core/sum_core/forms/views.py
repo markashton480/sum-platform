@@ -150,14 +150,15 @@ class FormSubmissionView(View):
             )
 
         config = self._get_config(site)
-        if config.honeypot_field_name != "website":
-            if data.get(config.honeypot_field_name):
-                spam_response = self._spam_response(
-                    SpamCheckResult(is_spam=True, reason="Honeypot field filled"),
-                    request,
-                )
-                if spam_response:
-                    return spam_response
+        if config.honeypot_field_name != "website" and data.get(
+            config.honeypot_field_name
+        ):
+            spam_response = self._spam_response(
+                SpamCheckResult(is_spam=True, reason="Honeypot field filled"),
+                request,
+            )
+            if spam_response:
+                return spam_response
 
         spam_result = run_spam_checks(
             form_data=data,
@@ -173,8 +174,7 @@ class FormSubmissionView(View):
             return spam_response
 
         form_class = DynamicFormGenerator(form_definition).generate_form_class()
-        form_payload = request.POST if request.POST else data
-        form = form_class(data=form_payload, files=request.FILES)
+        form = form_class(data=data, files=request.FILES)
 
         if not form.is_valid():
             return JsonResponse(
@@ -199,7 +199,7 @@ class FormSubmissionView(View):
                 message=form.cleaned_data.get("message", ""),
                 form_type=form_definition.slug,
                 phone=form.cleaned_data.get("phone"),
-                form_data=form_data if form_data else None,
+                form_data=form_data or None,
                 attribution=attribution,
             )
         except ValueError as e:
@@ -337,8 +337,10 @@ class FormSubmissionView(View):
     ) -> dict[str, Any]:
         """Save uploaded file to storage and return metadata for form_data."""
         safe_name = get_valid_filename(uploaded_file.name or "upload")
+        safe_form_slug = get_valid_filename(str(form_definition.slug))
+        safe_field_name = get_valid_filename(field_name)
         unique_name = f"{uuid4().hex}_{safe_name}"
-        path = f"forms/{form_definition.slug}/{field_name}/{unique_name}"
+        path = f"forms/{safe_form_slug}/{safe_field_name}/{unique_name}"
         saved_path = default_storage.save(path, uploaded_file)
         return {
             "name": uploaded_file.name,
