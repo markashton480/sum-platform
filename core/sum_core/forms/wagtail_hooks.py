@@ -21,6 +21,7 @@ class CloneFormDefinitionMenuItem(ActionMenuItem):
     name = "action-clone"
     icon_name = "copy"
     order = 70
+    template_name = "sum_core/forms/action_menu/clone.html"
 
     def is_shown(self, context):
         if context.get("view") != "edit":

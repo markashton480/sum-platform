@@ -282,12 +282,11 @@ class FormDefinition(models.Model):
         The cloned form starts inactive for safety.
         """
         base_slug = f"{self.slug}-copy"
-        for attempt in range(5):
-            attempt_slug = base_slug if attempt == 0 else f"{base_slug}-{attempt}"
+        for _ in range(5):
             cloned = FormDefinition(
                 site=self.site,
                 name=f"{self.name} (Copy)",
-                slug=self._build_unique_slug(attempt_slug),
+                slug=self._build_unique_slug(base_slug),
                 fields=self.fields.raw_data if self.fields else [],
                 success_message=self.success_message,
                 is_active=False,
