@@ -98,6 +98,20 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         verbose_name = "Blog Index Page"
         verbose_name_plural = "Blog Index Pages"
 
+    def get_context(self, request, *args, **kwargs):
+        """Add newest-first blog posts to the template context."""
+        context = super().get_context(request, *args, **kwargs)
+
+        posts = (
+            BlogPostPage.objects.child_of(self)
+            .live()
+            .public()
+            .select_related("category")
+            .order_by("-published_date")
+        )
+        context["posts"] = posts
+        return context
+
 
 class BlogPostPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
     """
@@ -114,7 +128,9 @@ class BlogPostPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         help_text="Blog post category",
     )
     published_date = models.DateTimeField(
-        default=timezone.now, help_text="Date this post was published"
+        default=timezone.now,
+        db_index=True,
+        help_text="Date this post was published",
     )
     featured_image = models.ForeignKey(
         "wagtailimages.Image",
@@ -217,13 +233,40 @@ class BlogPostPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         if not self.body:
             return ""
 
+        text_blocks = {
+            "rich_text",
+            "content",
+            "quote",
+            "social_proof_quote",
+            "editorial_header",
+            "page_header",
+            "legal_section",
+            "manifesto",
+        }
         parts: list[str] = []
+
         for block in self.body:
-            value = getattr(block, "value", "")
+            if block.block_type not in text_blocks:
+                continue
+
+            value = getattr(block, "value", None)
+            text_candidates: list[str] = []
+
+            if value is None:
+                continue
+
             if hasattr(value, "source"):
-                parts.append(str(getattr(value, "source")))
-            else:
-                parts.append(str(value))
+                text_candidates.append(str(getattr(value, "source")))
+            elif hasattr(value, "get"):
+                for key in ("body", "quote", "heading", "eyebrow"):
+                    item = value.get(key)
+                    if item:
+                        text_candidates.append(str(getattr(item, "source", item)))
+            elif value:
+                text_candidates.append(str(value))
+
+            if text_candidates:
+                parts.append(" ".join(text_candidates))
 
         return cast(str, strip_tags(" ".join(parts)))
 

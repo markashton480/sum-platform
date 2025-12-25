@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import pytest
 from django.db.models.deletion import ProtectedError
+from django.utils import timezone
 from sum_core.blocks import DynamicFormBlock, PageStreamBlock
 from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
 from wagtail.models import Page
@@ -172,3 +173,31 @@ def test_category_is_protected_from_deletion() -> None:
 
     with pytest.raises(ProtectedError):
         category.delete()
+
+
+def test_blog_index_get_context_orders_posts_newest_first() -> None:
+    """BlogIndexPage.get_context returns posts ordered by published date desc."""
+    category = Category.objects.create(name="Release Notes", slug="release-notes")
+    blog_index = _make_blog_index(slug="blog-context-order")
+
+    older = BlogPostPage(
+        title="Older Post",
+        slug="older-post",
+        category=category,
+        body=_make_body("Old content"),
+        published_date=timezone.now() - timezone.timedelta(days=5),
+    )
+    newer = BlogPostPage(
+        title="Newer Post",
+        slug="newer-post",
+        category=category,
+        body=_make_body("New content"),
+        published_date=timezone.now(),
+    )
+    blog_index.add_child(instance=older)
+    blog_index.add_child(instance=newer)
+
+    context = blog_index.get_context(request=None)
+    posts = list(context["posts"])
+
+    assert [post.slug for post in posts] == ["newer-post", "older-post"]
