@@ -49,8 +49,84 @@ class CloneFormDefinitionMenuItem(ActionMenuItem):
         return reverse(f"{namespace}:clone", args=[quote(instance.pk)])
 
 
+class PreviewFormDefinitionMenuItem(ActionMenuItem):
+    label = "Preview"
+    name = "action-preview"
+    icon_name = "view"
+    order = 60
+
+    def is_shown(self, context):
+        if context.get("view") != "edit":
+            return False
+
+        if context.get("model") is not FormDefinition:
+            return False
+
+        request = context.get("request")
+        if not request:
+            return False
+
+        change_perm = get_permission_name("change", FormDefinition)
+        return request.user.has_perm(change_perm)
+
+    def get_url(self, parent_context):
+        instance = parent_context.get("instance")
+        if not instance:
+            return None
+
+        namespace = (
+            f"wagtailsnippets_{instance._meta.app_label}_{instance._meta.model_name}"
+        )
+        return reverse(f"{namespace}:preview", args=[quote(instance.pk)])
+
+
+class UsageFormDefinitionMenuItem(ActionMenuItem):
+    label = "Usage"
+    name = "action-usage"
+    icon_name = "list-ul"
+    order = 65
+
+    def is_shown(self, context):
+        if context.get("view") != "edit":
+            return False
+
+        if context.get("model") is not FormDefinition:
+            return False
+
+        request = context.get("request")
+        if not request:
+            return False
+
+        change_perm = get_permission_name("change", FormDefinition)
+        return request.user.has_perm(change_perm)
+
+    def get_url(self, parent_context):
+        instance = parent_context.get("instance")
+        if not instance:
+            return None
+
+        namespace = (
+            f"wagtailsnippets_{instance._meta.app_label}_{instance._meta.model_name}"
+        )
+        return reverse(f"{namespace}:usage_report", args=[quote(instance.pk)])
+
+
 @hooks.register("register_snippet_action_menu_item")
 def register_form_definition_clone_menu_item(model):
     if model is FormDefinition:
         return CloneFormDefinitionMenuItem()
+    return None
+
+
+@hooks.register("register_snippet_action_menu_item")
+def register_form_definition_preview_menu_item(model):
+    if model is FormDefinition:
+        return PreviewFormDefinitionMenuItem()
+    return None
+
+
+@hooks.register("register_snippet_action_menu_item")
+def register_form_definition_usage_menu_item(model):
+    if model is FormDefinition:
+        return UsageFormDefinitionMenuItem()
     return None

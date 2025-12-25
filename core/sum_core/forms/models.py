@@ -14,12 +14,14 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import EmailValidator
 from django.db import IntegrityError, models, transaction
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path, reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from sum_core.forms.fields import FormFieldsStreamBlock
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
+from wagtail.admin.ui.tables import Column
+from wagtail.blocks import StreamValue
 from wagtail.fields import StreamField
 from wagtail.models import Site
 from wagtail.snippets.models import register_snippet
@@ -323,6 +325,46 @@ class FormDefinition(models.Model):
 
         super().clean()
 
+    def get_usage_pages(self) -> list:
+        """Return pages that embed this form definition."""
+        from sum_core.pages.blog import BlogPostPage
+        from sum_core.pages.services import ServicePage
+        from sum_core.pages.standard import StandardPage
+
+        page_models = [StandardPage, ServicePage, BlogPostPage]
+        usage_pages = []
+
+        for page_model in page_models:
+            for page in page_model.objects.all().specific():
+                body = getattr(page, "body", None)
+                if not body:
+                    continue
+                if self._streamfield_contains_form(body):
+                    usage_pages.append(page)
+
+        return usage_pages
+
+    def _streamfield_contains_form(self, streamfield: StreamValue) -> bool:
+        for block in streamfield:
+            if block.block_type != "dynamic_form":
+                continue
+            form_definition = block.value.get("form_definition")
+            if form_definition and form_definition.pk == self.pk:
+                return True
+        return False
+
+    @property
+    def usage_count(self) -> int:
+        """Number of pages using this form."""
+        return len(self.get_usage_pages())
+
+    @property
+    def submission_count(self) -> int:
+        """Number of submissions for this form."""
+        from sum_core.leads.models import Lead
+
+        return int(Lead.objects.filter(form_type=self.slug).count())
+
 
 class ActiveFormDefinitionChooseView(ChooseView):
     """Limit chooser options to active forms on the current site."""
@@ -367,8 +409,15 @@ class FormDefinitionViewSet(SnippetViewSet):
     model = FormDefinition
     icon = "form"
     menu_label = "Form Definitions"
-    list_display = ["name", "slug", "is_active", "created_at"]
-    list_filter = ["is_active", "site"]
+    list_display = [
+        "name",
+        "slug",
+        "is_active",
+        Column("submission_count", label="Submissions"),
+        Column("usage_count", label="Usage"),
+        "created_at",
+    ]
+    list_filter = ["is_active", "site", "created_at"]
     search_fields = ["name", "slug"]
     panels = FormDefinition.panels
     chooser_viewset_class = ActiveFormDefinitionChooserViewSet
@@ -378,7 +427,41 @@ class FormDefinitionViewSet(SnippetViewSet):
         return [
             *urlpatterns,
             path("clone/<int:pk>/", self.clone_view, name="clone"),
+            path("preview/<int:pk>/", self.preview_view, name="preview"),
+            path("usage-report/<int:pk>/", self.usage_report_view, name="usage_report"),
         ]
+
+    def preview_view(self, request, pk):
+        if not self.permission_policy.user_has_permission(request.user, "change"):
+            raise PermissionDenied
+
+        form_def = get_object_or_404(self.model, pk=pk)
+        edit_url = reverse(self.get_url_name("edit"), args=[form_def.pk])
+        return render(
+            request,
+            "sum_core/admin/form_preview.html",
+            {
+                "form_definition": form_def,
+                "edit_url": edit_url,
+            },
+        )
+
+    def usage_report_view(self, request, pk):
+        if not self.permission_policy.user_has_permission(request.user, "change"):
+            raise PermissionDenied
+
+        form_def = get_object_or_404(self.model, pk=pk)
+        edit_url = reverse(self.get_url_name("edit"), args=[form_def.pk])
+        usage_pages = form_def.get_usage_pages()
+        return render(
+            request,
+            "sum_core/admin/form_usage.html",
+            {
+                "form_definition": form_def,
+                "edit_url": edit_url,
+                "usage_pages": usage_pages,
+            },
+        )
 
     @method_decorator(require_POST)
     def clone_view(self, request, pk):
