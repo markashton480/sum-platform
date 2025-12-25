@@ -125,6 +125,7 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
             .live()
             .public()
             .select_related("category", "featured_image")
+            .filter(published_date__lte=timezone.now())
             .order_by("-published_date")
         )
 
@@ -190,6 +191,7 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         paginated_posts = paginator.get_page(page_num)
 
         context["posts"] = paginated_posts
+        # Counts are for public posts only; restricted posts are excluded.
         context["categories"] = Category.objects.annotate(
             post_count=Count(
                 "blog_posts",
@@ -197,6 +199,7 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
                     blog_posts__path__startswith=self.path,
                     blog_posts__depth=self.depth + 1,
                     blog_posts__live=True,
+                    blog_posts__published_date__lte=timezone.now(),
                     blog_posts__view_restrictions__isnull=True,
                 ),
             )
