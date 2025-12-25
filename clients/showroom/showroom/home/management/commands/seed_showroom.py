@@ -235,14 +235,29 @@ class Command(BaseCommand):
         contact.body = self._build_contact_stream(images=images)
         contact.save_revision().publish()
 
-        terms.body = self._build_terms_stream()
-        terms.save_revision().publish()
+        terms_intro, terms_sections = self._build_terms_sections()
+        self._apply_legal_page_content(
+            terms,
+            heading="Terms & Conditions",
+            intro=terms_intro,
+            sections=terms_sections,
+        )
 
-        privacy.body = self._build_privacy_stream()
-        privacy.save_revision().publish()
+        privacy_intro, privacy_sections = self._build_privacy_sections()
+        self._apply_legal_page_content(
+            privacy,
+            heading="Privacy Notice",
+            intro=privacy_intro,
+            sections=privacy_sections,
+        )
 
-        cookies.body = self._build_cookie_stream()
-        cookies.save_revision().publish()
+        cookies_intro, cookies_sections = self._build_cookie_sections()
+        self._apply_legal_page_content(
+            cookies,
+            heading="Cookie Policy",
+            intro=cookies_intro,
+            sections=cookies_sections,
+        )
 
         # Site settings (branding + navigation)
         self._seed_branding(
@@ -1193,7 +1208,8 @@ class Command(BaseCommand):
             ]
         )
 
-    def _build_terms_stream(self) -> Any:
+    def _build_terms_sections(self) -> tuple[str, list[dict[str, str]]]:
+        intro = "Ground rules for using this starter site and reviewing layouts."
         sections = [
             {
                 "anchor": "scope-of-works",
@@ -1214,13 +1230,20 @@ class Command(BaseCommand):
                 "body": "<p>Replace this placeholder with your project-specific warranty details.</p>",
             },
         ]
+        return intro, sections
+
+    def _build_terms_stream(self) -> Any:
+        intro, sections = self._build_terms_sections()
         return self._build_legal_stream(
             heading="Terms & Conditions",
-            intro="Ground rules for using this starter site and reviewing layouts.",
+            intro=intro,
             sections=sections,
         )
 
-    def _build_privacy_stream(self) -> Any:
+    def _build_privacy_sections(self) -> tuple[str, list[dict[str, str]]]:
+        intro = (
+            "How this starter site handles demo requests and placeholder contact data."
+        )
         sections = [
             {
                 "anchor": "data-collection",
@@ -1240,13 +1263,18 @@ class Command(BaseCommand):
                 "body": "<p>Clear seeded data anytime by rerunning the command or editing in Wagtail.</p>",
             },
         ]
+        return intro, sections
+
+    def _build_privacy_stream(self) -> Any:
+        intro, sections = self._build_privacy_sections()
         return self._build_legal_stream(
             heading="Privacy Notice",
-            intro="How this starter site handles demo requests and placeholder contact data.",
+            intro=intro,
             sections=sections,
         )
 
-    def _build_cookie_stream(self) -> Any:
+    def _build_cookie_sections(self) -> tuple[str, list[dict[str, str]]]:
+        intro = "Details on cookie usage and consent controls for this starter site."
         sections = [
             {
                 "anchor": "cookies-we-use",
@@ -1265,9 +1293,13 @@ class Command(BaseCommand):
                 "body": "<p>Cookie settings may change as policies are updated.</p>",
             },
         ]
+        return intro, sections
+
+    def _build_cookie_stream(self) -> Any:
+        intro, sections = self._build_cookie_sections()
         return self._build_legal_stream(
             heading="Cookie Policy",
-            intro="Details on cookie usage and consent controls for this starter site.",
+            intro=intro,
             sections=sections,
         )
 
@@ -1309,9 +1341,41 @@ class Command(BaseCommand):
                     },
                 }
             )
-        return stream_block.to_python(
-            stream
-        )
+        return stream_block.to_python(stream)
+
+    def _build_legal_sections(
+        self, sections: list[dict[str, str]]
+    ) -> list[tuple[str, dict[str, str]]]:
+        return [
+            (
+                "section",
+                {
+                    "anchor": section["anchor"],
+                    "heading": section["heading"],
+                    "body": section["body"],
+                },
+            )
+            for section in sections
+        ]
+
+    def _apply_legal_page_content(
+        self,
+        page: Page,
+        *,
+        heading: str,
+        intro: str,
+        sections: list[dict[str, str]],
+    ) -> None:
+        if hasattr(page, "sections"):
+            page.sections = self._build_legal_sections(sections)
+            page.search_description = intro
+        else:
+            page.body = self._build_legal_stream(
+                heading=heading,
+                intro=intro,
+                sections=sections,
+            )
+        page.save_revision().publish()
 
     # -----------------------------------------------------------------------------
     # Branding & Navigation

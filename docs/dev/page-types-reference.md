@@ -125,6 +125,59 @@ Site homepage with intro text and StreamField body using `PageStreamBlock`.
 
 ---
 
+## LegalPage
+
+**Module:** `sum_core.pages.legal`  
+**Import:** `from sum_core.pages import LegalPage`
+
+### Purpose
+
+A structured legal content page (terms, privacy policy, accessibility) with section
+anchors that automatically drive desktop and mobile tables of contents.
+
+### Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `last_updated` | DateField | Optional date shown near the page title |
+| `sections` | StreamField (LegalSectionBlock) | Anchored legal sections (id, title, body) |
+
+### Template
+
+**Path:** `theme/legal_page.html`
+
+The template:
+- Renders breadcrumbs and a hero-style header
+- Builds the table of contents from sections (single source of truth)
+- Includes a print action
+
+### Page Hierarchy
+
+| Setting | Value | Notes |
+|---------|-------|-------|
+| `parent_page_types` | `["wagtailcore.Page"]` | Can be created under the site root. Client projects may additionally allow creation under their client-owned `HomePage` by restricting via their `HomePage.subpage_types`. |
+| `subpage_types` | `[]` | Leaf page – no children allowed |
+
+### Usage Example
+
+```python
+from sum_core.pages import LegalPage
+
+page = LegalPage(
+    title="Privacy Policy",
+    slug="privacy-policy",
+    last_updated="2025-10-01",
+    sections=[
+        ("section", {
+            "anchor": "scope",
+            "heading": "Scope of Works",
+            "body": "<p>Scope details.</p>",
+        }),
+    ],
+)
+parent_page.add_child(instance=page)
+```
+
 ## Adding to Client Projects
 
 To use `StandardPage` in a client project:
@@ -145,4 +198,3 @@ To use `StandardPage` in a client project:
    ```
 
 3. StandardPage will appear as a creatable page type in Wagtail admin.
-
