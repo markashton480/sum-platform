@@ -400,7 +400,7 @@ def send_form_notification(
 
     try:
         with transaction.atomic():
-            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+            lead = Lead.objects.select_for_update(nowait=True).get(id=lead_id)
             lead.form_notification_status = EmailStatus.SENT
             lead.form_notification_sent_at = timezone.now()
             lead.form_notification_last_error = ""
