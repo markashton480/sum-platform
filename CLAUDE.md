@@ -18,6 +18,11 @@ Everything else exists to test, scaffold, or demonstrate it:
 
 ## Commands
 
+**Activate the virtualenv first:**
+```bash
+source .venv/bin/activate
+```
+
 ```bash
 # Setup
 make install-dev          # Install core + dev deps in editable mode
