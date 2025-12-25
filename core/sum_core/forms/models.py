@@ -377,7 +377,7 @@ class FormDefinitionViewSet(SnippetViewSet):
         urlpatterns = super().get_urlpatterns()
         return [
             *urlpatterns,
-            path("clone/<str:pk>/", self.clone_view, name="clone"),
+            path("clone/<int:pk>/", self.clone_view, name="clone"),
         ]
 
     @method_decorator(require_POST)
@@ -390,11 +390,10 @@ class FormDefinitionViewSet(SnippetViewSet):
 
         form_def = get_object_or_404(self.model, pk=pk)
         try:
-            cloned = form_def.clone()
-        except (IntegrityError, ValidationError) as exc:
-            logger.exception(
-                "Failed to clone form definition %s", form_def.pk, exc_info=exc
-            )
+            with transaction.atomic():
+                cloned = form_def.clone()
+        except (IntegrityError, ValidationError):
+            logger.exception("Failed to clone form definition %s", form_def.pk)
             messages.error(
                 request,
                 "Unable to clone this form right now. Please try again.",
