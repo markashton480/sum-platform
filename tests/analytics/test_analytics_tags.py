@@ -2,6 +2,7 @@ import pytest
 from django.template import Context, Template
 from django.test import RequestFactory
 from sum_core.branding.models import SiteSettings
+from wagtail.models import Site
 
 
 @pytest.mark.django_db
@@ -55,6 +56,19 @@ class TestAnalyticsTags:
         assert "GTM-PRIORITY" in out
         assert "G-IGNORED" not in out
 
+    def test_analytics_head_emits_json_only(self, wagtail_default_site):
+        self.setup_settings(wagtail_default_site, gtm="GTM-JSON", banner_enabled=True)
+        request = RequestFactory().get("/")
+        request.site = wagtail_default_site
+
+        out = self.render_template(
+            "{% load analytics_tags %}{% analytics_head %}", {"request": request}
+        )
+
+        assert 'id="sum-analytics-config"' in out
+        assert 'type="application/json"' in out
+        assert "src=" not in out
+
     def test_analytics_body_gtm(self, wagtail_default_site):
         self.setup_settings(wagtail_default_site, gtm="GTM-BODY")
         request = RequestFactory().get("/")
@@ -74,3 +88,24 @@ class TestAnalyticsTags:
             "{% load analytics_tags %}{% analytics_body %}", {"request": request}
         )
         assert out.strip() == ""
+
+    def test_analytics_head_resolves_site_settings_by_host(self, wagtail_default_site):
+        self.setup_settings(wagtail_default_site, gtm="GTM-DEFAULT")
+
+        alt_site = Site.objects.create(
+            hostname="consent-alt.test",
+            port=80,
+            site_name="Consent Alt",
+            root_page=wagtail_default_site.root_page,
+            is_default_site=False,
+        )
+        self.setup_settings(alt_site, gtm="GTM-ALT")
+
+        request = RequestFactory().get("/", HTTP_HOST="consent-alt.test")
+
+        out = self.render_template(
+            "{% load analytics_tags %}{% analytics_head %}", {"request": request}
+        )
+
+        assert "GTM-ALT" in out
+        assert "GTM-DEFAULT" not in out
