@@ -23,6 +23,7 @@ from django.core.mail import send_mail
 from django.core.validators import validate_email
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.html import escape
 from sum_core.ops.sentry import set_sentry_context
 
 logger = logging.getLogger(__name__)
@@ -120,14 +121,14 @@ def _validate_webhook_url(webhook_url: str) -> tuple[bool, str]:
 
 
 def _build_webhook_payload(
-    lead: Lead, form_definition: FormDefinition
+    lead: Lead, form_definition: FormDefinition, request_id: str | None = None
 ) -> dict[str, object]:
     """
     Build the webhook payload for dynamic form submissions.
 
     The payload includes form metadata, submission data, and attribution fields.
     """
-    return {
+    payload: dict[str, object] = {
         "event": "form.submitted",
         "timestamp": (lead.submitted_at or timezone.now()).isoformat(),
         "form": {
@@ -156,11 +157,15 @@ def _build_webhook_payload(
             "utm_content": lead.utm_content,
         },
     }
+    if request_id:
+        payload["request_id"] = request_id
+    return payload
 
 
 def _interpolate_name(template: str, name: str) -> str:
     """Replace the {{name}} placeholder with the submitter's name."""
     safe_name = NAME_NEWLINE.sub(" ", str(name or "")).strip()
+    safe_name = escape(safe_name)
     return NAME_TOKEN.sub(safe_name, template)
 
 
@@ -741,7 +746,54 @@ def send_webhook(
         )
         return
 
-    payload = _build_webhook_payload(lead, form_definition)
+    try:
+        payload = _build_webhook_payload(lead, form_definition, request_id=request_id)
+    except Exception as exc:
+        error_message = f"Webhook payload build failed: {str(exc)[:500]}"
+        try:
+            with transaction.atomic():
+                lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+                lead.form_webhook_last_error = error_message
+                lead.form_webhook_last_status_code = None
+                lead.form_webhook_status = (
+                    WebhookStatus.IN_PROGRESS
+                    if self.request.retries < MAX_RETRIES
+                    else WebhookStatus.FAILED
+                )
+                lead.save(
+                    update_fields=[
+                        "form_webhook_status",
+                        "form_webhook_last_error",
+                        "form_webhook_last_status_code",
+                    ]
+                )
+        except Lead.DoesNotExist:
+            logger.warning(
+                "Form webhook lead missing during payload error update",
+                extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            )
+            return
+
+        if self.request.retries < MAX_RETRIES:
+            logger.warning(
+                "Form webhook payload build failed, will retry",
+                extra={
+                    "lead_id": lead_id,
+                    "request_id": request_id or "-",
+                    "attempt": attempt_count,
+                },
+            )
+            raise self.retry(exc=exc)
+
+        logger.error(
+            "Form webhook payload build failed permanently",
+            extra={
+                "lead_id": lead_id,
+                "request_id": request_id or "-",
+                "attempts": attempt_count,
+            },
+        )
+        return
 
     try:
         response = requests.post(

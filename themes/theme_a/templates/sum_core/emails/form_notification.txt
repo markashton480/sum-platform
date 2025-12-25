@@ -9,7 +9,7 @@ Contact Details
 {% endif %}
 
 Message
-{{ lead.message }}
+{{ lead.message|default_if_none:"" }}
 
 Submission Info
 - Form: {{ form_definition.name }} ({{ form_definition.slug }})

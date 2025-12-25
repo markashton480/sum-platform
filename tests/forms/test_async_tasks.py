@@ -149,6 +149,19 @@ class TestDynamicFormTasks:
         assert "\n" not in subject
         assert "\r" not in subject
 
+    def test_auto_reply_escapes_html_in_name(self, lead, form_definition):
+        lead.name = "<script>alert('xss')</script>"
+        lead.save(update_fields=["name"])
+
+        send_auto_reply(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert len(mail.outbox) == 1
+        subject = mail.outbox[0].subject
+        body = mail.outbox[0].body
+        assert "<script>" not in subject
+        assert "<script>" not in body
+
     def test_webhook_payload(self, lead, form_definition):
         mock_response = Mock()
         mock_response.raise_for_status.return_value = None
@@ -173,6 +186,19 @@ class TestDynamicFormTasks:
         assert lead.form_webhook_status == WebhookStatus.SENT
         assert lead.form_webhook_sent_at is not None
         assert lead.form_webhook_last_status_code == 200
+
+    def test_webhook_payload_includes_request_id(self, lead, form_definition):
+        mock_response = Mock()
+        mock_response.raise_for_status.return_value = None
+        mock_response.status_code = 200
+
+        with patch(
+            "sum_core.forms.tasks.requests.post", return_value=mock_response
+        ) as mock_post:
+            send_webhook(lead.id, form_definition.id, request_id="req-123")
+
+        payload = mock_post.call_args[1]["json"]
+        assert payload["request_id"] == "req-123"
 
     def test_webhook_skips_when_disabled(self, lead, form_definition):
         form_definition.webhook_enabled = False
