@@ -833,12 +833,15 @@ class TestDynamicFormSubmission:
 
         assert response.status_code == 200
         lead = Lead.objects.latest("submitted_at")
-        file_payload = lead.form_data["attachment"]
+        file_path = None
         try:
+            file_payload = lead.form_data["attachment"]
             assert file_payload["name"] == "resume.pdf"
-            assert default_storage.exists(file_payload["path"])
+            file_path = file_payload["path"]
+            assert default_storage.exists(file_path)
         finally:
-            default_storage.delete(file_payload["path"])
+            if file_path:
+                default_storage.delete(file_path)
 
 
 @pytest.mark.django_db
