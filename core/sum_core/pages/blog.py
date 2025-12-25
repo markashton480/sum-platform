@@ -11,6 +11,7 @@ from typing import cast
 
 from django.core.exceptions import ValidationError
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -91,6 +92,7 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
     posts_per_page = models.IntegerField(
         default=10,
         help_text="Number of posts to display per page.",
+        validators=[MinValueValidator(1)],
     )
 
     content_panels = Page.content_panels + [
@@ -142,14 +144,14 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
             if parent:
                 site = parent.get_site()
 
-        if site is None:
-            return
+        queryset = BlogIndexPage.objects.all()
+        if site is not None and getattr(site, "root_page", None) is not None:
+            queryset = queryset.descendant_of(site.root_page, inclusive=True)
 
-        existing = BlogIndexPage.objects.exclude(pk=self.pk).descendant_of(
-            site.root_page, inclusive=True
-        )
-        if existing.exists():
-            raise ValidationError({"title": "Only one BlogIndexPage is allowed per site."})
+        if queryset.exclude(pk=self.pk).exists():
+            raise ValidationError(
+                {"title": "Only one BlogIndexPage is allowed per site."}
+            )
 
     def get_context(self, request, *args, **kwargs):
         """Add pagination and category filtering to template context."""
