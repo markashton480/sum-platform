@@ -107,9 +107,6 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         + Page.promote_panels
     )
 
-    # Only one blog index per site
-    max_count = 1
-
     # Allow clients to decide placement via their root page subpage_types.
     parent_page_types: list[str] = ["wagtailcore.Page"]
     subpage_types: list[str] = ["sum_core_pages.BlogPostPage"]
@@ -158,7 +155,9 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
 
     def save(self, *args, **kwargs):
         """Enforce singleton validation even for programmatic saves."""
-        self.clean()
+        should_clean = kwargs.pop("clean", True)
+        if should_clean:
+            self.clean()
         super().save(*args, **kwargs)
 
     def get_context(self, request, *args, **kwargs):
@@ -194,7 +193,12 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         context["categories"] = Category.objects.annotate(
             post_count=Count(
                 "blog_posts",
-                filter=Q(blog_posts__in=all_posts),
+                filter=Q(
+                    blog_posts__path__startswith=self.path,
+                    blog_posts__depth=self.depth + 1,
+                    blog_posts__live=True,
+                    blog_posts__view_restrictions__isnull=True,
+                ),
             )
         )
         context["selected_category"] = selected_category
