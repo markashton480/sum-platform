@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import cast
 
+from django.core.exceptions import ValidationError
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.db import models
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -20,7 +22,7 @@ from wagtail.admin.panels import (
     ObjectList,
     TabbedInterface,
 )
-from wagtail.fields import StreamField
+from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Page
 from wagtail.snippets.models import register_snippet
 from wagtail.snippets.views.snippets import SnippetViewSet
@@ -77,12 +79,24 @@ register_snippet(CategorySnippetViewSet)
 
 class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
     """
-    Container for BlogPostPage entries.
+    Blog listing page that displays blog posts with pagination and filtering.
 
-    Acts as the listing root for blog content.
+    URL: /blog/
     """
 
-    content_panels = Page.content_panels
+    intro = RichTextField(
+        blank=True,
+        help_text="Optional intro text displayed above the post listing.",
+    )
+    posts_per_page = models.IntegerField(
+        default=10,
+        help_text="Number of posts to display per page.",
+    )
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+        FieldPanel("posts_per_page"),
+    ]
 
     promote_panels = (
         SeoFieldsMixin.seo_panels
@@ -90,26 +104,82 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         + Page.promote_panels
     )
 
+    # Only one blog index per site
+    max_count = 1
+
+    # Allow clients to decide placement via their root page subpage_types.
+    parent_page_types: list[str] = ["wagtailcore.Page"]
     subpage_types: list[str] = ["sum_core_pages.BlogPostPage"]
 
+    # v0.6 rendering contract: themes own page templates under theme/
     template: str = "theme/blog_index_page.html"
 
     class Meta:
         verbose_name = "Blog Index Page"
         verbose_name_plural = "Blog Index Pages"
 
-    def get_context(self, request, *args, **kwargs):
-        """Add newest-first blog posts to the template context."""
-        context = super().get_context(request, *args, **kwargs)
-
-        posts = (
-            BlogPostPage.objects.child_of(self)
+    def get_posts(self):
+        """Return live BlogPostPage children ordered by published date."""
+        return (
+            BlogPostPage.objects.descendant_of(self)
             .live()
             .public()
-            .select_related("category")
+            .select_related("category", "featured_image")
             .order_by("-published_date")
         )
-        context["posts"] = posts
+
+    def get_posts_by_category(self, category: Category):
+        """Return blog posts filtered by category."""
+        return self.get_posts().filter(category=category)
+
+    def clean(self) -> None:
+        """Ensure only one BlogIndexPage exists per site."""
+        super().clean()
+
+        site = self.get_site()
+        if site is None:
+            parent = self.get_parent()
+            if parent:
+                site = parent.get_site()
+
+        if site is None:
+            return
+
+        existing = BlogIndexPage.objects.exclude(pk=self.pk).descendant_of(
+            site.root_page, inclusive=True
+        )
+        if existing.exists():
+            raise ValidationError({"title": "Only one BlogIndexPage is allowed per site."})
+
+    def get_context(self, request, *args, **kwargs):
+        """Add pagination and category filtering to template context."""
+        context = super().get_context(request, *args, **kwargs)
+
+        posts = self.get_posts()
+        category_slug = request.GET.get("category")
+        selected_category = None
+
+        if category_slug:
+            try:
+                selected_category = Category.objects.get(slug=category_slug)
+                posts = self.get_posts_by_category(selected_category)
+            except Category.DoesNotExist:
+                selected_category = None
+
+        paginator = Paginator(posts, self.posts_per_page)
+        page_num = request.GET.get("page", 1)
+
+        try:
+            paginated_posts = paginator.page(page_num)
+        except PageNotAnInteger:
+            paginated_posts = paginator.page(1)
+        except EmptyPage:
+            paginated_posts = paginator.page(paginator.num_pages)
+
+        context["posts"] = paginated_posts
+        context["categories"] = Category.objects.all()
+        context["selected_category"] = selected_category
+
         return context
 
 

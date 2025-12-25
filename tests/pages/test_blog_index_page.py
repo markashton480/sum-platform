@@ -1,0 +1,193 @@
+"""
+Name: Blog Index Page Tests
+Path: tests/pages/test_blog_index_page.py
+Purpose: Validate BlogIndexPage listing, filtering, pagination, and constraints.
+Family: Blog pages test coverage.
+Dependencies: Wagtail Site & Page models, home.HomePage, sum_core.pages.blog.
+"""
+
+from __future__ import annotations
+
+from datetime import date
+from uuid import uuid4
+
+import pytest
+from django.core.exceptions import ValidationError
+from django.test import RequestFactory
+from home.models import HomePage
+from sum_core.pages import StandardPage
+from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
+from wagtail.models import Page, Site
+
+pytestmark = pytest.mark.django_db
+
+
+def _create_homepage() -> HomePage:
+    root = Page.get_first_root_node()
+    slug = f"home-{uuid4().hex[:8]}"
+    homepage = HomePage(title="Home", slug=slug)
+    root.add_child(instance=homepage)
+
+    site = Site.objects.get(is_default_site=True)
+    site.root_page = homepage
+    site.save()
+
+    return homepage
+
+
+def _create_blog_index(homepage: HomePage, posts_per_page: int = 10) -> BlogIndexPage:
+    blog_index = BlogIndexPage(
+        title="Blog",
+        slug="blog",
+        posts_per_page=posts_per_page,
+    )
+    homepage.add_child(instance=blog_index)
+    blog_index.save_revision().publish()
+    return blog_index
+
+
+def _create_post(
+    blog_index: BlogIndexPage,
+    title: str,
+    slug: str,
+    published: date,
+    category: Category | None = None,
+) -> BlogPostPage:
+    post = BlogPostPage(
+        title=title,
+        slug=slug,
+        published_date=published,
+        category=category,
+    )
+    blog_index.add_child(instance=post)
+    post.save_revision().publish()
+    return post
+
+
+def test_blog_index_can_be_created_under_homepage() -> None:
+    homepage = _create_homepage()
+    blog_index = _create_blog_index(homepage)
+
+    assert BlogIndexPage.objects.filter(pk=blog_index.pk).exists()
+
+
+def test_blog_index_singleton_enforced() -> None:
+    homepage = _create_homepage()
+    _create_blog_index(homepage)
+
+    second_blog = BlogIndexPage(title="Blog 2", slug="blog-2")
+    with pytest.raises(ValidationError) as excinfo:
+        homepage.add_child(instance=second_blog)
+
+    assert excinfo.value is not None
+
+
+def test_blog_index_subpage_constraints() -> None:
+    homepage = _create_homepage()
+    blog_index = _create_blog_index(homepage)
+
+    assert BlogPostPage.can_create_at(blog_index) is True
+    assert StandardPage.can_create_at(blog_index) is False
+
+
+def test_get_posts_orders_by_published_date_desc() -> None:
+    homepage = _create_homepage()
+    blog_index = _create_blog_index(homepage)
+
+    older = _create_post(blog_index, "Older", "older", date(2024, 1, 1))
+    newer = _create_post(blog_index, "Newer", "newer", date(2024, 2, 1))
+
+    posts = list(blog_index.get_posts())
+
+    assert posts == [newer, older]
+
+
+def test_get_posts_by_category_filters() -> None:
+    homepage = _create_homepage()
+    blog_index = _create_blog_index(homepage)
+
+    cats = Category.objects.create(name="Cats", slug="cats")
+    dogs = Category.objects.create(name="Dogs", slug="dogs")
+
+    cat_post = _create_post(blog_index, "Cats 1", "cats-1", date(2024, 3, 1), cats)
+    _create_post(blog_index, "Dogs 1", "dogs-1", date(2024, 3, 2), dogs)
+
+    posts = list(blog_index.get_posts_by_category(cats))
+
+    assert posts == [cat_post]
+
+
+def test_get_context_category_filtering_valid_slug(wagtail_default_site: Site) -> None:
+    homepage = _create_homepage()
+    blog_index = _create_blog_index(homepage)
+
+    cats = Category.objects.create(name="Cats", slug="cats")
+    cat_post = _create_post(blog_index, "Cats 1", "cats-1", date(2024, 3, 1), cats)
+    _create_post(blog_index, "Dogs 1", "dogs-1", date(2024, 3, 2))
+
+    request = RequestFactory().get(
+        "/blog/",
+        {"category": "cats"},
+        HTTP_HOST=wagtail_default_site.hostname or "testserver",
+    )
+    context = blog_index.get_context(request)
+
+    assert list(context["posts"]) == [cat_post]
+    assert context["selected_category"] == cats
+
+
+def test_get_context_category_filtering_invalid_slug(
+    wagtail_default_site: Site,
+) -> None:
+    homepage = _create_homepage()
+    blog_index = _create_blog_index(homepage)
+
+    post = _create_post(blog_index, "Post 1", "post-1", date(2024, 3, 1))
+
+    request = RequestFactory().get(
+        "/blog/",
+        {"category": "missing"},
+        HTTP_HOST=wagtail_default_site.hostname or "testserver",
+    )
+    context = blog_index.get_context(request)
+
+    assert list(context["posts"]) == [post]
+    assert context["selected_category"] is None
+
+
+def test_get_context_pagination_invalid_page_defaults_first(
+    wagtail_default_site: Site,
+) -> None:
+    homepage = _create_homepage()
+    blog_index = _create_blog_index(homepage, posts_per_page=1)
+
+    _create_post(blog_index, "Post 1", "post-1", date(2024, 1, 1))
+    newer = _create_post(blog_index, "Post 2", "post-2", date(2024, 1, 2))
+
+    request = RequestFactory().get(
+        "/blog/",
+        {"page": "not-a-number"},
+        HTTP_HOST=wagtail_default_site.hostname or "testserver",
+    )
+    context = blog_index.get_context(request)
+
+    assert list(context["posts"]) == [newer]
+
+
+def test_get_context_pagination_out_of_range_returns_last_page(
+    wagtail_default_site: Site,
+) -> None:
+    homepage = _create_homepage()
+    blog_index = _create_blog_index(homepage, posts_per_page=1)
+
+    older = _create_post(blog_index, "Post 1", "post-1", date(2024, 1, 1))
+    _create_post(blog_index, "Post 2", "post-2", date(2024, 1, 2))
+
+    request = RequestFactory().get(
+        "/blog/",
+        {"page": "999"},
+        HTTP_HOST=wagtail_default_site.hostname or "testserver",
+    )
+    context = blog_index.get_context(request)
+
+    assert list(context["posts"]) == [older]
