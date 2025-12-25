@@ -16,6 +16,7 @@ from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.fields import StreamField
 from wagtail.models import Site
 from wagtail.snippets.models import register_snippet
+from wagtail.snippets.views.chooser import SnippetChooserViewSet
 from wagtail.snippets.views.snippets import SnippetViewSet
 
 
@@ -260,6 +261,13 @@ class FormDefinition(models.Model):
         super().clean()
 
 
+class ActiveFormDefinitionChooserViewSet(SnippetChooserViewSet):
+    """Limit chooser options to active form definitions."""
+
+    def get_object_list(self):
+        return self.model.objects.filter(is_active=True)
+
+
 class FormDefinitionViewSet(SnippetViewSet):
     """Wagtail Snippet viewset for managing form definitions."""
 
@@ -270,6 +278,7 @@ class FormDefinitionViewSet(SnippetViewSet):
     list_filter = ["is_active", "site"]
     search_fields = ["name", "slug"]
     panels = FormDefinition.panels
+    chooser_viewset_class = ActiveFormDefinitionChooserViewSet
 
 
 register_snippet(FormDefinitionViewSet)
