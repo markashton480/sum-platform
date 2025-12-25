@@ -8,6 +8,8 @@ Dependencies: Django ORM, Wagtail Site.
 
 from __future__ import annotations
 
+import logging
+
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import EmailValidator
@@ -27,6 +29,8 @@ from wagtail.snippets.views.chooser import (
     SnippetChooserViewSet,
 )
 from wagtail.snippets.views.snippets import SnippetViewSet
+
+logger = logging.getLogger(__name__)
 
 
 class FormConfiguration(models.Model):
@@ -388,7 +392,10 @@ class FormDefinitionViewSet(SnippetViewSet):
         form_def = get_object_or_404(self.model, pk=pk)
         try:
             cloned = form_def.clone()
-        except (IntegrityError, ValidationError):
+        except (IntegrityError, ValidationError) as exc:
+            logger.exception(
+                "Failed to clone form definition %s", form_def.pk, exc_info=exc
+            )
             messages.error(
                 request,
                 "Unable to clone this form right now. Please try again.",
