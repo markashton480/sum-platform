@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     dependencies = [
         (
             "sum_core_pages",
-            "0009_alter_serviceindexpage_intro_alter_servicepage_body_and_more",
+            "0012_alter_blogpostpage_published_date",
         ),
         ("wagtailcore", "0094_alter_page_locale"),
         ("wagtailimages", "0027_image_description"),
