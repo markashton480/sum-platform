@@ -7,8 +7,21 @@ Family: Pages.
 
 from __future__ import annotations
 
+from typing import cast
+
 from django.db import models
-from wagtail.admin.panels import FieldPanel
+from django.utils import timezone
+from django.utils.html import strip_tags
+from sum_core.blocks import PageStreamBlock
+from sum_core.pages.mixins import BreadcrumbMixin, OpenGraphMixin, SeoFieldsMixin
+from wagtail.admin.panels import (
+    FieldPanel,
+    MultiFieldPanel,
+    ObjectList,
+    TabbedInterface,
+)
+from wagtail.fields import StreamField
+from wagtail.models import Page
 from wagtail.snippets.models import register_snippet
 from wagtail.snippets.views.snippets import SnippetViewSet
 
@@ -60,3 +73,203 @@ class CategorySnippetViewSet(SnippetViewSet):
 
 
 register_snippet(CategorySnippetViewSet)
+
+
+class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
+    """
+    Container for BlogPostPage entries.
+
+    Acts as the listing root for blog content.
+    """
+
+    content_panels = Page.content_panels
+
+    promote_panels = (
+        SeoFieldsMixin.seo_panels
+        + OpenGraphMixin.open_graph_panels
+        + Page.promote_panels
+    )
+
+    subpage_types: list[str] = ["sum_core_pages.BlogPostPage"]
+
+    template: str = "theme/blog_index_page.html"
+
+    class Meta:
+        verbose_name = "Blog Index Page"
+        verbose_name_plural = "Blog Index Pages"
+
+    def get_context(self, request, *args, **kwargs):
+        """Add newest-first blog posts to the template context."""
+        context = super().get_context(request, *args, **kwargs)
+
+        posts = (
+            BlogPostPage.objects.child_of(self)
+            .live()
+            .public()
+            .select_related("category")
+            .order_by("-published_date")
+        )
+        context["posts"] = posts
+        return context
+
+
+class BlogPostPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
+    """
+    Individual blog post/article.
+
+    URL: /blog/<slug>/
+    Template: theme/blog_post_page.html
+    """
+
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.PROTECT,
+        related_name="blog_posts",
+        help_text="Blog post category",
+    )
+    published_date = models.DateTimeField(
+        default=timezone.now,
+        db_index=True,
+        help_text="Date this post was published",
+    )
+    featured_image = models.ForeignKey(
+        "wagtailimages.Image",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        help_text="Featured image displayed at top of post",
+    )
+    excerpt = models.TextField(
+        blank=True,
+        max_length=500,
+        help_text="Short excerpt for listings (auto-generated if blank)",
+    )
+    body: StreamField = StreamField(
+        PageStreamBlock(),  # Includes DynamicFormBlock for CTAs
+        blank=False,
+        use_json_field=True,
+        help_text="Article content with optional form CTAs",
+    )
+    author_name = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Author name (optional - no multi-author system)",
+    )
+    reading_time = models.PositiveIntegerField(
+        default=1,
+        help_text="Estimated reading time in minutes (auto-calculated)",
+    )
+
+    content_panels = Page.content_panels + [
+        FieldPanel("category"),
+        FieldPanel("published_date"),
+        FieldPanel("featured_image"),
+        FieldPanel("excerpt"),
+        FieldPanel("author_name"),
+        FieldPanel("body"),
+    ]
+
+    promote_panels = (
+        SeoFieldsMixin.seo_panels
+        + OpenGraphMixin.open_graph_panels
+        + Page.promote_panels
+        + [
+            MultiFieldPanel(
+                [FieldPanel("reading_time", read_only=True)],
+                heading="Metadata",
+            )
+        ]
+    )
+
+    edit_handler = TabbedInterface(
+        [
+            ObjectList(content_panels, heading="Content"),
+            ObjectList(promote_panels, heading="Promote"),
+            ObjectList(Page.settings_panels, heading="Settings"),
+        ]
+    )
+
+    parent_page_types = ["sum_core_pages.BlogIndexPage"]
+    subpage_types: list[str] = []
+    template: str = "theme/blog_post_page.html"
+
+    def save(self, *args, **kwargs):
+        """Auto-calculate reading time before saving."""
+        self.reading_time = self.calculate_reading_time()
+        super().save(*args, **kwargs)
+
+    def calculate_reading_time(self) -> int:
+        """
+        Calculate reading time based on word count.
+
+        Assumes 200 words per minute average reading speed.
+        Minimum 1 minute.
+        """
+        body_text = self._get_body_text()
+        word_count = len(body_text.split())
+        minutes = max(1, round(word_count / 200))
+        return minutes
+
+    def get_excerpt(self) -> str:
+        """
+        Return excerpt if provided, otherwise generate from body.
+
+        Strips HTML and truncates to ~150 characters.
+        """
+        if self.excerpt:
+            return str(self.excerpt)
+
+        body_text = self._get_body_text()
+        if not body_text:
+            return ""
+
+        if len(body_text) > 150:
+            return body_text[:147] + "..."
+        return body_text
+
+    def _get_body_text(self) -> str:
+        """Return a plain-text representation of the body StreamField."""
+        if not self.body:
+            return ""
+
+        text_blocks = {
+            "rich_text",
+            "content",
+            "quote",
+            "social_proof_quote",
+            "editorial_header",
+            "page_header",
+            "legal_section",
+            "manifesto",
+        }
+        parts: list[str] = []
+
+        for block in self.body:
+            if block.block_type not in text_blocks:
+                continue
+
+            value = getattr(block, "value", None)
+            text_candidates: list[str] = []
+
+            if value is None:
+                continue
+
+            if hasattr(value, "source"):
+                text_candidates.append(str(getattr(value, "source")))
+            elif hasattr(value, "get"):
+                for key in ("body", "quote", "heading", "eyebrow"):
+                    item = value.get(key)
+                    if item:
+                        text_candidates.append(str(getattr(item, "source", item)))
+            elif value:
+                text_candidates.append(str(value))
+
+            if text_candidates:
+                parts.append(" ".join(text_candidates))
+
+        return cast(str, strip_tags(" ".join(parts)))
+
+    class Meta:
+        verbose_name = "Blog Post"
+        verbose_name_plural = "Blog Posts"
