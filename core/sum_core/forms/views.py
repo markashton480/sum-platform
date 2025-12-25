@@ -149,17 +149,9 @@ class FormSubmissionView(View):
                 status=400,
             )
 
+        # Dynamic forms always use "website" as honeypot field (set in template).
+        # This is simpler than the legacy per-site config and avoids confusion.
         config = self._get_config(site)
-        if config.honeypot_field_name != "website" and data.get(
-            config.honeypot_field_name
-        ):
-            spam_response = self._spam_response(
-                SpamCheckResult(is_spam=True, reason="Honeypot field filled"),
-                request,
-            )
-            if spam_response:
-                return spam_response
-
         spam_result = run_spam_checks(
             form_data=data,
             ip_address=get_client_ip(request),
@@ -203,6 +195,8 @@ class FormSubmissionView(View):
                 attribution=attribution,
             )
         except ValueError as e:
+            # Clean up any uploaded files since lead creation failed
+            self._cleanup_uploaded_files(form_data)
             return JsonResponse(
                 {"success": False, "errors": {"__all__": [str(e)]}},
                 status=400,
@@ -348,6 +342,23 @@ class FormSubmissionView(View):
             "size": uploaded_file.size,
             "content_type": uploaded_file.content_type,
         }
+
+    def _cleanup_uploaded_files(self, form_data: dict[str, Any]) -> None:
+        """Delete any uploaded files from storage when lead creation fails."""
+        import logging
+
+        logger = logging.getLogger(__name__)
+        for field_name, value in form_data.items():
+            if isinstance(value, dict) and "path" in value:
+                file_path = value["path"]
+                try:
+                    if default_storage.exists(file_path):
+                        default_storage.delete(file_path)
+                except Exception:
+                    logger.warning(
+                        f"Failed to cleanup orphaned file: {file_path}",
+                        exc_info=True,
+                    )
 
     def _build_attribution_data(
         self, data: dict[str, Any], request: HttpRequest
