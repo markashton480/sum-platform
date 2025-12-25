@@ -16,6 +16,11 @@ from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.fields import StreamField
 from wagtail.models import Site
 from wagtail.snippets.models import register_snippet
+from wagtail.snippets.views.chooser import (
+    ChooseResultsView,
+    ChooseView,
+    SnippetChooserViewSet,
+)
 from wagtail.snippets.views.snippets import SnippetViewSet
 
 
@@ -260,6 +265,43 @@ class FormDefinition(models.Model):
         super().clean()
 
 
+class ActiveFormDefinitionChooseView(ChooseView):
+    """Limit chooser options to active forms on the current site."""
+
+    def get_object_list(self):
+        queryset = super().get_object_list().filter(is_active=True)
+
+        current_site = getattr(self.request, "site", None) or Site.find_for_request(
+            self.request
+        )
+        if current_site:
+            queryset = queryset.filter(site=current_site)
+
+        return queryset
+
+
+class ActiveFormDefinitionChooseResultsView(ChooseResultsView):
+    """Ensure chooser search/results use the same filtering rules."""
+
+    def get_object_list(self):
+        queryset = super().get_object_list().filter(is_active=True)
+
+        current_site = getattr(self.request, "site", None) or Site.find_for_request(
+            self.request
+        )
+        if current_site:
+            queryset = queryset.filter(site=current_site)
+
+        return queryset
+
+
+class ActiveFormDefinitionChooserViewSet(SnippetChooserViewSet):
+    """Chooser viewset limited to active forms for the current site."""
+
+    choose_view_class = ActiveFormDefinitionChooseView
+    choose_results_view_class = ActiveFormDefinitionChooseResultsView
+
+
 class FormDefinitionViewSet(SnippetViewSet):
     """Wagtail Snippet viewset for managing form definitions."""
 
@@ -270,6 +312,7 @@ class FormDefinitionViewSet(SnippetViewSet):
     list_filter = ["is_active", "site"]
     search_fields = ["name", "slug"]
     panels = FormDefinition.panels
+    chooser_viewset_class = ActiveFormDefinitionChooserViewSet
 
 
 register_snippet(FormDefinitionViewSet)

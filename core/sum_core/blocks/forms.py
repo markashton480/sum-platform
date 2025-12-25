@@ -9,10 +9,13 @@ Dependencies: Wagtail core blocks, PageStreamBlock, templates in sum_core/blocks
 from wagtail.blocks import (
     BooleanBlock,
     CharBlock,
+    ChoiceBlock,
     RichTextBlock,
     StructBlock,
     TextBlock,
+    URLBlock,
 )
+from wagtail.snippets.blocks import SnippetChooserBlock
 
 
 class ContactFormBlock(StructBlock):
@@ -53,3 +56,34 @@ class QuoteRequestFormBlock(StructBlock):
         template = "sum_core/blocks/quote_request_form.html"
         label = "Quote request form"
         form_type = "quote"
+
+
+class DynamicFormBlock(StructBlock):
+    form_definition = SnippetChooserBlock(
+        "sum_core_forms.FormDefinition",
+        required=True,
+        help_text="Select the form to display",
+    )
+    presentation_style = ChoiceBlock(
+        choices=[
+            ("inline", "Inline (renders in page flow)"),
+            ("modal", "Modal (button opens overlay)"),
+            ("sidebar", "Sidebar (fixed slide-in)"),
+        ],
+        default="inline",
+        help_text="How the form should be presented",
+    )
+    cta_button_text = CharBlock(
+        required=False,
+        max_length=100,
+        help_text="Override default CTA button text (for modal/sidebar styles)",
+    )
+    success_redirect_url = URLBlock(
+        required=False,
+        help_text="Optional redirect after submission (defaults to same page with message)",
+    )
+
+    class Meta:
+        icon = "form"
+        label = "Dynamic Form"
+        template = "sum_core/blocks/dynamic_form_block.html"
