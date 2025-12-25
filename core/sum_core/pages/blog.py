@@ -123,7 +123,7 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
     def get_posts(self):
         """Return live BlogPostPage children ordered by published date."""
         return (
-            BlogPostPage.objects.descendant_of(self)
+            BlogPostPage.objects.child_of(self)
             .live()
             .public()
             .select_related("category", "featured_image")
