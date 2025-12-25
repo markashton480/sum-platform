@@ -171,10 +171,16 @@ class Command(BaseCommand):
             parent=home, title="Terms", slug=slugs.terms, page_model=legal_page_model
         )
         privacy = self._get_or_create_legal_page(
-            parent=home, title="Privacy", slug=slugs.privacy, page_model=legal_page_model
+            parent=home,
+            title="Privacy",
+            slug=slugs.privacy,
+            page_model=legal_page_model,
         )
         cookies = self._get_or_create_legal_page(
-            parent=home, title="Cookies", slug=slugs.cookies, page_model=legal_page_model
+            parent=home,
+            title="Cookies",
+            slug=slugs.cookies,
+            page_model=legal_page_model,
         )
 
         # Media (placeholder images)
@@ -414,7 +420,9 @@ class Command(BaseCommand):
 
         for child in home.get_children().filter(slug__in=known_child_slugs):
             if child.slug == slugs.services:
-                for service in child.get_children().filter(slug__in=service_child_slugs):
+                for service in child.get_children().filter(
+                    slug__in=service_child_slugs
+                ):
                     service.specific.delete()
             child.specific.delete()
 
@@ -1341,9 +1349,7 @@ class Command(BaseCommand):
                     },
                 }
             )
-        return stream_block.to_python(
-            stream
-        )
+        return stream_block.to_python(stream)
 
     def _build_legal_sections(
         self, sections: list[dict[str, str]]

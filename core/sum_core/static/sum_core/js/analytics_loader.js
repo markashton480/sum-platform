@@ -113,6 +113,7 @@
       return;
     }
 
+    // Set flag BEFORE loading to prevent race conditions from rapid event firing
     hasLoaded = true;
 
     if (config.gtm_container_id) {

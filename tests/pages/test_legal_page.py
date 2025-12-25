@@ -80,3 +80,30 @@ def test_legal_page_has_hero_block() -> None:
 def test_legal_page_has_no_subpages() -> None:
     """LegalPage has no allowed subpage types."""
     assert LegalPage.subpage_types == []
+
+
+def test_legal_section_block_anchor_validation() -> None:
+    """LegalSectionBlock anchor field validates URL-safe format."""
+    from django.core.exceptions import ValidationError
+
+    # Get the anchor field directly from the block
+    block = LegalSectionBlock()
+    anchor_field = block.child_blocks["anchor"]
+
+    # Valid anchors - should clean without error
+    valid_anchors = ["scope", "data-collection", "section1", "a"]
+    for anchor in valid_anchors:
+        cleaned = anchor_field.clean(anchor)
+        assert cleaned == anchor
+
+    # Invalid anchors should raise validation error
+    invalid_anchors = [
+        "123-starts-with-number",
+        "Capital",
+        "has spaces",
+        "special!chars",
+        "-starts-with-hyphen",
+    ]
+    for anchor in invalid_anchors:
+        with pytest.raises(ValidationError):
+            anchor_field.clean(anchor)
