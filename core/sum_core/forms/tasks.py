@@ -14,6 +14,7 @@ import requests
 from celery import shared_task
 from django.conf import settings
 from django.core.mail import send_mail
+from django.template import Context, Template
 from django.template.loader import render_to_string
 from django.utils import timezone
 
@@ -54,7 +55,14 @@ def _build_webhook_payload(lead, form_definition) -> dict:
     }
 
 
-@shared_task(bind=True, max_retries=MAX_RETRIES)
+@shared_task(
+    bind=True,
+    max_retries=MAX_RETRIES,
+    default_retry_delay=RETRY_BACKOFF,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_backoff_max=300,
+)
 def send_form_notification(self, lead_id: int, form_definition_id: int) -> None:
     """
     Send email notification to admin recipients when a dynamic form is submitted.
@@ -101,7 +109,14 @@ def send_form_notification(self, lead_id: int, form_definition_id: int) -> None:
         raise self.retry(exc=exc, countdown=RETRY_BACKOFF * (2**self.request.retries))
 
 
-@shared_task(bind=True, max_retries=MAX_RETRIES)
+@shared_task(
+    bind=True,
+    max_retries=MAX_RETRIES,
+    default_retry_delay=RETRY_BACKOFF,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_backoff_max=300,
+)
 def send_auto_reply(self, lead_id: int, form_definition_id: int) -> None:
     """Send auto-reply email to the submitter."""
     from sum_core.forms.models import FormDefinition
@@ -128,8 +143,9 @@ def send_auto_reply(self, lead_id: int, form_definition_id: int) -> None:
     body = form_definition.auto_reply_body or form_definition.success_message
 
     name = lead.name or lead.form_data.get("name", "there")
-    subject = subject.replace("{{name}}", name)
-    body = body.replace("{{name}}", name)
+    context = Context({"name": name})
+    subject = Template(subject).render(context)
+    body = Template(body).render(context)
 
     try:
         send_mail(
@@ -143,7 +159,14 @@ def send_auto_reply(self, lead_id: int, form_definition_id: int) -> None:
         raise self.retry(exc=exc, countdown=RETRY_BACKOFF * (2**self.request.retries))
 
 
-@shared_task(bind=True, max_retries=MAX_RETRIES)
+@shared_task(
+    bind=True,
+    max_retries=MAX_RETRIES,
+    default_retry_delay=RETRY_BACKOFF,
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_backoff_max=300,
+)
 def send_webhook(self, lead_id: int, form_definition_id: int) -> None:
     """Send webhook with form submission data."""
     from sum_core.forms.models import FormDefinition
