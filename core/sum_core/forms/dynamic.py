@@ -41,9 +41,12 @@ class DynamicFormGenerator:
             if file_rule:
                 file_rules[field_name] = file_rule
 
-        def clean(form_self):
-            cleaned = forms.Form.clean(form_self)
-            for field_name, rule in form_self._file_validation_rules.items():
+        def clean(form_instance):
+            cleaned = forms.Form.clean(form_instance)
+            file_validation_rules = (
+                getattr(form_instance, "_file_validation_rules", {}) or {}
+            )
+            for field_name, rule in file_validation_rules.items():
                 uploaded = cleaned.get(field_name)
                 if not uploaded:
                     continue
@@ -54,15 +57,23 @@ class DynamicFormGenerator:
                 max_size_mb = rule.get("max_size_mb")
 
                 if extensions:
-                    _, ext = os.path.splitext((uploaded.name or "").lower())
+                    original_name = uploaded.name or ""
+                    _, original_ext = os.path.splitext(original_name)
+                    ext = original_ext.lower()
                     if ext not in extensions:
-                        errors.append(f"File type '{ext or 'unknown'}' is not allowed.")
+                        errors.append(
+                            f"File type '{original_ext or 'unknown'}' "
+                            "is not allowed."
+                        )
 
                 if max_size_bytes and uploaded.size > max_size_bytes:
-                    errors.append(f"File must be {max_size_mb:g}MB or smaller.")
+                    max_size_mb_display = max_size_mb
+                    if not max_size_mb_display and max_size_bytes:
+                        max_size_mb_display = max_size_bytes / (1024 * 1024)
+                    errors.append(f"File must be {max_size_mb_display:g}MB or smaller.")
 
                 for message in errors:
-                    form_self.add_error(field_name, message)
+                    form_instance.add_error(field_name, message)
 
             return cleaned
 
@@ -192,12 +203,16 @@ class DynamicFormGenerator:
             return field_name, field, None
 
         if block_type == "file_upload":
-            max_size_mb = block_value.get("max_file_size_mb") or 0
+            max_size_mb = block_value.get("max_file_size_mb")
+            if max_size_mb is not None and max_size_mb > 0:
+                max_size_bytes = max_size_mb * 1024 * 1024
+            else:
+                max_size_bytes = None
             file_rule = {
                 "extensions": self._normalize_extensions(
                     block_value.get("allowed_extensions", "")
                 ),
-                "max_size_bytes": max_size_mb * 1024 * 1024 if max_size_mb else None,
+                "max_size_bytes": max_size_bytes,
                 "max_size_mb": max_size_mb,
             }
             field = forms.FileField(
