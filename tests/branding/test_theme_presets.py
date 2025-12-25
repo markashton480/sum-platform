@@ -189,6 +189,11 @@ def test_applying_theme_preset_updates_site_settings_fields() -> None:
         "twitter_url": settings.twitter_url,
         "youtube_url": settings.youtube_url,
         "tiktok_url": settings.tiktok_url,
+        "cookie_banner_enabled": settings.cookie_banner_enabled,
+        "cookie_consent_version": settings.cookie_consent_version,
+        "privacy_policy_page": settings.privacy_policy_page_id or "",
+        "cookie_policy_page": settings.cookie_policy_page_id or "",
+        "terms_page": settings.terms_page_id or "",
     }
 
     form = SiteSettingsAdminForm(data=form_data, instance=settings)
@@ -240,6 +245,11 @@ def test_manual_edits_after_preset_are_respected() -> None:
         "twitter_url": "",
         "youtube_url": "",
         "tiktok_url": "",
+        "cookie_banner_enabled": settings.cookie_banner_enabled,
+        "cookie_consent_version": settings.cookie_consent_version,
+        "privacy_policy_page": settings.privacy_policy_page_id or "",
+        "cookie_policy_page": settings.cookie_policy_page_id or "",
+        "terms_page": settings.terms_page_id or "",
     }
 
     form = SiteSettingsAdminForm(data=form_data, instance=settings)
@@ -281,6 +291,11 @@ def test_manual_edits_after_preset_are_respected() -> None:
         "twitter_url": settings.twitter_url,
         "youtube_url": settings.youtube_url,
         "tiktok_url": settings.tiktok_url,
+        "cookie_banner_enabled": settings.cookie_banner_enabled,
+        "cookie_consent_version": settings.cookie_consent_version,
+        "privacy_policy_page": settings.privacy_policy_page_id or "",
+        "cookie_policy_page": settings.cookie_policy_page_id or "",
+        "terms_page": settings.terms_page_id or "",
     }
 
     form2 = SiteSettingsAdminForm(data=form_data_manual, instance=settings)
