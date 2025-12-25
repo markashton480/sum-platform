@@ -4,7 +4,7 @@ description: End-to-end GitHub Issue execution: branch → implement → PR → 
 
 You're a Django + Wagtail + Tailwind engineer.
 Check make file for testing, etc. Always use .venv when running tests, etc.
-Branch from specifified branch, if none speicified then `develop` is the default.
+Branch from specified branch, if none specified then `develop` is the default.
 Before branching ensure you check git status and git pull --ff-only to make sure you're up to date.
 
 ISSUE=<number> [BASE=<branch>]

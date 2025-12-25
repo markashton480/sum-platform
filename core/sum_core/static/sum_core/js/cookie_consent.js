@@ -36,24 +36,32 @@
 
   /**
    * Get a cookie value by name.
+   * Values are URL-decoded to handle special characters.
    */
   function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) {
-      return parts.pop().split(';').shift();
+      const encodedValue = parts.pop().split(';').shift();
+      try {
+        return decodeURIComponent(encodedValue);
+      } catch (e) {
+        // Return raw value if decoding fails (backwards compatibility)
+        return encodedValue;
+      }
     }
     return null;
   }
 
   /**
    * Set a cookie with the specified name, value, and max age.
+   * Value is URL-encoded to handle special characters.
    */
   function setCookie(name, value, maxAge) {
     const isSecure = window.location.protocol === 'https:';
     const secureFlag = isSecure ? '; Secure' : '';
 
-    document.cookie = `${name}=${value}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secureFlag}`;
+    document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; SameSite=Lax; Max-Age=${maxAge}${secureFlag}`;
   }
 
   /**
@@ -64,14 +72,17 @@
   }
 
   /**
-   * Check if consent is valid (exists and version matches).
+   * Check if consent is valid (exists, has an expected value, and version matches).
    */
   function isConsentValid() {
     const consent = getCookie(COOKIE_CONSENT);
     const version = getCookie(COOKIE_CONSENT_VERSION);
     const currentVersion = getConsentVersion();
 
-    return consent && version === currentVersion;
+    return (
+      (consent === CONSENT_ACCEPTED || consent === CONSENT_REJECTED) &&
+      version === currentVersion
+    );
   }
 
   /**
@@ -105,9 +116,7 @@
     setCookie(COOKIE_CONSENT, choice, COOKIE_MAX_AGE);
     setCookie(COOKIE_CONSENT_VERSION, version, COOKIE_MAX_AGE);
 
-    hideBanner();
-
-    // Update status message for screen readers
+    // Update status message for screen readers BEFORE hiding banner
     const statusElement = document.querySelector('.cookie-banner__status');
     if (statusElement) {
       const message = choice === CONSENT_ACCEPTED
@@ -115,6 +124,11 @@
         : 'Cookie preferences saved. You have rejected cookies.';
       statusElement.textContent = message;
     }
+
+    // Brief delay to allow screen reader announcement, then hide banner
+    setTimeout(() => {
+      hideBanner();
+    }, 100);
 
     // Dispatch custom event for other scripts (like analytics loader) to listen to
     const event = new CustomEvent('cookieConsentChanged', {
