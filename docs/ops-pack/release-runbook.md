@@ -150,7 +150,7 @@ python scripts/sync_to_public.py --public-repo-url git@github.com:markashton480/
 ```
 
 The sync:
-1. Clones/updates `sum-core` locally
+1. Clones/updates `sum-core` locally (default working dir: `/tmp/sum-core-sync`, not inside the repo)
 2. Copies allowed paths (`core/`, `boilerplate/`, `docs/public/` → `docs/`)
 3. Commits changes
 4. Pushes to `sum-core`
@@ -159,8 +159,8 @@ The sync:
 
 ```bash
 # Clone public repo (or cd to existing clone)
-git clone git@github.com:markashton480/sum-core.git /tmp/sum-core
-cd /tmp/sum-core
+git clone git@github.com:markashton480/sum-core.git /tmp/sum-core-sync
+cd /tmp/sum-core-sync
 
 # Ensure on main and up to date
 git checkout main
@@ -211,7 +211,7 @@ python -c "import sum_core; print(sum_core.__version__)"
 # Remove test artifacts
 rm -rf /tmp/test-release-v0.6.0
 rm -rf /tmp/test-venv
-rm -rf /tmp/sum-core
+rm -rf /tmp/sum-core-sync
 ```
 
 ---
