@@ -48,9 +48,9 @@
 
 **Date:** 2025-12-25  
 **Version:** v0.7.1-dev  
-**Symptom:** `make format` rewrote files inside `.venv/`, because the target ran Black and isort against `.` with no `.venv` exclusion.  
-**Fix:** Scoped `make format` to `core`, `cli`, `tests`, and set isort to use `pyproject.toml`, preventing tool runs inside `.venv`.  
-**Follow-up:** Keep format targets scoped to tracked source dirs; avoid running formatters at repo root.
+**Symptom:** `make format` rewrote files inside `.venv/`. This started after `fix(THEME-016-A)` (commit `8bc2a00b`) changed `format` to `black --exclude '(?:^|/)(boilerplate|clients)/' .` + `isort .`. Passing `--exclude` overrides Black’s default excludes (including `.venv`), so running at repo root started touching dot-directories.  
+**Fix:** Scoped `make format` to `core`, `cli`, `tests`, and switched Black to use `pyproject.toml` (`--config`) so the default + extended excludes apply (`.venv`, `boilerplate`, `clients`, dot paths). Kept isort pointed at `pyproject.toml` for its `skip_glob` rules.  
+**Follow-up:** Keep lint/format targets scoped to tracked source dirs and avoid overriding Black defaults with `--exclude`; prefer `--config` or `--extend-exclude` when custom exclusions are needed.
 
 ---
 
