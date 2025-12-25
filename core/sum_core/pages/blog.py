@@ -158,7 +158,8 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         context = super().get_context(request, *args, **kwargs)
 
         posts = self.get_posts()
-        category_slug = request.GET.get("category")
+        query_params = request.GET if request is not None else {}
+        category_slug = query_params.get("category")
         selected_category = None
 
         if category_slug:
@@ -169,7 +170,7 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
                 selected_category = None
 
         paginator = Paginator(posts, self.posts_per_page)
-        page_num = request.GET.get("page", 1)
+        page_num = query_params.get("page", 1)
 
         try:
             paginated_posts = paginator.page(page_num)

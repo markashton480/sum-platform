@@ -8,13 +8,14 @@ Dependencies: Wagtail Site & Page models, home.HomePage, sum_core.pages.blog.
 
 from __future__ import annotations
 
-from datetime import date
 from uuid import uuid4
 
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import RequestFactory
+from django.utils import timezone
 from home.models import HomePage
+from sum_core.blocks import PageStreamBlock
 from sum_core.pages import StandardPage
 from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
 from wagtail.models import Page, Site
@@ -46,21 +47,41 @@ def _create_blog_index(homepage: HomePage, posts_per_page: int = 10) -> BlogInde
     return blog_index
 
 
+def _make_body(text: str):
+    stream_block = PageStreamBlock()
+    return stream_block.to_python([{"type": "rich_text", "value": f"<p>{text}</p>"}])
+
+
 def _create_post(
     blog_index: BlogIndexPage,
     title: str,
     slug: str,
-    published: date,
+    published: timezone.datetime | None = None,
     category: Category | None = None,
+    publish: bool = True,
 ) -> BlogPostPage:
+    if category is None:
+        category = Category.objects.create(
+            name=f"Category {uuid4().hex[:6]}",
+            slug=f"category-{uuid4().hex[:6]}",
+        )
+    if published is None:
+        published = timezone.now()
+
     post = BlogPostPage(
         title=title,
         slug=slug,
         published_date=published,
         category=category,
+        body=_make_body("Body"),
     )
     blog_index.add_child(instance=post)
-    post.save_revision().publish()
+    if publish:
+        post.save_revision().publish()
+    else:
+        post.live = False
+        post.save(update_fields=["live"])
+        post.save_revision()
     return post
 
 
@@ -94,8 +115,11 @@ def test_get_posts_orders_by_published_date_desc() -> None:
     homepage = _create_homepage()
     blog_index = _create_blog_index(homepage)
 
-    older = _create_post(blog_index, "Older", "older", date(2024, 1, 1))
-    newer = _create_post(blog_index, "Newer", "newer", date(2024, 2, 1))
+    base_time = timezone.now()
+    older = _create_post(
+        blog_index, "Older", "older", base_time - timezone.timedelta(days=2)
+    )
+    newer = _create_post(blog_index, "Newer", "newer", base_time)
 
     posts = list(blog_index.get_posts())
 
@@ -109,8 +133,11 @@ def test_get_posts_by_category_filters() -> None:
     cats = Category.objects.create(name="Cats", slug="cats")
     dogs = Category.objects.create(name="Dogs", slug="dogs")
 
-    cat_post = _create_post(blog_index, "Cats 1", "cats-1", date(2024, 3, 1), cats)
-    _create_post(blog_index, "Dogs 1", "dogs-1", date(2024, 3, 2), dogs)
+    base_time = timezone.now()
+    cat_post = _create_post(
+        blog_index, "Cats 1", "cats-1", base_time - timezone.timedelta(days=1), cats
+    )
+    _create_post(blog_index, "Dogs 1", "dogs-1", base_time, dogs)
 
     posts = list(blog_index.get_posts_by_category(cats))
 
@@ -122,8 +149,11 @@ def test_get_context_category_filtering_valid_slug(wagtail_default_site: Site) -
     blog_index = _create_blog_index(homepage)
 
     cats = Category.objects.create(name="Cats", slug="cats")
-    cat_post = _create_post(blog_index, "Cats 1", "cats-1", date(2024, 3, 1), cats)
-    _create_post(blog_index, "Dogs 1", "dogs-1", date(2024, 3, 2))
+    base_time = timezone.now()
+    cat_post = _create_post(
+        blog_index, "Cats 1", "cats-1", base_time - timezone.timedelta(days=1), cats
+    )
+    _create_post(blog_index, "Dogs 1", "dogs-1", base_time)
 
     request = RequestFactory().get(
         "/blog/",
@@ -142,7 +172,7 @@ def test_get_context_category_filtering_invalid_slug(
     homepage = _create_homepage()
     blog_index = _create_blog_index(homepage)
 
-    post = _create_post(blog_index, "Post 1", "post-1", date(2024, 3, 1))
+    post = _create_post(blog_index, "Post 1", "post-1")
 
     request = RequestFactory().get(
         "/blog/",
@@ -161,8 +191,9 @@ def test_get_context_pagination_invalid_page_defaults_first(
     homepage = _create_homepage()
     blog_index = _create_blog_index(homepage, posts_per_page=1)
 
-    _create_post(blog_index, "Post 1", "post-1", date(2024, 1, 1))
-    newer = _create_post(blog_index, "Post 2", "post-2", date(2024, 1, 2))
+    base_time = timezone.now()
+    _create_post(blog_index, "Post 1", "post-1", base_time - timezone.timedelta(days=1))
+    newer = _create_post(blog_index, "Post 2", "post-2", base_time)
 
     request = RequestFactory().get(
         "/blog/",
@@ -180,8 +211,11 @@ def test_get_context_pagination_out_of_range_returns_last_page(
     homepage = _create_homepage()
     blog_index = _create_blog_index(homepage, posts_per_page=1)
 
-    older = _create_post(blog_index, "Post 1", "post-1", date(2024, 1, 1))
-    _create_post(blog_index, "Post 2", "post-2", date(2024, 1, 2))
+    base_time = timezone.now()
+    older = _create_post(
+        blog_index, "Post 1", "post-1", base_time - timezone.timedelta(days=1)
+    )
+    _create_post(blog_index, "Post 2", "post-2", base_time)
 
     request = RequestFactory().get(
         "/blog/",
@@ -191,3 +225,32 @@ def test_get_context_pagination_out_of_range_returns_last_page(
     context = blog_index.get_context(request)
 
     assert list(context["posts"]) == [older]
+
+
+def test_posts_per_page_requires_positive_value() -> None:
+    blog_index = BlogIndexPage(title="Blog", slug="blog", posts_per_page=0)
+
+    with pytest.raises(ValidationError) as excinfo:
+        blog_index.full_clean()
+
+    assert "posts_per_page" in excinfo.value.message_dict
+
+
+def test_get_posts_excludes_unpublished_posts() -> None:
+    homepage = _create_homepage()
+    blog_index = _create_blog_index(homepage)
+    category = Category.objects.create(name="News", slug="news")
+
+    live_post = _create_post(blog_index, "Live", "live", category=category)
+    draft = _create_post(
+        blog_index,
+        "Draft",
+        "draft",
+        category=category,
+        publish=False,
+    )
+
+    posts = list(blog_index.get_posts())
+
+    assert live_post in posts
+    assert draft not in posts
