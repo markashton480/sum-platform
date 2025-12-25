@@ -202,7 +202,6 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
             )
         )
         context["selected_category"] = selected_category
-
         return context
 
 
