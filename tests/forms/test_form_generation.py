@@ -71,7 +71,8 @@ def test_generate_form_class_maps_fields_and_order(wagtail_default_site):
     assert list(form.fields.keys()) == ["first_name", "email", "service"]
     assert form.fields["first_name"].label == "First name"
     assert form.fields["first_name"].help_text == "Tell us who you are."
-    assert form.fields["first_name"].widget.attrs["class"] == "u-input"
+    assert "u-input" in form.fields["first_name"].widget.attrs["class"]
+    assert "border-b-2" in form.fields["first_name"].widget.attrs["class"]
     assert form.fields["first_name"].widget.attrs["placeholder"] == "Jane"
 
 

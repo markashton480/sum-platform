@@ -1,5 +1,20 @@
-{# Placeholder - full implementation in BLOG.006 #}
-<div class="dynamic-form-block" data-style="{{ self.presentation_style }}">
-    <p><strong>Form:</strong> {{ self.form_definition.name }}</p>
-    <p><em>Form rendering will be implemented in BLOG.006</em></p>
-</div>
+{% load wagtailcore_tags form_tags static %}
+
+{% with form_definition=self.form_definition %}
+  {% with form_class=form_definition|generate_dynamic_form %}
+    {% with form=form_class %}
+      <div class="dynamic-form-wrapper" data-presentation="{{ self.presentation_style }}" data-dynamic-form-wrapper>
+        {% if self.presentation_style == 'inline' %}
+          {% include 'sum_core/forms/_dynamic_form_inline.html' %}
+        {% elif self.presentation_style == 'modal' %}
+          {% include 'sum_core/forms/_dynamic_form_modal.html' %}
+        {% elif self.presentation_style == 'sidebar' %}
+          {% include 'sum_core/forms/_dynamic_form_sidebar.html' %}
+        {% endif %}
+      </div>
+    {% endwith %}
+  {% endwith %}
+{% endwith %}
+
+{% form_attribution_script %}
+<script src="{% static 'theme_a/js/dynamic_forms.js' %}" defer></script>
