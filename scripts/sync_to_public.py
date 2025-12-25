@@ -57,6 +57,8 @@ DEFAULT_EXCLUDE_PATTERNS: list[str] = [
     ".venv",
 ]
 
+DEFAULT_PUBLIC_REPO_PATH = Path("/tmp/sum-core-sync")
+
 
 def run_cmd(
     cmd: list[str],
@@ -98,7 +100,7 @@ def ensure_clean_repo(repo_path: Path) -> None:
 
 def clone_or_update_public_repo(config: SyncConfig) -> Path:
     """Clone public repo if needed, otherwise fetch and reset to origin/main."""
-    public_path = config.public_repo_path or (Path.cwd() / "sum-core-public")
+    public_path = config.public_repo_path or DEFAULT_PUBLIC_REPO_PATH
 
     if not public_path.exists():
         print(f"📦 Cloning public repo into {public_path}...")
@@ -232,7 +234,7 @@ Examples:
         "--public-repo-path",
         type=Path,
         default=None,
-        help="Path to local public repo clone (default: ./sum-core-public)",
+        help="Path to local public repo clone (default: /tmp/sum-core-sync)",
     )
     parser.add_argument(
         "--version",
