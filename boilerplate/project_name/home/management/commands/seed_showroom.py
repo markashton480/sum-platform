@@ -79,7 +79,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--profile",
             choices=sorted(VALID_PROFILES),
-            default=PROFILE_STARTER,
+            default=PROFILE_SHOWROOM,
             help="Seed profile to apply (starter or showroom).",
         )
         parser.add_argument(
@@ -1368,6 +1368,16 @@ class Command(BaseCommand):
         intro: str,
         sections: list[dict[str, str]],
     ) -> None:
+        """
+        Apply legal content to a page, supporting both LegalPage (sections field)
+        and StandardPage (body StreamField) models.
+
+        Args:
+            page: The page instance to populate (LegalPage or StandardPage).
+            heading: The main heading for the legal content.
+            intro: Introductory text/description.
+            sections: List of dicts with 'anchor', 'title', and 'content' keys.
+        """
         if hasattr(page, "sections"):
             page.sections = self._build_legal_sections(sections)
             page.search_description = intro
