@@ -95,7 +95,7 @@ class DynamicFormGenerator:
         label = block_value.get("label", "")
         help_text = block_value.get("help_text", "")
         required = bool(block_value.get("required", True))
-        widget_attrs = self._build_widget_attrs(block_value)
+        widget_attrs = self._build_widget_attrs(block_type, block_value)
 
         if block_type == "text_input":
             field = forms.CharField(
@@ -225,11 +225,15 @@ class DynamicFormGenerator:
 
         return None
 
-    def _build_widget_attrs(self, block_value) -> dict[str, str]:
+    def _build_widget_attrs(self, block_type, block_value) -> dict[str, str]:
         attrs: dict[str, str] = {}
+        base_classes = self._default_widget_classes(block_type)
         css_class = block_value.get("css_class")
-        if css_class:
-            attrs["class"] = css_class
+        combined = " ".join(
+            value for value in [base_classes, css_class] if value
+        ).strip()
+        if combined:
+            attrs["class"] = combined
         return attrs
 
     def _apply_placeholder(self, block_value, attrs: dict[str, str]) -> dict[str, str]:
@@ -238,6 +242,46 @@ class DynamicFormGenerator:
             attrs = dict(attrs)
             attrs["placeholder"] = placeholder
         return attrs
+
+    def _default_widget_classes(self, block_type) -> str:
+        base_input = (
+            "w-full bg-transparent border-0 border-b-2 border-sage-black/20 "
+            "py-3 text-lg font-body text-sage-black placeholder-sage-black/40 "
+            "focus:border-sage-terra focus:ring-0 transition-colors"
+        )
+        base_textarea = (
+            "w-full bg-transparent border-0 border-b-2 border-sage-black/20 "
+            "py-3 text-lg font-body text-sage-black placeholder-sage-black/40 "
+            "focus:border-sage-terra focus:ring-0 transition-colors resize-y"
+        )
+        base_select = (
+            "w-full bg-transparent border-0 border-b-2 border-sage-black/20 "
+            "py-3 text-lg font-body text-sage-black focus:border-sage-terra "
+            "focus:ring-0 transition-colors cursor-pointer"
+        )
+        base_checkbox = (
+            "h-4 w-4 rounded border-sage-black/30 text-sage-terra "
+            "focus:ring-sage-terra"
+        )
+        base_file = (
+            "block w-full text-sm text-sage-black file:mr-4 file:rounded-none "
+            "file:border-0 file:bg-sage-terra/10 file:px-4 file:py-2 "
+            "file:font-body file:text-xs file:uppercase file:tracking-widest "
+            "file:text-sage-black hover:file:bg-sage-terra/20"
+        )
+        base_group = "space-y-3"
+
+        return {
+            "text_input": base_input,
+            "email_input": base_input,
+            "phone_input": base_input,
+            "textarea": base_textarea,
+            "select": base_select,
+            "checkbox": base_checkbox,
+            "checkbox_group": base_group,
+            "radio_buttons": base_group,
+            "file_upload": base_file,
+        }.get(block_type, "")
 
     def _extract_choices(self, choices_value) -> list[tuple[str, str]]:
         if not choices_value:

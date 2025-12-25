@@ -140,11 +140,11 @@ class TestDynamicFormBlock:
         )
 
         soup = BeautifulSoup(response.content.decode("utf-8"), "html.parser")
-        block_el = soup.select_one(".dynamic-form-block")
+        block_el = soup.select_one(".dynamic-form-wrapper")
         assert block_el is not None
-        assert block_el.get("data-style") == "modal"
-        assert "Form: CTA Form" in block_el.text
-        assert "Form rendering will be implemented in BLOG.006" in block_el.text
+        assert block_el.get("data-presentation") == "modal"
+        assert "Launch form" in block_el.text
+        assert "CTA Form" in block_el.text
 
     def test_chooser_filters_to_current_site(
         self, wagtail_default_site: Site, rf: RequestFactory
