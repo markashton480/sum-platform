@@ -12,6 +12,7 @@ import ipaddress
 import logging
 import re
 import socket
+from typing import TYPE_CHECKING
 from urllib.parse import urlsplit
 
 import requests
@@ -25,6 +26,10 @@ from django.utils import timezone
 from sum_core.ops.sentry import set_sentry_context
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from sum_core.forms.models import FormDefinition
+    from sum_core.leads.models import Lead
 
 MAX_RETRIES = 3
 RETRY_BACKOFF = 60  # seconds; exponential backoff uses 60, 120, 240
@@ -114,7 +119,9 @@ def _validate_webhook_url(webhook_url: str) -> tuple[bool, str]:
     return True, ""
 
 
-def _build_webhook_payload(lead, form_definition) -> dict:
+def _build_webhook_payload(
+    lead: Lead, form_definition: FormDefinition
+) -> dict[str, object]:
     """
     Build the webhook payload for dynamic form submissions.
 
@@ -202,7 +209,7 @@ def send_form_notification(
     attempt_count = 0
     try:
         with transaction.atomic():
-            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+            lead = Lead.objects.select_for_update(nowait=True).get(id=lead_id)
 
             if lead.form_notification_status == EmailStatus.SENT:
                 logger.info(
@@ -292,8 +299,12 @@ def send_form_notification(
         try:
             with transaction.atomic():
                 lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
-                lead.form_notification_status = EmailStatus.FAILED
                 lead.form_notification_last_error = error_message
+                lead.form_notification_status = (
+                    EmailStatus.IN_PROGRESS
+                    if self.request.retries < MAX_RETRIES
+                    else EmailStatus.FAILED
+                )
                 lead.save(
                     update_fields=[
                         "form_notification_status",
@@ -306,9 +317,25 @@ def send_form_notification(
                 extra={"lead_id": lead_id, "request_id": request_id or "-"},
             )
             return
+
+        if self.request.retries < MAX_RETRIES:
+            logger.warning(
+                "Form notification template render failed, will retry",
+                extra={
+                    "lead_id": lead_id,
+                    "request_id": request_id or "-",
+                    "attempt": attempt_count,
+                },
+            )
+            raise
+
         logger.error(
-            "Form notification template render failed",
-            extra={"lead_id": lead_id, "request_id": request_id or "-"},
+            "Form notification template render failed permanently",
+            extra={
+                "lead_id": lead_id,
+                "request_id": request_id or "-",
+                "attempts": attempt_count,
+            },
         )
         return
 
@@ -432,16 +459,10 @@ def send_auto_reply(
         )
         return
 
-    webhook_url = (form_definition.webhook_url or "").strip()
-    url_valid = True
-    url_error = ""
-    if webhook_url:
-        url_valid, url_error = _validate_webhook_url(webhook_url)
-
     attempt_count = 0
     try:
         with transaction.atomic():
-            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+            lead = Lead.objects.select_for_update(nowait=True).get(id=lead_id)
 
             if lead.auto_reply_status == EmailStatus.SENT:
                 logger.info(
@@ -556,7 +577,7 @@ def send_auto_reply(
 
     try:
         with transaction.atomic():
-            lead = Lead.objects.select_for_update(nowait=False).get(id=lead_id)
+            lead = Lead.objects.select_for_update(nowait=True).get(id=lead_id)
             lead.auto_reply_status = EmailStatus.SENT
             lead.auto_reply_sent_at = timezone.now()
             lead.auto_reply_last_error = ""
@@ -597,7 +618,7 @@ def send_webhook(
     """
     Send webhook with form submission data.
     """
-    from django.db import transaction
+    from django.db import DatabaseError, transaction
     from sum_core.forms.models import FormDefinition
     from sum_core.leads.models import Lead, WebhookStatus
 
@@ -707,6 +728,12 @@ def send_webhook(
             lead.form_webhook_attempts += 1
             lead.save(update_fields=["form_webhook_status", "form_webhook_attempts"])
             attempt_count = lead.form_webhook_attempts
+    except DatabaseError as exc:
+        logger.warning(
+            "Form webhook locked, will retry",
+            extra={"lead_id": lead_id, "request_id": request_id or "-"},
+        )
+        raise self.retry(exc=exc)
     except Lead.DoesNotExist:
         logger.warning(
             "Skipping webhook: lead missing",
