@@ -204,6 +204,7 @@ class FormSubmissionView(View):
 
         # Queue notification tasks AFTER lead is safely persisted
         self._queue_notification_tasks(lead, site.id, request)
+        self._queue_dynamic_form_tasks(lead.id, form_definition.id)
 
         return JsonResponse(
             {
@@ -559,6 +560,42 @@ class FormSubmissionView(View):
             lead.zapier_status = ZapierStatus.FAILED
             lead.zapier_last_error = f"Failed to queue task: {str(e)[:500]}"
             lead.save(update_fields=["zapier_status", "zapier_last_error"])
+
+    def _queue_dynamic_form_tasks(self, lead_id: int, form_definition_id: int) -> None:
+        """Queue async tasks for dynamic form notifications and webhooks."""
+        import logging
+
+        from sum_core.forms.tasks import (
+            send_auto_reply,
+            send_form_notification,
+            send_webhook,
+        )
+
+        logger = logging.getLogger(__name__)
+
+        try:
+            send_form_notification.delay(lead_id, form_definition_id)
+        except Exception:
+            logger.exception(
+                "Failed to queue form notification task",
+                extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
+            )
+
+        try:
+            send_auto_reply.delay(lead_id, form_definition_id)
+        except Exception:
+            logger.exception(
+                "Failed to queue auto reply task",
+                extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
+            )
+
+        try:
+            send_webhook.delay(lead_id, form_definition_id)
+        except Exception:
+            logger.exception(
+                "Failed to queue form webhook task",
+                extra={"lead_id": lead_id, "form_definition_id": form_definition_id},
+            )
 
 
 # Convenience function-based view for URL routing
