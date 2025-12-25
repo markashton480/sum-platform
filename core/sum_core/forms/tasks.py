@@ -8,8 +8,11 @@ Dependencies: Celery, Django email backend, HTTP client, Lead model.
 
 from __future__ import annotations
 
+import ipaddress
 import logging
 import re
+import socket
+from urllib.parse import urlsplit
 
 import requests
 from celery import shared_task
@@ -27,6 +30,7 @@ MAX_RETRIES = 3
 RETRY_BACKOFF = 60  # seconds; exponential backoff uses 60, 120, 240
 WEBHOOK_TIMEOUT = 10  # seconds
 NAME_TOKEN = re.compile(r"{{\s*name\s*}}")
+NAME_NEWLINE = re.compile(r"[\r\n]+")
 
 
 def _parse_recipients(emails: str) -> list[str]:
@@ -49,6 +53,67 @@ def _parse_recipients(emails: str) -> list[str]:
     return recipients
 
 
+def _resolve_webhook_host(
+    hostname: str,
+) -> list[ipaddress.IPv4Address | ipaddress.IPv6Address]:
+    addresses: list[ipaddress.IPv4Address | ipaddress.IPv6Address] = []
+    try:
+        results = socket.getaddrinfo(hostname, None)
+    except socket.gaierror:
+        return addresses
+
+    for family, _, _, _, sockaddr in results:
+        if family == socket.AF_INET:
+            ip_value = sockaddr[0]
+        elif family == socket.AF_INET6:
+            ip_value = sockaddr[0]
+        else:
+            continue
+        try:
+            addresses.append(ipaddress.ip_address(ip_value))
+        except ValueError:
+            logger.warning(
+                "Webhook URL resolved to invalid IP",
+                extra={"hostname": hostname, "ip": ip_value},
+            )
+    return addresses
+
+
+def _validate_webhook_url(webhook_url: str) -> tuple[bool, str]:
+    try:
+        parsed = urlsplit(webhook_url)
+    except ValueError:
+        return False, "Webhook URL is invalid"
+
+    scheme = (parsed.scheme or "").lower()
+    if scheme not in {"http", "https"}:
+        return False, "Webhook URL must use http or https"
+
+    hostname = (parsed.hostname or "").lower()
+    if not hostname:
+        return False, "Webhook URL host is missing"
+
+    if (
+        hostname == "localhost"
+        or hostname.endswith(".localhost")
+        or hostname.endswith(".local")
+    ):
+        return False, "Webhook URL host is not allowed"
+
+    try:
+        addresses = [ipaddress.ip_address(hostname)]
+    except ValueError:
+        addresses = _resolve_webhook_host(hostname)
+        if not addresses:
+            return False, "Webhook URL host could not be resolved"
+
+    for address in addresses:
+        if not address.is_global:
+            return False, "Webhook URL resolves to a non-public IP"
+
+    return True, ""
+
+
 def _build_webhook_payload(lead, form_definition) -> dict:
     """
     Build the webhook payload for dynamic form submissions.
@@ -65,6 +130,12 @@ def _build_webhook_payload(lead, form_definition) -> dict:
         },
         "submission": {
             "id": lead.id,
+            "contact": {
+                "name": lead.name,
+                "email": lead.email,
+                "phone": lead.phone,
+                "message": lead.message,
+            },
             "data": lead.form_data,
             "created_at": lead.submitted_at.isoformat() if lead.submitted_at else None,
         },
@@ -82,7 +153,8 @@ def _build_webhook_payload(lead, form_definition) -> dict:
 
 def _interpolate_name(template: str, name: str) -> str:
     """Replace the {{name}} placeholder with the submitter's name."""
-    return NAME_TOKEN.sub(name, template)
+    safe_name = NAME_NEWLINE.sub(" ", str(name or "")).strip()
+    return NAME_TOKEN.sub(safe_name, template)
 
 
 @shared_task(
@@ -360,6 +432,12 @@ def send_auto_reply(
         )
         return
 
+    webhook_url = (form_definition.webhook_url or "").strip()
+    url_valid = True
+    url_error = ""
+    if webhook_url:
+        url_valid, url_error = _validate_webhook_url(webhook_url)
+
     attempt_count = 0
     try:
         with transaction.atomic():
@@ -542,6 +620,12 @@ def send_webhook(
         )
         return
 
+    webhook_url = (form_definition.webhook_url or "").strip()
+    url_valid = True
+    url_error = ""
+    if webhook_url:
+        url_valid, url_error = _validate_webhook_url(webhook_url)
+
     attempt_count = 0
     try:
         with transaction.atomic():
@@ -582,7 +666,7 @@ def send_webhook(
                 )
                 return
 
-            if not form_definition.webhook_url:
+            if not webhook_url:
                 lead.form_webhook_status = WebhookStatus.FAILED
                 lead.form_webhook_last_error = "Webhook URL missing"
                 lead.save(
@@ -590,6 +674,32 @@ def send_webhook(
                         "form_webhook_status",
                         "form_webhook_last_error",
                     ]
+                )
+                return
+
+            if not url_valid:
+                lead.form_webhook_status = WebhookStatus.FAILED
+                lead.form_webhook_last_error = url_error[:500]
+                lead.form_webhook_last_status_code = None
+                lead.save(
+                    update_fields=[
+                        "form_webhook_status",
+                        "form_webhook_last_error",
+                        "form_webhook_last_status_code",
+                    ]
+                )
+                webhook_host = None
+                try:
+                    webhook_host = urlsplit(webhook_url).hostname
+                except ValueError:
+                    webhook_host = None
+                logger.warning(
+                    "Blocked webhook URL for security reasons",
+                    extra={
+                        "lead_id": lead_id,
+                        "request_id": request_id or "-",
+                        "webhook_host": webhook_host,
+                    },
                 )
                 return
 
@@ -608,7 +718,7 @@ def send_webhook(
 
     try:
         response = requests.post(
-            form_definition.webhook_url,
+            webhook_url,
             json=payload,
             headers={"Content-Type": "application/json"},
             timeout=WEBHOOK_TIMEOUT,

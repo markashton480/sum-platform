@@ -50,7 +50,7 @@
                 <tr>
                     <td>{{ key|escape }}</td>
                     <td>
-                        {% if value.name %}{{ value.name|escape }}{% elif value.path %}{{ value.path|escape }}{% else %}{{ value|escape }}{% endif %}
+                        {% if value.name %}{{ value.name|escape }}{% elif value.path %}{{ value.path|escape }}{% else %}{{ value|default_if_none:""|escape }}{% endif %}
                     </td>
                 </tr>
                 {% endfor %}

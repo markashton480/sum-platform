@@ -137,6 +137,18 @@ class TestDynamicFormTasks:
         assert lead.auto_reply_status == EmailStatus.FAILED
         assert "Submitter email" in lead.auto_reply_last_error
 
+    def test_auto_reply_strips_header_newlines(self, lead, form_definition):
+        lead.name = "Eve\r\nBcc:evil@example.com"
+        lead.save(update_fields=["name"])
+
+        send_auto_reply(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert len(mail.outbox) == 1
+        subject = mail.outbox[0].subject
+        assert "\n" not in subject
+        assert "\r" not in subject
+
     def test_webhook_payload(self, lead, form_definition):
         mock_response = Mock()
         mock_response.raise_for_status.return_value = None
@@ -152,6 +164,8 @@ class TestDynamicFormTasks:
         assert payload["event"] == "form.submitted"
         assert payload["form"]["id"] == form_definition.id
         assert payload["submission"]["id"] == lead.id
+        assert payload["submission"]["contact"]["email"] == lead.email
+        assert payload["submission"]["contact"]["name"] == lead.name
         assert payload["submission"]["data"]["service"] == "Roofing"
         assert payload["attribution"]["utm_source"] == "google"
 
@@ -170,6 +184,18 @@ class TestDynamicFormTasks:
         lead.refresh_from_db()
         assert not mock_post.called
         assert lead.form_webhook_status == WebhookStatus.DISABLED
+
+    def test_webhook_blocks_private_url(self, lead, form_definition):
+        form_definition.webhook_url = "http://127.0.0.1/secret"
+        form_definition.save(update_fields=["webhook_url"])
+
+        with patch("sum_core.forms.tasks.requests.post") as mock_post:
+            send_webhook(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert not mock_post.called
+        assert lead.form_webhook_status == WebhookStatus.FAILED
+        assert "Webhook URL" in lead.form_webhook_last_error
 
     def test_webhook_idempotent(self, lead, form_definition):
         lead.form_webhook_status = WebhookStatus.SENT

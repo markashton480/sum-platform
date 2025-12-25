@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from django.core.files.storage import default_storage
@@ -30,6 +30,9 @@ from sum_core.ops.request_utils import get_client_ip
 from wagtail.models import Site
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from sum_core.leads.models import Lead
 
 # UK phone validation regex - accepts common UK formats
 # Matches: 07xxx, +447xxx, 0044 7xxx, 01xxx, 02xxx, 03xxx, etc.
@@ -349,9 +352,6 @@ class FormSubmissionView(View):
 
     def _cleanup_uploaded_files(self, form_data: dict[str, Any]) -> None:
         """Delete any uploaded files from storage when lead creation fails."""
-        import logging
-
-        logger = logging.getLogger(__name__)
         for field_name, value in form_data.items():
             if isinstance(value, dict) and "path" in value:
                 file_path = value["path"]
@@ -521,16 +521,12 @@ class FormSubmissionView(View):
             site_id: The Wagtail Site ID for per-site configuration lookup.
             request: The HTTP request (for extracting request_id).
         """
-        import logging
-
         from sum_core.leads.models import EmailStatus, WebhookStatus, ZapierStatus
         from sum_core.leads.tasks import (
             send_lead_notification,
             send_lead_webhook,
             send_zapier_webhook,
         )
-
-        logger = logging.getLogger(__name__)
 
         # Get request_id set by CorrelationIdMiddleware (if available)
         request_id = getattr(request, "request_id", None)
@@ -565,7 +561,7 @@ class FormSubmissionView(View):
             lead.save(update_fields=["zapier_status", "zapier_last_error"])
 
     def _queue_dynamic_form_tasks(
-        self, lead, form_definition: FormDefinition, request
+        self, lead: Lead, form_definition: FormDefinition, request: HttpRequest
     ) -> None:
         """Queue async tasks for dynamic form notifications and webhooks."""
         from sum_core.forms.tasks import (

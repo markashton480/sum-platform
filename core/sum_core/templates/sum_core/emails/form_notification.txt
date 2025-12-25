@@ -1,0 +1,25 @@
+New Form Submission
+
+A new "{{ form_definition.name }}" submission has been received.
+
+Contact Details
+- Name: {{ lead.name }}
+- Email: {{ lead.email }}
+{% if lead.phone %}- Phone: {{ lead.phone }}
+{% endif %}
+
+Message
+{{ lead.message|default_if_none:"" }}
+
+Submission Info
+- Form: {{ form_definition.name }} ({{ form_definition.slug }})
+- Submitted At: {{ lead.submitted_at }}
+
+{% if lead.form_data %}Additional Fields
+{% for key, value in lead.form_data.items %}- {{ key }}: {% if value.name %}{{ value.name|default_if_none:"" }}{% elif value.path %}{{ value.path|default_if_none:"" }}{% else %}{{ value|default_if_none:"" }}{% endif %}
+{% endfor %}
+{% endif %}
+
+--
+Lead ID: {{ lead.id }}
+Site: {{ form_definition.site.hostname }}
