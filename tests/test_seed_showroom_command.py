@@ -62,10 +62,17 @@ def test_seed_showroom_creates_legal_pages_idempotently(
     assert cookies.specific.live is True
 
     for page in (terms, privacy, cookies):
-        body = getattr(page.specific, "body", None)
-        assert body, f"Missing body stream on {page.slug}"
-        block_types = [block.block_type for block in body]
-        assert "legal_section" in block_types
+        specific = page.specific
+        sections = getattr(specific, "sections", None)
+        if sections is not None:
+            assert sections, f"Missing sections stream on {page.slug}"
+            block_types = [block.block_type for block in sections]
+            assert "section" in block_types
+        else:
+            body = getattr(specific, "body", None)
+            assert body, f"Missing body stream on {page.slug}"
+            block_types = [block.block_type for block in body]
+            assert "legal_section" in block_types
 
     _run_seed_command()
 
