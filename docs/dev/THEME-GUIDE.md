@@ -18,8 +18,8 @@
 8. [Phase 7: Navigation & Footer](#8-phase-7-navigation--footer)
 9. [Phase 8: JavaScript Interactions](#9-phase-8-javascript-interactions)
 10. [Phase 9: Build, Test & Polish](#10-phase-9-build-test--polish)
-11. [Phase 10: Cookie Banner & Legal Page Templates](#phase-10-cookie-banner--legal-page-templates-v06)
-12. [Quick Reference](#11-quick-reference)
+11. [Phase 10: Cookie Banner & Legal Page Templates](#11-phase-10-cookie-banner--legal-page-templates-v06)
+12. [Quick Reference](#12-quick-reference)
 
 ---
 
@@ -1321,7 +1321,7 @@ themes/theme_b/
 
 ---
 
-## 11. Quick Reference
+## 12. Quick Reference
 
 ### Template Tags Cheat Sheet
 
@@ -1411,7 +1411,7 @@ themes/theme_b/
 
 ---
 
-## Phase 10: Cookie Banner & Legal Page Templates (v0.6+)
+## 11. Phase 10: Cookie Banner & Legal Page Templates (v0.6+)
 
 ### Cookie Banner Override
 
