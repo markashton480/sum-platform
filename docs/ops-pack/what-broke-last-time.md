@@ -44,6 +44,23 @@
 
 ## Log Entries
 
+## Site: sum-platform (Core)
+
+**Date:** 2025-12-25  
+**Version:** v0.7.1-dev  
+**Symptom:** `make format` rewrote files inside `.venv/`. This started after `fix(THEME-016-A)` (commit `8bc2a00b`) changed `format` to `black --exclude '(?:^|/)(boilerplate|clients)/' .` + `isort .`. Passing `--exclude` overrides Black’s default excludes (including `.venv`), so running at repo root started touching dot-directories.  
+**Fix:** Scoped `make format` to `core`, `cli`, `tests`, and switched Black to use `pyproject.toml` (`--config`) so the default + extended excludes apply (`.venv`, `boilerplate`, `clients`, dot paths). Kept isort pointed at `pyproject.toml` for its `skip_glob` rules.  
+**Follow-up:** Keep lint/format targets scoped to tracked source dirs and avoid overriding Black defaults with `--exclude`; prefer `--config` or `--extend-exclude` when custom exclusions are needed.
+
+---
+
+## Site: sum-platform (Core)
+
+**Date:** 2025-12-24  
+**Version:** v0.5.0 → v0.5.1  
+**Symptom:** Pip install from public tag failed (`project.name` was `Straight Up Marketing Platform`, not a valid PEP 508 identifier). Release verification broke at `pip install "sum_core @ git+...@v0.5.0"`.  
+**Fix:** Set `project.name` to `sum-core` in the monorepo `pyproject.toml`, bumped versioning to v0.5.1, regenerated boilerplate pinning, and re-ran release flow.  
+**Follow-up:** Keep `project.name` PEP 508-compliant before tagging; add a quick `pip install "sum_core @ git+...@<tag>"` check when cutting releases.
 
 ---
 
