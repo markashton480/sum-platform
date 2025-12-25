@@ -32,7 +32,13 @@
 
       {% for field in self.form_definition.fields %}
         {% if field.block_type == "section_heading" %}
-          <{{ field.value.level }} class="form-section-heading">{{ field.value.heading }}</{{ field.value.level }}>
+          {% if field.value.level == "h2" %}
+            <h2 class="form-section-heading">{{ field.value.heading }}</h2>
+          {% elif field.value.level == "h3" %}
+            <h3 class="form-section-heading">{{ field.value.heading }}</h3>
+          {% else %}
+            <h4 class="form-section-heading">{{ field.value.heading }}</h4>
+          {% endif %}
         {% elif field.block_type == "help_text" %}
           <div class="form-help-text">{{ field.value.text|richtext }}</div>
         {% else %}

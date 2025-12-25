@@ -11,9 +11,11 @@ from __future__ import annotations
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import EmailValidator
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import path, reverse
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_POST
 from sum_core.forms.fields import FormFieldsStreamBlock
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
 from wagtail.fields import StreamField
@@ -276,25 +278,32 @@ class FormDefinition(models.Model):
         The cloned form starts inactive for safety.
         """
         base_slug = f"{self.slug}-copy"
-        cloned = FormDefinition(
-            site=self.site,
-            name=f"{self.name} (Copy)",
-            slug=self._build_unique_slug(base_slug),
-            fields=self.fields.raw_data if self.fields else [],
-            success_message=self.success_message,
-            is_active=False,
-            email_notification_enabled=self.email_notification_enabled,
-            notification_emails=self.notification_emails,
-            auto_reply_enabled=self.auto_reply_enabled,
-            auto_reply_subject=self.auto_reply_subject,
-            auto_reply_body=self.auto_reply_body,
-            webhook_enabled=self.webhook_enabled,
-            webhook_url=self.webhook_url,
-        )
+        for _ in range(5):
+            cloned = FormDefinition(
+                site=self.site,
+                name=f"{self.name} (Copy)",
+                slug=self._build_unique_slug(base_slug),
+                fields=self.fields.raw_data if self.fields else [],
+                success_message=self.success_message,
+                is_active=False,
+                email_notification_enabled=self.email_notification_enabled,
+                notification_emails=self.notification_emails,
+                auto_reply_enabled=self.auto_reply_enabled,
+                auto_reply_subject=self.auto_reply_subject,
+                auto_reply_body=self.auto_reply_body,
+                webhook_enabled=self.webhook_enabled,
+                webhook_url=self.webhook_url,
+            )
 
-        cloned.full_clean()
-        cloned.save()
-        return cloned
+            try:
+                with transaction.atomic():
+                    cloned.full_clean()
+                    cloned.save()
+                return cloned
+            except IntegrityError:
+                continue
+
+        raise IntegrityError("Failed to generate unique slug for cloned form.")
 
     def clean(self) -> None:
         """Validate notification emails and webhook configuration."""
@@ -367,15 +376,24 @@ class FormDefinitionViewSet(SnippetViewSet):
             path("clone/<str:pk>/", self.clone_view, name="clone"),
         ]
 
+    @method_decorator(require_POST)
     def clone_view(self, request, pk):
-        if not self.permission_policy.user_has_permission(request.user, "add"):
-            raise PermissionDenied
-
-        if not self.permission_policy.user_has_permission(request.user, "change"):
+        if not (
+            self.permission_policy.user_has_permission(request.user, "add")
+            and self.permission_policy.user_has_permission(request.user, "change")
+        ):
             raise PermissionDenied
 
         form_def = get_object_or_404(self.model, pk=pk)
-        cloned = form_def.clone()
+        try:
+            cloned = form_def.clone()
+        except (IntegrityError, ValidationError):
+            messages.error(
+                request,
+                "Unable to clone this form right now. Please try again.",
+            )
+            return redirect(reverse(self.get_url_name("edit"), args=[form_def.pk]))
+
         messages.success(request, f"Form '{form_def.name}' cloned successfully.")
         return redirect(reverse(self.get_url_name("edit"), args=[cloned.pk]))
 
