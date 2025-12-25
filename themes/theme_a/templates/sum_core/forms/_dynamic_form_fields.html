@@ -1,7 +1,7 @@
 {% load wagtailcore_tags form_tags %}
 
 <form action="/forms/submit/" method="post" novalidate enctype="multipart/form-data"
-      id="dynamic-form-{{ form_definition.slug }}-{{ self.presentation_style }}"
+      id="dynamic-form-{{ form_definition.slug }}-{{ self.presentation_style }}-{{ block.id }}"
       class="dynamic-form space-y-8"
       data-dynamic-form
       data-form-definition="{{ form_definition.slug }}"
@@ -16,8 +16,8 @@
   <input type="hidden" name="_rendered_at" class="js-dynamic-form-timestamp" value="">
 
   <div class="sr-only" aria-hidden="true">
-    <label for="form-website-field-{{ form_definition.slug }}">Website</label>
-    <input type="text" name="website" id="form-website-field-{{ form_definition.slug }}" tabindex="-1" autocomplete="off">
+    <label for="form-website-field-{{ form_definition.slug }}-{{ block.id }}">Website</label>
+    <input type="text" name="website" id="form-website-field-{{ form_definition.slug }}-{{ block.id }}" tabindex="-1" autocomplete="off">
   </div>
 
   {% if form %}

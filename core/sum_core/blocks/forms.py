@@ -83,7 +83,14 @@ class DynamicFormBlock(StructBlock):
         help_text="Optional redirect after submission (defaults to same page with message)",
     )
 
+    def get_context(self, value, parent_context=None):
+        context = super().get_context(value, parent_context=parent_context)
+        form_definition = value.get("form_definition")
+        if form_definition and not form_definition.is_active:
+            context["form_inactive_warning"] = True
+        return context
+
     class Meta:
         icon = "form"
-        label = "Dynamic Form"
         template = "sum_core/blocks/dynamic_form_block.html"
+        label = "Dynamic Form"
