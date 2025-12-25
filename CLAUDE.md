@@ -119,4 +119,4 @@ Red flags:
 - `docs/dev/AGENT-ORIENTATION.md` - Platform vs test harness philosophy
 - `docs/dev/WIRING-INVENTORY.md` - Integrating sum_core into client projects
 - `docs/dev/blocks-reference.md` - Available StreamField blocks
-- `docs/dev/design/css-architecture-and-tokens.md` - CSS token system
+- `docs/dev/THEME-GUIDE.md` - CSS architecture and token system
