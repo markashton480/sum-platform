@@ -354,8 +354,11 @@ class FormSubmissionView(View):
     ) -> AttributionData:
         """Build AttributionData for dynamic form submissions."""
 
-        def pick(*values: str) -> str:
-            return next((value for value in values if value), "")
+        def pick(*values: str | None) -> str:
+            for value in values:
+                if isinstance(value, str) and value:
+                    return value
+            return ""
 
         referrer = request.META.get("HTTP_REFERER", "")
         return AttributionData(
