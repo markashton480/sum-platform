@@ -17,7 +17,7 @@ from sum_core.forms.models import FormConfiguration, FormDefinition
 from sum_core.leads.models import Lead
 from sum_core.pages import StandardPage
 from sum_core.pages.services import ServiceIndexPage, ServicePage
-from wagtail.models import Page, Site
+from wagtail.models import Site
 
 pytestmark = pytest.mark.django_db
 
@@ -30,11 +30,6 @@ def clear_cache():
 
 
 @pytest.fixture
-def wagtail_site(wagtail_default_site: Site) -> Site:
-    return wagtail_default_site
-
-
-@pytest.fixture
 def admin_user(db):
     user_model = get_user_model()
     return user_model.objects.create_superuser(
@@ -44,7 +39,7 @@ def admin_user(db):
     )
 
 
-def _select_option(value: str, label: str) -> tuple[str, dict[str, str]]:
+def make_select_option(value: str, label: str) -> tuple[str, dict[str, str]]:
     return ("option", {"value": value, "label": label})
 
 
@@ -62,7 +57,7 @@ def _create_dynamic_form_definition(site: Site) -> FormDefinition:
                 {
                     "field_name": "service",
                     "label": "Service",
-                    "choices": [_select_option("roofing", "Roofing")],
+                    "choices": [make_select_option("roofing", "Roofing")],
                     "allow_multiple": False,
                 },
             ),
@@ -103,8 +98,10 @@ def _quote_form_stream_data():
     )
 
 
-def test_static_contact_form_submission_creates_lead(wagtail_site: Site) -> None:
-    FormConfiguration.get_for_site(wagtail_site)
+def test_static_contact_form_submission_creates_lead(
+    wagtail_default_site: Site,
+) -> None:
+    FormConfiguration.get_for_site(wagtail_default_site)
     client = Client()
 
     data = {
@@ -119,7 +116,7 @@ def test_static_contact_form_submission_creates_lead(wagtail_site: Site) -> None
     response = client.post(
         "/forms/submit/",
         data=data,
-        HTTP_HOST=wagtail_site.hostname,
+        HTTP_HOST=wagtail_default_site.hostname,
     )
 
     assert response.status_code == 200
@@ -128,8 +125,10 @@ def test_static_contact_form_submission_creates_lead(wagtail_site: Site) -> None
     assert lead.form_data["project_type"] == "roofing"
 
 
-def test_static_quote_request_submission_creates_lead(wagtail_site: Site) -> None:
-    FormConfiguration.get_for_site(wagtail_site)
+def test_static_quote_request_submission_creates_lead(
+    wagtail_default_site: Site,
+) -> None:
+    FormConfiguration.get_for_site(wagtail_default_site)
     client = Client()
 
     data = {
@@ -144,7 +143,7 @@ def test_static_quote_request_submission_creates_lead(wagtail_site: Site) -> Non
     response = client.post(
         "/forms/submit/",
         data=data,
-        HTTP_HOST=wagtail_site.hostname,
+        HTTP_HOST=wagtail_default_site.hostname,
     )
 
     assert response.status_code == 200
@@ -153,8 +152,10 @@ def test_static_quote_request_submission_creates_lead(wagtail_site: Site) -> Non
     assert lead.form_data["budget"] == "20k"
 
 
-def test_dynamic_form_submission_sets_form_type_slug(wagtail_site: Site) -> None:
-    form_definition = _create_dynamic_form_definition(wagtail_site)
+def test_dynamic_form_submission_sets_form_type_slug(
+    wagtail_default_site: Site,
+) -> None:
+    form_definition = _create_dynamic_form_definition(wagtail_default_site)
     client = Client()
 
     data = {
@@ -169,7 +170,7 @@ def test_dynamic_form_submission_sets_form_type_slug(wagtail_site: Site) -> None
     response = client.post(
         "/forms/submit/",
         data=data,
-        HTTP_HOST=wagtail_site.hostname,
+        HTTP_HOST=wagtail_default_site.hostname,
     )
 
     assert response.status_code == 200
@@ -238,9 +239,10 @@ def test_admin_detail_renders_for_legacy_and_dynamic_leads(admin_user) -> None:
 
 
 def test_standard_page_with_contact_form_renders_and_has_seo_tags(
-    wagtail_site: Site,
+    wagtail_default_site: Site,
 ) -> None:
-    root = Page.get_first_root_node()
+    site = wagtail_default_site
+    root = site.root_page
     page = StandardPage(
         title="Contact Page",
         slug="contact-page",
@@ -263,9 +265,10 @@ def test_standard_page_with_contact_form_renders_and_has_seo_tags(
 
 
 def test_service_page_with_quote_form_renders_and_has_seo_tags(
-    wagtail_site: Site,
+    wagtail_default_site: Site,
 ) -> None:
-    root = Page.get_first_root_node()
+    site = wagtail_default_site
+    root = site.root_page
     service_index = ServiceIndexPage(title="Services", slug="services")
     root.add_child(instance=service_index)
     service_index.save_revision().publish()
