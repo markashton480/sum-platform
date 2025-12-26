@@ -153,44 +153,34 @@ class TestLeadModelBackwardsCompatibility:
         """Get the default test site."""
         return Site.objects.get(is_default_site=True)
 
-    def test_lead_without_form_definition_works(self):
-        """Test that Leads can be created without form_definition (legacy behavior)."""
-        # Create lead without form_definition (how static forms work)
+    def test_lead_from_static_forms_works(self):
+        """Test that Leads can be created from static forms (legacy behavior)."""
+        # Create lead from static form (using form_type to identify form)
         lead = Lead.objects.create(
             name="Legacy User",
             email="legacy@example.com",
             phone="555-0000",
             message="Legacy message",
             form_type="contact",  # Static form type
-            # No form_definition
         )
 
         assert lead.id is not None
-        assert lead.form_definition is None
         assert lead.form_type == "contact"
 
-    def test_lead_with_form_definition_works(self, site):
-        """Test that Leads work with form_definition (new dynamic forms)."""
-        # Create form definition
-        form = FormDefinition.objects.create(
-            name="Dynamic Form",
-            slug="dynamic-compat",
-            site=site,
-            fields=[("email_input", {"label": "Email", "required": True})],
-            is_active=True,
-        )
-
-        # Create lead with form_definition
+    def test_lead_from_dynamic_forms_works(self, site):
+        """Test that Leads can store dynamic form information in form_data."""
+        # Create lead from dynamic form (uses form_data to store form slug)
         lead = Lead.objects.create(
             name="Modern User",
             email="modern@example.com",
-            form_definition=form,  # New field
+            message="Dynamic form submission",
+            form_type="dynamic",
+            form_data={"form_definition_slug": "dynamic-compat"},
         )
 
         assert lead.id is not None
-        assert lead.form_definition == form
-        # form_type should be derived from form_definition
         assert lead.form_type == "dynamic"
+        assert lead.form_data["form_definition_slug"] == "dynamic-compat"
 
     def test_lead_admin_works_with_both_types(self, site):
         """Test that Lead admin can display both static and dynamic form leads."""
@@ -198,22 +188,17 @@ class TestLeadModelBackwardsCompatibility:
         static_lead = Lead.objects.create(
             name="Static Lead",
             email="static@example.com",
+            message="Static form message",
             form_type="contact",
         )
 
         # Create dynamic form lead
-        form = FormDefinition.objects.create(
-            name="Admin Test Form",
-            slug="admin-test",
-            site=site,
-            fields=[("email_input", {"label": "Email", "required": True})],
-            is_active=True,
-        )
-
         dynamic_lead = Lead.objects.create(
             name="Dynamic Lead",
             email="dynamic@example.com",
-            form_definition=form,
+            message="Dynamic form message",
+            form_type="dynamic",
+            form_data={"form_definition_slug": "admin-test"},
         )
 
         # Both should be queryable
@@ -227,15 +212,16 @@ class TestLeadModelBackwardsCompatibility:
         static_lead = Lead.objects.create(
             name="Static Attribution",
             email="static-attr@example.com",
+            message="Testing attribution fields",
             form_type="quote",
             utm_source="google",
             utm_campaign="test",
-            referrer="https://google.com",
+            referrer_url="https://google.com",
         )
 
         assert static_lead.utm_source == "google"
         assert static_lead.utm_campaign == "test"
-        assert static_lead.referrer == "https://google.com"
+        assert static_lead.referrer_url == "https://google.com"
 
 
 @pytest.mark.django_db
@@ -445,29 +431,30 @@ class TestMigrationSafety:
         lead = Lead.objects.create(
             name="Type Test",
             email="type@example.com",
+            message="Testing form_type field",
             form_type="contact",  # Should still work
         )
 
         assert hasattr(lead, "form_type")
         assert lead.form_type == "contact"
 
-    def test_existing_leads_not_affected_by_new_fields(self):
-        """Test that existing Leads without form_definition continue to work."""
-        # Simulate an old lead (before dynamic forms)
+    def test_existing_leads_continue_to_work(self):
+        """Test that existing Leads continue to work with standard fields."""
+        # Simulate an old lead (using core Lead model fields)
         old_lead = Lead.objects.create(
             name="Old Lead",
             email="old@example.com",
             phone="555-0000",
             message="Before dynamic forms",
             form_type="quote",
-            # No form_definition, form_data, notification_sent, webhook_sent
+            # Optional fields like form_data can be empty
         )
 
         # Should be able to retrieve and work with it
         retrieved = Lead.objects.get(id=old_lead.id)
         assert retrieved.name == "Old Lead"
         assert retrieved.form_type == "quote"
-        assert retrieved.form_definition is None
+        assert retrieved.message == "Before dynamic forms"
 
 
 @pytest.mark.django_db
