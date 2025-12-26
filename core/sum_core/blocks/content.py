@@ -545,13 +545,9 @@ class LegalSectionBlock(blocks.StructBlock):
     Anchored legal section with heading + rich text body.
     """
 
-    anchor = blocks.RegexBlock(
-        regex=r"^[a-z][a-z0-9-]*$",
+    anchor = blocks.CharBlock(
         required=True,
-        error_messages={
-            "invalid": "Anchor must start with a letter and contain only lowercase letters, numbers, and hyphens."
-        },
-        help_text="Anchor ID used for in-page links (lowercase letters, numbers, hyphens only).",
+        help_text="Anchor ID used for in-page links (use lowercase with hyphens).",
     )
     heading = blocks.CharBlock(required=True, help_text="Section heading.")
     body = blocks.RichTextBlock(

@@ -271,19 +271,6 @@ Individual detail pages for business services.
 - **Key Fields**: `body`, `featured_image`, `short_description`.
 - **Hierarchy**: Must be a child of `ServiceIndexPage`.
 
-#### 4. `LegalPage` (Core)
-
-Specialized page for legal content (Terms, Privacy Policy, Cookie Policy).
-
-- **Key Fields**: `sections` (StreamField of `LegalSectionBlock`).
-- **Module**: `sum_core.pages.legal.LegalPage`.
-- **Features**:
-  - Auto-generated Table of Contents from section anchors.
-  - Print-friendly styling.
-  - SEO fields inherited from `SeoFieldsMixin`.
-- **Subpage Types**: None (leaf page).
-- **Usage**: Create as children of HomePage. Link from SiteSettings for footer display.
-
 ---
 
 ### Core Block Catalog
@@ -322,17 +309,6 @@ Accordion-style questions.
 - **Fields**:
   - `items`: List of Question/Answer pairs.
 - **SEO**: Automatically generates `FAQPage` JSON-LD schema.
-
-#### Legal Section (`legal_section`)
-
-Anchored sections for legal pages with Table of Contents support.
-
-- **Fields**:
-  - `anchor`: URL-safe identifier (lowercase letters, numbers, hyphens).
-  - `heading`: Section title displayed in TOC and as H2.
-  - `body`: RichText content (supports H3, H4, bold, italic, links, lists).
-- **Usage**: Used exclusively in `LegalPage.sections` StreamField.
-- **Template**: `sum_core/blocks/legal_section.html` (theme-overridable).
 
 ---
 

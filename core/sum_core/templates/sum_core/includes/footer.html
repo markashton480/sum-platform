@@ -108,21 +108,10 @@
             </div>
         </div>
 
-        {# Copyright / Cookie Controls #}
-        {% if footer.copyright.rendered or site_settings.cookie_banner_enabled %}
+        {# Copyright #}
+        {% if footer.copyright.rendered %}
             <div class="footer__bottom">
-                {% if footer.copyright.rendered %}
-                    <p class="footer__copyright">{{ footer.copyright.rendered }}</p>
-                {% endif %}
-                {% if site_settings.cookie_banner_enabled %}
-                    <a
-                        class="footer__link footer__link--cookies"
-                        href="#"
-                        data-cookie-consent="manage"
-                    >
-                        Manage cookies
-                    </a>
-                {% endif %}
+                <p class="footer__copyright">{{ footer.copyright.rendered }}</p>
             </div>
         {% endif %}
     </div>

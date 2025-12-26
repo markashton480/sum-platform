@@ -1,110 +1,66 @@
 # Repository Guidelines
 
-SUM Platform is a Django/Wagtail monorepo. The primary product is the installable package in `core/sum_core`; everything else supports development, testing, or scaffolding.
+SUM Platform is a Django/Wagtail monorepo. The primary product is the installable
+package in `core/sum_core`; everything else supports development, testing, or
+scaffolding.
 
-## Project Structure
+## Project Structure & Module Organization
 
-```
-core/sum_core/           # Core platform (the product)
-core/sum_core/test_project/  # Test harness for CI
-cli/                     # sum CLI tool
-clients/sum_client/      # Example consumer
-tests/                   # Repo-level tests
-themes/, media/          # Theme assets
-boilerplate/             # Generated project templates (not linted)
-docs/, scripts/          # Documentation, helpers
-```
+- `core/sum_core/`: core platform apps and reusable features.
+- `core/sum_core/test_project/`: test harness used by CI and local dev.
+- `cli/`: `sum` CLI and its test suite.
+- `clients/sum_client/`: canonical consumer example.
+- `tests/`: repo-level tests for core and templates.
+- `themes/`, `media/`: theme assets and fixtures.
+- `boilerplate/`: generated project templates (not linted).
+- `docs/`, `infrastructure/`, `scripts/`: documentation, ops tooling, helpers.
 
-## Commands
+## Build, Test, and Development Commands
 
 ```bash
-make install-dev   # Editable install of core + dev tooling
-make run           # Migrate and run test project
-make lint          # Ruff + mypy + Black + isort
-make format        # Auto-format
-make test          # Full pytest suite
-make test-fast     # Quick gate (CLI + themes)
+make install-dev   # editable install of core + dev tooling
+make run           # migrate and run the test project
+make lint          # ruff + mypy + black + isort checks
+make format        # auto-format (black + isort)
+make test          # full pytest suite with coverage
+make test-fast     # CLI + themes slices
+make db-up         # start local Postgres via docker-compose
 ```
 
-## Git Model (5-Tier)
+## Configuration & Environment
 
-```
-main                              # Production, tagged
-  ↑
-develop                           # Stable integration
-  ↑
-release/X.Y.0                     # Version staging
-  ↑
-feature/<scope>                   # Feature integration
-  ↑
-feature/<scope>/<seq>-<slug>      # Task branches
-```
+- Use the repo-root `.venv` for all commands; activate it or call
+  `./.venv/bin/python -m pytest` to ensure the right dependencies.
+- Store local settings in a repo-root `.env` (DB credentials, secrets).
+- For Postgres dev, set `DJANGO_DB_*` in `.env` and run `make db-up`.
 
-### Branch Naming
+## Coding Style & Naming Conventions
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Version | `release/X.Y.0` | `release/0.7.0` |
-| Feature | `feature/<scope>` | `feature/forms` |
-| Task | `feature/<scope>/<seq>-<slug>` | `feature/forms/001-definition` |
-| Hotfix | `hotfix/<slug>` | `hotfix/security-fix` |
+- Python 3.12+, 4-space indentation, Black line length 88.
+- Linting: Ruff (`ruff check . --config pyproject.toml`), type-checking: mypy.
+- Formatting: Black + isort (`make format`).
+- Tests: `test_*.py` or `*_test.py`, classes `Test*`, functions `test_*`.
 
-### PR Flow
+## Testing Guidelines
 
-| From | To | Strategy |
-|------|----|----------|
-| Task branch | Feature branch | Squash |
-| Feature branch | Release branch | Merge --no-ff |
-| Release branch | Develop | Squash |
-| Develop | Main | Squash |
+- Framework: pytest with pytest-cov; HTML coverage output in `htmlcov/`.
+- Test locations: `tests/` and `cli/tests/` (configured in `pyproject.toml`).
+- Use markers when appropriate (e.g., `unit`, `integration`, `requires_themes`).
 
-### Commits
+## Commit & Pull Request Guidelines
 
-Conventional format: `type(scope): summary`
+- Commit style follows a conventional pattern: `type: summary` or
+  `type(SCOPE): summary` (e.g., `fix:forms-atomic-rate-limit`).
+- Integration branch is `develop`; PRs typically merge into `develop`.
+- `main` is protected; release PRs go `develop -> main` and must pass
+  the `lint-and-test` CI check.
+- PRs should include a brief summary, testing notes, and links to relevant issues.
+- GitHub CLI (`gh`) is authenticated here; agents should use it for PR creation,
+  updates, and status checks instead of the web UI.
 
-```
-feat(forms): add FormDefinition snippet
-fix(leads): correct email validation
-chore(deps): update wagtail to 7.1
-```
+## Agent-Specific Notes
 
-### Rules
-
-- ❌ Never commit directly to `main`, `develop`, or `release/*`
-- ❌ Never force-push tags
-- ✅ Always run `make lint && make test` before PR
-
-## Issue Hierarchy
-
-```
-Milestone: v0.7.0
-├── Version Declaration     ←→  release/0.7.0
-│   ├── Work Order          ←→  feature/<scope>
-│   │   └── Subtask         ←→  feature/<scope>/<task>
-```
-
-## Definition of Done
-
-Subtask is Done when:
-- Acceptance criteria met
-- `make lint && make test` passes
-- PR merged to feature branch
-- `Model Used` field set + `model:*` label applied
-
-## Code Style
-
-- Python 3.12+, Black line length 88
-- Linting: Ruff, type-checking: mypy
-- Tests: `test_*.py`, classes `Test*`, functions `test_*`
-
-## Agent Notes
-
-- This is a **platform**, not a demo project
-- Core behavior belongs in `core/sum_core/`, not just test harness
-- Use `gh` CLI for PR creation and status checks
-
-## Key Docs
-
-- `docs/GIT_STRATEGY.md` — Branch model
-- `docs/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
-- `docs/dev/HANDBOOK.md` — Platform guide
+- This is a platform, not a demo project. Avoid implementing features only in the
+test harness; core behavior should live in `core/sum_core/`. See
+`docs/dev/AGENT-ORIENTATION.md` for the rationale.
+- When unsure, the main documentation entrypoint is `docs/dev/DDD.md`.
