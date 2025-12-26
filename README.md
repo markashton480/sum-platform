@@ -25,7 +25,7 @@ A Django/Wagtail foundation for launching lead-focused websites for home improve
 Install from the public repository:
 
 ```bash
-pip install "sum_core @ git+https://github.com/markashton480/sum-core.git@v0.5.0"
+pip install "sum_core @ git+https://github.com/markashton480/sum-core.git@v0.6.0"
 ```
 
 For the latest development version:
@@ -114,7 +114,7 @@ python manage.py runserver
 - **[Platform Handbook](docs/HANDBOOK.md)**: Complete guide to the platform
 - **[Wiring Guide](docs/dev/WIRING-INVENTORY.md)**: How to integrate SUM Core into your project
 - **[Block Reference](docs/dev/blocks-reference.md)**: Available StreamField blocks
-- **[Design System](docs/dev/design/css-architecture-and-tokens.md)**: CSS tokens and theming
+- **Design assets**: `docs/dev/design/` (HTML mockups and references)
 
 ## Environment Configuration
 

@@ -2,7 +2,7 @@
 
 SUM Platform is a Django/Wagtail foundation for quickly launching lead-focused websites for home improvement trades. The primary deliverable is the installable core package `sum-core` (import path `sum_core`), plus a minimal `test_project/` used for local development and CI-style validation.
 
-This README is the main “how the repo works” entrypoint. The consolidated product/implementation spec lives in `docs/dev/SUM-PLATFORM-SSOT.md`.
+This README is the main “how the repo works” entrypoint. The consolidated product/implementation spec lives in `docs/dev/master-docs/SUM-PLATFORM-SSOT.md`.
 
 ## How We Work (Git)
 
@@ -14,33 +14,29 @@ This README is the main “how the repo works” entrypoint. The consolidated pr
 
 ## Where to Start (Documentation)
 
-- **[The SUM Platform Handbook](docs/HANDBOOK.md)** — **Start here!** The unified guide to the entire platform.
+- **[The SUM Platform Handbook](../HANDBOOK.md)** — **Start here!** The unified guide to the entire platform.
 
 ### For Understanding the Platform
 
-- **Product + Architecture SSOT**: [docs/dev/SUM-PLATFORM-SSOT.md](docs/dev/SUM-PLATFORM-SSOT.md) — Single source of truth for the entire platform
-- **Wiring Inventory**: [docs/dev/WIRING-INVENTORY.md](docs/dev/WIRING-INVENTORY.md) — How to consume `sum_core` in client projects
-- **Full PRD** (audit trail): [docs/dev/prd-sum-platform-v1.1.md](docs/dev/prd-sum-platform-v1.1.md)
+- **Product + Architecture SSOT**: [master-docs/SUM-PLATFORM-SSOT.md](master-docs/SUM-PLATFORM-SSOT.md) — Single source of truth for the entire platform
+- **Wiring Inventory**: [WIRING-INVENTORY.md](WIRING-INVENTORY.md) — How to consume `sum_core` in client projects
+- **Full PRD** (audit trail): [master-docs/prd-sum-platform-v1.1.md](master-docs/prd-sum-platform-v1.1.md)
 
 ### For Implementing Features
 
-- **Block Catalogue** (authoritative): [docs/dev/blocks-reference.md](docs/dev/blocks-reference.md)
-- **Page Types Reference**: [docs/dev/page-types-reference.md](docs/dev/page-types-reference.md)
-- **CSS Tokens + Design System**: [docs/dev/design/css-architecture-and-tokens.md](docs/dev/design/css-architecture-and-tokens.md)
-- **Navigation System**: [docs/dev/NAV/navigation.md](docs/dev/NAV/navigation.md) — Header, footer, sticky CTA
-- **Navigation Template Tags**: [docs/dev/navigation-tags-reference.md](docs/dev/navigation-tags-reference.md)
+- **Block Catalogue** (authoritative): [blocks-reference.md](blocks-reference.md)
+- **Page Types Reference**: [page-types-reference.md](page-types-reference.md)
+- **Navigation Template Tags**: [navigation-tags-reference.md](navigation-tags-reference.md)
 
 ### For Contributors
 
-- **Repository Hygiene Standards**: [docs/dev/hygiene.md](docs/dev/hygiene.md)
-- **Daily Code Review Guidance**: [docs/dev/reviews/daily_code_review.md](docs/dev/reviews/daily_code_review.md)
-- **Agent Orientation**: [docs/dev/AGENT-ORIENTATION.md](docs/dev/AGENT-ORIENTATION.md) — Platform vs test harness
+- **Repository Hygiene Standards**: [hygiene.md](hygiene.md)
+- **Daily Code Review Guidance**: [agents/reviews/daily_code_review.md](agents/reviews/daily_code_review.md)
+- **Agent Orientation**: [AGENT-ORIENTATION.md](AGENT-ORIENTATION.md) — Platform vs test harness
 
 ### Audit Trail
 
-- **Milestone Documentation**: [docs/dev/M0/](docs/dev/M0/), [docs/dev/M1/](docs/dev/M1/), [docs/dev/M2/](docs/dev/M2/), [docs/dev/M3/](docs/dev/M3/), [docs/dev/M4/](docs/dev/M4/)
-- **Release Reviews**: [docs/dev/reports/M4/M4_release_review.md](docs/dev/reports/M4/M4_release_review.md)
-- **CORE Audits**: [docs/dev/CM/](docs/dev/CM/)
+Historical audit material lives in `docs/dev/Archive/`.
 
 ## Current Status (End of Milestone 5)
 
@@ -77,9 +73,9 @@ Implemented in `sum_core` today:
   - Env-driven SMTP configuration for production providers.
 - **Zapier integration**: Per-site webhook delivery with retries and status tracking.
 
-Present but currently stubs/placeholders:
+Deployment tooling (not part of the core package):
 
-- `infrastructure/` (deployment scaffolding; not part of the core package).
+- `infrastructure/` (Caddy/systemd templates and deployment scripts).
 
 ## Prerequisites
 
@@ -199,7 +195,7 @@ Runtime configuration (environment variables used by the test project):
 - `SENTRY_DSN`: Sentry error tracking (optional; if unset, Sentry is disabled).
 - `LOG_LEVEL`: logging verbosity (default: `INFO`).
 
-See [.env.example](.env.example) for all available environment variables including email SMTP settings, Celery broker configuration, and observability options.
+See [../../.env.example](../../.env.example) for all available environment variables including email SMTP settings, Celery broker configuration, and observability options.
 
 ## Repository Layout (What's Real vs Planned)
 

@@ -337,7 +337,7 @@ NAV_CACHE_TTL = 1800  # 30 minutes
 
 ### Cache Invalidation
 
-Cache invalidation is handled by signal handlers (see NAV-006). When navigation or branding settings are saved/published, the relevant cache keys are cleared.
+Cache invalidation is handled by navigation signal handlers in `sum_core.navigation`. When navigation or branding settings are saved/published, the relevant cache keys are cleared.
 
 ### Cached vs Rendered Fields
 
@@ -365,14 +365,14 @@ The template tags pull data from multiple models with override precedence:
 | Business info  | `SiteSettings.*`                  | —                      |
 | Copyright      | `FooterNavigation.copyright_text` | —                      |
 
-See [NAV-004](NAV/NAV-004.md) for the effective settings resolver that handles the override/fallback logic.
+See `sum_core.navigation.services` for the effective settings resolver that handles the override/fallback logic.
 
 ---
 
 ## Related Documentation
 
-- [NAV-001](NAV/NAV-001.md) — UniversalLinkBlock
-- [NAV-003](NAV/NAV-003.md) — HeaderNavigation/FooterNavigation models
-- [NAV-004](NAV/NAV-004.md) — Effective settings resolver
-- [NAV-006](NAV/NAV-006.md) — Cache invalidation signals (future)
-- [NAV-007](NAV/NAV-007.md) — Base templates (future)
+- UniversalLinkBlock: `sum_core.blocks.links`
+- HeaderNavigation/FooterNavigation models: `sum_core.navigation.models`
+- Effective settings resolver: `sum_core.navigation.services`
+- Cache invalidation signals: `sum_core.navigation.cache`
+- Base templates: `core/sum_core/templates/sum_core/includes/` and `core/sum_core/templates/theme/includes/`

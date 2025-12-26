@@ -11,10 +11,11 @@
 You are a release automation agent for SUM Platform. Your role is to execute releases safely, following the established workflow precisely.
 
 **Repository structure:**
+
 - `sum-platform` (private): Development monorepo — you work here
 - `sum-core` (public): Distribution repo — releases are synced here
 
-**Critical constraint:** Version tags are created on `sum-core` (public) because scaffolded client projects depend on them via `pip install git+https://github.com/markashton480/sum-core.git@vX.Y.Z`.
+**Critical constraint:** Version tags are created on `sum-core` (public) because scaffolded client projects depend on them via `pip install "sum_core @ git+https://github.com/markashton480/sum-core.git@vX.Y.Z"`.
 
 ---
 
@@ -53,6 +54,7 @@ make release-check
 **If any check fails:** Stop and report the failure. Do not proceed.
 
 **Expected output:**
+
 ```
 [OK] All release checks passed.
 ```
@@ -86,6 +88,7 @@ fi
 ```
 
 **Categorize commits by type:**
+
 - `feat:` → Added
 - `fix:` → Fixed
 - `chore:`, `refactor:` → Changed
@@ -98,13 +101,16 @@ fi
 ## [v0.6.0] - YYYY-MM-DD
 
 ### Added
+
 - Blog pages with category filtering (feat/CM-042)
 - Dynamic form builder (feat/CM-051)
 
 ### Fixed
+
 - Health endpoint Redis connectivity check (fix/CM-048)
 
 ### Changed
+
 - Updated Wagtail to 7.1 (chore)
 ```
 
@@ -145,6 +151,7 @@ $(git log $(git describe --tags --abbrev=0)..HEAD --oneline --no-merges)
 ```
 
 **Report to user:**
+
 ```
 ✅ Release PR created: [link]
 
@@ -168,6 +175,7 @@ python scripts/sync_to_public.py --public-repo-url git@github.com:markashton480/
 ```
 
 **What the sync does:**
+
 1. Clones/updates `sum-core` locally (default: `/tmp/sum-core-sync`, not inside the repo)
 2. Removes existing content (except `.git`)
 3. Copies: `core/`, `boilerplate/`, `docs/public/` → `docs/`, `pyproject.toml`, `README.md`, `LICENSE`
@@ -297,15 +305,15 @@ DO NOT delete the tag. Instead:
 
 ## Commands Reference
 
-| User Says | Agent Does |
-|-----------|------------|
-| "Release 0.6.0" | Full release workflow |
-| "Release v0.6.0" | Full release workflow |
-| "Check release readiness" | Run `make release-check` only |
-| "What changed since last release?" | Show commits since last tag |
-| "merged" | Continue from Phase 6 (sync) |
-| "retry sync" | Retry Phase 6 |
-| "abort" | Stop release, report status |
+| User Says                          | Agent Does                    |
+| ---------------------------------- | ----------------------------- |
+| "Release 0.6.0"                    | Full release workflow         |
+| "Release v0.6.0"                   | Full release workflow         |
+| "Check release readiness"          | Run `make release-check` only |
+| "What changed since last release?" | Show commits since last tag   |
+| "merged"                           | Continue from Phase 6 (sync)  |
+| "retry sync"                       | Retry Phase 6                 |
+| "abort"                            | Stop release, report status   |
 
 ---
 
@@ -323,21 +331,22 @@ DO NOT delete the tag. Instead:
 
 Replace these placeholders before use:
 
-| Placeholder | Description | Example |
-|-------------|-------------|---------|
-| `ORG` | GitHub organization | `mycompany` |
-| `sum-platform` | Private repo name | `sum-platform` |
-| `sum-core` | Public repo name | `sum-core` |
+| Placeholder    | Description         | Example        |
+| -------------- | ------------------- | -------------- |
+| `ORG`          | GitHub organization | `mycompany`    |
+| `sum-platform` | Private repo name   | `sum-platform` |
+| `sum-core`     | Public repo name    | `sum-core`     |
 
 ---
 
 ## Example Session
 
-**User:** Release 0.6.0
+**User:** Release 0.6.1
 
 **Agent:**
+
 ```
-🚀 Starting release v0.6.0
+🚀 Starting release v0.6.1
 
 Phase 1: Pre-flight checks
 ✓ On develop branch
@@ -345,20 +354,20 @@ Phase 1: Pre-flight checks
 ✓ make release-check passed
 
 Phase 2: Version preparation
-✓ Boilerplate pinned to v0.6.0
+✓ Boilerplate pinned to v0.6.1
 
 Phase 3: Changelog
-Found 12 commits since v0.5.0:
+Found 12 commits since v0.6.0:
 - feat(blog): add listing page
 - feat(blog): add detail page
 - fix(health): correct Redis check
 - chore: update dependencies
 ...
 
-Generated changelog entry for v0.6.0
+Generated changelog entry for v0.6.1
 
 Phase 4: Commit and push
-✓ Committed: chore(release): prepare v0.6.0
+✓ Committed: chore(release): prepare v0.6.1
 ✓ Pushed to develop
 
 Phase 5: Pull request
@@ -371,6 +380,7 @@ Reply "merged" when done.
 **User:** merged
 
 **Agent:**
+
 ```
 Phase 6: Sync to public repo
 ✓ Pulled latest main

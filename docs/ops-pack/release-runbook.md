@@ -83,8 +83,8 @@ git log $(git describe --tags --abbrev=0 2>/dev/null || echo HEAD~20)..HEAD --on
 
 | Change Type | Increment | Example |
 |-------------|-----------|---------|
-| Bug fixes, docs, tests | PATCH | `v0.5.1` → `v0.5.2` |
-| New features (non-breaking) | MINOR | `v0.5.2` → `v0.6.0` |
+| Bug fixes, docs, tests | PATCH | `v0.6.1` → `v0.6.2` |
+| New features (non-breaking) | MINOR | `v0.6.0` → `v0.7.0` |
 | Breaking changes | MAJOR | `v0.6.0` → `v1.0.0` |
 
 **Decision:** `NEXT_VERSION=v0.6.0`
@@ -269,7 +269,7 @@ git push origin v0.6.0
 Redeploy previous known-good tag:
 
 ```bash
-/srv/sum/bin/deploy.sh --site-slug mysite --ref v0.5.0 --domain example.com
+/srv/sum/bin/deploy.sh --site-slug mysite --ref v0.6.0 --domain example.com
 ```
 
 ---
@@ -357,4 +357,4 @@ Release automation is handled by:
 ## Related Documents
 
 - [`../dev/git_strategy.md`](../dev/git_strategy.md) — Branch model and conventions
-- [`../release/agent-prompt.md`](../release/agent-prompt.md) — AI agent instructions
+- [`../release/prompts/release-prompt.md`](../release/prompts/release-prompt.md) — AI agent instructions

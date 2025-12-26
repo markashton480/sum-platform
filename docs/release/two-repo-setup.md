@@ -148,8 +148,8 @@ ls -la
 cd /tmp/sum-core-sync/sum-core
 
 # Create initial tag
-git tag -a v0.1.0 -m "Initial release"
-git push origin v0.1.0
+git tag -a v0.6.0 -m "Initial release"
+git push origin v0.6.0
 ```
 
 ---
@@ -160,7 +160,7 @@ git push origin v0.1.0
 # Test pip install
 python -m venv /tmp/verify-sum
 source /tmp/verify-sum/bin/activate
-pip install "sum_core @ git+https://github.com/markashton480/sum-core.git@v0.1.0"
+pip install "sum_core @ git+https://github.com/markashton480/sum-core.git@v0.6.0"
 python -c "import sum_core; print('✅ Success')"
 
 # Cleanup

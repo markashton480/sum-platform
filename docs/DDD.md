@@ -24,17 +24,17 @@ docs/
 │   ├── upgrade-runbook.md             # Site upgrades
 │   └── [other operational guides]     # Rollback, smoke tests, etc.
 ├── release/                           # Release automation
-│   ├── agent-prompt.md                # AI agent instructions
-│   ├── sync-to-public.py              # Sync script
-│   └── release-sync.yml               # GitHub Actions workflow
+│   ├── prompts/release-prompt.md      # AI agent instructions (moved; old agent-prompt.md archived)
+│   ├── two-repo-setup.md              # Two-repo setup guide
+│   └── [outdated: sync-to-public.py, release-sync.yml]  # Archived or moved; verify current automation
 └── dev/                               # All development documentation
     ├── master-docs/                   # Core strategic documents
     ├── [individual reference files]   # Implementation guides
-    ├── design/                        # Design system & UI specs
+    ├── design/                        # Design references (archived CSS docs noted below)
     ├── deploy/                        # Deployment guides
-    ├── CM/                            # Corrective Missions audit reports
+    ├── CM/                            # Corrective Missions audit reports (archived)
     ├── reports/                       # Analysis & review documents
-    ├── reviews/                       # Code review guidelines
+    ├── agents/reviews/                # Code review guidelines (moved; old reviews/ archived)
     ├── side_quests/                   # Experimental/task-specific docs
     └── [excluded: M0-M6, DOC, NAV]    # Audit trail directories
 ```
@@ -123,19 +123,10 @@ docs/
 
 ### Design Directory (`docs/dev/design/`)
 
-#### Core Design System
+#### Core Design System (Archived)
 
-- **`css-architecture-and-tokens.md`** - Primary CSS architecture guide
-
-  - Token system explanation
-  - CSS file organization and structure
-  - Brand injection via Wagtail settings
-  - Implementation guidelines for developers/AI agents
-
-- **`design_system.md`** - Brand-agnostic design philosophy
-  - "The Frame, Not The Paint" approach
-  - HSL relationship model for dynamic theming
-  - Token system architecture
+- **`css-architecture-and-tokens.md`** - Primary CSS architecture guide (archived in `docs/dev/Archive/design/`)
+- **`design_system.md`** - Brand-agnostic design philosophy (archived in `docs/dev/Archive/design/`)
 
 #### Visual Design References
 
@@ -161,7 +152,7 @@ docs/
   - Dependency management rules
   - Testing standards and fixtures
 
-- **`reviews/daily_code_review.md`** - Daily code review guidelines
+- **`agents/reviews/daily_code_review.md`** - Daily code review guidelines
   - Review process for Django/Wagtail development
   - Quality standards and checkpoints
 
@@ -204,9 +195,9 @@ docs/
 
 Tooling and scripts for the two-repo release flow:
 
-- **`agent-prompt.md`** - AI agent instructions for releases
-- **`sync-to-public.py`** - Python script to sync `sum-platform` → `sum-core`
-- **`release-sync.yml`** - GitHub Actions workflow template
+- **`prompts/release-prompt.md`** - AI agent instructions for releases (current)
+- **`two-repo-setup.md`** - Two-repository model documentation
+- **Legacy (archived/moved):** `agent-prompt.md`, `sync-to-public.py`, `release-sync.yml`
 - **`two-repo-setup.md`** - Two-repository model documentation
 
 ### Deployment Documentation (`docs/dev/deploy/`)

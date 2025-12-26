@@ -64,7 +64,7 @@ df -h /srv/sum/${SITE_SLUG}/backups
 - New environment variables required
 - Deprecated features
 
-**Location:** Release notes in `sum_core` repository or `docs/dev/reports/releases/`
+**Location:** Release notes in the `sum-core` repository (or attach a summary in the release PR).
 
 **Stop if:** Breaking changes require code changes in client project (fix client code first).
 
@@ -256,7 +256,7 @@ Follow [`full-verification.md`](full-verification.md) for comprehensive checks.
 
 **Recommended for:**
 
-- Major version upgrades (e.g., `0.5.x` → `0.6.0`)
+- Major version upgrades (e.g., `0.6.x` → `0.7.0`)
 - Production sites
 - After migration changes
 

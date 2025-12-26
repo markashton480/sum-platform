@@ -9,6 +9,7 @@ SUM Platform is a **reusable core platform** for launching lead-focused websites
 **Primary product:** `core/sum_core/` - an installable Django/Wagtail package that powers multiple client sites.
 
 Everything else exists to test, scaffold, or demonstrate it:
+
 - `test_project/` - pytest harness (not production config)
 - `boilerplate/` - starter template for new clients
 - `cli/` - scaffolding tool for client sites
@@ -16,9 +17,15 @@ Everything else exists to test, scaffold, or demonstrate it:
 
 **Rule of thumb:** If your change only works inside test_project, it's incomplete. Ask: "Where would a real client configure this?"
 
+## Code Reviews
+
+**Important:**
+When conducting code reviews please ensure you check the scope of the task that a particuar PR is trying to address. Also check the surrounding task tickets/GH issues. Don't complain about the lack of <xyz> unless it's explicitly called out in the task ticket/GH issue. First, check the other issues to see if <xyz> is being worked on, or is scheduled. If something is missing and is also **not planned** then please raise it as a new issue.
+
 ## Commands
 
 **Activate the virtualenv first:**
+
 ```bash
 source .venv/bin/activate
 ```
@@ -47,6 +54,7 @@ make sync-cli-boilerplate  # Sync canonical boilerplate to CLI package
 ```
 
 **Run a single test:**
+
 ```bash
 python -m pytest tests/path/to/test_file.py::TestClass::test_method -v
 ```
@@ -54,11 +62,13 @@ python -m pytest tests/path/to/test_file.py::TestClass::test_method -v
 ## Architecture
 
 ### Core-Client Pattern
+
 - `sum_core` is installed via pip from git tags: `sum-core @ git+...@vX.Y.Z#subdirectory=core`
 - Client projects are thin shells that consume core
 - Each client has its own PostgreSQL database
 
 ### Theme System
+
 - Themes are fixed per-site, selected at initialization (`sum init <client> --theme <slug>`)
 - Block **definitions** (data structures) live in `core/sum_core/blocks/`
 - Block **templates** (visual rendering) live in `themes/<theme>/templates/`
@@ -66,6 +76,7 @@ python -m pytest tests/path/to/test_file.py::TestClass::test_method -v
 - Tailwind-first styling with CSS variables for runtime branding
 
 ### Lead Pipeline ("No Lost Leads")
+
 1. Form POST to `/forms/submit/`
 2. Lead saved to Postgres immediately (atomic)
 3. Celery queues async side effects (email, webhooks)
@@ -73,6 +84,7 @@ python -m pytest tests/path/to/test_file.py::TestClass::test_method -v
 Persistence happens before any external integrations.
 
 ### Key Modules
+
 - `sum_core.pages` - Abstract and concrete page models (StandardPage, ServicePage, etc.)
 - `sum_core.blocks` - StreamField block definitions
 - `sum_core.leads` - Lead persistence, attribution, pipeline
@@ -86,26 +98,31 @@ Persistence happens before any external integrations.
 ## Development Guidelines
 
 ### Where Things Belong
+
 - **Persistent behavior** → `core/sum_core/*` (installable apps, reusable settings)
 - **Test-only behavior** → `test_project/`, pytest fixtures, mocks
 
 Red flags:
+
 - Registering apps only in test INSTALLED_APPS
 - URLs wired only in test URLConf
 - Settings that exist only to make tests pass
 
 ### Design Tokens
+
 - Follow existing design tokens in `docs/dev/THEME-GUIDE.md`
 - Never hard-code values
 - Only create new tokens when absolutely necessary
 
 ### Git Conventions
+
 - Default branch: `develop` (must remain stable)
 - Create feature branches from develop: `git checkout -b feat/issue-description`
 - Commit prefixes: `feature:`, `fix:`, `chore:`, `docs:`, `refactor:`
 - Never commit directly to `main` or `develop`
 
 ## Tech Stack
+
 - Python 3.12+
 - Django 5.2 LTS
 - Wagtail 7.0 LTS
@@ -115,6 +132,7 @@ Red flags:
 - Tailwind CSS v3.4
 
 ## Key Documentation
+
 - `docs/HANDBOOK.md` - Complete platform guide
 - `docs/dev/AGENT-ORIENTATION.md` - Platform vs test harness philosophy
 - `docs/dev/WIRING-INVENTORY.md` - Integrating sum_core into client projects

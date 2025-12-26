@@ -19,7 +19,7 @@ SUM Platform uses a two-repository model:
 │  docs/dev/        (excluded)        │     │  LICENSE                        │
 │  docs/ops-pack/   (excluded)        │     │  pyproject.toml                 │
 │  scripts/         (excluded)        │     │                                 │
-│  .claude/         (excluded)        │     │  ◀── Tags: v0.5.0, v0.6.0      │
+│  .claude/         (excluded)        │     │  ◀── Tags: v0.6.0, v0.6.1      │
 │  transcripts/     (excluded)        │     │                                 │
 └─────────────────────────────────────┘     └─────────────────────────────────┘
 ```
@@ -234,8 +234,8 @@ Semantic versioning: `v<MAJOR>.<MINOR>.<PATCH>`
 
 | Increment | When | Example |
 |-----------|------|---------|
-| PATCH | Bug fixes, docs | `v0.5.1` → `v0.5.2` |
-| MINOR | New features (non-breaking) | `v0.5.2` → `v0.6.0` |
+| PATCH | Bug fixes, docs | `v0.6.1` → `v0.6.2` |
+| MINOR | New features (non-breaking) | `v0.6.0` → `v0.7.0` |
 | MAJOR | Breaking changes | `v0.6.0` → `v1.0.0` |
 
 ### Rules
@@ -307,4 +307,4 @@ git tag -a v0.6.0 -m "Release v0.6.0"
 ## Related Documents
 
 - [`../ops-pack/release-runbook.md`](../ops-pack/release-runbook.md) — Complete release process
-- [`../release/agent-prompt.md`](../release/agent-prompt.md) — AI agent instructions
+- [`../release/prompts/release-prompt.md`](../release/prompts/release-prompt.md) — AI agent instructions

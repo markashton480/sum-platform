@@ -63,7 +63,7 @@ git tag -l "v*" --sort=-version:refname | head -10
 ```
 
 **Record known-good version:**  
-`ROLLBACK_VERSION=v0.5.0`
+`ROLLBACK_VERSION=v0.6.0`
 
 ---
 
@@ -87,7 +87,7 @@ sudo -u deploy git fetch origin
 sudo -u deploy git checkout <ROLLBACK_VERSION>
 ```
 
-**Replace `<ROLLBACK_VERSION>`** with known-good tag (e.g., `v0.5.0`).
+**Replace `<ROLLBACK_VERSION>`** with known-good tag (e.g., `v0.6.0`).
 
 ---
 
