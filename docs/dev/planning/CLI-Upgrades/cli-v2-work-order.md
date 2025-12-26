@@ -1,25 +1,23 @@
 # Work Order
 
-**Title:** `WO: CLI v2 Enhanced Architecture (v2.0.0)`
+**Title:** `WO: CLI v2 Enhanced Architecture`
 
 ---
 
 ## Parent
 
-**Version Declaration:** #TBD (v2.0.0)
-
 ---
 
 ## Branch
 
-| Branch | Target |
-|--------|--------|
-| `feature/cli-v2` | `release/2.0.0` |
+| Branch        | Target          |
+| ------------- | --------------- |
+| `feature/cli` | `release/0.6.0` |
 
 ```bash
-git checkout release/2.0.0
-git checkout -b feature/cli-v2
-git push -u origin feature/cli-v2
+git checkout release/0.6.0
+git checkout -b feature/cli
+git push -u origin feature/cli
 ```
 
 ---
@@ -61,18 +59,20 @@ git push -u origin feature/cli-v2
 
 ## Subtasks
 
-| # | Issue | Branch | Status |
-|---|-------|--------|--------|
-| 1 | #CLI-001: Foundation Utilities | `feature/cli-v2/001-foundation-utils` | 🔲 |
-| 2 | #CLI-002: Django Execution & Config | `feature/cli-v2/002-django-config` | 🔲 |
-| 3 | #CLI-003: Environment Setup Modules | `feature/cli-v2/003-env-setup` | 🔲 |
-| 4 | #CLI-004: Database & Auth Modules | `feature/cli-v2/004-db-auth` | 🔲 |
-| 5 | #CLI-005: seed_homepage Command | `feature/cli-v2/005-seed-homepage-cmd` | 🔲 |
-| 6 | #CLI-006: Seeding & Orchestrator | `feature/cli-v2/006-seed-orchestrator` | 🔲 |
-| 7 | #CLI-007: Enhanced Init Command | `feature/cli-v2/007-enhanced-init` | 🔲 |
-| 8 | #CLI-008: Run Command & Enhanced Check | `feature/cli-v2/008-run-check` | 🔲 |
+| #   | Title                        | Branch                              | Status |
+| --- | ---------------------------- | ----------------------------------- | ------ |
+| 1   | Foundation Utilities         | `task/cli/issue-N-foundation-utils` | 🔲     |
+| 2   | Django Execution & Config    | `task/cli/issue-N-django-config`    | 🔲     |
+| 3   | Environment Setup Modules    | `task/cli/issue-N-env-setup`        | 🔲     |
+| 4   | Database & Auth Modules      | `task/cli/issue-N-db-auth`          | 🔲     |
+| 5   | seed_homepage Command        | `task/cli/issue-N-seed-homepage`    | 🔲     |
+| 6   | Seeding & Orchestrator       | `task/cli/issue-N-orchestrator`     | 🔲     |
+| 7   | Enhanced Init Command        | `task/cli/issue-N-enhanced-init`    | 🔲     |
+| 8   | Run Command & Enhanced Check | `task/cli/issue-N-run-check`        | 🔲     |
 
 **Status:** 🔲 Todo | 🔄 In Progress | ✅ Done
+
+_Note: `N` will be replaced with actual issue numbers after creation_
 
 ---
 
@@ -119,12 +119,12 @@ git push -u origin feature/cli-v2
 
 ### Hot Files
 
-| File | Owner | Notes |
-|------|-------|-------|
-| `cli/sum/utils/__init__.py` | #CLI-001, #CLI-002 | Export consolidation across tasks |
+| File                        | Owner                        | Notes                             |
+| --------------------------- | ---------------------------- | --------------------------------- |
+| `cli/sum/utils/__init__.py` | #CLI-001, #CLI-002           | Export consolidation across tasks |
 | `cli/sum/setup/__init__.py` | #CLI-003, #CLI-004, #CLI-006 | Export consolidation across tasks |
-| `cli/sum/commands/init.py` | #CLI-007 | Complete rewrite, single owner |
-| `cli/sum/cli.py` | #CLI-007, #CLI-008 | Command registration |
+| `cli/sum/commands/init.py`  | #CLI-007                     | Complete rewrite, single owner    |
+| `cli/sum/cli.py`            | #CLI-007, #CLI-008           | Command registration              |
 
 ---
 
@@ -179,8 +179,8 @@ core/sum_core/
 ### After Each Task Merge
 
 ```bash
-git checkout feature/cli-v2
-git pull origin feature/cli-v2
+git checkout feature/cli
+git pull origin feature/cli
 make lint && make test
 ```
 
@@ -188,7 +188,7 @@ make lint && make test
 
 ```bash
 git fetch origin
-git rebase origin/release/2.0.0
+git rebase origin/release/0.6.0
 make lint && make test
 
 # Full integration test
@@ -205,12 +205,14 @@ curl http://127.0.0.1:8000/ | grep "Welcome"
 **Level:** Medium
 
 **Factors:**
+
 - Orchestrator is central coordinator — errors cascade to all dependent operations
 - Cross-component work (sum_core ↔ CLI) for seed_homepage command
 - Mode detection complexity (monorepo vs standalone execution)
 - Many integration points in enhanced init command
 
 **Mitigation:**
+
 - Comprehensive unit tests for each module before integration
 - Integration tests run after each task merge
 - Clear error handling with recovery suggestions
@@ -218,6 +220,7 @@ curl http://127.0.0.1:8000/ | grep "Welcome"
 - CI mode (`--ci`) for automated testing with fail-fast behavior
 
 **Key Design Decisions:**
+
 - **Monorepo root detection:** All path resolution walks upward to find repo root (markers: `core/` + `boilerplate/`), ensuring commands work from any directory within the monorepo
 - **Python interpreter:** Django commands ALWAYS run under the project's `.venv/bin/python`, regardless of execution mode. Mode only affects PYTHONPATH injection.
 - **Idempotency definition:** "Safe to re-run" means no corruption, no duplicates, no misleading output. Superuser creation checks by username first; `.env.local` only written when credentials are actually set.
@@ -229,9 +232,8 @@ curl http://127.0.0.1:8000/ | grep "Welcome"
 
 - [ ] `type:work-order`
 - [ ] `component:cli`
-- [ ] `component:sum-core`
 - [ ] `risk:medium`
-- [ ] Milestone: `v2.0.0`
+- [ ] Milestone: `v0.6.0`
 
 ---
 

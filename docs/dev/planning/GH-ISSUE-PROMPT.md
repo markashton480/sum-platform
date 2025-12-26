@@ -1,275 +1,242 @@
 ---
 description: "Execute a GitHub Issue: resolve branch hierarchy → implement → PR → green CI"
-argument-hint: "<issue-number> [additional context]"
-allowed-tools: "Bash(gh:*),Bash(git:*),Bash(make:*),Bash(grep:*)"
+argument-hint: "ISSUE=<number> [context]"
+allowed-tools: "Bash(gh:*),Bash(git:*),Bash(make:*),Bash(grep:*),Bash(cat:*)"
 ---
 
 # GitHub Issue Execution
 
-**Issue:** #$1
-$2
+Execute issue #$1 end-to-end.
+
+Please note: $2
 
 ---
 
-## Step 1: Setup — Load Issue & Create Branch
+## 1) Load Issue & Resolve Branch Hierarchy
 
-Run this block to determine branch hierarchy and create your working branch.
+### 1.1 Load the Issue
 
 ```bash
-set -euo pipefail
-ISSUE="$1"
+ISSUE=$1
+gh issue view $ISSUE --json number,title,body,labels,milestone
+```
 
-# Validate input
-if ! [[ "$$ISSUE" =~ ^[0-9]+$$ ]]; then
-  echo "❌ Issue must be numeric" >&2
-  exit 1
-fi
+Extract from body:
 
-# Get repo context dynamically
-REPO_FULL="$$(gh repo view --json nameWithOwner --jq '.nameWithOwner')"
-OWNER="$${REPO_FULL%/*}"
-REPO="$${REPO_FULL#*/}"
+- Acceptance criteria
+- Boundaries (Do / Do NOT sections)
+- **Parent reference** (look for "Part of: #NNN" or "Parent Work Order: #NNN" or "Work Order: #NNN")
 
-# Load issue details
-TITLE="$$(gh issue view "$$ISSUE" --json title --jq '.title')"
-SLUG="$$(gh issue view "$$ISSUE" --json title --jq '
-  .title
-  | ascii_downcase
-  | gsub("[^a-z0-9]+"; "-")
-  | gsub("(^-+|-+$$)"; "")
-  | .[0:30]
-')"
+### 1.2 Find Parent Work Order
 
-# Fallback if slug is empty
-[ -z "$$SLUG" ] && SLUG="no-title"
+Look in the issue body for "Part of: #NNN" or "Work Order: #NNN". If found, that's the parent WO.
 
-# Find parent Work Order
-PARENT_WO="$$(
-  gh issue view "$$ISSUE" --json body --jq '.body // ""' \
-  | grep -m1 -oE '(Part of|Parent Work Order|Work Order):?[[:space:]]*#?[0-9]+' \
-  | grep -oE '[0-9]+' \
-  || true
-)"
+### 1.3 Resolve Base Branch
 
-# Fetch remote branches
-git fetch origin --prune
+**If parent WO exists:**
 
-# Helper function
-remote_exists() {
-  git show-ref --verify --quiet "refs/remotes/origin/$$1"
-}
+- Load the parent WO and get its `component:*` label — that's the scope
+- Base branch: `feature/<scope>`
+- Your branch: `task/<scope>/issue-$ISSUE-<slug>`
 
-# Determine base branch and task branch
-if [ -n "$$PARENT_WO" ]; then
-  # Subtask under a Work Order
-  SCOPE="$$(gh issue view "$$PARENT_WO" --json labels --jq '
-    [.labels[].name | select(startswith("component:"))]
-    | first // ""
-    | sub("^component:"; "")
-    | ascii_downcase
-    | gsub("[^a-z0-9]+"; "-")
-    | gsub("(^-+|-+$$)"; "")
-  ')"
+**If no parent found:**
 
-  if [ -z "$$SCOPE" ] || ! [[ "$$SCOPE" =~ ^[a-z0-9][a-z0-9-]*$$ ]]; then
-    echo "❌ Could not determine valid scope from WO #$$PARENT_WO"
-    exit 1
-  fi
+- Check the issue for a `component:*` label — that's the scope
+- Base branch: `feature/<scope>`
+- Your branch: `task/<scope>/issue-$ISSUE-<slug>`
+- If no feature branch exists, stop and ask — the feature branch needs to be created first
 
-  BASE_BRANCH="feature/$$SCOPE"
+### 1.4 Create Branch
 
-  if ! remote_exists "$$BASE_BRANCH"; then
-    echo "❌ Feature branch '$$BASE_BRANCH' does not exist"
-    echo "Create it first from the release branch"
-    exit 1
-  fi
-
-  BRANCH="task/$$SCOPE/issue-$$ISSUE-$$SLUG"
-else
-  # Standalone issue
-  if remote_exists "develop"; then
-    BASE_BRANCH="develop"
-  else
-    BASE_BRANCH="$$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')"
-  fi
-
-  SCOPE="$$(gh issue view "$$ISSUE" --json labels --jq '
-    [.labels[].name | select(startswith("component:"))]
-    | first // "component:core"
-    | sub("^component:"; "")
-    | ascii_downcase
-    | gsub("[^a-z0-9]+"; "-")
-  ')"
-
-  [ -z "$$SCOPE" ] && SCOPE="core"
-
-  IS_BUG="$$(gh issue view "$$ISSUE" --json labels --jq 'any(.labels[].name; . == "type:bug")')"
-
-  if [ "$$IS_BUG" = "true" ]; then
-    BRANCH="fix/$$SCOPE-issue-$$ISSUE-$$SLUG"
-  else
-    BRANCH="feat/$$SCOPE-issue-$$ISSUE-$$SLUG"
-  fi
-fi
-
-# Idempotence: check if branch exists
-if remote_exists "$$BRANCH"; then
-  echo "ℹ️  Branch '$$BRANCH' already exists, checking out"
-  git checkout "$$BRANCH"
-  git pull origin "$$BRANCH"
-else
-  git checkout "$$BASE_BRANCH"
-  git pull origin "$$BASE_BRANCH"
-  git checkout -b "$$BRANCH"
-  git push -u origin "$$BRANCH"
-  echo "✅ Branch created: $$BRANCH"
-fi
-
-echo "   Base: $$BASE_BRANCH"
-echo "   Issue: #$$ISSUE"
-[ -n "$$PARENT_WO" ] && echo "   Work Order: #$$PARENT_WO"
-
-# Idempotence: check if PR exists
-EXISTING_PR="$$(gh pr list --head "$$BRANCH" --json url --jq '.[0].url // ""')"
-
-if [ -n "$$EXISTING_PR" ]; then
-  echo "ℹ️  PR already exists: $$EXISTING_PR"
-else
-  gh pr create \
-    --draft \
-    --base "$$BASE_BRANCH" \
-    --title "GH-$$ISSUE: [WIP] $${TITLE:0:60}" \
-    --body "Work in progress for #$$ISSUE
-
-## Summary
-<!-- To be completed -->
-
-## Testing
-- [ ] \`make lint\`
-- [ ] \`make test\`
-
-Closes #$$ISSUE"
-  echo "✅ Draft PR created"
-fi
+```bash
+git fetch origin
+git checkout <base-branch>
+git pull origin <base-branch>
+git checkout -b <your-branch>
+git push -u origin <your-branch>
 ```
 
 ---
 
-## Step 2: Implement
+## 2) Open Draft PR
 
-1. Read acceptance criteria from the issue
-2. Respect "Do NOT" boundaries
-3. Follow existing codebase patterns
-4. Add/update tests
-5. Focus only on this issue
+```bash
+gh pr create --draft --base <base-branch> --title "GH-$ISSUE: <summary>" --body "Closes #$ISSUE"
+```
 
 ---
 
-## Step 3: Validate
+## 3) Implement
+
+1. Read the acceptance criteria carefully
+2. Check the "Do NOT" boundaries — respect them
+3. Follow existing patterns in the codebase
+4. Add/update tests for new functionality
+5. Stay focused on this issue only
+
+---
+
+## 4) Validate
 
 ```bash
 make lint
 make test
 ```
 
-Fix failures properly. Do not weaken tests.
+**Fix failures properly.** Do not weaken tests or skip linting.
 
 ---
 
-## Step 4: Commit
+## 5) Commit
 
 ```bash
-git add -p
+git add -p  # Stage intentionally, review each hunk
 git commit -m "<type>(<scope>): <summary>
 
 - What changed
 - Why it changed
 
-Closes #$1"
+Closes #$ISSUE"
 ```
 
-Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`
+**Commit message types:** `feat`, `fix`, `chore`, `docs`, `refactor`, `test`
 
 ---
 
-## Step 5: Push & Finalize PR
+## 6) Push & Update PR
 
 ```bash
-git push origin HEAD
-gh pr ready
-gh pr edit --body "## Summary
-<What changed — be specific>
+git push
 
-## Implementation Notes
-<Decisions, tradeoffs, notes>
+# Convert draft to ready
+gh pr ready
+
+# Update PR description
+gh pr edit --body "## Summary
+<What changed>
 
 ## Testing
 - \`make lint\` ✓
 - \`make test\` ✓
 
-Closes #$1"
+Closes #$ISSUE"
 ```
 
 ---
 
-## Step 6: Monitor CI
+## 7) Monitor CI
 
 ```bash
 gh pr checks --watch
 ```
 
-If failures, check logs with `gh run view <run-id> --log-failed`, fix, and push.
+If failures:
+
+```bash
+gh run view <run-id> --log-failed
+# Fix, commit, push, repeat
+```
 
 ---
 
-## Step 7: Handle Review Feedback
+## 8) Handle Review Feedback
 
-For each comment: **Implement**, **Defer** (create sub-issue), or **Decline** (reply why).
+### 8.1 Check Copilot Feedback (if present)
 
-Then resolve conversations:
+- Review each suggestion
+- Implement valid suggestions
+- For deferrable items: create sub-issue with `deferred` label
+- Resolve all conversations
+
+### 8.2 Check Claude Feedback (if present)
+
+- Review each suggestion
+- Implement valid suggestions
+- For deferrable items: create sub-issue with `deferred` label
+- Reply to Claude explaining why if not implementing
+
+### 8.3 Resolve Conversations
 
 ```bash
-REPO_FULL="$$(gh repo view --json nameWithOwner --jq '.nameWithOwner')"
-OWNER="$${REPO_FULL%/*}"
-REPO="$${REPO_FULL#*/}"
-PR="$$(gh pr view --json number --jq '.number')"
+OWNER=markashton480
+REPO=sum-platform
+PR=$(gh pr view --json number --jq '.number')
 
-THREAD_IDS="$$(gh api graphql -f query='
-  query($$owner:String!, $$repo:String!, $$pr:Int!) {
-    repository(owner:$$owner, name:$$repo) {
-      pullRequest(number:$$pr) {
-        reviewThreads(first:100) { nodes { id isResolved } }
+# Get unresolved thread IDs
+THREAD_IDS=$(gh api graphql -f query='
+  query($owner:String!, $repo:String!, $pr:Int!) {
+    repository(owner:$owner, name:$repo) {
+      pullRequest(number:$pr) {
+        reviewThreads(first:100) {
+          nodes { id isResolved }
+        }
       }
     }
-  }' -F owner="$$OWNER" -F repo="$$REPO" -F pr="$$PR" \
-  --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false) | .id')"
+  }' -F owner="$OWNER" -F repo="$REPO" -F pr="$PR" \
+  --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false) | .id')
 
-for TID in $$THREAD_IDS; do
+# Resolve them
+for TID in $THREAD_IDS; do
   gh api graphql -f query='
-    mutation($$id:ID!) {
-      resolveReviewThread(input:{threadId:$$id}) { thread { id } }
-    }' -F id="$$TID" >/dev/null
+    mutation($id:ID!) {
+      resolveReviewThread(input:{threadId:$id}) {
+        thread { id }
+      }
+    }' -F id="$TID" >/dev/null
 done
 ```
 
 ---
 
-## Step 8: Done Criteria
+## 9) Second Pass
 
-- [ ] PR targets correct base branch
-- [ ] CI green
-- [ ] `Closes #$1` in PR body
-- [ ] All feedback addressed
+After addressing feedback:
+
+1. Push changes
+2. Wait for CI: `gh pr checks --watch`
+3. Check for new feedback
+4. Repeat until no new feedback
+
+---
+
+## 10) Done Criteria
+
+Issue is complete when:
+
+- [ ] PR open with green CI
+- [ ] `Closes #$ISSUE` in PR body
+- [ ] First pass feedback addressed
+- [ ] Second pass feedback addressed
 - [ ] All conversations resolved
+- [ ] Any follow-up issues created (with `deferred` label)
+- [ ] Ready for review
 
-**Do not merge** — reviewer handles merge.
+**Do not merge** — reviewer or Work Order owner handles merge.
 
 ---
 
 ## Quick Reference
 
-| Issue Type         | Base Branch       | Your Branch                 |
-| ------------------ | ----------------- | --------------------------- |
-| Subtask (has WO)   | `feature/<scope>` | `task/<scope>/issue-N-slug` |
-| Standalone Bug     | `develop`         | `fix/<scope>-issue-N-slug`  |
-| Standalone Feature | `develop`         | `feat/<scope>-issue-N-slug` |
+### Branch Resolution Summary
+
+| Issue Type   | Parent  | Base Branch       | Task Branch Pattern               |
+| ------------ | ------- | ----------------- | --------------------------------- |
+| Subtask      | WO #100 | `feature/<scope>` | `task/<scope>/issue-<num>-<slug>` |
+| Task (no WO) | None    | `feature/<scope>` | `task/<scope>/issue-<num>-<slug>` |
+
+### Creating Sub-Issues
+
+If you need to defer work:
+
+```bash
+# Ensure extension installed
+gh extension list | grep -E "sub-issue" || gh extension install yahsan2/gh-sub-issue
+
+# Create sub-issue
+gh sub-issue create --parent $ISSUE --repo markashton480/sum-platform \
+  --title "Follow-up: <description>" \
+  --body "<details>"
+
+# Add deferred label
+gh issue edit <new-issue> --add-label "deferred"
+```
