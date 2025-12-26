@@ -15,6 +15,7 @@ from typing import Any
 from django import forms
 
 FORM_CLASS_CACHE_TTL_SECONDS = 3600
+# In-process cache: not shared across workers or persisted across restarts.
 _FORM_CLASS_CACHE: dict[str, tuple[float, type[forms.Form]]] = {}
 
 

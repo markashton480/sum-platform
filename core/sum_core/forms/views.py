@@ -14,7 +14,6 @@ import re
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
-from django.conf import settings
 from django.core.cache import cache
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import UploadedFile
@@ -24,6 +23,12 @@ from django.utils.decorators import method_decorator
 from django.utils.text import get_valid_filename
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
+from sum_core.forms.cache import (
+    FORM_DEFINITION_CACHE_TTL_SECONDS,
+    ensure_form_definition_cache_version,
+    get_form_definition_cache_key,
+    get_form_definition_cache_version,
+)
 from sum_core.forms.dynamic import DynamicFormGenerator
 from sum_core.forms.models import FormConfiguration, FormDefinition
 from sum_core.forms.services import SpamCheckResult, run_spam_checks
@@ -416,15 +421,14 @@ class FormSubmissionView(View):
             form_definition_pk = int(form_definition_id)
         except (TypeError, ValueError):
             return None
-        if getattr(settings, "RUNNING_TESTS", False):
-            return FormDefinition.objects.filter(
-                pk=form_definition_pk, site=site
-            ).first()
-
-        cache_key = f"form_definition:{site.pk}:{form_definition_pk}"
-        form_definition = cache.get(cache_key)
-        if form_definition is not None:
-            return form_definition
+        version = get_form_definition_cache_version(site.pk, form_definition_pk)
+        if version:
+            cache_key = get_form_definition_cache_key(
+                site.pk, form_definition_pk, version
+            )
+            form_definition = cache.get(cache_key)
+            if form_definition is not None:
+                return form_definition
 
         form_definition = (
             FormDefinition.objects.select_related("site")
@@ -432,7 +436,15 @@ class FormSubmissionView(View):
             .first()
         )
         if form_definition is not None:
-            cache.set(cache_key, form_definition, timeout=1800)
+            version = ensure_form_definition_cache_version(site.pk, form_definition_pk)
+            cache_key = get_form_definition_cache_key(
+                site.pk, form_definition_pk, version
+            )
+            cache.set(
+                cache_key,
+                form_definition,
+                timeout=FORM_DEFINITION_CACHE_TTL_SECONDS,
+            )
         return form_definition
 
     def _spam_response(

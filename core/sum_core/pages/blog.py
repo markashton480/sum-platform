@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from typing import cast
 
-from django.conf import settings
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
@@ -19,6 +18,10 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.html import strip_tags
 from sum_core.blocks import PageStreamBlock
+from sum_core.pages.cache import (
+    BLOG_CATEGORIES_CACHE_TTL_SECONDS,
+    get_blog_categories_cache_key,
+)
 from sum_core.pages.mixins import BreadcrumbMixin, OpenGraphMixin, SeoFieldsMixin
 from wagtail.admin.panels import (
     FieldPanel,
@@ -194,11 +197,7 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         paginated_posts = paginator.get_page(page_num)
 
         context["posts"] = paginated_posts
-        if getattr(settings, "RUNNING_TESTS", False):
-            categories = None
-        else:
-            categories = cache.get(f"blog_categories:{self.pk}:{self.path}")
-
+        categories = cache.get(get_blog_categories_cache_key(self))
         if categories is None:
             # Counts are for public posts only; restricted posts are excluded.
             categories = list(
@@ -215,10 +214,11 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
                     )
                 )
             )
-            if not getattr(settings, "RUNNING_TESTS", False):
-                cache.set(
-                    f"blog_categories:{self.pk}:{self.path}", categories, timeout=3600
-                )
+            cache.set(
+                get_blog_categories_cache_key(self),
+                categories,
+                timeout=BLOG_CATEGORIES_CACHE_TTL_SECONDS,
+            )
         context["categories"] = categories
         context["selected_category"] = selected_category
         return context

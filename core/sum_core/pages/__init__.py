@@ -53,3 +53,5 @@ __all__ = [
     "BlogPostPage",
     "LegalPage",
 ]
+
+default_app_config = "sum_core.pages.apps.PagesConfig"
