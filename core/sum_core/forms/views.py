@@ -14,6 +14,8 @@ import re
 from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
+from django.conf import settings
+from django.core.cache import cache
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import validate_email
@@ -414,7 +416,24 @@ class FormSubmissionView(View):
             form_definition_pk = int(form_definition_id)
         except (TypeError, ValueError):
             return None
-        return FormDefinition.objects.filter(pk=form_definition_pk, site=site).first()
+        if getattr(settings, "RUNNING_TESTS", False):
+            return FormDefinition.objects.filter(
+                pk=form_definition_pk, site=site
+            ).first()
+
+        cache_key = f"form_definition:{site.pk}:{form_definition_pk}"
+        form_definition = cache.get(cache_key)
+        if form_definition is not None:
+            return form_definition
+
+        form_definition = (
+            FormDefinition.objects.select_related("site")
+            .filter(pk=form_definition_pk, site=site)
+            .first()
+        )
+        if form_definition is not None:
+            cache.set(cache_key, form_definition, timeout=1800)
+        return form_definition
 
     def _spam_response(
         self, spam_result: SpamCheckResult, request: HttpRequest

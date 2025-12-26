@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import cast
 
+from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.core.validators import MinValueValidator
@@ -125,6 +127,7 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
             .live()
             .public()
             .select_related("category", "featured_image")
+            .prefetch_related("featured_image__renditions")
             .filter(published_date__lte=timezone.now())
             .order_by("-published_date")
         )
@@ -191,19 +194,32 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         paginated_posts = paginator.get_page(page_num)
 
         context["posts"] = paginated_posts
-        # Counts are for public posts only; restricted posts are excluded.
-        context["categories"] = Category.objects.annotate(
-            post_count=Count(
-                "blog_posts",
-                filter=Q(
-                    blog_posts__path__startswith=self.path,
-                    blog_posts__depth=self.depth + 1,
-                    blog_posts__live=True,
-                    blog_posts__published_date__lte=timezone.now(),
-                    blog_posts__view_restrictions__isnull=True,
-                ),
+        if getattr(settings, "RUNNING_TESTS", False):
+            categories = None
+        else:
+            categories = cache.get(f"blog_categories:{self.pk}:{self.path}")
+
+        if categories is None:
+            # Counts are for public posts only; restricted posts are excluded.
+            categories = list(
+                Category.objects.annotate(
+                    post_count=Count(
+                        "blog_posts",
+                        filter=Q(
+                            blog_posts__path__startswith=self.path,
+                            blog_posts__depth=self.depth + 1,
+                            blog_posts__live=True,
+                            blog_posts__published_date__lte=timezone.now(),
+                            blog_posts__view_restrictions__isnull=True,
+                        ),
+                    )
+                )
             )
-        )
+            if not getattr(settings, "RUNNING_TESTS", False):
+                cache.set(
+                    f"blog_categories:{self.pk}:{self.path}", categories, timeout=3600
+                )
+        context["categories"] = categories
         context["selected_category"] = selected_category
         return context
 

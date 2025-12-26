@@ -9,9 +9,47 @@ Dependencies: Django forms, FormDefinition fields.
 from __future__ import annotations
 
 import os
+import time
 from typing import Any
 
 from django import forms
+
+FORM_CLASS_CACHE_TTL_SECONDS = 3600
+_FORM_CLASS_CACHE: dict[str, tuple[float, type[forms.Form]]] = {}
+
+
+def _file_validation_clean(form_instance):
+    cleaned = forms.Form.clean(form_instance)
+    file_validation_rules = getattr(form_instance, "_file_validation_rules", {}) or {}
+    for field_name, rule in file_validation_rules.items():
+        uploaded = cleaned.get(field_name)
+        if not uploaded:
+            continue
+
+        errors = []
+        extensions = rule.get("extensions") or []
+        max_size_bytes = rule.get("max_size_bytes")
+        max_size_mb = rule.get("max_size_mb")
+
+        if extensions:
+            original_name = uploaded.name or ""
+            _, original_ext = os.path.splitext(original_name)
+            ext = original_ext.lower()
+            if ext not in extensions:
+                errors.append(
+                    f"File type '{original_ext or 'unknown'}' " "is not allowed."
+                )
+
+        if max_size_bytes and uploaded.size > max_size_bytes:
+            max_size_mb_display = max_size_mb
+            if not max_size_mb_display and max_size_bytes:
+                max_size_mb_display = max_size_bytes / (1024 * 1024)
+            errors.append(f"File must be {max_size_mb_display:g}MB or smaller.")
+
+        for message in errors:
+            form_instance.add_error(field_name, message)
+
+    return cleaned
 
 
 class DynamicFormGenerator:
@@ -29,6 +67,15 @@ class DynamicFormGenerator:
 
     def generate_form_class(self):
         """Returns a Django Form class with fields from FormDefinition."""
+        cache_key = self._get_cache_key()
+        if cache_key:
+            cached = _FORM_CLASS_CACHE.get(cache_key)
+            if cached:
+                cached_at, form_class = cached
+                if time.time() - cached_at < FORM_CLASS_CACHE_TTL_SECONDS:
+                    return form_class
+                _FORM_CLASS_CACHE.pop(cache_key, None)
+
         fields: dict[str, forms.Field] = {}
         file_rules: dict[str, dict[str, Any]] = {}
 
@@ -41,50 +88,19 @@ class DynamicFormGenerator:
             if file_rule:
                 file_rules[field_name] = file_rule
 
-        def clean(form_instance):
-            cleaned = forms.Form.clean(form_instance)
-            file_validation_rules = (
-                getattr(form_instance, "_file_validation_rules", {}) or {}
-            )
-            for field_name, rule in file_validation_rules.items():
-                uploaded = cleaned.get(field_name)
-                if not uploaded:
-                    continue
-
-                errors = []
-                extensions = rule.get("extensions") or []
-                max_size_bytes = rule.get("max_size_bytes")
-                max_size_mb = rule.get("max_size_mb")
-
-                if extensions:
-                    original_name = uploaded.name or ""
-                    _, original_ext = os.path.splitext(original_name)
-                    ext = original_ext.lower()
-                    if ext not in extensions:
-                        errors.append(
-                            f"File type '{original_ext or 'unknown'}' "
-                            "is not allowed."
-                        )
-
-                if max_size_bytes and uploaded.size > max_size_bytes:
-                    max_size_mb_display = max_size_mb
-                    if not max_size_mb_display and max_size_bytes:
-                        max_size_mb_display = max_size_bytes / (1024 * 1024)
-                    errors.append(f"File must be {max_size_mb_display:g}MB or smaller.")
-
-                for message in errors:
-                    form_instance.add_error(field_name, message)
-
-            return cleaned
-
         attrs: dict[str, Any] = {"__module__": __name__}
         attrs.update(fields)
         attrs["_file_validation_rules"] = file_rules
         attrs["form_definition"] = self.form_definition
-        attrs["clean"] = clean
+        attrs["clean"] = _file_validation_clean
 
         suffix = self.form_definition.pk or "Runtime"
-        return type(f"DynamicForm{suffix}", (forms.Form,), attrs)
+        form_class = type(f"DynamicForm{suffix}", (forms.Form,), attrs)
+
+        if cache_key:
+            _FORM_CLASS_CACHE[cache_key] = (time.time(), form_class)
+
+        return form_class
 
     def _map_block_to_field(self, block_type, block_value):
         """Maps a FormFieldBlock to a Django form field."""
@@ -304,3 +320,17 @@ class DynamicFormGenerator:
                 ext = f".{ext}"
             normalized.append(ext)
         return normalized
+
+    def _get_cache_key(self) -> str | None:
+        form_definition = self.form_definition
+        form_id = getattr(form_definition, "pk", None) or getattr(
+            form_definition, "id", None
+        )
+        updated_at = getattr(form_definition, "updated_at", None)
+        if not form_id or not updated_at:
+            return None
+        try:
+            updated_stamp = f"{updated_at.timestamp():.6f}"
+        except (TypeError, ValueError):
+            return None
+        return f"dynamic_form_class:{form_id}:{updated_stamp}"

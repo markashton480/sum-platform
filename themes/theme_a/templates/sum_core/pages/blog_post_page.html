@@ -7,10 +7,13 @@
   {% if page.featured_image %}
     <section class="relative">
       <div class="absolute inset-0 bg-gradient-to-b from-sage-black/10 via-transparent to-sage-linen pointer-events-none"></div>
-      {% image page.featured_image fill-1600x900 as hero_img %}
+      {% image page.featured_image fill-1600x900 format-webp as hero_img %}
       <img
         src="{{ hero_img.url }}"
         alt="{{ hero_img.alt|default:page.title }}"
+        width="{{ hero_img.width }}"
+        height="{{ hero_img.height }}"
+        decoding="async"
         class="w-full h-[260px] md:h-[420px] object-cover"
       />
     </section>
