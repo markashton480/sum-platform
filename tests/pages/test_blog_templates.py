@@ -5,8 +5,12 @@ Validates that BlogIndexPage and BlogPostPage templates render correctly
 with all UI contract requirements met.
 """
 
+import re
+
 import pytest
 from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
+from wagtail.images.models import Image
+from wagtail.images.tests.utils import get_test_image_file
 from wagtail.models import Site
 
 # Test constants
@@ -105,12 +109,14 @@ class TestBlogIndexPageTemplateRendering:
 
     def test_blog_index_displays_published_dates(self, client, blog_index, blog_posts):
         """Test that published dates are displayed on post cards."""
-        client.get(blog_index.get_url())
+        response = client.get(blog_index.get_url())
+        assert response.status_code == 200
+        content = response.content.decode()
 
-        # Check that dates are present on posts
-        for post in blog_posts:
-            # Published date should be set
-            assert post.published_date is not None
+        published_dates = [
+            post.published_date or post.first_published_at for post in blog_posts
+        ]
+        assert any(str(date.year) in content for date in published_dates)
 
     def test_blog_index_displays_reading_time(self, client, blog_index, blog_posts):
         """Test that reading time is displayed on post cards."""
@@ -118,8 +124,7 @@ class TestBlogIndexPageTemplateRendering:
         content = response.content.decode()
 
         # Check for reading time display - template uses "X min read" format
-        # At least one post should have reading time displayed
-        assert "min read" in content.lower()
+        assert re.search(r"\b\d+\s*min read\b", content.lower())
 
     def test_blog_index_displays_excerpts(self, client, blog_index, blog_posts):
         """Test that post excerpts are displayed on cards."""
@@ -132,11 +137,16 @@ class TestBlogIndexPageTemplateRendering:
 
     def test_blog_index_displays_featured_images(self, client, blog_index, blog_posts):
         """Test that featured images are rendered when present."""
-        response = client.get(blog_index.get_url())
+        image = Image.objects.create(title="Featured", file=get_test_image_file())
+        featured_post = blog_posts[0]
+        featured_post.featured_image = image
+        featured_post.save_revision().publish()
 
-        # Check for image tags (posts may or may not have featured images)
-        # This test verifies the template handles both cases
+        response = client.get(blog_index.get_url())
+        content = response.content.decode()
+
         assert response.status_code == 200
+        assert f'alt="{featured_post.title}"' in content
 
     def test_blog_index_pagination_controls_appear(self, client, blog_index):
         """Test that pagination controls appear when needed."""
@@ -253,9 +263,12 @@ class TestBlogPostPageTemplateRendering:
     def test_blog_post_displays_published_date(self, client, blog_post):
         """Test that published date is displayed."""
         response = client.get(blog_post.get_url())
-        # Published date should be set
-        assert blog_post.published_date is not None
         assert response.status_code == 200
+        content = response.content.decode()
+        published_date = blog_post.published_date or blog_post.first_published_at
+        assert published_date is not None
+        date_text = published_date.strftime("%B %d, %Y").replace(" 0", " ")
+        assert date_text in content
 
     def test_blog_post_displays_category(self, client, blog_post, category):
         """Test that category label is displayed."""
@@ -268,7 +281,7 @@ class TestBlogPostPageTemplateRendering:
         response = client.get(blog_post.get_url())
         content = response.content.decode()
         # Reading time should be displayed - template uses "X min read" format
-        assert "min read" in content.lower()
+        assert re.search(r"\b\d+\s*min read\b", content.lower())
 
     def test_blog_post_displays_author_name(self, client, blog_post):
         """Test that author name is displayed when present."""
@@ -287,9 +300,16 @@ class TestBlogPostPageTemplateRendering:
 
     def test_blog_post_displays_featured_image_when_present(self, client, blog_post):
         """Test that featured image section renders (even if no image)."""
+        image = Image.objects.create(title="Hero", file=get_test_image_file())
+        blog_post.featured_image = image
+        blog_post.save_revision().publish()
+
         response = client.get(blog_post.get_url())
-        # Template should handle case where featured_image is None
+        content = response.content.decode()
+
         assert response.status_code == 200
+        rendition = image.get_rendition("fill-1600x900|format-webp")
+        assert rendition.url in content
 
     def test_blog_post_supports_dynamic_form_block_in_body(self, blog_index):
         """Test that DynamicFormBlock can be included in post body."""
@@ -304,7 +324,14 @@ class TestBlogPostPageTemplateRendering:
             slug="newsletter",
             site=site,
             fields=[
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks for signing up!",
             is_active=True,
@@ -427,8 +454,8 @@ class TestBlogComponentTemplates:
 
         # Pagination controls should be present
         assert response.status_code == 200
-        # Check for page 2 link or next button
-        assert "page=2" in content or "next" in content.lower()
+        assert 'aria-label="Pagination"' in content
+        assert "?page=2" in content
 
     def test_category_filter_component_renders(self, client, blog_index):
         """Test that category filter component renders when categories exist."""

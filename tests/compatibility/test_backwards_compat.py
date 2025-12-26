@@ -99,7 +99,16 @@ class TestStaticFormCompatibility:
             name="Newsletter",
             slug="newsletter-compat",
             site=site,
-            fields=[("email_input", {"label": "Email", "required": True})],
+            fields=[
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
+            ],
             success_message="Subscribed!",
             is_active=True,
         )
@@ -156,9 +165,8 @@ class TestLeadModelBackwardsCompatibility:
         - No form_definition_slug since static forms aren't in FormDefinition table
 
     Dynamic Forms:
-        - form_type: typically "dynamic" or matches the FormDefinition slug
-        - form_data: contains {"form_definition_slug": "<slug>"} plus all form fields
-        - The form_definition_slug links to FormDefinition.slug for form lookup
+        - form_type: matches the FormDefinition slug for the submitted form
+        - form_data: contains non-core fields + ip_address (no slug stored today)
 
     This distinction exists because:
     1. Static forms are hardcoded in templates (contact_form, quote_request_form blocks)
@@ -191,24 +199,18 @@ class TestLeadModelBackwardsCompatibility:
         assert "form_definition_slug" not in lead.form_data
 
     def test_lead_from_dynamic_forms_works(self, site):
-        """Test that Leads can store dynamic form information in form_data.
-
-        Dynamic forms store form_definition_slug in form_data to link to FormDefinition.
-        """
-        # Create lead from dynamic form (uses form_data to store form slug)
+        """Test that Leads can store dynamic form metadata in form_data."""
         lead = Lead.objects.create(
             name="Modern User",
             email="modern@example.com",
             message="Dynamic form submission",
-            form_type="dynamic",
-            form_data={"form_definition_slug": "dynamic-compat"},
+            form_type="dynamic-compat",
+            form_data={"company": "Acme"},
         )
 
         assert lead.id is not None
-        assert lead.form_type == "dynamic"
-        # Dynamic forms MUST have form_definition_slug in form_data
-        assert "form_definition_slug" in lead.form_data
-        assert lead.form_data["form_definition_slug"] == "dynamic-compat"
+        assert lead.form_type == "dynamic-compat"
+        assert lead.form_data["company"] == "Acme"
 
     def test_lead_admin_works_with_both_types(self, site):
         """Test that Lead admin can display both static and dynamic form leads."""
@@ -225,8 +227,8 @@ class TestLeadModelBackwardsCompatibility:
             name="Dynamic Lead",
             email="dynamic@example.com",
             message="Dynamic form message",
-            form_type="dynamic",
-            form_data={"form_definition_slug": "admin-test"},
+            form_type="dynamic-admin",
+            form_data={"company": "Admin Co"},
         )
 
         # Both should be queryable
@@ -314,8 +316,18 @@ class TestFormSubmissionBackwardsCompatibility:
             slug="compat-dynamic",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Success!",
             is_active=True,
@@ -341,9 +353,10 @@ class TestFormSubmissionBackwardsCompatibility:
 
         # Submit dynamic form
         form_data = {
-            "form_definition_slug": "compat-dynamic",  # Dynamic form identifier
-            "Name": "Dynamic Submitter",
-            "Email": "dynamic@example.com",
+            "form_definition_id": form.id,
+            "name": "Dynamic Submitter",
+            "email": "dynamic@example.com",
+            "message": "Dynamic form message",
             "page_url": page.get_url(),
             "landing_page_url": page.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
@@ -355,8 +368,8 @@ class TestFormSubmissionBackwardsCompatibility:
         # Lead should be created
         lead = Lead.objects.get(email="dynamic@example.com")
         assert lead.name == "Dynamic Submitter"
-        # Dynamic forms store the form slug in form_data
-        assert lead.form_data.get("form_definition_slug") == form.slug
+        assert lead.form_type == form.slug
+        assert "ip_address" in lead.form_data
 
 
 @pytest.mark.django_db
@@ -438,20 +451,18 @@ class TestMigrationSafety:
     """Test that migrations from pre-dynamic-forms state are safe."""
 
     def test_lead_model_form_data_supports_dynamic_forms(self):
-        """Test that form_data JSONField supports dynamic form references."""
-        # Note: form_definition FK is not implemented yet (see Issue #183)
-        # Instead, dynamic forms store form_definition_slug in form_data
+        """Test that form_data JSONField supports dynamic form metadata."""
         lead = Lead.objects.create(
             name="Form Data Test",
             email="formdata@example.com",
             message="Testing form_data field",
             form_type="dynamic",
-            form_data={"form_definition_slug": "test-form"},
+            form_data={"company": "Test Co"},
         )
 
-        # Verify form_data stores the form reference
+        # Verify form_data stores extra fields
         assert hasattr(lead, "form_data")
-        assert lead.form_data.get("form_definition_slug") == "test-form"
+        assert lead.form_data.get("company") == "Test Co"
 
         # Verify form_data can be empty for static forms (backwards compat)
         static_lead = Lead.objects.create(
@@ -513,7 +524,16 @@ class TestPageTypeCompatibility:
             name="Page Compat Form",
             slug="page-compat",
             site=site,
-            fields=[("email_input", {"label": "Email", "required": True})],
+            fields=[
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
+            ],
             is_active=True,
         )
 

@@ -10,8 +10,8 @@ import json
 import pytest
 import responses
 from sum_core.forms.models import FormDefinition
-from sum_core.forms.tasks import fire_webhook
-from sum_core.leads.models import Lead
+from sum_core.forms.tasks import send_webhook
+from sum_core.leads.models import Lead, WebhookStatus
 from wagtail.models import Site
 
 
@@ -32,8 +32,18 @@ class TestWebhookDelivery:
             slug="webhook-form",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
             webhook_enabled=True,
@@ -58,9 +68,10 @@ class TestWebhookDelivery:
             utm_content="ad-1",
             utm_term="services",
             referrer_url="https://facebook.com",
+            form_webhook_status=WebhookStatus.PENDING,
             form_data={
-                "Name": "Webhook User",
-                "Email": "webhook@example.com",
+                "name": "Webhook User",
+                "email": "webhook@example.com",
                 "form_definition_slug": "webhook-form",
             },
         )
@@ -77,7 +88,7 @@ class TestWebhookDelivery:
         )
 
         # Fire webhook
-        fire_webhook(test_lead.id)
+        send_webhook(test_lead.id, form_with_webhook.id)
 
         # Verify webhook was called
         assert len(responses.calls) == 1
@@ -93,7 +104,7 @@ class TestWebhookDelivery:
             status=200,
         )
 
-        fire_webhook(test_lead.id)
+        send_webhook(test_lead.id, form_with_webhook.id)
 
         # Parse the sent payload
         request_body = responses.calls[0].request.body
@@ -109,10 +120,11 @@ class TestWebhookDelivery:
 
         assert "submission" in payload
         assert payload["submission"]["id"] == test_lead.id
-        assert payload["submission"]["name"] == "Webhook User"
-        assert payload["submission"]["email"] == "webhook@example.com"
-        assert payload["submission"]["phone"] == "555-9999"
-        assert payload["submission"]["message"] == "Test webhook delivery"
+        assert payload["submission"]["contact"]["name"] == "Webhook User"
+        assert payload["submission"]["contact"]["email"] == "webhook@example.com"
+        assert payload["submission"]["contact"]["phone"] == "555-9999"
+        assert payload["submission"]["contact"]["message"] == "Test webhook delivery"
+        assert payload["submission"]["data"]["name"] == "Webhook User"
 
         assert "attribution" in payload
         assert payload["attribution"]["utm_source"] == "facebook"
@@ -120,9 +132,8 @@ class TestWebhookDelivery:
         assert payload["attribution"]["utm_campaign"] == "summer-2024"
         assert payload["attribution"]["utm_content"] == "ad-1"
         assert payload["attribution"]["utm_term"] == "services"
-        assert payload["attribution"]["referrer"] == "https://facebook.com"
-        assert payload["attribution"]["page_url"] == "https://example.com/contact"
-        assert payload["attribution"]["landing_page_url"] == "https://example.com"
+        assert payload["attribution"]["source_url"] == "https://example.com/contact"
+        assert payload["attribution"]["landing_page"] == "https://example.com"
 
     @responses.activate
     def test_webhook_includes_request_id(self, form_with_webhook, test_lead):
@@ -134,14 +145,13 @@ class TestWebhookDelivery:
             status=200,
         )
 
-        fire_webhook(test_lead.id)
+        request_id = "req-123"
+        send_webhook(test_lead.id, form_with_webhook.id, request_id=request_id)
 
         payload = json.loads(responses.calls[0].request.body)
 
         # Verify request ID is present
-        assert "request_id" in payload
-        assert isinstance(payload["request_id"], str)
-        assert len(payload["request_id"]) > 0
+        assert payload["request_id"] == request_id
 
     @responses.activate
     def test_webhook_includes_timestamp(self, form_with_webhook, test_lead):
@@ -153,7 +163,7 @@ class TestWebhookDelivery:
             status=200,
         )
 
-        fire_webhook(test_lead.id)
+        send_webhook(test_lead.id, form_with_webhook.id)
 
         payload = json.loads(responses.calls[0].request.body)
 
@@ -173,8 +183,18 @@ class TestWebhookDelivery:
             slug="no-webhook",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
             webhook_enabled=False,  # Webhook disabled
@@ -187,17 +207,20 @@ class TestWebhookDelivery:
             email="test@example.com",
             message="Test webhook message",
             form_type="no-webhook",
+            form_webhook_status=WebhookStatus.PENDING,
             form_data={
-                "Email": "test@example.com",
+                "email": "test@example.com",
                 "form_definition_slug": form.slug,
             },
         )
 
         # Fire webhook (should be skipped)
-        fire_webhook(lead.id)
+        send_webhook(lead.id, form.id)
 
         # No HTTP request should have been made
         assert len(responses.calls) == 0
+        lead.refresh_from_db()
+        assert lead.form_webhook_status == WebhookStatus.DISABLED
 
     @responses.activate
     def test_webhook_skipped_without_url(self, site):
@@ -208,8 +231,18 @@ class TestWebhookDelivery:
             slug="no-url",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
             webhook_enabled=True,  # Enabled but no URL
@@ -222,16 +255,19 @@ class TestWebhookDelivery:
             email="test@example.com",
             message="Test webhook message",
             form_type="no-url",
+            form_webhook_status=WebhookStatus.PENDING,
             form_data={
-                "Email": "test@example.com",
+                "email": "test@example.com",
                 "form_definition_slug": form.slug,
             },
         )
 
-        fire_webhook(lead.id)
+        send_webhook(lead.id, form.id)
 
         # No HTTP request should have been made
         assert len(responses.calls) == 0
+        lead.refresh_from_db()
+        assert lead.form_webhook_status == WebhookStatus.FAILED
 
     @responses.activate
     def test_webhook_retry_on_failure(self, form_with_webhook, test_lead):
@@ -246,10 +282,13 @@ class TestWebhookDelivery:
 
         with pytest.raises(Exception):
             # Should raise exception to trigger Celery retry
-            fire_webhook(test_lead.id)
+            send_webhook(test_lead.id, form_with_webhook.id)
 
         # Verify request was made despite failure
         assert len(responses.calls) == 1
+        test_lead.refresh_from_db()
+        assert test_lead.form_webhook_status == WebhookStatus.IN_PROGRESS
+        assert test_lead.form_webhook_last_status_code == 500
 
     @responses.activate
     def test_webhook_timeout_handling(self, form_with_webhook, test_lead):
@@ -267,9 +306,11 @@ class TestWebhookDelivery:
         )
 
         with pytest.raises(requests.exceptions.Timeout):
-            fire_webhook(test_lead.id)
+            send_webhook(test_lead.id, form_with_webhook.id)
 
         assert len(responses.calls) == 1
+        test_lead.refresh_from_db()
+        assert test_lead.form_webhook_status == WebhookStatus.IN_PROGRESS
 
     @responses.activate
     def test_webhook_blocks_private_urls(self, site):
@@ -285,13 +326,23 @@ class TestWebhookDelivery:
         for i, url in enumerate(private_urls):
             # Create form with private URL
             slug = f"private-test-{i}"
-            FormDefinition.objects.create(
+            form = FormDefinition.objects.create(
                 name=f"Private URL Test {i}",
                 slug=slug,
                 site=site,
                 fields=[
-                    ("text_input", {"label": "Name", "required": True}),
-                    ("email_input", {"label": "Email", "required": True}),
+                    (
+                        "text_input",
+                        {"field_name": "name", "label": "Name", "required": True},
+                    ),
+                    (
+                        "email_input",
+                        {"field_name": "email", "label": "Email", "required": True},
+                    ),
+                    (
+                        "textarea",
+                        {"field_name": "message", "label": "Message", "required": True},
+                    ),
                 ],
                 success_message="Thanks!",
                 webhook_enabled=True,
@@ -304,15 +355,18 @@ class TestWebhookDelivery:
                 email=f"test{i}@example.com",
                 message="Test SSRF protection",
                 form_type=slug,
+                form_webhook_status=WebhookStatus.PENDING,
                 form_data={
-                    "Email": f"test{i}@example.com",
+                    "email": f"test{i}@example.com",
                     "form_definition_slug": slug,
                 },
             )
 
             # Webhook should be blocked
-            with pytest.raises(ValueError, match="private|localhost|local"):
-                fire_webhook(lead.id)
+            send_webhook(lead.id, form.id)
+            lead.refresh_from_db()
+            assert lead.form_webhook_status == WebhookStatus.FAILED
+            assert lead.form_webhook_last_error
 
     @responses.activate
     def test_webhook_includes_form_data(self, form_with_webhook, test_lead):
@@ -324,14 +378,14 @@ class TestWebhookDelivery:
             status=200,
         )
 
-        fire_webhook(test_lead.id)
+        send_webhook(test_lead.id, form_with_webhook.id)
 
         payload = json.loads(responses.calls[0].request.body)
 
         # Verify form_data is included
-        assert "form_data" in payload["submission"]
-        assert payload["submission"]["form_data"]["Name"] == "Webhook User"
-        assert payload["submission"]["form_data"]["Email"] == "webhook@example.com"
+        assert "data" in payload["submission"]
+        assert payload["submission"]["data"]["name"] == "Webhook User"
+        assert payload["submission"]["data"]["email"] == "webhook@example.com"
 
     @responses.activate
     def test_webhook_handles_missing_optional_fields(self, form_with_webhook):
@@ -343,9 +397,10 @@ class TestWebhookDelivery:
             message="Minimal message",
             form_type="webhook-form",
             # No phone or attribution data
+            form_webhook_status=WebhookStatus.PENDING,
             form_data={
-                "Name": "Minimal User",
-                "Email": "minimal@example.com",
+                "name": "Minimal User",
+                "email": "minimal@example.com",
                 "form_definition_slug": "webhook-form",
             },
         )
@@ -357,16 +412,16 @@ class TestWebhookDelivery:
             status=200,
         )
 
-        fire_webhook(lead.id)
+        send_webhook(lead.id, form_with_webhook.id)
 
         payload = json.loads(responses.calls[0].request.body)
 
         # Payload should still be valid
-        assert payload["submission"]["name"] == "Minimal User"
-        assert payload["submission"]["email"] == "minimal@example.com"
-        assert payload["submission"]["message"] == "Minimal message"
+        assert payload["submission"]["contact"]["name"] == "Minimal User"
+        assert payload["submission"]["contact"]["email"] == "minimal@example.com"
+        assert payload["submission"]["contact"]["message"] == "Minimal message"
         # Optional attribution fields should be null or empty
-        assert payload["submission"]["phone"] in [None, ""]
+        assert payload["submission"]["contact"]["phone"] in [None, ""]
         assert payload["attribution"]["utm_source"] in [None, ""]
 
 
@@ -383,9 +438,22 @@ class TestWebhookIntegrationScenarios:
             slug="zapier",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
-                ("phone_input", {"label": "Phone", "required": False}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "phone_input",
+                    {"field_name": "phone", "label": "Phone", "required": False},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
             webhook_enabled=True,
@@ -410,15 +478,16 @@ class TestWebhookIntegrationScenarios:
             message="Zapier integration test",
             form_type="zapier",
             utm_source="google",
+            form_webhook_status=WebhookStatus.PENDING,
             form_data={
-                "Name": "Zapier User",
-                "Email": "zapier@example.com",
-                "Phone": "555-0000",
+                "name": "Zapier User",
+                "email": "zapier@example.com",
+                "phone": "555-0000",
                 "form_definition_slug": "zapier",
             },
         )
 
-        fire_webhook(lead.id)
+        send_webhook(lead.id, zapier_form.id)
 
         # Verify Zapier was called
         assert len(responses.calls) == 1
@@ -427,7 +496,7 @@ class TestWebhookIntegrationScenarios:
         # Zapier expects specific structure
         assert payload["event"] == "form.submitted"
         assert payload["form"]["name"] == "Zapier Integration"
-        assert payload["submission"]["email"] == "zapier@example.com"
+        assert payload["submission"]["contact"]["email"] == "zapier@example.com"
 
     @pytest.fixture
     def hubspot_form(self, db):
@@ -438,10 +507,30 @@ class TestWebhookIntegrationScenarios:
             slug="hubspot",
             site=site,
             fields=[
-                ("text_input", {"label": "First Name", "required": True}),
-                ("text_input", {"label": "Last Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
-                ("text_input", {"label": "Company", "required": False}),
+                (
+                    "text_input",
+                    {
+                        "field_name": "first_name",
+                        "label": "First Name",
+                        "required": True,
+                    },
+                ),
+                (
+                    "text_input",
+                    {"field_name": "last_name", "label": "Last Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "text_input",
+                    {"field_name": "company", "label": "Company", "required": False},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="We'll be in touch!",
             webhook_enabled=True,
@@ -464,25 +553,26 @@ class TestWebhookIntegrationScenarios:
             email="john@company.com",
             message="HubSpot integration test",
             form_type="hubspot",
+            form_webhook_status=WebhookStatus.PENDING,
             form_data={
-                "First Name": "John",
-                "Last Name": "Doe",
-                "Email": "john@company.com",
-                "Company": "Acme Corp",
+                "first_name": "John",
+                "last_name": "Doe",
+                "email": "john@company.com",
+                "company": "Acme Corp",
                 "form_definition_slug": "hubspot",
             },
         )
 
-        fire_webhook(lead.id)
+        send_webhook(lead.id, hubspot_form.id)
 
         # Verify HubSpot was called
         assert len(responses.calls) == 1
         payload = json.loads(responses.calls[0].request.body)
 
         # HubSpot receives form data
-        assert payload["submission"]["form_data"]["First Name"] == "John"
-        assert payload["submission"]["form_data"]["Last Name"] == "Doe"
-        assert payload["submission"]["form_data"]["Company"] == "Acme Corp"
+        assert payload["submission"]["data"]["first_name"] == "John"
+        assert payload["submission"]["data"]["last_name"] == "Doe"
+        assert payload["submission"]["data"]["company"] == "Acme Corp"
 
     @responses.activate
     def test_webhook_idempotency(self, zapier_form):
@@ -499,32 +589,33 @@ class TestWebhookIntegrationScenarios:
             email="idempotent@example.com",
             message="Testing idempotency",
             form_type="zapier",
+            form_webhook_status=WebhookStatus.PENDING,
             form_data={
-                "Name": "Idempotent Test",
-                "Email": "idempotent@example.com",
+                "name": "Idempotent Test",
+                "email": "idempotent@example.com",
                 "form_definition_slug": "zapier",
             },
         )
 
         # Verify webhook_sent_at is initially not set
-        assert lead.webhook_sent_at is None
+        assert lead.form_webhook_sent_at is None
 
         # Fire webhook first time
-        fire_webhook(lead.id)
+        send_webhook(lead.id, zapier_form.id)
         initial_count = len(responses.calls)
 
         # Refresh from database and verify webhook_sent_at was set
         lead.refresh_from_db()
-        assert lead.webhook_sent_at is not None
-        first_sent_at = lead.webhook_sent_at
+        assert lead.form_webhook_sent_at is not None
+        first_sent_at = lead.form_webhook_sent_at
 
         # Fire webhook second time (simulating retry)
-        fire_webhook(lead.id)
+        send_webhook(lead.id, zapier_form.id)
         retry_count = len(responses.calls)
 
         # Refresh and verify webhook_sent_at didn't change
         lead.refresh_from_db()
-        assert lead.webhook_sent_at == first_sent_at
+        assert lead.form_webhook_sent_at == first_sent_at
 
         # Second call should not fire duplicate webhook
         assert initial_count == retry_count == 1
@@ -532,17 +623,6 @@ class TestWebhookIntegrationScenarios:
     @responses.activate
     def test_webhook_with_different_status_codes(self, zapier_form):
         """Test webhook behavior with various HTTP status codes."""
-        lead = Lead.objects.create(
-            name="Status Test",
-            email="status@example.com",
-            message="Testing status codes",
-            form_type="zapier",
-            form_data={
-                "Email": "status@example.com",
-                "form_definition_slug": "zapier",
-            },
-        )
-
         # Test 2xx success codes
         for status in [200, 201, 202, 204]:
             responses.reset()
@@ -553,7 +633,18 @@ class TestWebhookIntegrationScenarios:
             )
 
             # Should succeed without exception
-            fire_webhook(lead.id)
+            lead = Lead.objects.create(
+                name="Status Test",
+                email="status@example.com",
+                message="Testing status codes",
+                form_type="zapier",
+                form_webhook_status=WebhookStatus.PENDING,
+                form_data={
+                    "email": "status@example.com",
+                    "form_definition_slug": "zapier",
+                },
+            )
+            send_webhook(lead.id, zapier_form.id)
             assert len(responses.calls) == 1
 
         # Test error codes that should raise exceptions
@@ -566,7 +657,18 @@ class TestWebhookIntegrationScenarios:
             )
 
             with pytest.raises(Exception):
-                fire_webhook(lead.id)
+                lead = Lead.objects.create(
+                    name="Status Test",
+                    email="status@example.com",
+                    message="Testing status codes",
+                    form_type="zapier",
+                    form_webhook_status=WebhookStatus.PENDING,
+                    form_data={
+                        "email": "status@example.com",
+                        "form_definition_slug": "zapier",
+                    },
+                )
+                send_webhook(lead.id, zapier_form.id)
 
 
 @pytest.mark.django_db
@@ -588,13 +690,23 @@ class TestWebhookSecurityEdgeCases:
         for i, url in enumerate(metadata_urls):
             # Create form with metadata URL
             slug = f"metadata-test-{i}"
-            FormDefinition.objects.create(
+            form = FormDefinition.objects.create(
                 name=f"Metadata URL Test {i}",
                 slug=slug,
                 site=site,
                 fields=[
-                    ("text_input", {"label": "Name", "required": True}),
-                    ("email_input", {"label": "Email", "required": True}),
+                    (
+                        "text_input",
+                        {"field_name": "name", "label": "Name", "required": True},
+                    ),
+                    (
+                        "email_input",
+                        {"field_name": "email", "label": "Email", "required": True},
+                    ),
+                    (
+                        "textarea",
+                        {"field_name": "message", "label": "Message", "required": True},
+                    ),
                 ],
                 success_message="Thanks!",
                 webhook_enabled=True,
@@ -607,12 +719,14 @@ class TestWebhookSecurityEdgeCases:
                 email=f"metadata{i}@example.com",
                 message="Testing SSRF to metadata endpoint",
                 form_type=slug,
+                form_webhook_status=WebhookStatus.PENDING,
                 form_data={
-                    "Email": f"metadata{i}@example.com",
+                    "email": f"metadata{i}@example.com",
                     "form_definition_slug": slug,
                 },
             )
 
             # Should block metadata endpoint access
-            with pytest.raises(ValueError):
-                fire_webhook(lead.id)
+            send_webhook(lead.id, form.id)
+            lead.refresh_from_db()
+            assert lead.form_webhook_status == WebhookStatus.FAILED

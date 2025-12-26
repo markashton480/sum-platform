@@ -10,7 +10,7 @@ from django.core import mail
 from django.test import override_settings
 from sum_core.forms.models import FormDefinition
 from sum_core.forms.tasks import send_auto_reply, send_form_notification
-from sum_core.leads.models import Lead
+from sum_core.leads.models import EmailStatus, Lead
 from wagtail.models import Site
 
 
@@ -31,13 +31,27 @@ class TestAdminNotificationEmails:
             slug="contact-notifications",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
-                ("textarea", {"label": "Message", "required": True, "rows": 5}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {
+                        "field_name": "message",
+                        "label": "Message",
+                        "required": True,
+                        "rows": 5,
+                    },
+                ),
             ],
             success_message="Thanks for contacting us!",
-            notification_emails_enabled=True,
-            notification_emails=["admin@example.com", "sales@example.com"],
+            email_notification_enabled=True,
+            notification_emails="admin@example.com, sales@example.com",
             is_active=True,
         )
 
@@ -49,16 +63,17 @@ class TestAdminNotificationEmails:
             email="john@example.com",
             phone="555-1234",
             message="I have a question about your services.",
-            form_type="contact-notify",
+            form_type="contact-notifications",
             page_url="https://example.com/contact",
             landing_page_url="https://example.com",
             utm_source="google",
             utm_campaign="spring-2024",
+            form_notification_status=EmailStatus.PENDING,
             form_data={
-                "Name": "John Doe",
-                "Email": "john@example.com",
-                "Message": "I have a question about your services.",
-                "form_definition_slug": "contact-notify",
+                "name": "John Doe",
+                "email": "john@example.com",
+                "message": "I have a question about your services.",
+                "form_definition_slug": "contact-notifications",
             },
         )
 
@@ -72,7 +87,7 @@ class TestAdminNotificationEmails:
         mail.outbox = []
 
         # Send notification
-        send_form_notification(test_lead.id)
+        send_form_notification(test_lead.id, form_with_notifications.id)
 
         # Verify email was sent
         assert len(mail.outbox) == 1
@@ -99,7 +114,7 @@ class TestAdminNotificationEmails:
         """Test that notification email includes attribution data."""
         mail.outbox = []
 
-        send_form_notification(test_lead.id)
+        send_form_notification(test_lead.id, form_with_notifications.id)
 
         email = mail.outbox[0]
 
@@ -118,7 +133,7 @@ class TestAdminNotificationEmails:
         """Test that notification email includes all contact information."""
         mail.outbox = []
 
-        send_form_notification(test_lead.id)
+        send_form_notification(test_lead.id, form_with_notifications.id)
 
         email = mail.outbox[0]
 
@@ -140,16 +155,24 @@ class TestAdminNotificationEmails:
             slug="multi-admin",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
-            notification_emails_enabled=True,
-            notification_emails=[
-                "admin1@example.com",
-                "admin2@example.com",
-                "admin3@example.com",
-            ],
+            email_notification_enabled=True,
+            notification_emails=(
+                "admin1@example.com, admin2@example.com, admin3@example.com"
+            ),
             is_active=True,
         )
 
@@ -158,14 +181,15 @@ class TestAdminNotificationEmails:
             email="multi@example.com",
             message="Testing multiple admins",
             form_type="multi-admin",
+            form_notification_status=EmailStatus.PENDING,
             form_data={
-                "Email": "multi@example.com",
+                "email": "multi@example.com",
                 "form_definition_slug": form.slug,
             },
         )
 
         mail.outbox = []
-        send_form_notification(lead.id)
+        send_form_notification(lead.id, form.id)
 
         # All recipients should receive the email
         assert len(mail.outbox) == 1
@@ -187,12 +211,22 @@ class TestAdminNotificationEmails:
             slug="no-notification",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
-            notification_emails_enabled=False,  # Notifications disabled
-            notification_emails=[],
+            email_notification_enabled=False,  # Notifications disabled
+            notification_emails="",
             is_active=True,
         )
 
@@ -201,17 +235,20 @@ class TestAdminNotificationEmails:
             email="test@example.com",
             message="Test notification disabled",
             form_type="no-notification",
+            form_notification_status=EmailStatus.PENDING,
             form_data={
-                "Email": "test@example.com",
+                "email": "test@example.com",
                 "form_definition_slug": form.slug,
             },
         )
 
         mail.outbox = []
-        send_form_notification(lead.id)
+        send_form_notification(lead.id, form.id)
 
         # No email should be sent
         assert len(mail.outbox) == 0
+        lead.refresh_from_db()
+        assert lead.form_notification_status == EmailStatus.DISABLED
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
@@ -223,7 +260,7 @@ class TestAdminNotificationEmails:
         """Test that notification email has both HTML and plain text versions."""
         mail.outbox = []
 
-        send_form_notification(test_lead.id)
+        send_form_notification(test_lead.id, form_with_notifications.id)
 
         email = mail.outbox[0]
 
@@ -253,13 +290,23 @@ class TestAutoReplyEmails:
             slug="quote-request",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="We'll send you a quote soon!",
             auto_reply_enabled=True,
             auto_reply_subject="Thanks for your quote request!",
-            auto_reply_message="Hi {{name}},\n\nWe received your quote request and will get back to you within 24 hours.\n\nBest regards,\nThe Team",
+            auto_reply_body="Hi {{name}},\n\nWe received your quote request and will get back to you within 24 hours.\n\nBest regards,\nThe Team",
             is_active=True,
         )
 
@@ -270,11 +317,12 @@ class TestAutoReplyEmails:
             name="Jane Smith",
             email="jane@example.com",
             message="Auto-reply test message",
-            form_type="auto-reply-form",
+            form_type="quote-request",
+            auto_reply_status=EmailStatus.PENDING,
             form_data={
-                "Name": "Jane Smith",
-                "Email": "jane@example.com",
-                "form_definition_slug": "auto-reply-form",
+                "name": "Jane Smith",
+                "email": "jane@example.com",
+                "form_definition_slug": "quote-request",
             },
         )
 
@@ -288,7 +336,7 @@ class TestAutoReplyEmails:
         """Test that auto-reply is sent to form submitter."""
         mail.outbox = []
 
-        send_auto_reply(test_lead_for_auto_reply.id)
+        send_auto_reply(test_lead_for_auto_reply.id, form_with_auto_reply.id)
 
         # Verify email was sent
         assert len(mail.outbox) == 1
@@ -307,7 +355,7 @@ class TestAutoReplyEmails:
         """Test that template variables like {{name}} are replaced."""
         mail.outbox = []
 
-        send_auto_reply(test_lead_for_auto_reply.id)
+        send_auto_reply(test_lead_for_auto_reply.id, form_with_auto_reply.id)
 
         email = mail.outbox[0]
 
@@ -325,7 +373,7 @@ class TestAutoReplyEmails:
         """Test that auto-reply uses the configured subject."""
         mail.outbox = []
 
-        send_auto_reply(test_lead_for_auto_reply.id)
+        send_auto_reply(test_lead_for_auto_reply.id, form_with_auto_reply.id)
 
         email = mail.outbox[0]
         assert email.subject == "Thanks for your quote request!"
@@ -336,23 +384,49 @@ class TestAutoReplyEmails:
     )
     def test_auto_reply_skipped_when_disabled(self, site):
         """Test that auto-reply is not sent when disabled."""
-        # Note: This test requires form_definition ForeignKey on Lead model (not yet implemented)
+        form = FormDefinition.objects.create(
+            name="No Auto Reply Form",
+            slug="no-auto-reply",
+            site=site,
+            fields=[
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
+            ],
+            success_message="Thanks!",
+            auto_reply_enabled=False,
+            auto_reply_subject="Thanks!",
+            auto_reply_body="We'll be in touch.",
+            is_active=True,
+        )
         lead = Lead.objects.create(
             name="Test",
             email="test@example.com",
             message="Test auto-reply disabled",
             form_type="no-auto-reply",
+            auto_reply_status=EmailStatus.PENDING,
             form_data={
-                "Email": "test@example.com",
+                "email": "test@example.com",
                 "form_definition_slug": "no-auto-reply",
             },
         )
 
         mail.outbox = []
-        send_auto_reply(lead.id)
+        send_auto_reply(lead.id, form.id)
 
         # No email should be sent
         assert len(mail.outbox) == 0
+        lead.refresh_from_db()
+        assert lead.auto_reply_status == EmailStatus.DISABLED
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
@@ -364,15 +438,16 @@ class TestAutoReplyEmails:
             name="No Email User",
             email="",  # No email address
             message="No email test",
-            form_type="auto-reply-form",
+            form_type="quote-request",
+            auto_reply_status=EmailStatus.PENDING,
             form_data={
-                "Name": "No Email User",
-                "form_definition_slug": "auto-reply-form",
+                "name": "No Email User",
+                "form_definition_slug": "quote-request",
             },
         )
 
         mail.outbox = []
-        send_auto_reply(lead.id)
+        send_auto_reply(lead.id, form_with_auto_reply.id)
 
         # No email should be sent
         assert len(mail.outbox) == 0
@@ -389,13 +464,23 @@ class TestAutoReplyEmails:
             slug="injection-test",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
             auto_reply_enabled=True,
             auto_reply_subject="Thanks for your message!",
-            auto_reply_message="Hi {{name}}, we received your message.",
+            auto_reply_body="Hi {{name}}, we received your message.",
             is_active=True,
         )
 
@@ -405,15 +490,16 @@ class TestAutoReplyEmails:
             email="victim@example.com",
             message="Header injection test",
             form_type="injection-test",
+            auto_reply_status=EmailStatus.PENDING,
             form_data={
-                "Name": "Attacker\nBcc: evil@example.com",
-                "Email": "victim@example.com",
+                "name": "Attacker\nBcc: evil@example.com",
+                "email": "victim@example.com",
                 "form_definition_slug": form.slug,
             },
         )
 
         mail.outbox = []
-        send_auto_reply(lead.id)
+        send_auto_reply(lead.id, form.id)
 
         # Verify email was sent and only to the intended recipient
         assert len(mail.outbox) == 1
@@ -441,13 +527,23 @@ class TestAutoReplyEmails:
             slug="crlf-injection-test",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
             auto_reply_enabled=True,
             auto_reply_subject="Thanks for your message!",
-            auto_reply_message="Hi {{name}}, we received your message.",
+            auto_reply_body="Hi {{name}}, we received your message.",
             is_active=True,
         )
 
@@ -465,15 +561,16 @@ class TestAutoReplyEmails:
                 email=f"victim{i}@example.com",
                 message="CRLF injection test",
                 form_type="crlf-injection-test",
+                auto_reply_status=EmailStatus.PENDING,
                 form_data={
-                    "Name": payload,
-                    "Email": f"victim{i}@example.com",
+                    "name": payload,
+                    "email": f"victim{i}@example.com",
                     "form_definition_slug": form.slug,
                 },
             )
 
             mail.outbox = []
-            send_auto_reply(lead.id)
+            send_auto_reply(lead.id, form.id)
 
             assert len(mail.outbox) == 1
             email = mail.outbox[0]
@@ -495,13 +592,23 @@ class TestAutoReplyEmails:
             slug="xss-test",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
             auto_reply_enabled=True,
             auto_reply_subject="Thanks for your message!",
-            auto_reply_message="Hi {{name}}, we received your message.",
+            auto_reply_body="Hi {{name}}, we received your message.",
             is_active=True,
         )
 
@@ -511,15 +618,16 @@ class TestAutoReplyEmails:
             email="test@example.com",
             message="XSS test",
             form_type="xss-test",
+            auto_reply_status=EmailStatus.PENDING,
             form_data={
-                "Name": "<script>alert('XSS')</script>",
-                "Email": "test@example.com",
+                "name": "<script>alert('XSS')</script>",
+                "email": "test@example.com",
                 "form_definition_slug": form.slug,
             },
         )
 
         mail.outbox = []
-        send_auto_reply(lead.id)
+        send_auto_reply(lead.id, form.id)
 
         # Verify email was sent
         assert len(mail.outbox) == 1
@@ -548,13 +656,23 @@ class TestAutoReplyEmails:
             slug="xss-comprehensive",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
             auto_reply_enabled=True,
             auto_reply_subject="Thanks for your message!",
-            auto_reply_message="Hi {{name}}, we received your message.",
+            auto_reply_body="Hi {{name}}, we received your message.",
             is_active=True,
         )
 
@@ -575,15 +693,16 @@ class TestAutoReplyEmails:
                 email=f"xss-test-{i}@example.com",
                 message="XSS comprehensive test",
                 form_type="xss-comprehensive",
+                auto_reply_status=EmailStatus.PENDING,
                 form_data={
-                    "Name": payload,
-                    "Email": f"xss-test-{i}@example.com",
+                    "name": payload,
+                    "email": f"xss-test-{i}@example.com",
                     "form_definition_slug": form.slug,
                 },
             )
 
             mail.outbox = []
-            send_auto_reply(lead.id)
+            send_auto_reply(lead.id, form.id)
 
             assert len(mail.outbox) == 1
             email = mail.outbox[0]
@@ -606,16 +725,30 @@ class TestEmailNotificationIntegration:
             slug="full-featured",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
-                ("textarea", {"label": "Message", "required": True, "rows": 5}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {
+                        "field_name": "message",
+                        "label": "Message",
+                        "required": True,
+                        "rows": 5,
+                    },
+                ),
             ],
             success_message="Thanks!",
-            notification_emails_enabled=True,
-            notification_emails=["admin@example.com"],
+            email_notification_enabled=True,
+            notification_emails="admin@example.com",
             auto_reply_enabled=True,
             auto_reply_subject="Thank you!",
-            auto_reply_message="Hi {{name}}, we received your message.",
+            auto_reply_body="Hi {{name}}, we received your message.",
             is_active=True,
         )
 
@@ -630,10 +763,12 @@ class TestEmailNotificationIntegration:
             email="complete@example.com",
             message="Test message",
             form_type="full-featured",
+            form_notification_status=EmailStatus.PENDING,
+            auto_reply_status=EmailStatus.PENDING,
             form_data={
-                "Name": "Complete Test",
-                "Email": "complete@example.com",
-                "Message": "Test message",
+                "name": "Complete Test",
+                "email": "complete@example.com",
+                "message": "Test message",
                 "form_definition_slug": "full-featured",
             },
         )
@@ -641,8 +776,8 @@ class TestEmailNotificationIntegration:
         mail.outbox = []
 
         # Send both types of emails
-        send_form_notification(lead.id)
-        send_auto_reply(lead.id)
+        send_form_notification(lead.id, full_featured_form.id)
+        send_auto_reply(lead.id, full_featured_form.id)
 
         # Should have 2 emails total
         assert len(mail.outbox) == 2
@@ -672,9 +807,10 @@ class TestEmailNotificationIntegration:
             email="idempotent@example.com",
             message="Idempotency test",
             form_type="full-featured",
+            form_notification_status=EmailStatus.PENDING,
             form_data={
-                "Name": "Idempotent Test",
-                "Email": "idempotent@example.com",
+                "name": "Idempotent Test",
+                "email": "idempotent@example.com",
                 "form_definition_slug": "full-featured",
             },
         )
@@ -682,10 +818,10 @@ class TestEmailNotificationIntegration:
         mail.outbox = []
 
         # Send notification twice (simulating retry)
-        send_form_notification(lead.id)
+        send_form_notification(lead.id, full_featured_form.id)
         initial_count = len(mail.outbox)
 
-        send_form_notification(lead.id)
+        send_form_notification(lead.id, full_featured_form.id)
         retry_count = len(mail.outbox)
 
         # Second call should not send duplicate

@@ -10,7 +10,7 @@ from unittest.mock import patch
 import pytest
 from django.contrib.auth import get_user_model
 from sum_core.forms.models import FormDefinition
-from sum_core.leads.models import Lead
+from sum_core.leads.models import EmailStatus, Lead
 from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
 from sum_core.pages.models import StandardPage
 from wagtail.models import Site
@@ -35,20 +35,42 @@ class TestEndToEndFormSubmissionFlow:
             slug="contact",
             site=site,
             fields=[
-                ("text_input", {"label": "Full Name", "required": True}),
-                ("email_input", {"label": "Email Address", "required": True}),
-                ("phone_input", {"label": "Phone Number", "required": False}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Full Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {
+                        "field_name": "email",
+                        "label": "Email Address",
+                        "required": True,
+                    },
+                ),
+                (
+                    "phone_input",
+                    {
+                        "field_name": "phone",
+                        "label": "Phone Number",
+                        "required": False,
+                    },
+                ),
                 (
                     "textarea",
-                    {"label": "Your Message", "required": True, "rows": 5},
+                    {
+                        "field_name": "message",
+                        "label": "Your Message",
+                        "required": True,
+                        "rows": 5,
+                    },
                 ),
             ],
             success_message="Thank you for contacting us! We'll be in touch soon.",
-            notification_emails_enabled=True,
-            notification_emails=["admin@example.com"],
+            email_notification_enabled=True,
+            notification_emails="admin@example.com",
             auto_reply_enabled=True,
             auto_reply_subject="Thanks for reaching out!",
-            auto_reply_message="We received your message and will respond within 24 hours.",
+            auto_reply_body="We received your message and will respond within 24 hours.",
             is_active=True,
         )
 
@@ -93,11 +115,11 @@ class TestEndToEndFormSubmissionFlow:
 
         # Step 2: User fills out and submits the form
         form_data = {
-            "form_definition_slug": "contact",
-            "Full Name": "Jane Doe",
-            "Email Address": "jane@example.com",
-            "Phone Number": "555-1234",
-            "Your Message": "I'd like to learn more about your services.",
+            "form_definition_id": form_definition.id,
+            "name": "Jane Doe",
+            "email": "jane@example.com",
+            "phone": "555-1234",
+            "message": "I'd like to learn more about your services.",
             "page_url": contact_page.get_url(),
             "landing_page_url": contact_page.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
@@ -118,7 +140,8 @@ class TestEndToEndFormSubmissionFlow:
         assert lead.email == "jane@example.com"
         assert lead.phone == "555-1234"
         assert lead.message == "I'd like to learn more about your services."
-        assert lead.form_data.get("form_definition_slug") == form_definition.slug
+        assert lead.form_type == form_definition.slug
+        assert "ip_address" in lead.form_data
         assert lead.page_url == contact_page.get_url()
         assert lead.landing_page_url == contact_page.get_url()
 
@@ -135,10 +158,10 @@ class TestEndToEndFormSubmissionFlow:
 
         # Step 2: User submits form with attribution
         form_data = {
-            "form_definition_slug": "contact",
-            "Full Name": "Marketing User",
-            "Email Address": "marketing@example.com",
-            "Your Message": "Interested in your services.",
+            "form_definition_id": form_definition.id,
+            "name": "Marketing User",
+            "email": "marketing@example.com",
+            "message": "Interested in your services.",
             "page_url": landing_url,
             "landing_page_url": landing_url,
             "utm_source": "google",
@@ -157,7 +180,7 @@ class TestEndToEndFormSubmissionFlow:
         assert lead.utm_medium == "cpc"
         assert lead.utm_campaign == "spring-2024"
         assert lead.referrer_url == "https://www.google.com/search"
-        # lead_source is derived by business logic (may vary by implementation)
+        assert lead.lead_source == "google_ads"
 
     def test_submission_flow_with_success_message_display(
         self, client, contact_page, form_definition
@@ -167,10 +190,10 @@ class TestEndToEndFormSubmissionFlow:
         assert response.status_code == 200
 
         form_data = {
-            "form_definition_slug": "contact",
-            "Full Name": "Success User",
-            "Email Address": "success@example.com",
-            "Your Message": "Test message.",
+            "form_definition_id": form_definition.id,
+            "name": "Success User",
+            "email": "success@example.com",
+            "message": "Test message.",
             "page_url": contact_page.get_url(),
             "landing_page_url": contact_page.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
@@ -224,10 +247,10 @@ class TestEndToEndFormSubmissionFlow:
         client.get(contact_page.get_url())
 
         form_data = {
-            "form_definition_slug": "contact",
-            "Full Name": "Redirect User",
-            "Email Address": "redirect@example.com",
-            "Your Message": "Test redirect.",
+            "form_definition_id": form_definition.id,
+            "name": "Redirect User",
+            "email": "redirect@example.com",
+            "message": "Test redirect.",
             "page_url": contact_page.get_url(),
             "landing_page_url": contact_page.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
@@ -249,10 +272,10 @@ class TestEndToEndFormSubmissionFlow:
 
         # Submit with missing required fields
         form_data = {
-            "form_definition_slug": "contact",
-            "Full Name": "",  # Required but empty
-            "Email Address": "invalid-email",  # Invalid format
-            "Your Message": "",  # Required but empty
+            "form_definition_id": form_definition.id,
+            "name": "",  # Required but empty
+            "email": "invalid-email",  # Invalid format
+            "message": "",  # Required but empty
             "page_url": contact_page.get_url(),
             "landing_page_url": contact_page.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
@@ -290,8 +313,18 @@ class TestBlogPostSubmissionFlow:
             slug="blog-newsletter",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="You're subscribed to our newsletter!",
             is_active=True,
@@ -338,9 +371,10 @@ class TestBlogPostSubmissionFlow:
 
         # Step 2: Submit newsletter form
         form_data = {
-            "form_definition_slug": "blog-newsletter",
-            "Name": "Newsletter Subscriber",
-            "Email": "subscriber@example.com",
+            "form_definition_id": form.id,
+            "name": "Newsletter Subscriber",
+            "email": "subscriber@example.com",
+            "message": "Please subscribe me.",
             "page_url": post.get_url(),
             "landing_page_url": post.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
@@ -356,7 +390,8 @@ class TestBlogPostSubmissionFlow:
         # Step 3: Verify Lead created with blog post context
         lead = Lead.objects.get(email="subscriber@example.com")
         assert lead.name == "Newsletter Subscriber"
-        assert lead.form_data.get("form_definition_slug") == form.slug
+        assert lead.form_type == form.slug
+        assert "ip_address" in lead.form_data
         assert post.get_url() in lead.page_url
 
 
@@ -375,8 +410,18 @@ class TestFormSubmissionWithSpamProtection:
             slug="protected",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Success!",
             is_active=True,
@@ -408,9 +453,10 @@ class TestFormSubmissionWithSpamProtection:
 
         # Submit with honeypot filled (spam indicator)
         form_data = {
-            "form_definition_slug": "protected",
-            "Name": "Spammer",
-            "Email": "spam@example.com",
+            "form_definition_id": protected_form["form"].id,
+            "name": "Spammer",
+            "email": "spam@example.com",
+            "message": "Spam attempt",
             "website": "http://spam.com",  # Honeypot field
             "page_url": page.get_url(),
             "landing_page_url": page.get_url(),
@@ -434,9 +480,10 @@ class TestFormSubmissionWithSpamProtection:
 
         # Submit without triggering spam protection
         form_data = {
-            "form_definition_slug": "protected",
-            "Name": "Legitimate User",
-            "Email": "legitimate@example.com",
+            "form_definition_id": protected_form["form"].id,
+            "name": "Legitimate User",
+            "email": "legitimate@example.com",
+            "message": "Legitimate inquiry",
             "page_url": page.get_url(),
             "landing_page_url": page.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
@@ -468,10 +515,25 @@ class TestNoLostLeadsInvariant:
             slug="critical",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Saved!",
+            email_notification_enabled=True,
+            notification_emails="alerts@example.com",
+            auto_reply_enabled=True,
+            auto_reply_subject="Thanks!",
+            auto_reply_body="We received your submission.",
             is_active=True,
         )
 
@@ -499,27 +561,31 @@ class TestNoLostLeadsInvariant:
         client.get(page.get_url())
 
         form_data = {
-            "form_definition_slug": "critical",
-            "Name": "No Lost Lead",
-            "Email": "nolost@example.com",
+            "form_definition_id": form_setup["form"].id,
+            "name": "No Lost Lead",
+            "email": "nolost@example.com",
+            "message": "Please follow up.",
             "page_url": page.get_url(),
             "landing_page_url": page.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
         }
 
-        # Mock email sending to raise an exception
         with patch(
-            "django.core.mail.EmailMessage.send",
-            side_effect=Exception("SMTP connection failed"),
+            "sum_core.forms.tasks.send_form_notification.delay",
+            side_effect=Exception("Celery broker unavailable"),
         ):
-            submission_response = client.post("/forms/submit/", data=form_data)
-            # Form submission should still succeed (Lead saved before email attempt)
-            assert submission_response.status_code == 200
+            with patch(
+                "sum_core.forms.tasks.send_auto_reply.delay",
+                return_value=None,
+            ):
+                submission_response = client.post("/forms/submit/", data=form_data)
+                assert submission_response.status_code == 200
 
         # Verify Lead was created despite email failure
         lead = Lead.objects.get(email="nolost@example.com")
         assert lead.name == "No Lost Lead"
-        # The lead is persisted before any email sending is attempted
+        lead.refresh_from_db()
+        assert lead.form_notification_status == EmailStatus.FAILED
 
     def test_validation_errors_do_not_create_lead(self, client, form_setup):
         """Test that invalid submissions don't create partial Leads."""
@@ -528,9 +594,10 @@ class TestNoLostLeadsInvariant:
 
         # Submit with validation errors
         form_data = {
-            "form_definition_slug": "critical",
-            "Name": "",  # Required but missing
-            "Email": "invalid",  # Invalid format
+            "form_definition_id": form_setup["form"].id,
+            "name": "",  # Required but missing
+            "email": "invalid",  # Invalid format
+            "message": "",  # Required but missing
             "page_url": page.get_url(),
             "landing_page_url": page.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
@@ -553,31 +620,31 @@ class TestNoLostLeadsInvariant:
         client.get(page.get_url())
 
         form_data = {
-            "form_definition_slug": "critical",
-            "Name": "Celery Failure Test",
-            "Email": "celery-fail@example.com",
+            "form_definition_id": form_setup["form"].id,
+            "name": "Celery Failure Test",
+            "email": "celery-fail@example.com",
+            "message": "Celery queue down.",
             "page_url": page.get_url(),
             "landing_page_url": page.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
         }
 
-        # Mock Celery's delay() to raise an exception (simulating broker unavailable)
         with patch(
-            "sum_core.forms.tasks.send_form_notification.delay",
+            "sum_core.forms.tasks.send_auto_reply.delay",
             side_effect=Exception("Celery broker unavailable"),
         ):
             with patch(
-                "sum_core.forms.tasks.send_auto_reply.delay",
-                side_effect=Exception("Celery broker unavailable"),
+                "sum_core.forms.tasks.send_form_notification.delay",
+                return_value=None,
             ):
-                # Form submission should still succeed
                 submission_response = client.post("/forms/submit/", data=form_data)
                 assert submission_response.status_code == 200
 
         # Verify Lead was created despite Celery failure
         lead = Lead.objects.get(email="celery-fail@example.com")
         assert lead.name == "Celery Failure Test"
-        # Lead exists - "No Lost Leads" invariant holds
+        lead.refresh_from_db()
+        assert lead.auto_reply_status == EmailStatus.FAILED
 
 
 @pytest.mark.django_db
@@ -599,9 +666,23 @@ class TestSecurityEdgeCases:
             slug="security-test",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
-                ("textarea", {"label": "Message", "required": False, "rows": 5}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {
+                        "field_name": "message",
+                        "label": "Message",
+                        "required": False,
+                        "rows": 5,
+                    },
+                ),
             ],
             success_message="Saved!",
             is_active=True,
@@ -642,10 +723,10 @@ class TestSecurityEdgeCases:
 
         for payload in sql_injection_payloads:
             form_data = {
-                "form_definition_slug": "security-test",
-                "Name": payload,
-                "Email": "sqli-test@example.com",
-                "Message": payload,
+                "form_definition_id": security_form_setup["form"].id,
+                "name": payload,
+                "email": "sqli-test@example.com",
+                "message": payload,
                 "page_url": page.get_url(),
                 "landing_page_url": page.get_url(),
                 "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
@@ -681,10 +762,10 @@ class TestSecurityEdgeCases:
 
         for payload in path_traversal_payloads:
             form_data = {
-                "form_definition_slug": "security-test",
-                "Name": payload,
-                "Email": "path-test@example.com",
-                "Message": payload,
+                "form_definition_id": security_form_setup["form"].id,
+                "name": payload,
+                "email": "path-test@example.com",
+                "message": payload,
                 "page_url": page.get_url(),
                 "landing_page_url": page.get_url(),
                 "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,

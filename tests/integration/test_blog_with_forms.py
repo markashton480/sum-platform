@@ -46,8 +46,18 @@ class TestBlogWithDynamicForms:
             slug="newsletter",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks for subscribing!",
             is_active=True,
@@ -131,7 +141,16 @@ class TestBlogWithDynamicForms:
             name="Newsletter",
             slug="newsletter-multi",
             site=site,
-            fields=[("email_input", {"label": "Email", "required": True})],
+            fields=[
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
+            ],
             success_message="Subscribed!",
             is_active=True,
         )
@@ -141,9 +160,23 @@ class TestBlogWithDynamicForms:
             slug="contact-multi",
             site=site,
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
-                ("textarea", {"label": "Message", "required": True, "rows": 5}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {
+                        "field_name": "message",
+                        "label": "Message",
+                        "required": True,
+                        "rows": 5,
+                    },
+                ),
             ],
             success_message="We'll be in touch!",
             is_active=True,
@@ -215,9 +248,10 @@ class TestBlogWithDynamicForms:
 
         # Submit the form
         form_data = {
-            "form_definition_slug": "newsletter",
-            "Name": "John Doe",  # Matches field label in FormDefinition
-            "Email": "john@example.com",  # Matches field label in FormDefinition
+            "form_definition_id": form_definition.id,
+            "name": "John Doe",
+            "email": "john@example.com",
+            "message": "Sign me up.",
             "page_url": post.get_url(),
             "landing_page_url": post.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
@@ -235,7 +269,8 @@ class TestBlogWithDynamicForms:
         lead = Lead.objects.get(email="john@example.com")
         assert lead.name == "John Doe"
         # Form reference is stored in form_data, not as FK (see Issue #183)
-        assert lead.form_data.get("form_definition_slug") == form_definition.slug
+        assert lead.form_type == form_definition.slug
+        assert "ip_address" in lead.form_data
         assert lead.page_url == post.get_url()
 
     def test_inactive_form_in_blog_post_shows_warning(
@@ -246,7 +281,16 @@ class TestBlogWithDynamicForms:
             name="Inactive Form",
             slug="inactive-form",
             site=site,
-            fields=[("email_input", {"label": "Email", "required": True})],
+            fields=[
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
+            ],
             success_message="Success",
             is_active=False,  # Inactive
         )
@@ -273,7 +317,8 @@ class TestBlogWithDynamicForms:
 
         # Template should indicate form is inactive
         assert response.status_code == 200
-        # The exact message depends on template implementation
+        content = response.content.decode().lower()
+        assert "inactive" in content
 
     def test_different_presentation_styles_in_blog(
         self, client, blog_index, category, site
@@ -283,7 +328,16 @@ class TestBlogWithDynamicForms:
             name="Multi-Style Form",
             slug="multi-style",
             site=site,
-            fields=[("email_input", {"label": "Email", "required": True})],
+            fields=[
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
+            ],
             success_message="Thanks!",
             is_active=True,
         )
@@ -401,7 +455,16 @@ class TestBlogFormIntegrationEdgeCases:
             name="Placement Test",
             slug="placement-test",
             site=blog_setup["site"],
-            fields=[("email_input", {"label": "Email", "required": True})],
+            fields=[
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
+            ],
             success_message="Success!",
             is_active=True,
         )
@@ -450,8 +513,18 @@ class TestBlogFormIntegrationEdgeCases:
             slug="attribution-test",
             site=blog_setup["site"],
             fields=[
-                ("text_input", {"label": "Name", "required": True}),
-                ("email_input", {"label": "Email", "required": True}),
+                (
+                    "text_input",
+                    {"field_name": "name", "label": "Name", "required": True},
+                ),
+                (
+                    "email_input",
+                    {"field_name": "email", "label": "Email", "required": True},
+                ),
+                (
+                    "textarea",
+                    {"field_name": "message", "label": "Message", "required": True},
+                ),
             ],
             success_message="Thanks!",
             is_active=True,
@@ -479,9 +552,10 @@ class TestBlogFormIntegrationEdgeCases:
         client.get(f"{post.get_url()}?utm_source=newsletter&utm_campaign=blog-promo")
 
         form_data = {
-            "form_definition_slug": "attribution-test",
-            "Name": "Attribution Tester",  # Matches FormDefinition field label
-            "Email": "attribution@example.com",  # Matches FormDefinition field label
+            "form_definition_id": form.id,
+            "name": "Attribution Tester",
+            "email": "attribution@example.com",
+            "message": "Attribution test",
             "page_url": post.get_url(),
             "landing_page_url": post.get_url(),
             "utm_source": "newsletter",
