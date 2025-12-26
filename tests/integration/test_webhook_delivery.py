@@ -6,6 +6,7 @@ retry logic, and security measures, with proper mocking of HTTP requests.
 """
 
 import json
+from typing import Any, cast
 
 import pytest
 import responses
@@ -15,10 +16,11 @@ from sum_core.leads.models import Lead, WebhookStatus
 from wagtail.models import Site
 
 
-def _load_payload() -> dict[str, object]:
+def _load_payload() -> dict[str, Any]:
     body = responses.calls[0].request.body
     assert body is not None
-    return json.loads(body)
+    payload = json.loads(body)
+    return cast(dict[str, Any], payload)
 
 
 @pytest.mark.django_db
