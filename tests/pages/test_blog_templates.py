@@ -48,7 +48,9 @@ class TestBlogIndexPageTemplateRendering:
                 title=f"Test Post {i}",
                 slug=f"test-post-{i}",
                 excerpt=f"Excerpt for post {i}",
-                body=[("paragraph", {"text": f"Body content for post {i}" * 50})],
+                body=[
+                    ("rich_text", "<p>" + f"Body content for post {i} " * 50 + "</p>")
+                ],
                 category=category,
             )
             blog_index.add_child(instance=post)
@@ -130,7 +132,7 @@ class TestBlogIndexPageTemplateRendering:
             post = BlogPostPage(
                 title=f"Pagination Post {i}",
                 slug=f"pagination-post-{i}",
-                body=[("paragraph", {"text": "Content" * 50})],
+                body=[("rich_text", "<p>" + "Content " * 50 + "</p>")],
                 category=category,
             )
             blog_index.add_child(instance=post)
@@ -190,10 +192,18 @@ class TestBlogPostPageTemplateRendering:
             slug="test-article",
             excerpt="This is a test article excerpt.",
             body=[
-                ("heading", "Introduction"),
-                ("paragraph", {"text": "This is the introduction paragraph." * 50}),
-                ("heading", "Main Content"),
-                ("paragraph", {"text": "This is the main content." * 100}),
+                (
+                    "rich_text",
+                    "<h2>Introduction</h2><p>"
+                    + "This is the introduction paragraph. " * 50
+                    + "</p>",
+                ),
+                (
+                    "rich_text",
+                    "<h2>Main Content</h2><p>"
+                    + "This is the main content. " * 100
+                    + "</p>",
+                ),
             ],
             category=category,
             author_name="Test Author",
@@ -257,18 +267,21 @@ class TestBlogPostPageTemplateRendering:
 
     def test_blog_post_supports_dynamic_form_block_in_body(self, blog_index):
         """Test that DynamicFormBlock can be included in post body."""
-        from core.sum_core.forms.models import FormDefinition
+        from sum_core.forms.models import FormDefinition
 
+        site = Site.objects.get(is_default_site=True)
         category = Category.objects.create(name="Form Test", slug="form-test")
 
         # Create a FormDefinition
         form_def = FormDefinition.objects.create(
             name="Newsletter Signup",
             slug="newsletter",
+            site=site,
             fields=[
                 ("email_input", {"label": "Email", "required": True}),
             ],
             success_message="Thanks for signing up!",
+            is_active=True,
         )
 
         # Create post with DynamicFormBlock
@@ -276,7 +289,7 @@ class TestBlogPostPageTemplateRendering:
             title="Post with Form",
             slug="post-with-form",
             body=[
-                ("paragraph", {"text": "Article content here." * 50}),
+                ("rich_text", "<p>" + "Article content here. " * 50 + "</p>"),
                 (
                     "dynamic_form",
                     {
@@ -304,7 +317,7 @@ class TestBlogPostPageTemplateRendering:
         post = BlogPostPage(
             title="Minimal Post",
             slug="minimal-post",
-            body=[("paragraph", {"text": "Minimal content." * 50})],
+            body=[("rich_text", "<p>" + "Minimal content. " * 50 + "</p>")],
             category=category,
             # No excerpt, no author_name, no featured_image
         )
@@ -345,7 +358,7 @@ class TestBlogComponentTemplates:
             title="Card Test Post",
             slug="card-test-post",
             excerpt="Test excerpt for card",
-            body=[("paragraph", {"text": "Content" * 50})],
+            body=[("rich_text", "<p>" + "Content " * 50 + "</p>")],
             category=category,
         )
         blog_index.add_child(instance=post)
@@ -365,7 +378,7 @@ class TestBlogComponentTemplates:
             post = BlogPostPage(
                 title=f"Pagination Post {i}",
                 slug=f"pagination-post-{i}",
-                body=[("paragraph", {"text": "Content" * 50})],
+                body=[("rich_text", "<p>" + "Content " * 50 + "</p>")],
                 category=category,
             )
             blog_index.add_child(instance=post)
@@ -389,7 +402,7 @@ class TestBlogComponentTemplates:
             post = BlogPostPage(
                 title=f"Filter Post {i}",
                 slug=f"filter-post-{i}",
-                body=[("paragraph", {"text": "Content" * 50})],
+                body=[("rich_text", "<p>" + "Content " * 50 + "</p>")],
                 category=category,
             )
             blog_index.add_child(instance=post)

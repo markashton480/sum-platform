@@ -62,7 +62,7 @@ class TestBlogWithDynamicForms:
             slug="post-with-newsletter",
             excerpt="Sign up for our newsletter!",
             body=[
-                ("paragraph", {"text": "Welcome to our blog." * 50}),
+                ("rich_text", "<p>" + "Welcome to our blog. " * 50 + "</p>"),
                 (
                     "dynamic_form",
                     {
@@ -71,7 +71,7 @@ class TestBlogWithDynamicForms:
                         "cta_button_text": "Subscribe Now",
                     },
                 ),
-                ("paragraph", {"text": "Thanks for reading!" * 50}),
+                ("rich_text", "<p>" + "Thanks for reading! " * 50 + "</p>"),
             ],
             category=category,
         )
@@ -93,8 +93,10 @@ class TestBlogWithDynamicForms:
             title="Article with CTA Form",
             slug="article-with-cta",
             body=[
-                ("heading", "Introduction"),
-                ("paragraph", {"text": "Article introduction." * 50}),
+                (
+                    "rich_text",
+                    "<h2>Introduction</h2><p>" + "Article introduction. " * 50 + "</p>",
+                ),
                 (
                     "dynamic_form",
                     {
@@ -151,7 +153,7 @@ class TestBlogWithDynamicForms:
             title="Post with Multiple Forms",
             slug="multi-form-post",
             body=[
-                ("paragraph", {"text": "Article content." * 50}),
+                ("rich_text", "<p>" + "Article content. " * 50 + "</p>"),
                 (
                     "dynamic_form",
                     {
@@ -160,7 +162,7 @@ class TestBlogWithDynamicForms:
                         "cta_button_text": "Subscribe",
                     },
                 ),
-                ("heading", "Get in Touch"),
+                ("rich_text", "<h2>Get in Touch</h2>"),
                 (
                     "dynamic_form",
                     {
@@ -193,7 +195,7 @@ class TestBlogWithDynamicForms:
             title="Subscription Post",
             slug="subscription-post",
             body=[
-                ("paragraph", {"text": "Subscribe below." * 50}),
+                ("rich_text", "<p>" + "Subscribe below. " * 50 + "</p>"),
                 (
                     "dynamic_form",
                     {
@@ -232,7 +234,8 @@ class TestBlogWithDynamicForms:
         # Verify Lead was created
         lead = Lead.objects.get(email="john@example.com")
         assert lead.name == "John Doe"
-        assert lead.form_definition == form_definition
+        # Form reference is stored in form_data, not as FK (see Issue #183)
+        assert lead.form_data.get("form_definition_slug") == form_definition.slug
         assert lead.page_url == post.get_url()
 
     def test_inactive_form_in_blog_post_shows_warning(
@@ -252,7 +255,7 @@ class TestBlogWithDynamicForms:
             title="Post with Inactive Form",
             slug="inactive-form-post",
             body=[
-                ("paragraph", {"text": "Content." * 50}),
+                ("rich_text", "<p>" + "Content. " * 50 + "</p>"),
                 (
                     "dynamic_form",
                     {
@@ -290,7 +293,7 @@ class TestBlogWithDynamicForms:
                 title=f"Post with {style.title()} Form",
                 slug=f"post-{style}-form",
                 body=[
-                    ("paragraph", {"text": "Content." * 50}),
+                    ("rich_text", "<p>" + "Content. " * 50 + "</p>"),
                     (
                         "dynamic_form",
                         {
@@ -317,7 +320,7 @@ class TestBlogWithDynamicForms:
         thank_you_page = BlogPostPage(
             title="Thank You",
             slug="thank-you",
-            body=[("paragraph", {"text": "Thanks for subscribing!" * 50})],
+            body=[("rich_text", "<p>" + "Thanks for subscribing! " * 50 + "</p>")],
             category=category,
         )
         blog_index.add_child(instance=thank_you_page)
@@ -327,7 +330,7 @@ class TestBlogWithDynamicForms:
             title="Post with Redirect Form",
             slug="redirect-form-post",
             body=[
-                ("paragraph", {"text": "Subscribe below." * 50}),
+                ("rich_text", "<p>" + "Subscribe below. " * 50 + "</p>"),
                 (
                     "dynamic_form",
                     {
@@ -377,8 +380,10 @@ class TestBlogFormIntegrationEdgeCases:
             title="No Forms Post",
             slug="no-forms-post",
             body=[
-                ("heading", "Article Title"),
-                ("paragraph", {"text": "Article content." * 100}),
+                (
+                    "rich_text",
+                    "<h2>Article Title</h2><p>" + "Article content. " * 100 + "</p>",
+                ),
             ],
             category=blog_setup["category"],
         )
@@ -414,7 +419,7 @@ class TestBlogFormIntegrationEdgeCases:
                         "cta_button_text": "Top CTA",
                     },
                 ),
-                ("paragraph", {"text": "Middle content." * 50}),
+                ("rich_text", "<p>" + "Middle content. " * 50 + "</p>"),
                 # Form at end
                 (
                     "dynamic_form",
@@ -456,7 +461,7 @@ class TestBlogFormIntegrationEdgeCases:
             title="Attribution Post",
             slug="attribution-post",
             body=[
-                ("paragraph", {"text": "Content." * 50}),
+                ("rich_text", "<p>" + "Content. " * 50 + "</p>"),
                 (
                     "dynamic_form",
                     {
@@ -475,8 +480,8 @@ class TestBlogFormIntegrationEdgeCases:
 
         form_data = {
             "form_definition_slug": "attribution-test",
-            "name": "Attribution Tester",
-            "email": "attribution@example.com",
+            "Name": "Attribution Tester",  # Matches FormDefinition field label
+            "Email": "attribution@example.com",  # Matches FormDefinition field label
             "page_url": post.get_url(),
             "landing_page_url": post.get_url(),
             "utm_source": "newsletter",

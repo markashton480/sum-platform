@@ -237,6 +237,7 @@ class TestWebhookDelivery:
 
         assert len(responses.calls) == 1
 
+    @responses.activate
     def test_webhook_blocks_private_urls(self, site):
         """Test that webhooks to private IP addresses are blocked (SSRF protection)."""
         private_urls = [
@@ -311,9 +312,10 @@ class TestWebhookDelivery:
         # Payload should still be valid
         assert payload["submission"]["name"] == "Minimal User"
         assert payload["submission"]["email"] == "minimal@example.com"
-        # Optional fields should be null or empty
+        assert payload["submission"]["message"] == "Minimal message"
+        # Optional attribution fields should be null or empty
         assert payload["submission"]["phone"] in [None, ""]
-        assert payload["submission"]["message"] in [None, ""]
+        assert payload["attribution"]["utm_source"] in [None, ""]
 
 
 @pytest.mark.django_db

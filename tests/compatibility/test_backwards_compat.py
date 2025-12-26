@@ -37,13 +37,13 @@ class TestStaticFormCompatibility:
             title="Static Contact",
             slug="static-contact",
             body=[
-                ("heading", "Contact Us (Static Form)"),
+                ("rich_text", "<h2>Contact Us (Static Form)</h2>"),
                 (
                     "contact_form",
                     {
-                        "heading": "Get in Touch",
-                        "description": "Fill out the form below.",
-                        "cta_button_text": "Send",
+                        "heading": "<p>Get in Touch</p>",
+                        "intro": "<p>Fill out the form below.</p>",
+                        "submit_label": "Send",
                     },
                 ),
             ],
@@ -68,13 +68,13 @@ class TestStaticFormCompatibility:
             title="Quote Request",
             slug="quote-request-static",
             body=[
-                ("heading", "Request a Quote (Static Form)"),
+                ("rich_text", "<h2>Request a Quote (Static Form)</h2>"),
                 (
                     "quote_request_form",
                     {
-                        "heading": "Get Your Free Quote",
-                        "description": "We'll respond within 24 hours.",
-                        "cta_button_text": "Request Quote",
+                        "heading": "<p>Get Your Free Quote</p>",
+                        "intro": "<p>We'll respond within 24 hours.</p>",
+                        "submit_label": "Request Quote",
                     },
                 ),
             ],
@@ -109,16 +109,16 @@ class TestStaticFormCompatibility:
             title="Mixed Forms",
             slug="mixed-forms",
             body=[
-                ("heading", "Static Contact Form"),
+                ("rich_text", "<h2>Static Contact Form</h2>"),
                 (
                     "contact_form",
                     {
-                        "heading": "Contact Us",
-                        "description": "Static form",
-                        "cta_button_text": "Send",
+                        "heading": "<p>Contact Us</p>",
+                        "intro": "<p>Static form</p>",
+                        "submit_label": "Send",
                     },
                 ),
-                ("heading", "Dynamic Newsletter Form"),
+                ("rich_text", "<h2>Dynamic Newsletter Form</h2>"),
                 (
                     "dynamic_form",
                     {
@@ -243,9 +243,9 @@ class TestFormSubmissionBackwardsCompatibility:
                 (
                     "contact_form",
                     {
-                        "heading": "Contact",
-                        "description": "Get in touch",
-                        "cta_button_text": "Send",
+                        "heading": "<p>Contact</p>",
+                        "intro": "<p>Get in touch</p>",
+                        "submit_label": "Send",
                     },
                 ),
             ],
@@ -274,7 +274,8 @@ class TestFormSubmissionBackwardsCompatibility:
         lead = Lead.objects.get(email="static@example.com")
         assert lead.name == "Static Submitter"
         assert lead.form_type == "contact"
-        assert lead.form_definition is None  # Static forms don't have FormDefinition
+        # Static forms don't have form_definition_slug in form_data
+        assert "form_definition_slug" not in lead.form_data
 
     def test_dynamic_form_submission_creates_lead(self, client, site):
         """Test that dynamic form submissions create Leads."""
@@ -326,7 +327,8 @@ class TestFormSubmissionBackwardsCompatibility:
         # Lead should be created
         lead = Lead.objects.get(email="dynamic@example.com")
         assert lead.name == "Dynamic Submitter"
-        assert lead.form_definition == form
+        # Dynamic forms store the form slug in form_data
+        assert lead.form_data.get("form_definition_slug") == form.slug
 
 
 @pytest.mark.django_db
@@ -353,8 +355,10 @@ class TestBlogBackwardsCompatibility:
             title="Post Without Forms",
             slug="post-without-forms",
             body=[
-                ("heading", "Article Heading"),
-                ("paragraph", {"text": "Article content." * 50}),
+                (
+                    "rich_text",
+                    "<h2>Article Heading</h2><p>" + "Article content. " * 50 + "</p>",
+                ),
             ],
             category=category,
         )
@@ -370,6 +374,7 @@ class TestBlogBackwardsCompatibility:
 
     def test_existing_blog_fields_still_work(self, site):
         """Test that all original blog fields continue to function."""
+
         home = site.root_page
 
         blog_index = BlogIndexPage(title="Blog", slug="blog-fields", posts_per_page=10)
@@ -383,10 +388,10 @@ class TestBlogBackwardsCompatibility:
             title="Traditional Post",
             slug="traditional-post",
             excerpt="Manual excerpt",
-            body=[("paragraph", {"text": "Body content." * 100})],
+            body=[("rich_text", "<p>" + "Body content. " * 100 + "</p>")],
             category=category,
             author_name="Test Author",
-            published_date=None,  # Should auto-set
+            # published_date defaults to timezone.now() per model definition
         )
         blog_index.add_child(instance=post)
         post.save_revision().publish()
@@ -396,7 +401,7 @@ class TestBlogBackwardsCompatibility:
         assert post.excerpt == "Manual excerpt"
         assert post.category == category
         assert post.author_name == "Test Author"
-        assert post.published_date is not None  # Auto-set
+        assert post.published_date is not None  # Auto-set by default
         assert post.reading_time > 0  # Auto-calculated
 
 
@@ -404,26 +409,31 @@ class TestBlogBackwardsCompatibility:
 class TestMigrationSafety:
     """Test that migrations from pre-dynamic-forms state are safe."""
 
-    def test_lead_model_nullable_form_definition(self):
-        """Test that form_definition field is nullable for backwards compatibility."""
-        from django.db import connection
+    def test_lead_model_form_data_supports_dynamic_forms(self):
+        """Test that form_data JSONField supports dynamic form references."""
+        # Note: form_definition FK is not implemented yet (see Issue #183)
+        # Instead, dynamic forms store form_definition_slug in form_data
+        lead = Lead.objects.create(
+            name="Form Data Test",
+            email="formdata@example.com",
+            message="Testing form_data field",
+            form_type="dynamic",
+            form_data={"form_definition_slug": "test-form"},
+        )
 
-        # Check that form_definition field allows NULL
-        with connection.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT is_nullable
-                FROM information_schema.columns
-                WHERE table_name = 'leads_lead'
-                AND column_name = 'form_definition_id'
-                """
-            )
-            result = cursor.fetchone()
+        # Verify form_data stores the form reference
+        assert hasattr(lead, "form_data")
+        assert lead.form_data.get("form_definition_slug") == "test-form"
 
-            # If field exists, it should be nullable
-            if result:
-                is_nullable = result[0]
-                assert is_nullable == "YES", "form_definition_id must be nullable"
+        # Verify form_data can be empty for static forms (backwards compat)
+        static_lead = Lead.objects.create(
+            name="Static Form Test",
+            email="static@example.com",
+            message="Testing static form",
+            form_type="contact",
+            form_data={},  # Empty for static forms
+        )
+        assert static_lead.form_data == {}
 
     def test_form_type_field_still_exists(self):
         """Test that form_type field still exists for static forms."""
@@ -484,12 +494,14 @@ class TestPageTypeCompatibility:
             title="All Blocks",
             slug="all-blocks",
             body=[
-                ("heading", "Heading Block"),
-                ("paragraph", {"text": "Paragraph block"}),
-                ("contact_form", {"heading": "Static Contact", "description": "Old"}),
+                ("rich_text", "<h2>Heading Block</h2><p>Paragraph block</p>"),
+                (
+                    "contact_form",
+                    {"heading": "<p>Static Contact</p>", "intro": "<p>Old</p>"},
+                ),
                 (
                     "quote_request_form",
-                    {"heading": "Static Quote", "description": "Old"},
+                    {"heading": "<p>Static Quote</p>", "intro": "<p>Old</p>"},
                 ),
                 (
                     "dynamic_form",
@@ -504,11 +516,11 @@ class TestPageTypeCompatibility:
         page.save_revision().publish()
 
         # All blocks should be present
-        assert len(page.body) == 5
-        assert page.body[0].block_type == "heading"
-        assert page.body[2].block_type == "contact_form"
-        assert page.body[3].block_type == "quote_request_form"
-        assert page.body[4].block_type == "dynamic_form"
+        assert len(page.body) == 4
+        assert page.body[0].block_type == "rich_text"
+        assert page.body[1].block_type == "contact_form"
+        assert page.body[2].block_type == "quote_request_form"
+        assert page.body[3].block_type == "dynamic_form"
 
     def test_blog_post_page_backwards_compatible_with_static_blocks(self, site):
         """Test that BlogPostPage can use traditional blocks."""
@@ -520,15 +532,13 @@ class TestPageTypeCompatibility:
 
         category = Category.objects.create(name="Static Blocks", slug="static-blocks")
 
-        # BlogPostPage with traditional (non-form) blocks
+        # BlogPostPage with content blocks (no forms)
         post = BlogPostPage(
             title="Traditional Blocks Post",
             slug="traditional-blocks",
             body=[
-                ("heading", "Introduction"),
-                ("paragraph", {"text": "Paragraph content."}),
-                ("image", None),  # Image block
-                ("heading", "Conclusion"),
+                ("rich_text", "<h2>Introduction</h2><p>Paragraph content.</p>"),
+                ("rich_text", "<h2>Conclusion</h2>"),
             ],
             category=category,
         )
@@ -536,4 +546,4 @@ class TestPageTypeCompatibility:
         post.save_revision().publish()
 
         # Should work fine
-        assert len(post.body) >= 2  # At minimum heading and paragraph
+        assert len(post.body) >= 2  # At minimum two rich_text blocks
