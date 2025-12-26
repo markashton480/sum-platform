@@ -40,6 +40,12 @@ From a generated client project directory:
 python manage.py seed_showroom
 ```
 
+To seed the full block showroom instead of the starter baseline:
+
+```bash
+python manage.py seed_showroom --profile showroom
+```
+
 ## Canonical theme dev override (SQ-003)
 
 For fast showroom iteration, you can point Django at the **canonical theme source** instead of the copied `theme/active` assets.
@@ -62,6 +68,7 @@ If the path is invalid, Django raises `ImproperlyConfigured` with guidance; unse
 ### Options
 
 - **`--clear`**: delete previously seeded showroom pages (by slug) and recreate them.
+- **`--profile starter|showroom`**: choose the starter baseline (default) or full showroom profile.
 - **`--hostname <host>` / `--port <port>`**: update (or set) the default Wagtail `Site` hostname/port.
 - **`--homepage-model app_label.ModelName`**: explicitly choose the client `HomePage` model.
 
@@ -84,11 +91,12 @@ python manage.py seed_showroom --clear --hostname localhost --port 8000
 
 Under the HomePage, the command creates:
 
-- **`StandardPage`**: `showroom` → `/showroom/`
-- **`StandardPage`**: `kitchen-sink` → `/kitchen-sink/`
+- **`StandardPage`**: `showroom` → `/showroom/` (showroom profile only)
+- **`StandardPage`**: `kitchen-sink` → `/kitchen-sink/` (showroom profile only)
 - **`StandardPage`**: `contact` → `/contact/`
 - **`StandardPage`**: `terms` → `/terms/`
 - **`StandardPage`**: `privacy` → `/privacy/`
+- **`StandardPage`**: `cookies` → `/cookies/`
 - **`ServiceIndexPage`**: `services` → `/services/`
   - **`ServicePage`**: `solar-installation` → `/services/solar-installation/`
   - **`ServicePage`**: `roofing` → `/services/roofing/`
@@ -107,7 +115,13 @@ The authoritative list of available blocks is `sum_core.blocks.base.PageStreamBl
 
 ### HomePage (`/`)
 
-HomePage body contains:
+Starter profile HomePage body contains:
+
+- **`hero_image`**
+- **`content`**
+- **`testimonials`**
+
+Showroom profile HomePage body contains:
 
 - **`hero_image`**
 - **`trust_strip_logos`**
@@ -168,12 +182,14 @@ Contact page body contains:
 - **`content`**
 - **`contact_form`**
 
-### Legal pages (`/terms/`, `/privacy/`)
+### Legal pages (`/terms/`, `/privacy/`, `/cookies/`)
 
-Legal pages provide long-form placeholder copy to validate typography:
+Legal pages provide anchored sections to validate legal-page layout and typography:
 
 - **`editorial_header`** (center aligned, "Legal" eyebrow)
-- **`content`** with multi-section rich text (paragraphs, headings, lists, inline code for commands)
+- **`content`** intro block
+- **`table_of_contents`** with anchors
+- **`legal_section`** blocks for each section
 
 ---
 
@@ -201,7 +217,12 @@ Seeds:
   - Explore: Home, Showroom, Kitchen Sink
   - Services: index + both example service pages
   - Company: Contact
-  - Legal: Terms + Privacy pages, ensuring footer legal links resolve to real pages
+  - Legal: Terms + Privacy + Cookies pages, ensuring footer legal links resolve to real pages
+
+Cookie consent wiring:
+
+- `SiteSettings.cookie_banner_enabled` is seeded `True` so the footer renders the **Manage cookies** link.
+- `SiteSettings.terms_page`, `privacy_policy_page`, and `cookie_policy_page` point to the seeded legal pages.
 
 Note: footer `tagline` and `social_*` are intentionally set blank so the footer demonstrates **effective settings fallback** to Branding (see `sum_core.navigation.services.get_effective_footer_settings`).
 

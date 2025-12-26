@@ -1,0 +1,126 @@
+name: Release Audit
+
+on:
+  pull_request:
+    branches: [develop, main]
+    types: [opened, synchronize, ready_for_review]
+
+concurrency:
+  group: release-audit-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  release-audit:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Release Audit
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            # RELEASE AUDIT
+            You are the Release Auditor. Assume releases are wrong until verified.
+
+            ## PR Details
+            - PR: #${{ github.event.pull_request.number }}
+            - Title: ${{ github.event.pull_request.title }}
+            - Branch: ${{ github.head_ref }} -> ${{ github.base_ref }}
+            - Author: ${{ github.event.pull_request.user.login }}
+
+            ## Step 1: Find Version Declaration Issue
+            Use this order:
+
+            Option A: Linked issues
+            ```bash
+            ISSUE=$(gh pr view ${{ github.event.pull_request.number }} --json closingIssuesReferences --jq '.closingIssuesReferences[0].number // empty')
+            ```
+
+            Option B: Parse from branch name (release/X.Y.0)
+            ```bash
+            if [ -z "$ISSUE" ]; then
+              VERSION=$(echo "${{ github.head_ref }}" | grep -oE 'release/[0-9]+\.[0-9]+\.[0-9]+' | sed 's#release/##' || true)
+            fi
+            ```
+
+            If no issue found, call that out and proceed with diff-only audit.
+
+            ## Step 2: Load Issue Context (if found)
+            ```bash
+            gh issue view $ISSUE --json title,body,labels
+            ```
+
+            Identify:
+            - Version scope and intent
+            - Work Orders list
+            - Expected metrics (commits, line counts)
+            - Boundaries (IS/IS NOT)
+
+            ## Step 3: Gather PR Data
+            ```bash
+            gh pr diff ${{ github.event.pull_request.number }} --stat
+            gh pr diff ${{ github.event.pull_request.number }}
+            gh pr view ${{ github.event.pull_request.number }} --json commits,files,baseRefName,headRefName
+            ```
+
+            ## Step 4: Audit Level
+            - Task -> feature: Light
+            - Feature -> release: Medium
+            - Release -> develop: Full
+            - Develop -> main: Full
+
+            ## Step 5: Run Audit Checks
+            Light:
+            - Targets correct branch
+            - Commit count reasonable
+            - Files match scope
+            - CI passes
+
+            Medium:
+            - Targets release branch
+            - All subtasks merged (from Work Order)
+            - Commit/line counts plausible
+            - Files match scope
+            - No unexpected components
+            - CI passes
+
+            Full:
+            - Version declaration complete
+            - Commit/line counts within tolerance
+            - No undeclared features
+            - Version consistency across files
+            - CI passes
+
+            ## Step 6: Submit Review
+            Use a GitHub review so it can gate merges:
+
+            APPROVE:
+            ```bash
+            gh pr review ${{ github.event.pull_request.number }} --approve --body "AUDIT PASSED: <summary>"
+            ```
+
+            REQUEST CHANGES (and fail workflow):
+            ```bash
+            gh pr review ${{ github.event.pull_request.number }} --request-changes --body "AUDIT FAILED: <summary>"
+            exit 1
+            ```
+
+            COMMENT:
+            ```bash
+            gh pr review ${{ github.event.pull_request.number }} --comment --body "AUDIT QUESTIONS: <summary>"
+            ```
+
+            Keep the review short and focused. If no issue is linked, mention that.
+
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(echo:*),Bash(exit:*),View"'

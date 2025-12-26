@@ -8,8 +8,19 @@ Family: Leads, forms, failures, reliability.
 from unittest.mock import patch
 
 import pytest
+from django.core.cache import cache
 from django.test import Client
+from sum_core.forms.models import FormConfiguration
 from sum_core.leads.models import EmailStatus, Lead, WebhookStatus
+from wagtail.models import Site
+
+
+def _disable_rate_limit() -> None:
+    cache.clear()
+    site = Site.objects.get(is_default_site=True)
+    config = FormConfiguration.get_for_site(site)
+    config.rate_limit_per_ip_per_hour = 0
+    config.save(update_fields=["rate_limit_per_ip_per_hour"])
 
 
 @pytest.mark.django_db
@@ -24,6 +35,7 @@ class TestNotificationQueueFailures:
         If queuing the email task raises an exception (e.g. broker down),
         the lead should still exist, and email_status should be FAILED.
         """
+        _disable_rate_limit()
         client = Client()
         data = {
             "name": "Queue Fail Test",
@@ -61,6 +73,7 @@ class TestNotificationQueueFailures:
         If queuing the webhook task raises an exception,
         the lead should still exist, and webhook_status should be FAILED.
         """
+        _disable_rate_limit()
         client = Client()
         data = {
             "name": "Webhook Queue Fail",
@@ -85,6 +98,7 @@ class TestNotificationQueueFailures:
         """
         Even if EVERYTHING fails (both tasks queueing), the lead must persist.
         """
+        _disable_rate_limit()
         client = Client()
         data = {
             "name": "Total Failure",
