@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import cast
 
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.core.validators import MinValueValidator
@@ -17,6 +18,10 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.html import strip_tags
 from sum_core.blocks import PageStreamBlock
+from sum_core.pages.cache import (
+    BLOG_CATEGORIES_CACHE_TTL_SECONDS,
+    get_blog_categories_cache_key,
+)
 from sum_core.pages.mixins import BreadcrumbMixin, OpenGraphMixin, SeoFieldsMixin
 from wagtail.admin.panels import (
     FieldPanel,
@@ -125,6 +130,7 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
             .live()
             .public()
             .select_related("category", "featured_image")
+            .prefetch_related("featured_image__renditions")
             .filter(published_date__lte=timezone.now())
             .order_by("-published_date")
         )
@@ -191,19 +197,29 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         paginated_posts = paginator.get_page(page_num)
 
         context["posts"] = paginated_posts
-        # Counts are for public posts only; restricted posts are excluded.
-        context["categories"] = Category.objects.annotate(
-            post_count=Count(
-                "blog_posts",
-                filter=Q(
-                    blog_posts__path__startswith=self.path,
-                    blog_posts__depth=self.depth + 1,
-                    blog_posts__live=True,
-                    blog_posts__published_date__lte=timezone.now(),
-                    blog_posts__view_restrictions__isnull=True,
-                ),
+        categories = cache.get(get_blog_categories_cache_key(self))
+        if categories is None:
+            # Counts are for public posts only; restricted posts are excluded.
+            categories = list(
+                Category.objects.annotate(
+                    post_count=Count(
+                        "blog_posts",
+                        filter=Q(
+                            blog_posts__path__startswith=self.path,
+                            blog_posts__depth=self.depth + 1,
+                            blog_posts__live=True,
+                            blog_posts__published_date__lte=timezone.now(),
+                            blog_posts__view_restrictions__isnull=True,
+                        ),
+                    )
+                )
             )
-        )
+            cache.set(
+                get_blog_categories_cache_key(self),
+                categories,
+                timeout=BLOG_CATEGORIES_CACHE_TTL_SECONDS,
+            )
+        context["categories"] = categories
         context["selected_category"] = selected_category
         return context
 

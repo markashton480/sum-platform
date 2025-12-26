@@ -256,6 +256,33 @@ def test_get_context_categories_include_post_counts(
     assert counts["dogs"] == 1
 
 
+def test_category_cache_refreshes_after_new_post(
+    homepage: HomePage,
+    wagtail_default_site: Site,
+) -> None:
+    blog_index = _create_blog_index(homepage)
+    category = Category.objects.create(name="Cats", slug="cats")
+
+    base_time = timezone.now()
+    _create_post(blog_index, "Cats 1", "cats-1", base_time, category)
+
+    request = RequestFactory().get(
+        "/blog/",
+        HTTP_HOST=wagtail_default_site.hostname or "testserver",
+    )
+    context = blog_index.get_context(request)
+    counts = {cat.slug: cat.post_count for cat in context["categories"]}
+
+    assert counts["cats"] == 1
+
+    _create_post(blog_index, "Cats 2", "cats-2", base_time, category)
+
+    context = blog_index.get_context(request)
+    counts = {cat.slug: cat.post_count for cat in context["categories"]}
+
+    assert counts["cats"] == 2
+
+
 def test_posts_per_page_requires_positive_value() -> None:
     blog_index = BlogIndexPage(title="Blog", slug="blog", posts_per_page=0)
 

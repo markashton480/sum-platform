@@ -11,17 +11,21 @@ from __future__ import annotations
 import logging
 
 from django.contrib import messages
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.validators import EmailValidator
 from django.db import IntegrityError, models, transaction
-from django.shortcuts import get_object_or_404, redirect
+from django.db.models import Count, IntegerField, OuterRef, Subquery, Value
+from django.db.models.functions import Coalesce
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path, reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from sum_core.forms.fields import FormFieldsStreamBlock
 from wagtail.admin.panels import FieldPanel, MultiFieldPanel
+from wagtail.admin.ui.tables import Column
 from wagtail.fields import StreamField
-from wagtail.models import Site
+from wagtail.models import Page, ReferenceIndex, Site
 from wagtail.snippets.models import register_snippet
 from wagtail.snippets.views.chooser import (
     ChooseResultsView,
@@ -323,6 +327,58 @@ class FormDefinition(models.Model):
 
         super().clean()
 
+    def get_usage_pages(self) -> list:
+        """Return pages that reference this form definition."""
+        page_content_type_id = ContentType.objects.get_for_model(
+            Page, for_concrete_model=False
+        ).id
+        form_content_type_id = ContentType.objects.get_for_model(
+            FormDefinition, for_concrete_model=False
+        ).id
+        page_ids = (
+            ReferenceIndex.objects.filter(
+                to_content_type_id=form_content_type_id,
+                to_object_id=self.pk,
+                base_content_type_id=page_content_type_id,
+            )
+            .values_list("object_id", flat=True)
+            .distinct()
+        )
+        return list(Page.objects.filter(pk__in=page_ids).specific())
+
+    @property
+    def usage_count(self) -> int:
+        """Number of pages using this form."""
+        cached = getattr(self, "_usage_count", None)
+        if cached is not None:
+            return int(cached)
+        page_content_type_id = ContentType.objects.get_for_model(
+            Page, for_concrete_model=False
+        ).id
+        form_content_type_id = ContentType.objects.get_for_model(
+            FormDefinition, for_concrete_model=False
+        ).id
+        return int(
+            ReferenceIndex.objects.filter(
+                to_content_type_id=form_content_type_id,
+                to_object_id=self.pk,
+                base_content_type_id=page_content_type_id,
+            )
+            .values("object_id")
+            .distinct()
+            .count()
+        )
+
+    @property
+    def submission_count(self) -> int:
+        """Number of submissions for this form."""
+        from sum_core.leads.models import Lead
+
+        cached = getattr(self, "_submission_count", None)
+        if cached is not None:
+            return int(cached)
+        return int(Lead.objects.filter(form_type=self.slug).count())
+
 
 class ActiveFormDefinitionChooseView(ChooseView):
     """Limit chooser options to active forms on the current site."""
@@ -367,18 +423,101 @@ class FormDefinitionViewSet(SnippetViewSet):
     model = FormDefinition
     icon = "form"
     menu_label = "Form Definitions"
-    list_display = ["name", "slug", "is_active", "created_at"]
-    list_filter = ["is_active", "site"]
+    list_display = [
+        "name",
+        "slug",
+        "is_active",
+        Column("submission_count", label="Submissions"),
+        Column("usage_count", label="Usage"),
+        "created_at",
+    ]
+    list_filter = ["is_active", "site", "created_at"]
     search_fields = ["name", "slug"]
     panels = FormDefinition.panels
     chooser_viewset_class = ActiveFormDefinitionChooserViewSet
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        if queryset is None:
+            queryset = self.model.objects.all()
+
+        from sum_core.leads.models import Lead
+
+        form_content_type_id = ContentType.objects.get_for_model(
+            self.model, for_concrete_model=False
+        ).id
+        page_content_type_id = ContentType.objects.get_for_model(
+            Page, for_concrete_model=False
+        ).id
+
+        submission_counts = (
+            Lead.objects.filter(form_type=OuterRef("slug"))
+            .values("form_type")
+            .annotate(count=Count("pk"))
+            .values("count")
+        )
+        usage_counts = (
+            ReferenceIndex.objects.filter(
+                to_content_type_id=form_content_type_id,
+                to_object_id=OuterRef("pk"),
+                base_content_type_id=page_content_type_id,
+            )
+            .values("to_object_id")
+            .annotate(count=Count("object_id", distinct=True))
+            .values("count")
+        )
+
+        return queryset.annotate(
+            _submission_count=Coalesce(
+                Subquery(submission_counts, output_field=IntegerField()),
+                Value(0),
+            ),
+            _usage_count=Coalesce(
+                Subquery(usage_counts, output_field=IntegerField()),
+                Value(0),
+            ),
+        )
 
     def get_urlpatterns(self):
         urlpatterns = super().get_urlpatterns()
         return [
             *urlpatterns,
             path("clone/<int:pk>/", self.clone_view, name="clone"),
+            path("preview/<int:pk>/", self.preview_view, name="preview"),
+            path("usage-report/<int:pk>/", self.usage_report_view, name="usage_report"),
         ]
+
+    def preview_view(self, request, pk):
+        if not self.permission_policy.user_has_permission(request.user, "change"):
+            raise PermissionDenied
+
+        form_def = get_object_or_404(self.model, pk=pk)
+        edit_url = reverse(self.get_url_name("edit"), args=[form_def.pk])
+        return render(
+            request,
+            "sum_core/admin/form_preview.html",
+            {
+                "form_definition": form_def,
+                "edit_url": edit_url,
+            },
+        )
+
+    def usage_report_view(self, request, pk):
+        if not self.permission_policy.user_has_permission(request.user, "change"):
+            raise PermissionDenied
+
+        form_def = get_object_or_404(self.model, pk=pk)
+        edit_url = reverse(self.get_url_name("edit"), args=[form_def.pk])
+        usage_pages = form_def.get_usage_pages()
+        return render(
+            request,
+            "sum_core/admin/form_usage.html",
+            {
+                "form_definition": form_def,
+                "edit_url": edit_url,
+                "usage_pages": usage_pages,
+            },
+        )
 
     @method_decorator(require_POST)
     def clone_view(self, request, pk):

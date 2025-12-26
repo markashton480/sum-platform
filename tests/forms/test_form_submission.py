@@ -16,8 +16,10 @@ from django.core.cache import cache
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
+from sum_core.forms.cache import get_form_definition_cache_version
 from sum_core.forms.models import FormConfiguration, FormDefinition
 from sum_core.forms.services import generate_time_token, get_rate_limit_cache_key
+from sum_core.forms.views import FormSubmissionView
 from sum_core.leads.models import Lead
 
 
@@ -119,6 +121,33 @@ def make_dynamic_submission_data(form_definition, time_token: str = "") -> dict:
         "_time_token": time_token,
         "website": "",
     }
+
+
+@pytest.mark.django_db
+def test_form_definition_cache_invalidates_on_update(wagtail_site):
+    form_definition = create_dynamic_form_definition(wagtail_site)
+    view = FormSubmissionView()
+
+    cached = view._get_form_definition(str(form_definition.pk), wagtail_site)
+    version_before = get_form_definition_cache_version(
+        wagtail_site.pk, form_definition.pk
+    )
+
+    assert cached is not None
+    assert version_before is not None
+
+    form_definition.name = "Updated"
+    form_definition.save(update_fields=["name"])
+
+    version_after = get_form_definition_cache_version(
+        wagtail_site.pk, form_definition.pk
+    )
+    refreshed = view._get_form_definition(str(form_definition.pk), wagtail_site)
+
+    assert version_after is not None
+    assert version_before != version_after
+    assert refreshed is not None
+    assert refreshed.name == "Updated"
 
 
 @pytest.mark.django_db
