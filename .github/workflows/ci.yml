@@ -221,3 +221,19 @@ jobs:
 
       - name: Verify source integrity
         run: make verify-source-intact
+
+  # ---------------------------------------------------------------------------
+  # LINT-AND-TEST: Aggregate check for branch protection
+  # ---------------------------------------------------------------------------
+  lint-and-test:
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - test-templates
+      - test-full
+      - test-cli
+      - test-themes
+
+    steps:
+      - name: Confirm required checks passed
+        run: echo "Lint and tests passed."
