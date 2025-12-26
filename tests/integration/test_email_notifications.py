@@ -134,7 +134,25 @@ class TestAdminNotificationEmails:
     )
     def test_notification_to_multiple_recipients(self, site):
         """Test sending notifications to multiple email addresses."""
-        # Note: This test requires form_definition ForeignKey on Lead model (not yet implemented)
+        # Create form with multiple notification recipients
+        form = FormDefinition.objects.create(
+            name="Multi Admin Form",
+            slug="multi-admin",
+            site=site,
+            fields=[
+                ("text_input", {"label": "Name", "required": True}),
+                ("email_input", {"label": "Email", "required": True}),
+            ],
+            success_message="Thanks!",
+            notification_emails_enabled=True,
+            notification_emails=[
+                "admin1@example.com",
+                "admin2@example.com",
+                "admin3@example.com",
+            ],
+            is_active=True,
+        )
+
         lead = Lead.objects.create(
             name="Multi Test",
             email="multi@example.com",
@@ -142,7 +160,7 @@ class TestAdminNotificationEmails:
             form_type="multi-admin",
             form_data={
                 "Email": "multi@example.com",
-                "form_definition_slug": "multi-admin",
+                "form_definition_slug": form.slug,
             },
         )
 
@@ -163,7 +181,21 @@ class TestAdminNotificationEmails:
     )
     def test_notification_skipped_when_disabled(self, site):
         """Test that notifications are not sent when disabled."""
-        # Note: This test requires form_definition ForeignKey on Lead model (not yet implemented)
+        # Create form with notifications disabled
+        form = FormDefinition.objects.create(
+            name="No Notification Form",
+            slug="no-notification",
+            site=site,
+            fields=[
+                ("text_input", {"label": "Name", "required": True}),
+                ("email_input", {"label": "Email", "required": True}),
+            ],
+            success_message="Thanks!",
+            notification_emails_enabled=False,  # Notifications disabled
+            notification_emails=[],
+            is_active=True,
+        )
+
         lead = Lead.objects.create(
             name="Test User",
             email="test@example.com",
@@ -171,7 +203,7 @@ class TestAdminNotificationEmails:
             form_type="no-notification",
             form_data={
                 "Email": "test@example.com",
-                "form_definition_slug": "no-notification",
+                "form_definition_slug": form.slug,
             },
         )
 
@@ -351,7 +383,22 @@ class TestAutoReplyEmails:
     )
     def test_auto_reply_prevents_header_injection(self, site):
         """Test that auto-reply strips newlines to prevent header injection."""
-        # Note: This test requires form_definition ForeignKey on Lead model (not yet implemented)
+        # Create form with auto-reply enabled
+        form = FormDefinition.objects.create(
+            name="Injection Test Form",
+            slug="injection-test",
+            site=site,
+            fields=[
+                ("text_input", {"label": "Name", "required": True}),
+                ("email_input", {"label": "Email", "required": True}),
+            ],
+            success_message="Thanks!",
+            auto_reply_enabled=True,
+            auto_reply_subject="Thanks for your message!",
+            auto_reply_message="Hi {{name}}, we received your message.",
+            is_active=True,
+        )
+
         # Create lead with newlines in name (potential header injection)
         lead = Lead.objects.create(
             name="Attacker\nBcc: evil@example.com",
@@ -361,21 +408,22 @@ class TestAutoReplyEmails:
             form_data={
                 "Name": "Attacker\nBcc: evil@example.com",
                 "Email": "victim@example.com",
-                "form_definition_slug": "injection-test",
+                "form_definition_slug": form.slug,
             },
         )
 
         mail.outbox = []
         send_auto_reply(lead.id)
 
+        # Verify email was sent and only to the intended recipient
+        assert len(mail.outbox) == 1
         email = mail.outbox[0]
 
-        # Verify newlines were stripped
-        assert (
-            "Bcc:" not in email.body
-            or "\n" not in email.body.split("Hi ")[1].split("!")[0]
-        )
+        # Verify no additional headers were injected via Bcc
         assert email.to == ["victim@example.com"]
+        # Verify there are no extra recipients
+        assert not email.cc
+        assert not email.bcc
 
     @override_settings(
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
@@ -383,7 +431,22 @@ class TestAutoReplyEmails:
     )
     def test_auto_reply_xss_prevention(self, site):
         """Test that auto-reply renders as plain text to prevent XSS."""
-        # Note: This test requires form_definition ForeignKey on Lead model (not yet implemented)
+        # Create form with auto-reply enabled
+        form = FormDefinition.objects.create(
+            name="XSS Test Form",
+            slug="xss-test",
+            site=site,
+            fields=[
+                ("text_input", {"label": "Name", "required": True}),
+                ("email_input", {"label": "Email", "required": True}),
+            ],
+            success_message="Thanks!",
+            auto_reply_enabled=True,
+            auto_reply_subject="Thanks for your message!",
+            auto_reply_message="Hi {{name}}, we received your message.",
+            is_active=True,
+        )
+
         # Create lead with potential XSS payload
         lead = Lead.objects.create(
             name="<script>alert('XSS')</script>",
@@ -393,13 +456,15 @@ class TestAutoReplyEmails:
             form_data={
                 "Name": "<script>alert('XSS')</script>",
                 "Email": "test@example.com",
-                "form_definition_slug": "xss-test",
+                "form_definition_slug": form.slug,
             },
         )
 
         mail.outbox = []
         send_auto_reply(lead.id)
 
+        # Verify email was sent
+        assert len(mail.outbox) == 1
         email = mail.outbox[0]
 
         # In plain text email, HTML should appear literally (not executed)

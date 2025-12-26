@@ -97,9 +97,9 @@ class TestBlogIndexPageTemplateRendering:
         response = client.get(blog_index.get_url())
         content = response.content.decode()
 
-        # Check for reading time indicators (common patterns: "min read", "minute")
+        # Check for reading time display - template uses "X min read" format
         # At least one post should have reading time displayed
-        assert "min" in content.lower() or "minute" in content.lower()
+        assert "min read" in content.lower()
 
     def test_blog_index_displays_excerpts(self, client, blog_index, blog_posts):
         """Test that post excerpts are displayed on cards."""
@@ -141,8 +141,10 @@ class TestBlogIndexPageTemplateRendering:
         response = client.get(blog_index.get_url())
         content = response.content.decode()
 
-        # Check for pagination indicators
-        assert "page" in content.lower() or "next" in content.lower()
+        # Check for pagination nav element with aria-label="Pagination"
+        # and pagination links with ?page= query parameter
+        assert 'aria-label="Pagination"' in content
+        assert "?page=" in content
 
     def test_blog_index_category_filtering_works(
         self, client, blog_index, blog_posts, category
@@ -241,8 +243,8 @@ class TestBlogPostPageTemplateRendering:
         """Test that reading time is displayed."""
         response = client.get(blog_post.get_url())
         content = response.content.decode()
-        # Reading time should be displayed
-        assert "min" in content.lower() or "minute" in content.lower()
+        # Reading time should be displayed - template uses "X min read" format
+        assert "min read" in content.lower()
 
     def test_blog_post_displays_author_name(self, client, blog_post):
         """Test that author name is displayed when present."""

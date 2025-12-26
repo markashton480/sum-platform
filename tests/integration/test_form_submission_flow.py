@@ -5,6 +5,8 @@ Tests the complete user journey from page load through form fill
 to submission and Lead creation, including all side effects.
 """
 
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from sum_core.forms.models import FormDefinition
@@ -493,9 +495,6 @@ class TestNoLostLeadsInvariant:
 
     def test_lead_saved_even_if_emails_fail(self, client, form_setup, settings):
         """Test that Lead is saved even if email notifications fail."""
-        # Configure email to fail
-        settings.EMAIL_BACKEND = "django.core.mail.backends.dummy.EmailBackend"
-
         page = form_setup["page"]
         client.get(page.get_url())
 
@@ -508,12 +507,19 @@ class TestNoLostLeadsInvariant:
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
         }
 
-        submission_response = client.post("/forms/submit/", data=form_data)
-        assert submission_response.status_code == 200
+        # Mock email sending to raise an exception
+        with patch(
+            "django.core.mail.EmailMessage.send",
+            side_effect=Exception("SMTP connection failed"),
+        ):
+            submission_response = client.post("/forms/submit/", data=form_data)
+            # Form submission should still succeed (Lead saved before email attempt)
+            assert submission_response.status_code == 200
 
         # Verify Lead was created despite email failure
         lead = Lead.objects.get(email="nolost@example.com")
         assert lead.name == "No Lost Lead"
+        # The lead is persisted before any email sending is attempted
 
     def test_validation_errors_do_not_create_lead(self, client, form_setup):
         """Test that invalid submissions don't create partial Leads."""

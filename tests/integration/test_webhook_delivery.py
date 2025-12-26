@@ -167,13 +167,30 @@ class TestWebhookDelivery:
     @responses.activate
     def test_webhook_skipped_when_disabled(self, site):
         """Test that webhook is not fired when disabled."""
-        # Note: This test requires form_definition ForeignKey on Lead model (not yet implemented)
+        # Create form with webhook disabled
+        form = FormDefinition.objects.create(
+            name="No Webhook Form",
+            slug="no-webhook",
+            site=site,
+            fields=[
+                ("text_input", {"label": "Name", "required": True}),
+                ("email_input", {"label": "Email", "required": True}),
+            ],
+            success_message="Thanks!",
+            webhook_enabled=False,  # Webhook disabled
+            webhook_url="",
+            is_active=True,
+        )
+
         lead = Lead.objects.create(
             name="Test User",
             email="test@example.com",
             message="Test webhook message",
             form_type="no-webhook",
-            form_data={"Email": "test@example.com"},
+            form_data={
+                "Email": "test@example.com",
+                "form_definition_slug": form.slug,
+            },
         )
 
         # Fire webhook (should be skipped)
@@ -185,13 +202,30 @@ class TestWebhookDelivery:
     @responses.activate
     def test_webhook_skipped_without_url(self, site):
         """Test that webhook is skipped if no URL is configured."""
-        # Note: This test requires form_definition ForeignKey on Lead model (not yet implemented)
+        # Create form with webhook enabled but no URL
+        form = FormDefinition.objects.create(
+            name="No URL Form",
+            slug="no-url",
+            site=site,
+            fields=[
+                ("text_input", {"label": "Name", "required": True}),
+                ("email_input", {"label": "Email", "required": True}),
+            ],
+            success_message="Thanks!",
+            webhook_enabled=True,  # Enabled but no URL
+            webhook_url="",
+            is_active=True,
+        )
+
         lead = Lead.objects.create(
             name="Test User",
             email="test@example.com",
             message="Test webhook message",
             form_type="no-url",
-            form_data={"Email": "test@example.com"},
+            form_data={
+                "Email": "test@example.com",
+                "form_definition_slug": form.slug,
+            },
         )
 
         fire_webhook(lead.id)
@@ -248,14 +282,32 @@ class TestWebhookDelivery:
             "http://172.16.0.1/webhook",
         ]
 
-        for url in private_urls:
-            # Note: This test requires form_definition ForeignKey on Lead model (not yet implemented)
+        for i, url in enumerate(private_urls):
+            # Create form with private URL
+            slug = f"private-test-{i}"
+            FormDefinition.objects.create(
+                name=f"Private URL Test {i}",
+                slug=slug,
+                site=site,
+                fields=[
+                    ("text_input", {"label": "Name", "required": True}),
+                    ("email_input", {"label": "Email", "required": True}),
+                ],
+                success_message="Thanks!",
+                webhook_enabled=True,
+                webhook_url=url,  # Private URL that should be blocked
+                is_active=True,
+            )
+
             lead = Lead.objects.create(
                 name="Test User",
-                email="test@example.com",
+                email=f"test{i}@example.com",
                 message="Test SSRF protection",
-                form_type=f"private-{url.replace('/', '-').replace(':', '-')}",
-                form_data={"Email": "test@example.com"},
+                form_type=slug,
+                form_data={
+                    "Email": f"test{i}@example.com",
+                    "form_definition_slug": slug,
+                },
             )
 
             # Webhook should be blocked
@@ -454,12 +506,25 @@ class TestWebhookIntegrationScenarios:
             },
         )
 
-        # Fire webhook twice (simulating retry)
+        # Verify webhook_sent_at is initially not set
+        assert lead.webhook_sent_at is None
+
+        # Fire webhook first time
         fire_webhook(lead.id)
         initial_count = len(responses.calls)
 
+        # Refresh from database and verify webhook_sent_at was set
+        lead.refresh_from_db()
+        assert lead.webhook_sent_at is not None
+        first_sent_at = lead.webhook_sent_at
+
+        # Fire webhook second time (simulating retry)
         fire_webhook(lead.id)
         retry_count = len(responses.calls)
+
+        # Refresh and verify webhook_sent_at didn't change
+        lead.refresh_from_db()
+        assert lead.webhook_sent_at == first_sent_at
 
         # Second call should not fire duplicate webhook
         assert initial_count == retry_count == 1
@@ -520,14 +585,32 @@ class TestWebhookSecurityEdgeCases:
             "http://metadata.google.internal/",  # GCP
         ]
 
-        for url in metadata_urls:
-            # Note: This test requires form_definition ForeignKey on Lead model (not yet implemented)
+        for i, url in enumerate(metadata_urls):
+            # Create form with metadata URL
+            slug = f"metadata-test-{i}"
+            FormDefinition.objects.create(
+                name=f"Metadata URL Test {i}",
+                slug=slug,
+                site=site,
+                fields=[
+                    ("text_input", {"label": "Name", "required": True}),
+                    ("email_input", {"label": "Email", "required": True}),
+                ],
+                success_message="Thanks!",
+                webhook_enabled=True,
+                webhook_url=url,  # Metadata URL that should be blocked
+                is_active=True,
+            )
+
             lead = Lead.objects.create(
                 name="Test User",
-                email="test@example.com",
+                email=f"metadata{i}@example.com",
                 message="Testing SSRF to metadata endpoint",
-                form_type=f"ssrf-{url.replace('/', '-')}",
-                form_data={"Email": "test@example.com"},
+                form_type=slug,
+                form_data={
+                    "Email": f"metadata{i}@example.com",
+                    "form_definition_slug": slug,
+                },
             )
 
             # Should block metadata endpoint access
