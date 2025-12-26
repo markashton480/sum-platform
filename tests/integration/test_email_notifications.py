@@ -429,6 +429,64 @@ class TestAutoReplyEmails:
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         CELERY_TASK_ALWAYS_EAGER=True,
     )
+    def test_auto_reply_prevents_crlf_header_injection(self, site):
+        """Test that auto-reply handles CRLF injection attempts.
+
+        Email headers use CRLF (\\r\\n) as separators. Attackers may try to
+        inject additional headers using CRLF sequences in form fields.
+        """
+        # Create form with auto-reply enabled
+        form = FormDefinition.objects.create(
+            name="CRLF Injection Test Form",
+            slug="crlf-injection-test",
+            site=site,
+            fields=[
+                ("text_input", {"label": "Name", "required": True}),
+                ("email_input", {"label": "Email", "required": True}),
+            ],
+            success_message="Thanks!",
+            auto_reply_enabled=True,
+            auto_reply_subject="Thanks for your message!",
+            auto_reply_message="Hi {{name}}, we received your message.",
+            is_active=True,
+        )
+
+        # CRLF injection payloads
+        crlf_payloads = [
+            "Attacker\r\nBcc: evil@example.com",
+            "Attacker\r\nCc: evil@example.com",
+            "Attacker\r\nSubject: Phishing",
+            "Attacker\r\n\r\nMalicious body content",
+        ]
+
+        for i, payload in enumerate(crlf_payloads):
+            lead = Lead.objects.create(
+                name=payload,
+                email=f"victim{i}@example.com",
+                message="CRLF injection test",
+                form_type="crlf-injection-test",
+                form_data={
+                    "Name": payload,
+                    "Email": f"victim{i}@example.com",
+                    "form_definition_slug": form.slug,
+                },
+            )
+
+            mail.outbox = []
+            send_auto_reply(lead.id)
+
+            assert len(mail.outbox) == 1
+            email = mail.outbox[0]
+
+            # Verify only the intended recipient receives the email
+            assert email.to == [f"victim{i}@example.com"]
+            assert not email.cc
+            assert not email.bcc
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        CELERY_TASK_ALWAYS_EAGER=True,
+    )
     def test_auto_reply_xss_prevention(self, site):
         """Test that auto-reply renders as plain text to prevent XSS."""
         # Create form with auto-reply enabled
@@ -471,6 +529,68 @@ class TestAutoReplyEmails:
         assert "<script>" in email.body  # Should be visible as text
         # Content type should be plain text
         assert email.content_subtype == "plain"
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+        CELERY_TASK_ALWAYS_EAGER=True,
+    )
+    def test_auto_reply_xss_prevention_comprehensive(self, site):
+        """Test XSS prevention with multiple attack vectors.
+
+        Tests additional XSS vectors beyond basic script tags:
+        - Event handlers (onerror, onclick)
+        - Data URIs (javascript:)
+        - HTML entities
+        """
+        # Create form with auto-reply enabled
+        form = FormDefinition.objects.create(
+            name="XSS Comprehensive Form",
+            slug="xss-comprehensive",
+            site=site,
+            fields=[
+                ("text_input", {"label": "Name", "required": True}),
+                ("email_input", {"label": "Email", "required": True}),
+            ],
+            success_message="Thanks!",
+            auto_reply_enabled=True,
+            auto_reply_subject="Thanks for your message!",
+            auto_reply_message="Hi {{name}}, we received your message.",
+            is_active=True,
+        )
+
+        xss_payloads = [
+            # Event handler attack
+            '<img src=x onerror="alert(1)">',
+            # Data URI attack
+            '<a href="javascript:alert(1)">Click</a>',
+            # HTML entity encoded script
+            "&lt;script&gt;alert(1)&lt;/script&gt;",
+            # SVG-based XSS
+            '<svg onload="alert(1)">',
+        ]
+
+        for i, payload in enumerate(xss_payloads):
+            lead = Lead.objects.create(
+                name=payload,
+                email=f"xss-test-{i}@example.com",
+                message="XSS comprehensive test",
+                form_type="xss-comprehensive",
+                form_data={
+                    "Name": payload,
+                    "Email": f"xss-test-{i}@example.com",
+                    "form_definition_slug": form.slug,
+                },
+            )
+
+            mail.outbox = []
+            send_auto_reply(lead.id)
+
+            assert len(mail.outbox) == 1
+            email = mail.outbox[0]
+
+            # All payloads should appear literally in plain text email
+            # (not executed or stripped)
+            assert email.content_subtype == "plain"
 
 
 @pytest.mark.django_db

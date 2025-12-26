@@ -541,3 +541,163 @@ class TestNoLostLeadsInvariant:
 
         # Verify no Lead was created
         assert Lead.objects.filter(email="invalid").count() == 0
+
+    def test_lead_persisted_even_if_celery_task_fails(self, client, form_setup):
+        """Test that Lead is persisted even if Celery task queuing fails.
+
+        This tests the "No Lost Leads" invariant: the Lead must be saved to the
+        database BEFORE any async tasks (email, webhook) are queued. If Celery
+        is unavailable or the task fails to queue, the Lead should still exist.
+        """
+        page = form_setup["page"]
+        client.get(page.get_url())
+
+        form_data = {
+            "form_definition_slug": "critical",
+            "Name": "Celery Failure Test",
+            "Email": "celery-fail@example.com",
+            "page_url": page.get_url(),
+            "landing_page_url": page.get_url(),
+            "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
+        }
+
+        # Mock Celery's delay() to raise an exception (simulating broker unavailable)
+        with patch(
+            "sum_core.forms.tasks.send_form_notification.delay",
+            side_effect=Exception("Celery broker unavailable"),
+        ):
+            with patch(
+                "sum_core.forms.tasks.send_auto_reply.delay",
+                side_effect=Exception("Celery broker unavailable"),
+            ):
+                # Form submission should still succeed
+                submission_response = client.post("/forms/submit/", data=form_data)
+                assert submission_response.status_code == 200
+
+        # Verify Lead was created despite Celery failure
+        lead = Lead.objects.get(email="celery-fail@example.com")
+        assert lead.name == "Celery Failure Test"
+        # Lead exists - "No Lost Leads" invariant holds
+
+
+@pytest.mark.django_db
+class TestSecurityEdgeCases:
+    """Test security edge cases for form submissions.
+
+    These tests verify that malicious input is handled safely without
+    causing SQL injection, path traversal, or other security issues.
+    """
+
+    @pytest.fixture
+    def security_form_setup(self, db):
+        """Create form for security testing."""
+        site = Site.objects.get(is_default_site=True)
+        home = site.root_page
+
+        form = FormDefinition.objects.create(
+            name="Security Test Form",
+            slug="security-test",
+            site=site,
+            fields=[
+                ("text_input", {"label": "Name", "required": True}),
+                ("email_input", {"label": "Email", "required": True}),
+                ("textarea", {"label": "Message", "required": False, "rows": 5}),
+            ],
+            success_message="Saved!",
+            is_active=True,
+        )
+
+        page = StandardPage(
+            title="Security Test Page",
+            slug="security-test-page",
+            body=[
+                (
+                    "dynamic_form",
+                    {
+                        "form_definition": form,
+                        "presentation_style": "inline",
+                    },
+                ),
+            ],
+        )
+        home.add_child(instance=page)
+        page.save_revision().publish()
+
+        return {"form": form, "page": page}
+
+    def test_sql_injection_in_form_fields(self, client, security_form_setup):
+        """Test that SQL injection attempts are safely handled.
+
+        Form data should be parameterized/escaped, never concatenated into SQL.
+        """
+        page = security_form_setup["page"]
+        client.get(page.get_url())
+
+        sql_injection_payloads = [
+            "'; DROP TABLE leads;--",
+            "1' OR '1'='1",
+            "1; DELETE FROM leads WHERE 1=1;--",
+            "Robert'); DROP TABLE leads;--",  # Bobby Tables
+        ]
+
+        for payload in sql_injection_payloads:
+            form_data = {
+                "form_definition_slug": "security-test",
+                "Name": payload,
+                "Email": "sqli-test@example.com",
+                "Message": payload,
+                "page_url": page.get_url(),
+                "landing_page_url": page.get_url(),
+                "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
+            }
+
+            # Should succeed without SQL injection executing
+            response = client.post("/forms/submit/", data=form_data)
+            assert response.status_code == 200
+
+            # Lead should be created with literal SQL payload as data
+            lead = Lead.objects.filter(email="sqli-test@example.com").last()
+            assert lead is not None
+            assert payload in lead.name or payload in lead.message
+
+            # Clean up for next iteration
+            lead.delete()
+
+    def test_path_traversal_in_form_fields(self, client, security_form_setup):
+        """Test that path traversal attempts are safely handled.
+
+        File paths in form data should not be used to access filesystem.
+        """
+        page = security_form_setup["page"]
+        client.get(page.get_url())
+
+        path_traversal_payloads = [
+            "../../etc/passwd",
+            "../../../etc/shadow",
+            "..\\..\\windows\\system32\\config\\sam",
+            "/etc/passwd",
+            "file:///etc/passwd",
+        ]
+
+        for payload in path_traversal_payloads:
+            form_data = {
+                "form_definition_slug": "security-test",
+                "Name": payload,
+                "Email": "path-test@example.com",
+                "Message": payload,
+                "page_url": page.get_url(),
+                "landing_page_url": page.get_url(),
+                "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,
+            }
+
+            # Should succeed - path traversal should be stored as literal string
+            response = client.post("/forms/submit/", data=form_data)
+            assert response.status_code == 200
+
+            # Lead should be created with literal path as data (no file access)
+            lead = Lead.objects.filter(email="path-test@example.com").last()
+            assert lead is not None
+            assert payload in lead.name or payload in lead.message
+
+            # Clean up for next iteration
+            lead.delete()

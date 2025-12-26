@@ -146,7 +146,25 @@ class TestStaticFormCompatibility:
 
 @pytest.mark.django_db
 class TestLeadModelBackwardsCompatibility:
-    """Test that Lead model works with both static and dynamic forms."""
+    """Test that Lead model works with both static and dynamic forms.
+
+    form_data Structure Documentation:
+    ---------------------------------
+    Static Forms (contact, quote, etc.):
+        - form_type: identifies the static form type (e.g., "contact", "quote")
+        - form_data: empty dict {} or may contain raw form field data
+        - No form_definition_slug since static forms aren't in FormDefinition table
+
+    Dynamic Forms:
+        - form_type: typically "dynamic" or matches the FormDefinition slug
+        - form_data: contains {"form_definition_slug": "<slug>"} plus all form fields
+        - The form_definition_slug links to FormDefinition.slug for form lookup
+
+    This distinction exists because:
+    1. Static forms are hardcoded in templates (contact_form, quote_request_form blocks)
+    2. Dynamic forms are defined in FormDefinition model and rendered via DynamicFormBlock
+    3. Backwards compatibility requires supporting both patterns
+    """
 
     @pytest.fixture
     def site(self):
@@ -154,7 +172,10 @@ class TestLeadModelBackwardsCompatibility:
         return Site.objects.get(is_default_site=True)
 
     def test_lead_from_static_forms_works(self):
-        """Test that Leads can be created from static forms (legacy behavior)."""
+        """Test that Leads can be created from static forms (legacy behavior).
+
+        Static forms use form_type to identify the form and may have empty form_data.
+        """
         # Create lead from static form (using form_type to identify form)
         lead = Lead.objects.create(
             name="Legacy User",
@@ -166,9 +187,14 @@ class TestLeadModelBackwardsCompatibility:
 
         assert lead.id is not None
         assert lead.form_type == "contact"
+        # Static forms don't have form_definition_slug - form_data may be empty
+        assert "form_definition_slug" not in lead.form_data
 
     def test_lead_from_dynamic_forms_works(self, site):
-        """Test that Leads can store dynamic form information in form_data."""
+        """Test that Leads can store dynamic form information in form_data.
+
+        Dynamic forms store form_definition_slug in form_data to link to FormDefinition.
+        """
         # Create lead from dynamic form (uses form_data to store form slug)
         lead = Lead.objects.create(
             name="Modern User",
@@ -180,6 +206,8 @@ class TestLeadModelBackwardsCompatibility:
 
         assert lead.id is not None
         assert lead.form_type == "dynamic"
+        # Dynamic forms MUST have form_definition_slug in form_data
+        assert "form_definition_slug" in lead.form_data
         assert lead.form_data["form_definition_slug"] == "dynamic-compat"
 
     def test_lead_admin_works_with_both_types(self, site):

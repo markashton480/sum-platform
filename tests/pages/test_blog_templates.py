@@ -9,6 +9,21 @@ import pytest
 from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
 from wagtail.models import Site
 
+# Test constants
+# ---------------
+# Number of word repetitions to generate content for reading time calculation.
+# Reading time is calculated at ~200 WPM, so 50 words = ~15 seconds (rounds to 1 min).
+WORDS_FOR_READING_TIME = 50
+
+# Default posts per page for blog index pagination testing.
+DEFAULT_POSTS_PER_PAGE = 10
+
+# Small posts_per_page to trigger pagination with fewer posts.
+POSTS_PER_PAGE_FOR_PAGINATION = 3
+
+# Medium posts_per_page for component testing.
+POSTS_PER_PAGE_FOR_COMPONENTS = 5
+
 
 @pytest.mark.django_db
 class TestBlogIndexPageTemplateRendering:
@@ -26,7 +41,7 @@ class TestBlogIndexPageTemplateRendering:
         blog_index = BlogIndexPage(
             title="Blog",
             slug="blog",
-            posts_per_page=10,
+            posts_per_page=DEFAULT_POSTS_PER_PAGE,
         )
         home.add_child(instance=blog_index)
         blog_index.save_revision().publish()
@@ -49,7 +64,12 @@ class TestBlogIndexPageTemplateRendering:
                 slug=f"test-post-{i}",
                 excerpt=f"Excerpt for post {i}",
                 body=[
-                    ("rich_text", "<p>" + f"Body content for post {i} " * 50 + "</p>")
+                    (
+                        "rich_text",
+                        "<p>"
+                        + f"Body content for post {i} " * WORDS_FOR_READING_TIME
+                        + "</p>",
+                    )
                 ],
                 category=category,
             )
@@ -120,8 +140,8 @@ class TestBlogIndexPageTemplateRendering:
 
     def test_blog_index_pagination_controls_appear(self, client, blog_index):
         """Test that pagination controls appear when needed."""
-        # Create more posts than posts_per_page
-        blog_index.posts_per_page = 3
+        # Create more posts than posts_per_page to trigger pagination
+        blog_index.posts_per_page = POSTS_PER_PAGE_FOR_PAGINATION
         blog_index.save()
 
         category = Category.objects.create(
@@ -132,7 +152,9 @@ class TestBlogIndexPageTemplateRendering:
             post = BlogPostPage(
                 title=f"Pagination Post {i}",
                 slug=f"pagination-post-{i}",
-                body=[("rich_text", "<p>" + "Content " * 50 + "</p>")],
+                body=[
+                    ("rich_text", "<p>" + "Content " * WORDS_FOR_READING_TIME + "</p>")
+                ],
                 category=category,
             )
             blog_index.add_child(instance=post)
@@ -172,7 +194,9 @@ class TestBlogPostPageTemplateRendering:
     def blog_index(self, site):
         """Create a BlogIndexPage."""
         home = site.root_page
-        blog_index = BlogIndexPage(title="Blog", slug="blog", posts_per_page=10)
+        blog_index = BlogIndexPage(
+            title="Blog", slug="blog", posts_per_page=DEFAULT_POSTS_PER_PAGE
+        )
         home.add_child(instance=blog_index)
         blog_index.save_revision().publish()
         return blog_index
@@ -197,7 +221,7 @@ class TestBlogPostPageTemplateRendering:
                 (
                     "rich_text",
                     "<h2>Introduction</h2><p>"
-                    + "This is the introduction paragraph. " * 50
+                    + "This is the introduction paragraph. " * WORDS_FOR_READING_TIME
                     + "</p>",
                 ),
                 (
@@ -291,7 +315,10 @@ class TestBlogPostPageTemplateRendering:
             title="Post with Form",
             slug="post-with-form",
             body=[
-                ("rich_text", "<p>" + "Article content here. " * 50 + "</p>"),
+                (
+                    "rich_text",
+                    "<p>" + "Article content here. " * WORDS_FOR_READING_TIME + "</p>",
+                ),
                 (
                     "dynamic_form",
                     {
@@ -319,7 +346,12 @@ class TestBlogPostPageTemplateRendering:
         post = BlogPostPage(
             title="Minimal Post",
             slug="minimal-post",
-            body=[("rich_text", "<p>" + "Minimal content. " * 50 + "</p>")],
+            body=[
+                (
+                    "rich_text",
+                    "<p>" + "Minimal content. " * WORDS_FOR_READING_TIME + "</p>",
+                )
+            ],
             category=category,
             # No excerpt, no author_name, no featured_image
         )
@@ -344,7 +376,9 @@ class TestBlogComponentTemplates:
     def blog_index(self, site):
         """Create a BlogIndexPage."""
         home = site.root_page
-        blog_index = BlogIndexPage(title="Blog", slug="blog", posts_per_page=5)
+        blog_index = BlogIndexPage(
+            title="Blog", slug="blog", posts_per_page=POSTS_PER_PAGE_FOR_COMPONENTS
+        )
         home.add_child(instance=blog_index)
         blog_index.save_revision().publish()
         return blog_index
@@ -360,7 +394,7 @@ class TestBlogComponentTemplates:
             title="Card Test Post",
             slug="card-test-post",
             excerpt="Test excerpt for card",
-            body=[("rich_text", "<p>" + "Content " * 50 + "</p>")],
+            body=[("rich_text", "<p>" + "Content " * WORDS_FOR_READING_TIME + "</p>")],
             category=category,
         )
         blog_index.add_child(instance=post)
@@ -380,7 +414,9 @@ class TestBlogComponentTemplates:
             post = BlogPostPage(
                 title=f"Pagination Post {i}",
                 slug=f"pagination-post-{i}",
-                body=[("rich_text", "<p>" + "Content " * 50 + "</p>")],
+                body=[
+                    ("rich_text", "<p>" + "Content " * WORDS_FOR_READING_TIME + "</p>")
+                ],
                 category=category,
             )
             blog_index.add_child(instance=post)
@@ -404,7 +440,9 @@ class TestBlogComponentTemplates:
             post = BlogPostPage(
                 title=f"Filter Post {i}",
                 slug=f"filter-post-{i}",
-                body=[("rich_text", "<p>" + "Content " * 50 + "</p>")],
+                body=[
+                    ("rich_text", "<p>" + "Content " * WORDS_FOR_READING_TIME + "</p>")
+                ],
                 category=category,
             )
             blog_index.add_child(instance=post)
