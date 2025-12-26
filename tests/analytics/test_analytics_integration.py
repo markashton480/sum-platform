@@ -37,11 +37,10 @@ class TestAnalyticsIntegration:
 
         assert response.status_code == 200
         assert "GTM-INTEGRATION" in content
-        assert "googletagmanager.com/gtm.js" in content
-        # Head
-        assert "<!-- Google Tag Manager -->" in content
-        # Body
-        assert "<!-- Google Tag Manager (noscript) -->" in content
+        assert "sum-analytics-config" in content
+        assert "analytics_loader.js" in content
+        assert "googletagmanager.com/gtm.js" not in content
+        assert "googletagmanager.com/ns.html" not in content
 
     def test_render_home_with_ga4(self, client, wagtail_default_site):
         self.setup_page(wagtail_default_site)
@@ -52,6 +51,7 @@ class TestAnalyticsIntegration:
 
         assert response.status_code == 200
         assert "G-INTEGRATION" in content
-        assert "googletagmanager.com/gtag/js" in content
-        # Check NO body tag for GA4
-        assert "<!-- Google Tag Manager (noscript) -->" not in content
+        assert "sum-analytics-config" in content
+        assert "analytics_loader.js" in content
+        assert "googletagmanager.com/gtag/js" not in content
+        assert "googletagmanager.com/ns.html" not in content

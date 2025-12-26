@@ -37,6 +37,10 @@ def __getattr__(name: str):
         from sum_core.pages.blog import BlogPostPage
 
         return BlogPostPage
+    if name == "LegalPage":
+        from sum_core.pages.legal import LegalPage
+
+        return LegalPage
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
@@ -47,4 +51,7 @@ __all__ = [
     "Category",
     "BlogIndexPage",
     "BlogPostPage",
+    "LegalPage",
 ]
+
+default_app_config = "sum_core.pages.apps.PagesConfig"

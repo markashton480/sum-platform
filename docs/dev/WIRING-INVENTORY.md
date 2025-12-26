@@ -275,14 +275,88 @@ STATICFILES_DIRS = [THEME_STATIC_DIR]
 
 ---
 
+## Feature Area: Consent & Cookie Banner (v0.6+)
+
+### What Core Provides
+
+- **SiteSettings fields** (`sum_core.branding.models.SiteSettings`):
+
+  - `cookie_banner_enabled` (bool) - When enabled, analytics require consent
+  - `cookie_consent_version` (str) - Bump to force re-prompt (e.g., "2024-01")
+  - `privacy_policy_page`, `cookie_policy_page`, `terms_page` - Page links for banner/footer
+
+- **Cookie banner template** (`sum_core/includes/cookie_banner.html`):
+
+  - Renders only when `cookie_banner_enabled=True`
+  - DOM contract (required for JS to function):
+    - Container: `.cookie-banner` with `aria-hidden`, `aria-label`
+    - Accept button: `[data-cookie-consent="accept"]`
+    - Reject button: `[data-cookie-consent="reject"]`
+    - Status element: `.cookie-banner__status` with `aria-live="polite"`
+
+- **Cookie consent JS** (`sum_core/static/sum_core/js/cookie_consent.js`):
+
+  - Cookie names: `sum_cookie_consent` (values: `accepted` | `rejected`)
+  - Version cookie: `sum_cookie_consent_v` (stores consent version)
+  - Expiry: 180 days (no Domain attribute = host-only)
+  - Events: Dispatches `cookieConsentChanged` on consent change
+  - Public API: `window.SumCookieConsent` for testing/debugging
+
+- **Footer "Manage cookies" link**:
+  - Rendered when `cookie_banner_enabled=True`
+  - Uses `data-cookie-consent="manage"` attribute
+  - Clears cookies and re-shows banner
+
+### Cookie Contract
+
+| Cookie Name           | Values                | Purpose              | Expiry   |
+| --------------------- | --------------------- | -------------------- | -------- |
+| `sum_cookie_consent`  | `accepted`, `rejected`| User's consent choice| 180 days |
+| `sum_cookie_consent_v`| Version string        | Consent version      | 180 days |
+
+### Re-prompting Users
+
+To force all users to re-consent (e.g., after updating cookie policy):
+
+1. Go to Wagtail Admin → Settings → Site settings
+2. Increment `cookie_consent_version` (e.g., "2024-01" → "2024-02")
+3. Save - existing cookies with old version become invalid
+
+### What Client Must Do
+
+| Requirement                | How                                                           |
+| -------------------------- | ------------------------------------------------------------- |
+| Include banner in template | `{% include "sum_core/includes/cookie_banner.html" %}`        |
+| Include cookie_consent.js  | `<script src="{% static 'sum_core/js/cookie_consent.js' %}">` |
+| Emit consent version meta  | `<meta name="sum:cookie-consent-version" content="...">`      |
+
+**Note**: The core `theme/base.html` handles all of this automatically.
+
+### Per-Site vs Per-Project
+
+| Setting                | Location                                   |
+| ---------------------- | ------------------------------------------ |
+| Banner enabled toggle  | **Per-site**: SiteSettings → Consent & Legal |
+| Consent version        | **Per-site**: SiteSettings → Consent & Legal |
+| Policy page links      | **Per-site**: SiteSettings → Consent & Legal |
+
+---
+
 ## Feature Area: Analytics (GA4/GTM + Events)
 
 ### What Core Provides
 
 - **Template tags** (`sum_core.templatetags.analytics_tags`):
 
-  - `{% analytics_head %}` - Injects GA4 or GTM `<script>` in `<head>`
-  - `{% analytics_body %}` - Injects GTM `<noscript>` fallback after `<body>`
+  - `{% analytics_head %}` - Emits JSON config as `<script id="sum-analytics-config" type="application/json">`
+  - `{% analytics_body %}` - Reserved for compatibility (returns empty string)
+
+- **Analytics loader JS** (`sum_core/static/sum_core/js/analytics_loader.js`):
+
+  - Reads config from `#sum-analytics-config`
+  - Loads GTM/GA4 scripts **dynamically** (never in server-rendered HTML)
+  - Respects consent: only loads if `cookie_banner_enabled=false` OR consent accepted
+  - Listens for `cookieConsentChanged` event to load after consent
 
 - **Event tracking** (`sum_core/static/sum_core/js/tracking.js`):
 
@@ -292,12 +366,21 @@ STATICFILES_DIRS = [THEME_STATIC_DIR]
 
 - **Admin dashboard**: Lead analytics panel in Wagtail admin home
 
+### Cache-Safe Analytics
+
+Analytics scripts are **never** included in server-rendered HTML. This means:
+
+- Pages are cache-safe (same HTML regardless of consent state)
+- No edge/CDN worker logic required
+- Consent checking happens entirely client-side
+
 ### What Client Must Do
 
-| Requirement          | How                                                                       |
-| -------------------- | ------------------------------------------------------------------------- |
-| Include app          | `"sum_core.analytics"` in INSTALLED_APPS                                  |
-| Add to base template | `{% analytics_head %}` in `<head>`, `{% analytics_body %}` after `<body>` |
+| Requirement              | How                                                              |
+| ------------------------ | ---------------------------------------------------------------- |
+| Include app              | `"sum_core.analytics"` in INSTALLED_APPS                         |
+| Add to base template     | `{% analytics_head %}` in `<head>`                               |
+| Include analytics loader | `<script src="{% static 'sum_core/js/analytics_loader.js' %}">` when GA/GTM configured |
 
 ### Per-Site vs Per-Project
 
@@ -333,6 +416,127 @@ STATICFILES_DIRS = [THEME_STATIC_DIR]
 | Zapier enabled toggle | **Per-site**: SiteSettings → Zapier Integration |
 | Zapier webhook URL    | **Per-site**: SiteSettings → Zapier Integration |
 | Celery broker         | **Per-project**: `CELERY_BROKER_URL` env var    |
+
+---
+
+## Feature Area: Legal Pages (v0.6+)
+
+### What Core Provides
+
+- **LegalPage model** (`sum_core.pages.LegalPage`):
+
+  - `last_updated` (DateField) - Optional date displayed near title
+  - `sections` (StreamField) - LegalSectionBlock instances for structured content
+  - Template: `theme/legal_page.html` (theme-owned)
+
+- **LegalSectionBlock** (`sum_core.blocks.LegalSectionBlock`):
+
+  - `anchor` (CharBlock) - ID for in-page links (lowercase with hyphens)
+  - `heading` (CharBlock) - Section heading
+  - `body` (RichTextBlock) - Section content with H3/H4, lists, links
+
+- **Table of Contents**:
+  - Desktop: Sticky sidebar ToC
+  - Mobile: Collapsible dropdown ToC
+  - Driven by `page.sections` field automatically
+
+### Template Contract
+
+Themes implementing `theme/legal_page.html` should:
+
+- Render breadcrumbs if `page.get_breadcrumbs` is available
+- Display `page.title` and optionally `page.search_description` as intro
+- Show `page.last_updated` with a print button
+- Generate ToC from `page.sections` with anchor links
+- Render each section with `id="{{ section.value.anchor }}"` for linking
+
+### Section Anchor Contract
+
+| Element           | Requirement                                              |
+| ----------------- | -------------------------------------------------------- |
+| Section ID        | `id="{{ section.value.anchor\|slugify }}"`               |
+| ToC link          | `href="#{{ section.value.anchor\|slugify }}"`            |
+| Scroll margin     | `.scroll-mt-24` or similar for fixed header offset       |
+
+### What Client Must Do
+
+| Requirement                    | How                                           |
+| ------------------------------ | --------------------------------------------- |
+| Include pages app              | `"sum_core.pages"` in INSTALLED_APPS          |
+| Create legal pages in Wagtail  | Add LegalPage children under site root        |
+| Link in SiteSettings           | Set privacy_policy_page, cookie_policy_page, terms_page |
+
+### Per-Site vs Per-Project
+
+| Setting                | Location                                      |
+| ---------------------- | --------------------------------------------- |
+| Legal page content     | **Per-site**: Edit LegalPage in Wagtail       |
+| Policy page links      | **Per-site**: SiteSettings → Consent & Legal  |
+| Template styling       | **Per-project**: Theme template override      |
+
+---
+
+## Feature Area: Seeder & Starter Profiles (v0.6+)
+
+### What Core Provides
+
+- **seed_showroom command** (`python manage.py seed_showroom`):
+
+  - Creates a complete site tree with example content
+  - Idempotent: safe to run multiple times
+  - Slug-scoped: only modifies pages with known seeder slugs
+
+- **Profiles**:
+
+  | Profile     | Flag                | Content                                    |
+  | ----------- | ------------------- | ------------------------------------------ |
+  | `starter`   | `--profile starter` | Minimal homepage, services, contact, legal |
+  | `showroom`  | `--profile showroom`| Full block showcase + kitchen sink page    |
+
+### Seeder Slug Contract
+
+Pages created by the seeder use fixed slugs to enable safe re-runs:
+
+| Page Type       | Slug                | Purpose                        |
+| --------------- | ------------------- | ------------------------------ |
+| HomePage        | `showroom-home`     | Site root                      |
+| Contact         | `contact`           | Contact page                   |
+| Services Index  | `services`          | Services listing               |
+| Service 1       | `solar-installation`| Example service                |
+| Service 2       | `roofing`           | Example service                |
+| Terms           | `terms`             | Terms & conditions legal page  |
+| Privacy         | `privacy`           | Privacy notice legal page      |
+| Cookies         | `cookies`           | Cookie policy legal page       |
+| Showroom        | `showroom`          | Block showcase (showroom only) |
+| Kitchen Sink    | `kitchen-sink`      | All blocks (showroom only)     |
+
+### Branding & Navigation Seeded
+
+The seeder also configures:
+
+- **SiteSettings**: company_name, logos, contact info, consent settings
+- **HeaderNavigation**: Menu items, header CTA
+- **FooterNavigation**: Link sections including Legal (Terms/Privacy/Cookies)
+- **Consent**: `cookie_banner_enabled=True`, policy page links
+
+### Command Options
+
+```bash
+# Basic usage
+python manage.py seed_showroom
+
+# Clear and re-seed
+python manage.py seed_showroom --clear
+
+# Use showroom profile (more content)
+python manage.py seed_showroom --profile showroom
+
+# Custom hostname/port
+python manage.py seed_showroom --hostname example.com --port 80
+
+# Custom homepage model
+python manage.py seed_showroom --homepage-model myapp.HomePage
+```
 
 ---
 
@@ -443,6 +647,9 @@ MIDDLEWARE = [
 - Sitemap generation from published pages
 - Health endpoint checks
 - Request correlation IDs
+- Cookie consent JS behaviour (when banner enabled)
+- Analytics consent gating (client-side)
+- Legal page ToC generation
 
 ### Requires SiteSettings (Per-Site in Wagtail)
 
@@ -452,6 +659,8 @@ MIDDLEWARE = [
 - Zapier webhook
 - robots.txt content
 - Email From/Reply-To
+- Cookie banner toggle & consent version
+- Legal page links (privacy, cookies, terms)
 
 ### Requires Environment Variables (Per-Project)
 

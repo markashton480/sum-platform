@@ -11,6 +11,7 @@ from __future__ import annotations
 import pytest
 from django import forms
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.utils import timezone
 from sum_core.forms.dynamic import DynamicFormGenerator
 from sum_core.forms.models import FormDefinition
 
@@ -252,3 +253,34 @@ def test_file_upload_validation(wagtail_default_site):
     form = form_class(data={}, files={"resume": oversized_file})
     assert not form.is_valid()
     assert "resume" in form.errors
+
+
+@pytest.mark.django_db
+def test_form_class_cache_reuses_definition_version(wagtail_default_site):
+    form_def = FormDefinition.objects.create(
+        site=wagtail_default_site,
+        name="Cached Form",
+        slug="cached-form",
+        fields=[
+            (
+                "text_input",
+                {
+                    "field_name": "name",
+                    "label": "Name",
+                },
+            )
+        ],
+    )
+
+    form_class = DynamicFormGenerator(form_def).generate_form_class()
+    cached_class = DynamicFormGenerator(form_def).generate_form_class()
+
+    assert form_class is cached_class
+
+    FormDefinition.objects.filter(pk=form_def.pk).update(
+        updated_at=timezone.now() + timezone.timedelta(seconds=1)
+    )
+    form_def.refresh_from_db()
+    new_class = DynamicFormGenerator(form_def).generate_form_class()
+
+    assert new_class is not form_class

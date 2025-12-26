@@ -9,10 +9,19 @@ from __future__ import annotations
 
 from typing import cast
 
+from django.core.cache import cache
+from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
+from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Count, Q
 from django.utils import timezone
 from django.utils.html import strip_tags
 from sum_core.blocks import PageStreamBlock
+from sum_core.pages.cache import (
+    BLOG_CATEGORIES_CACHE_TTL_SECONDS,
+    get_blog_categories_cache_key,
+)
 from sum_core.pages.mixins import BreadcrumbMixin, OpenGraphMixin, SeoFieldsMixin
 from wagtail.admin.panels import (
     FieldPanel,
@@ -20,7 +29,7 @@ from wagtail.admin.panels import (
     ObjectList,
     TabbedInterface,
 )
-from wagtail.fields import StreamField
+from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Page
 from wagtail.snippets.models import register_snippet
 from wagtail.snippets.views.snippets import SnippetViewSet
@@ -77,12 +86,25 @@ register_snippet(CategorySnippetViewSet)
 
 class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
     """
-    Container for BlogPostPage entries.
+    Blog listing page that displays blog posts with pagination and filtering.
 
-    Acts as the listing root for blog content.
+    URL: /blog/
     """
 
-    content_panels = Page.content_panels
+    intro = RichTextField(
+        blank=True,
+        help_text="Optional intro text displayed above the post listing.",
+    )
+    posts_per_page = models.IntegerField(
+        default=10,
+        help_text="Number of posts to display per page.",
+        validators=[MinValueValidator(1)],
+    )
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+        FieldPanel("posts_per_page"),
+    ]
 
     promote_panels = (
         SeoFieldsMixin.seo_panels
@@ -90,26 +112,115 @@ class BlogIndexPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         + Page.promote_panels
     )
 
+    # Allow clients to decide placement via their root page subpage_types.
+    parent_page_types: list[str] = ["wagtailcore.Page"]
     subpage_types: list[str] = ["sum_core_pages.BlogPostPage"]
 
+    # v0.6 rendering contract: themes own page templates under theme/
     template: str = "theme/blog_index_page.html"
 
     class Meta:
         verbose_name = "Blog Index Page"
         verbose_name_plural = "Blog Index Pages"
 
-    def get_context(self, request, *args, **kwargs):
-        """Add newest-first blog posts to the template context."""
-        context = super().get_context(request, *args, **kwargs)
-
-        posts = (
+    def get_posts(self) -> models.QuerySet[BlogPostPage]:
+        """Return live BlogPostPage children ordered by published date."""
+        return (
             BlogPostPage.objects.child_of(self)
             .live()
             .public()
-            .select_related("category")
+            .select_related("category", "featured_image")
+            .prefetch_related("featured_image__renditions")
+            .filter(published_date__lte=timezone.now())
             .order_by("-published_date")
         )
-        context["posts"] = posts
+
+    def get_posts_by_category(
+        self, category: Category
+    ) -> models.QuerySet[BlogPostPage]:
+        """Return blog posts filtered by category."""
+        return self.get_posts().filter(category=category)
+
+    def clean(self) -> None:
+        """Ensure only one BlogIndexPage exists per site."""
+        super().clean()
+
+        site = self.get_site()
+        if site is None:
+            parent = self.get_parent()
+            if parent:
+                site = parent.get_site()
+
+        queryset = BlogIndexPage.objects.all()
+        if site is not None and getattr(site, "root_page", None) is not None:
+            queryset = queryset.descendant_of(site.root_page, inclusive=True)
+
+        if queryset.exclude(pk=self.pk).exists():
+            raise ValidationError(
+                {"title": "Only one BlogIndexPage is allowed per site."}
+            )
+
+    def save(self, *args, **kwargs):
+        """Enforce singleton validation even for programmatic saves."""
+        should_clean = kwargs.pop("clean", True)
+        if should_clean:
+            self.clean()
+        super().save(*args, **kwargs)
+
+    def get_context(self, request, *args, **kwargs):
+        """
+        Add pagination and category filtering to template context.
+
+        Query params:
+        - category: category slug to filter
+        - page: 1-based page number
+        If request is None, defaults to first page with no filter.
+        Categories are annotated with post_count for listing use.
+        """
+        context = super().get_context(request, *args, **kwargs)
+
+        all_posts = self.get_posts()
+        posts = all_posts
+        query_params = request.GET if request is not None else {}
+        category_slug = query_params.get("category")
+        selected_category = None
+
+        if category_slug:
+            try:
+                selected_category = Category.objects.get(slug=category_slug)
+                posts = posts.filter(category=selected_category)
+            except Category.DoesNotExist:
+                selected_category = None
+
+        paginator = Paginator(posts, self.posts_per_page)
+        page_num = query_params.get("page", 1)
+        paginated_posts = paginator.get_page(page_num)
+
+        context["posts"] = paginated_posts
+        categories = cache.get(get_blog_categories_cache_key(self))
+        if categories is None:
+            # Counts are for public posts only; restricted posts are excluded.
+            categories = list(
+                Category.objects.annotate(
+                    post_count=Count(
+                        "blog_posts",
+                        filter=Q(
+                            blog_posts__path__startswith=self.path,
+                            blog_posts__depth=self.depth + 1,
+                            blog_posts__live=True,
+                            blog_posts__published_date__lte=timezone.now(),
+                            blog_posts__view_restrictions__isnull=True,
+                        ),
+                    )
+                )
+            )
+            cache.set(
+                get_blog_categories_cache_key(self),
+                categories,
+                timeout=BLOG_CATEGORIES_CACHE_TTL_SECONDS,
+            )
+        context["categories"] = categories
+        context["selected_category"] = selected_category
         return context
 
 
