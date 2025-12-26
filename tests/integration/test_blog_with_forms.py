@@ -268,7 +268,7 @@ class TestBlogWithDynamicForms:
         # Verify Lead was created
         lead = Lead.objects.get(email="john@example.com")
         assert lead.name == "John Doe"
-        # Form reference is stored in form_data, not as FK (see Issue #183)
+        # Form reference is stored in form_data, not as an FK.
         assert lead.form_type == form_definition.slug
         assert "ip_address" in lead.form_data
         assert lead.page_url == post.get_url()

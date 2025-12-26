@@ -16,8 +16,15 @@ from sum_core.leads.models import Lead, WebhookStatus
 from wagtail.models import Site
 
 
-def _load_payload() -> dict[str, Any]:
-    body = responses.calls[0].request.body
+def _load_payload(call_index: int | None = None) -> dict[str, Any]:
+    assert responses.calls, "No HTTP calls captured by responses."
+
+    if call_index is None:
+        call = responses.calls[-1]
+    else:
+        assert 0 <= call_index < len(responses.calls)
+        call = responses.calls[call_index]
+    body = call.request.body
     assert body is not None
     payload = json.loads(body)
     return cast(dict[str, Any], payload)
@@ -641,13 +648,13 @@ class TestWebhookIntegrationScenarios:
 
             # Should succeed without exception
             lead = Lead.objects.create(
-                name="Status Test",
-                email="status@example.com",
+                name=f"Status Test {status}",
+                email=f"status-{status}@example.com",
                 message="Testing status codes",
                 form_type="zapier",
                 form_webhook_status=WebhookStatus.PENDING,
                 form_data={
-                    "email": "status@example.com",
+                    "email": f"status-{status}@example.com",
                     "form_definition_slug": "zapier",
                 },
             )
@@ -665,13 +672,13 @@ class TestWebhookIntegrationScenarios:
 
             with pytest.raises(Exception):
                 lead = Lead.objects.create(
-                    name="Status Test",
-                    email="status@example.com",
+                    name=f"Status Test {status}",
+                    email=f"status-{status}@example.com",
                     message="Testing status codes",
                     form_type="zapier",
                     form_webhook_status=WebhookStatus.PENDING,
                     form_data={
-                        "email": "status@example.com",
+                        "email": f"status-{status}@example.com",
                         "form_definition_slug": "zapier",
                     },
                 )

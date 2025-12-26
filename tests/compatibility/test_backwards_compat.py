@@ -10,6 +10,7 @@ Ensures that:
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from sum_core.forms.models import FormDefinition
 from sum_core.leads.models import Lead
 from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
@@ -157,16 +158,16 @@ class TestStaticFormCompatibility:
 class TestLeadModelBackwardsCompatibility:
     """Test that Lead model works with both static and dynamic forms.
 
-    form_data Structure Documentation:
-    ---------------------------------
+    form_data Structure Summary:
+    ---------------------------
     Static Forms (contact, quote, etc.):
         - form_type: identifies the static form type (e.g., "contact", "quote")
         - form_data: empty dict {} or may contain raw form field data
-        - No form_definition_slug since static forms aren't in FormDefinition table
+        - form_definition_slug is not expected for static form submissions
 
     Dynamic Forms:
         - form_type: matches the FormDefinition slug for the submitted form
-        - form_data: contains non-core fields + ip_address (no slug stored today)
+        - form_data: contains non-core fields plus ip_address and form metadata
 
     This distinction exists because:
     1. Static forms are hardcoded in templates (contact_form, quote_request_form blocks)
@@ -425,6 +426,7 @@ class TestBlogBackwardsCompatibility:
         category = Category.objects.create(name="Field Test", slug="field-test")
 
         # Create post with all traditional fields
+        start_time = timezone.now()
         post = BlogPostPage(
             title="Traditional Post",
             slug="traditional-post",
@@ -432,7 +434,6 @@ class TestBlogBackwardsCompatibility:
             body=[("rich_text", "<p>" + "Body content. " * 100 + "</p>")],
             category=category,
             author_name="Test Author",
-            # published_date defaults to timezone.now() per model definition
         )
         blog_index.add_child(instance=post)
         post.save_revision().publish()
@@ -442,7 +443,8 @@ class TestBlogBackwardsCompatibility:
         assert post.excerpt == "Manual excerpt"
         assert post.category == category
         assert post.author_name == "Test Author"
-        assert post.published_date is not None  # Auto-set by default
+        assert post.published_date is not None
+        assert start_time <= post.published_date <= timezone.now()
         assert post.reading_time > 0  # Auto-calculated
 
 

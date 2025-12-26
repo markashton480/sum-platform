@@ -716,7 +716,9 @@ class TestSecurityEdgeCases:
     def test_sql_injection_in_form_fields(self, client, security_form_setup):
         """Test that SQL injection attempts are safely handled.
 
-        Form data should be parameterized/escaped, never concatenated into SQL.
+        This verifies that dangerous-looking input is accepted and stored
+        literally without breaking persistence, which is expected when the
+        Django ORM parameterizes values instead of interpolating raw SQL.
         """
         page = security_form_setup["page"]
         client.get(page.get_url())
@@ -728,11 +730,12 @@ class TestSecurityEdgeCases:
             "Robert'); DROP TABLE leads;--",  # Bobby Tables
         ]
 
-        for payload in sql_injection_payloads:
+        for i, payload in enumerate(sql_injection_payloads):
+            email = f"sqli-test-{i}@example.com"
             form_data = {
                 "form_definition_id": security_form_setup["form"].id,
                 "name": payload,
-                "email": "sqli-test@example.com",
+                "email": email,
                 "message": payload,
                 "page_url": page.get_url(),
                 "landing_page_url": page.get_url(),
@@ -744,12 +747,9 @@ class TestSecurityEdgeCases:
             assert response.status_code == 200
 
             # Lead should be created with literal SQL payload as data
-            lead = Lead.objects.filter(email="sqli-test@example.com").last()
+            lead = Lead.objects.filter(email=email).last()
             assert lead is not None
             assert payload in lead.name or payload in lead.message
-
-            # Clean up for next iteration
-            lead.delete()
 
     def test_path_traversal_in_form_fields(self, client, security_form_setup):
         """Test that path traversal attempts are safely handled.
@@ -767,11 +767,12 @@ class TestSecurityEdgeCases:
             "file:///etc/passwd",
         ]
 
-        for payload in path_traversal_payloads:
+        for i, payload in enumerate(path_traversal_payloads):
+            email = f"path-test-{i}@example.com"
             form_data = {
                 "form_definition_id": security_form_setup["form"].id,
                 "name": payload,
-                "email": "path-test@example.com",
+                "email": email,
                 "message": payload,
                 "page_url": page.get_url(),
                 "landing_page_url": page.get_url(),
@@ -783,9 +784,6 @@ class TestSecurityEdgeCases:
             assert response.status_code == 200
 
             # Lead should be created with literal path as data (no file access)
-            lead = Lead.objects.filter(email="path-test@example.com").last()
+            lead = Lead.objects.filter(email=email).last()
             assert lead is not None
             assert payload in lead.name or payload in lead.message
-
-            # Clean up for next iteration
-            lead.delete()

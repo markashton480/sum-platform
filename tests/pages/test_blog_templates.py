@@ -25,7 +25,7 @@ DEFAULT_POSTS_PER_PAGE = 10
 # Small posts_per_page to trigger pagination with fewer posts.
 POSTS_PER_PAGE_FOR_PAGINATION = 3
 
-# Medium posts_per_page for component testing.
+# Medium posts_per_page to render multiple posts without forcing pagination.
 POSTS_PER_PAGE_FOR_COMPONENTS = 5
 
 
