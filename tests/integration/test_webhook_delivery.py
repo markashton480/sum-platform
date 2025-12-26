@@ -15,6 +15,12 @@ from sum_core.leads.models import Lead, WebhookStatus
 from wagtail.models import Site
 
 
+def _load_payload() -> dict[str, object]:
+    body = responses.calls[0].request.body
+    assert body is not None
+    return json.loads(body)
+
+
 @pytest.mark.django_db
 class TestWebhookDelivery:
     """Test webhook delivery to external endpoints."""
@@ -107,8 +113,7 @@ class TestWebhookDelivery:
         send_webhook(test_lead.id, form_with_webhook.id)
 
         # Parse the sent payload
-        request_body = responses.calls[0].request.body
-        payload = json.loads(request_body)
+        payload = _load_payload()
 
         # Verify payload structure
         assert "event" in payload
@@ -148,7 +153,7 @@ class TestWebhookDelivery:
         request_id = "req-123"
         send_webhook(test_lead.id, form_with_webhook.id, request_id=request_id)
 
-        payload = json.loads(responses.calls[0].request.body)
+        payload = _load_payload()
 
         # Verify request ID is present
         assert payload["request_id"] == request_id
@@ -165,7 +170,7 @@ class TestWebhookDelivery:
 
         send_webhook(test_lead.id, form_with_webhook.id)
 
-        payload = json.loads(responses.calls[0].request.body)
+        payload = _load_payload()
 
         # Verify timestamp is present
         assert "timestamp" in payload
@@ -380,7 +385,7 @@ class TestWebhookDelivery:
 
         send_webhook(test_lead.id, form_with_webhook.id)
 
-        payload = json.loads(responses.calls[0].request.body)
+        payload = _load_payload()
 
         # Verify form_data is included
         assert "data" in payload["submission"]
@@ -414,7 +419,7 @@ class TestWebhookDelivery:
 
         send_webhook(lead.id, form_with_webhook.id)
 
-        payload = json.loads(responses.calls[0].request.body)
+        payload = _load_payload()
 
         # Payload should still be valid
         assert payload["submission"]["contact"]["name"] == "Minimal User"
@@ -491,7 +496,7 @@ class TestWebhookIntegrationScenarios:
 
         # Verify Zapier was called
         assert len(responses.calls) == 1
-        payload = json.loads(responses.calls[0].request.body)
+        payload = _load_payload()
 
         # Zapier expects specific structure
         assert payload["event"] == "form.submitted"
@@ -567,7 +572,7 @@ class TestWebhookIntegrationScenarios:
 
         # Verify HubSpot was called
         assert len(responses.calls) == 1
-        payload = json.loads(responses.calls[0].request.body)
+        payload = _load_payload()
 
         # HubSpot receives form data
         assert payload["submission"]["data"]["first_name"] == "John"
