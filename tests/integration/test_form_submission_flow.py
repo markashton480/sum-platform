@@ -9,7 +9,8 @@ from unittest.mock import patch
 
 import pytest
 from django.contrib.auth import get_user_model
-from sum_core.forms.models import FormDefinition
+from django.core.cache import cache
+from sum_core.forms.models import FormConfiguration, FormDefinition
 from sum_core.leads.models import EmailStatus, Lead
 from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
 from sum_core.pages.models import StandardPage
@@ -661,6 +662,11 @@ class TestSecurityEdgeCases:
         """Create form for security testing."""
         site = Site.objects.get(is_default_site=True)
         home = site.root_page
+
+        cache.clear()
+        config = FormConfiguration.get_for_site(site)
+        config.rate_limit_per_ip_per_hour = 0
+        config.save(update_fields=["rate_limit_per_ip_per_hour"])
 
         form = FormDefinition.objects.create(
             name="Security Test Form",

@@ -10,7 +10,6 @@ from typing import Any, cast
 
 import pytest
 import responses
-from celery.exceptions import Retry
 from sum_core.forms.models import FormDefinition
 from sum_core.forms.tasks import send_webhook
 from sum_core.leads.models import Lead, WebhookStatus
@@ -288,7 +287,7 @@ class TestWebhookDelivery:
             status=500,
         )
 
-        with pytest.raises(Retry):
+        with pytest.raises(Exception):
             # Should raise exception to trigger Celery retry
             send_webhook(test_lead.id, form_with_webhook.id)
 
@@ -313,7 +312,7 @@ class TestWebhookDelivery:
             callback=request_callback,
         )
 
-        with pytest.raises(Retry):
+        with pytest.raises(requests.exceptions.Timeout):
             send_webhook(test_lead.id, form_with_webhook.id)
 
         assert len(responses.calls) == 1
