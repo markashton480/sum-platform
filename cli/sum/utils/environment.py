@@ -10,6 +10,7 @@ class ExecutionMode(str, Enum):
 
 
 def _normalize_start_path(start_path: Path | None) -> Path:
+    """Return a directory path from a file path or default to the current cwd."""
     path = start_path or Path.cwd()
     if path.is_file():
         return path.parent

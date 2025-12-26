@@ -34,6 +34,22 @@ def test_find_monorepo_root_handles_file_path(tmp_path: Path) -> None:
     assert find_monorepo_root(marker) == repo_root
 
 
+def test_find_monorepo_root_defaults_to_cwd(tmp_path: Path, monkeypatch) -> None:
+    repo_root = tmp_path / "repo"
+    (repo_root / "core").mkdir(parents=True)
+    (repo_root / "boilerplate").mkdir()
+    monkeypatch.chdir(repo_root)
+
+    assert find_monorepo_root() == repo_root
+
+
+def test_find_monorepo_root_returns_none_when_absent(tmp_path: Path) -> None:
+    project_root = tmp_path / "project"
+    project_root.mkdir()
+
+    assert find_monorepo_root(project_root) is None
+
+
 def test_detect_mode_monorepo(tmp_path: Path) -> None:
     repo_root = tmp_path / "repo"
     (repo_root / "core").mkdir(parents=True)
