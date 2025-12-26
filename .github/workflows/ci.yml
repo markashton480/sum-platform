@@ -2,9 +2,20 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
+      - release/*
+      - feature/*
+      - task/*
+      - fix/*
+      - feat/*
   pull_request:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
+      - release/*
+      - feature/*
   # Enable manual workflow dispatch for debugging/ad-hoc runs
   workflow_dispatch:
 
