@@ -214,8 +214,8 @@ class TestBlogWithDynamicForms:
         # Submit the form
         form_data = {
             "form_definition_slug": "newsletter",
-            "name": "John Doe",
-            "email": "john@example.com",
+            "Name": "John Doe",  # Matches field label in FormDefinition
+            "Email": "john@example.com",  # Matches field label in FormDefinition
             "page_url": post.get_url(),
             "landing_page_url": post.get_url(),
             "csrfmiddlewaretoken": client.cookies.get("csrftoken").value,

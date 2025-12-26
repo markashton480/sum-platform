@@ -117,7 +117,7 @@ class TestEndToEndFormSubmissionFlow:
         assert lead.email == "jane@example.com"
         assert lead.phone == "555-1234"
         assert lead.message == "I'd like to learn more about your services."
-        assert lead.form_definition == form_definition
+        assert lead.form_data.get("form_definition_slug") == form_definition.slug
         assert lead.page_url == contact_page.get_url()
         assert lead.landing_page_url == contact_page.get_url()
 
@@ -356,7 +356,7 @@ class TestBlogPostSubmissionFlow:
         # Step 3: Verify Lead created with blog post context
         lead = Lead.objects.get(email="subscriber@example.com")
         assert lead.name == "Newsletter Subscriber"
-        assert lead.form_definition == form
+        assert lead.form_data.get("form_definition_slug") == form.slug
         assert post.get_url() in lead.page_url
 
 
