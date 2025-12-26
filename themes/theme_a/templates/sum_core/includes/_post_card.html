@@ -3,11 +3,15 @@
 <article class="group flex flex-col h-full bg-sage-linen/80 border border-sage-black/10 shadow-sm hover:shadow-lg transition-shadow duration-500 reveal">
   <div class="relative overflow-hidden">
     {% if post.featured_image %}
-      {% image post.featured_image fill-720x480 as card_img %}
+      {% image post.featured_image fill-720x480 format-webp as card_img %}
       <a href="{% pageurl post %}" class="block">
         <img
           src="{{ card_img.url }}"
           alt="{{ post.title }}"
+          width="{{ card_img.width }}"
+          height="{{ card_img.height }}"
+          decoding="async"
+          {% if lazy_load %}loading="lazy"{% endif %}
           class="w-full aspect-[4/3] object-cover transition-transform duration-700 ease-smooth group-hover:scale-[1.02]"
         />
       </a>
