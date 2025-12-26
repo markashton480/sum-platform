@@ -138,27 +138,27 @@ STATICFILES_DIRS = [THEME_STATIC_DIR]
 
 ### What Core Provides
 
-- **HeaderSettings** (`sum_core.navigation.models.HeaderSettings`):
+- **HeaderNavigation** (`sum_core.navigation.models.HeaderNavigation`):
 
   - Menu structure (up to 3 levels)
   - Header CTA button
   - Phone number toggle
   - Mobile sticky CTA configuration
 
-- **FooterSettings** (`sum_core.navigation.models.FooterSettings`):
+- **FooterNavigation** (`sum_core.navigation.models.FooterNavigation`):
 
   - Footer sections with links
   - Tagline override
   - Social links override
 
-- **Template tags** (from `sum_core.templatetags.navigation_tags`):
+- **Template tags** (from `sum_core.navigation.templatetags.navigation_tags`):
 
-  - `{% get_header_navigation %}` - Returns header menu data
-  - `{% get_footer_navigation %}` - Returns footer data
+  - `{% header_nav %}` - Returns header menu data
+  - `{% footer_nav %}` - Returns footer data
 
 - **Include templates**:
-  - `sum_core/navigation/header.html`
-  - `sum_core/navigation/footer.html`
+  - `sum_core/includes/header.html`
+  - `sum_core/includes/footer.html`
 
 ### What Client Must Do
 

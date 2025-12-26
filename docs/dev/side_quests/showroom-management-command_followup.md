@@ -15,9 +15,9 @@ This caused:
 In `_build_kitchen_sink_stream()` we now merge *raw* stream data (via `get_prep_value()` on the returned `StreamValue`) and call `to_python()` exactly once.
 
 Updated in all copies:
-- [boilerplate/project_name/home/management/commands/seed_showroom.py](../../boilerplate/project_name/home/management/commands/seed_showroom.py)
-- [cli/sum_cli/boilerplate/project_name/home/management/commands/seed_showroom.py](../../cli/sum_cli/boilerplate/project_name/home/management/commands/seed_showroom.py)
-- [clients/showroom/showroom/home/management/commands/seed_showroom.py](../../clients/showroom/showroom/home/management/commands/seed_showroom.py)
+- [boilerplate/project_name/home/management/commands/seed_showroom.py](../../../boilerplate/project_name/home/management/commands/seed_showroom.py)
+- [cli/sum_cli/boilerplate/project_name/home/management/commands/seed_showroom.py](../../../cli/sum_cli/boilerplate/project_name/home/management/commands/seed_showroom.py)
+- [clients/showroom/showroom/home/management/commands/seed_showroom.py](../../../clients/showroom/showroom/home/management/commands/seed_showroom.py)
 
 ## Additional runtime fixes found during validation
 
@@ -44,7 +44,7 @@ Updated the CLI init test to assert the generated `seed_showroom.py` includes:
 - Correct branding field usage (`company_name`, `*_logo_id`, `favicon_id`).
 
 Test touched:
-- [cli/tests/test_theme_init.py](../../cli/tests/test_theme_init.py)
+- [cli/tests/test_theme_init.py](../../../cli/tests/test_theme_init.py)
 
 ### End-to-end run
 Ran the command successfully in the showroom client:

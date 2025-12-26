@@ -29,7 +29,7 @@ You're also seeing "random bits" like "Est. 2025" and "Get a Quote" buttons. The
 
 ### Template Fallbacks
 
-In [theme/includes/header.html](core/sum_core/themes/theme_a/templates/theme/includes/header.html#L44):
+In [theme/includes/header.html](../../../themes/theme_a/templates/theme/includes/header.html#L44):
 
 ```django
 Est. {{ site_settings.established_year|default:"2025" }}
@@ -39,7 +39,7 @@ Est. {{ site_settings.established_year|default:"2025" }}
 
 ### Model Defaults
 
-In [navigation/models.py](core/sum_core/navigation/models.py#L120):
+In [navigation/models.py](../../../core/sum_core/navigation/models.py#L120):
 
 ```python
 header_cta_text = models.CharField(
@@ -50,7 +50,7 @@ header_cta_text = models.CharField(
 )
 ```
 
-And again at [line 153](core/sum_core/navigation/models.py#L153):
+And again at [line 153](../../../core/sum_core/navigation/models.py#L153):
 
 ```python
 mobile_cta_button_text = models.CharField(
@@ -109,7 +109,7 @@ This is all **correctly implemented**.
 
 ### Block Templates Are Hardcoded to Core Paths
 
-Look at [core/sum_core/blocks/hero.py](core/sum_core/blocks/hero.py#L77):
+Look at [core/sum_core/blocks/hero.py](../../../core/sum_core/blocks/hero.py#L77):
 
 ```python
 class HeroImageBlock(BaseHeroBlock):
@@ -117,7 +117,7 @@ class HeroImageBlock(BaseHeroBlock):
         template = "sum_core/blocks/hero_image.html"  # ← HARDCODED
 ```
 
-And [core/sum_core/blocks/hero.py](core/sum_core/blocks/hero.py#L97):
+And [core/sum_core/blocks/hero.py](../../../core/sum_core/blocks/hero.py#L97):
 
 ```python
 class HeroGradientBlock(BaseHeroBlock):
@@ -137,7 +137,7 @@ When a Theme A page renders StreamField content:
 
 ### The Block Templates Use Theme A Classes Without Theme A CSS
 
-Look at [core/sum_core/templates/sum_core/blocks/hero_gradient.html](core/sum_core/templates/sum_core/blocks/hero_gradient.html):
+Look at [core/sum_core/templates/sum_core/blocks/hero_gradient.html](../../../core/sum_core/templates/sum_core/blocks/hero_gradient.html):
 
 ```html
 <section class="section hero hero--gradient hero--gradient-{{ self.gradient_style }}">

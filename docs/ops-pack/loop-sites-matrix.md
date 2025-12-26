@@ -9,7 +9,7 @@
 
 | Site Name | Environment | Slug      | Current Version | Last Deploy Date | Last Upgrade Outcome | Notes          |
 | --------- | ----------- | --------- | --------------- | ---------------- | -------------------- | -------------- |
-| (example) | staging     | acme-test | v0.5.0          | 2025-12-10       | Success              | Initial deploy |
+| (example) | staging     | acme-test | v0.6.0          | 2025-12-10       | Success              | Initial deploy |
 |           |             |           |                 |                  |                      |                |
 |           |             |           |                 |                  |                      |                |
 |           |             |           |                 |                  |                      |                |
@@ -55,7 +55,7 @@
 
 **Slug:** Server directory slug (e.g., `acme-kitchens` for `/srv/sum/acme-kitchens/`)
 
-**Current Version:** Git tag of `sum_core` deployed (e.g., `v0.6.0`)
+**Current Version:** Git tag of `sum-core` deployed (e.g., `v0.6.0`)
 
 **Last Deploy Date:** `YYYY-MM-DD` format
 

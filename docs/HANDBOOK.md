@@ -74,7 +74,7 @@ _You launch and maintain sites._
 
 - **Focus**: `cli/`, `boilerplate/`, deployments, upgrades.
 - **Read**: [Operations Router](ROUTER.md), [VPS Golden Path](dev/deploy/vps-golden-path.md).
-- **Tool**: `sum init`, `sum check`, `make deploy`.
+- **Tool**: `sum init`, `sum check`, deploy runbooks.
 
 ### ✍️ I am a Content Editor / Marketer
 
@@ -359,7 +359,7 @@ When developing custom blocks or modifying existing ones:
 ### Development Guidelines
 
 - Follow the [Hygiene Standards](dev/hygiene.md).
-- Reference the [Navigation System](dev/NAV/navigation.md).
+- Reference the [Navigation tags reference](dev/navigation-tags-reference.md).
 - Review your theme's README for styling conventions.
 - For Theme A, see [Theme A Documentation](../themes/theme_a/README.md).
 
@@ -578,7 +578,7 @@ To cut a release properly, follow these steps exactly:
 | **Theme**   | `cd themes/<theme>/tailwind`       | Navigate to theme build directory             |
 | **Theme**   | `npm run build`                    | Compile theme CSS (production)                |
 | **Theme**   | `npm run watch`                    | Watch mode for theme development              |
-| **Ops**     | `make deploy`                      | Production sync (environment specific)        |
+| **Ops**     | Deploy runbooks                    | Production sync (environment specific)        |
 
 ### Production Deployment (The Golden Path)
 
