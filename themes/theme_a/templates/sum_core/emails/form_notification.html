@@ -36,6 +36,34 @@
         <div class="field"><span class="label">Form:</span> <span class="value">{{ form_definition.name|escape }} ({{ form_definition.slug|escape }})</span></div>
         <div class="field"><span class="label">Submitted At:</span> <span class="value">{{ lead.submitted_at|date:"N j, Y, P" }}</span></div>
 
+        {% if lead.page_url or lead.landing_page_url or lead.referrer_url or lead.utm_source or lead.utm_medium or lead.utm_campaign or lead.utm_term or lead.utm_content %}
+        <h2>Attribution</h2>
+        {% if lead.page_url %}
+        <div class="field"><span class="label">Page URL:</span> <span class="value"><a href="{{ lead.page_url|escape }}">{{ lead.page_url|escape }}</a></span></div>
+        {% endif %}
+        {% if lead.landing_page_url %}
+        <div class="field"><span class="label">Landing Page:</span> <span class="value"><a href="{{ lead.landing_page_url|escape }}">{{ lead.landing_page_url|escape }}</a></span></div>
+        {% endif %}
+        {% if lead.referrer_url %}
+        <div class="field"><span class="label">Referrer:</span> <span class="value"><a href="{{ lead.referrer_url|escape }}">{{ lead.referrer_url|escape }}</a></span></div>
+        {% endif %}
+        {% if lead.utm_source %}
+        <div class="field"><span class="label">UTM Source:</span> <span class="value">{{ lead.utm_source|escape }}</span></div>
+        {% endif %}
+        {% if lead.utm_medium %}
+        <div class="field"><span class="label">UTM Medium:</span> <span class="value">{{ lead.utm_medium|escape }}</span></div>
+        {% endif %}
+        {% if lead.utm_campaign %}
+        <div class="field"><span class="label">UTM Campaign:</span> <span class="value">{{ lead.utm_campaign|escape }}</span></div>
+        {% endif %}
+        {% if lead.utm_term %}
+        <div class="field"><span class="label">UTM Term:</span> <span class="value">{{ lead.utm_term|escape }}</span></div>
+        {% endif %}
+        {% if lead.utm_content %}
+        <div class="field"><span class="label">UTM Content:</span> <span class="value">{{ lead.utm_content|escape }}</span></div>
+        {% endif %}
+        {% endif %}
+
         {% if lead.form_data %}
         <h2>Additional Fields</h2>
         <table>

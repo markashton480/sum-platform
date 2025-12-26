@@ -290,7 +290,7 @@ class TestFormSubmissionBackwardsCompatibility:
             "form_type": "contact",  # Static form type
             "name": "Static Submitter",
             "email": "static@example.com",
-            "phone": "555-1111",
+            "phone": "07123 456789",
             "message": "Static form message",
             "page_url": page.get_url(),
             "landing_page_url": page.get_url(),

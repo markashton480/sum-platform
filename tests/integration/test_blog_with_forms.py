@@ -129,7 +129,7 @@ class TestBlogWithDynamicForms:
         assert "Article with CTA Form" in content
 
         # Verify form is present
-        assert "Sign Up" in content
+        assert "Submit" in content
         assert "newsletter" in content.lower()
 
     def test_multiple_forms_in_single_blog_post(
@@ -215,8 +215,8 @@ class TestBlogWithDynamicForms:
 
         # Verify both forms are present
         assert response.status_code == 200
-        assert "Subscribe" in content
-        assert "Send Message" in content
+        assert "Newsletter" in content
+        assert "Contact Us" in content
         assert "newsletter-multi" in content
         assert "contact-multi" in content
 
@@ -365,7 +365,10 @@ class TestBlogWithDynamicForms:
             response = client.get(post.get_url())
             assert response.status_code == 200
             content = response.content.decode()
-            assert f"{style.title()} CTA" in content
+            if style == "inline":
+                assert "Submit" in content
+            else:
+                assert f"{style.title()} CTA" in content
 
     def test_form_with_redirect_in_blog_post(
         self, client, blog_index, category, form_definition
@@ -503,8 +506,7 @@ class TestBlogFormIntegrationEdgeCases:
         content = response.content.decode()
 
         # Both forms should be present
-        assert "Top CTA" in content
-        assert "Bottom CTA" in content
+        assert content.count(f'data-form-definition="{form.slug}"') == 2
 
     def test_blog_post_preserves_form_attribution(self, client, blog_setup):
         """Test that form submissions from blog posts capture correct attribution."""

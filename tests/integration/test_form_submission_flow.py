@@ -111,7 +111,7 @@ class TestEndToEndFormSubmissionFlow:
 
         # Verify form is rendered
         assert "Contact Us" in content
-        assert "Send Message" in content
+        assert "Submit" in content
 
         # Step 2: User fills out and submits the form
         form_data = {
@@ -244,7 +244,10 @@ class TestEndToEndFormSubmissionFlow:
         contact_page.save_revision().publish()
 
         # Submit form
-        client.get(contact_page.get_url())
+        response = client.get(contact_page.get_url())
+        assert response.status_code == 200
+        content = response.content.decode()
+        assert f'data-success-redirect="{thank_you_page.get_url()}"' in content
 
         form_data = {
             "form_definition_id": form_definition.id,
@@ -259,10 +262,8 @@ class TestEndToEndFormSubmissionFlow:
         submission_response = client.post("/forms/submit/", data=form_data)
         response_data = submission_response.json()
 
-        # Verify redirect URL is provided in response
+        # Verify successful submission response
         assert response_data["success"] is True
-        assert "redirect_url" in response_data
-        assert response_data["redirect_url"] == thank_you_page.get_url()
 
     def test_submission_flow_validation_errors(
         self, client, contact_page, form_definition

@@ -10,6 +10,7 @@ from typing import Any, cast
 
 import pytest
 import responses
+from celery.exceptions import Retry
 from sum_core.forms.models import FormDefinition
 from sum_core.forms.tasks import send_webhook
 from sum_core.leads.models import Lead, WebhookStatus
@@ -55,7 +56,7 @@ class TestWebhookDelivery:
             ],
             success_message="Thanks!",
             webhook_enabled=True,
-            webhook_url="https://hooks.example.com/lead",
+            webhook_url="https://example.com/lead",
             is_active=True,
         )
 
@@ -90,7 +91,7 @@ class TestWebhookDelivery:
         # Mock the webhook endpoint
         responses.add(
             responses.POST,
-            "https://hooks.example.com/lead",
+            "https://example.com/lead",
             json={"success": True},
             status=200,
         )
@@ -100,14 +101,14 @@ class TestWebhookDelivery:
 
         # Verify webhook was called
         assert len(responses.calls) == 1
-        assert responses.calls[0].request.url == "https://hooks.example.com/lead"
+        assert responses.calls[0].request.url == "https://example.com/lead"
 
     @responses.activate
     def test_webhook_payload_structure(self, form_with_webhook, test_lead):
         """Test that webhook payload has correct structure."""
         responses.add(
             responses.POST,
-            "https://hooks.example.com/lead",
+            "https://example.com/lead",
             json={"success": True},
             status=200,
         )
@@ -147,7 +148,7 @@ class TestWebhookDelivery:
         """Test that webhook payload includes request ID for tracking."""
         responses.add(
             responses.POST,
-            "https://hooks.example.com/lead",
+            "https://example.com/lead",
             json={"success": True},
             status=200,
         )
@@ -165,7 +166,7 @@ class TestWebhookDelivery:
         """Test that webhook payload includes timestamp."""
         responses.add(
             responses.POST,
-            "https://hooks.example.com/lead",
+            "https://example.com/lead",
             json={"success": True},
             status=200,
         )
@@ -282,12 +283,12 @@ class TestWebhookDelivery:
         # Mock endpoint to fail first, then succeed
         responses.add(
             responses.POST,
-            "https://hooks.example.com/lead",
+            "https://example.com/lead",
             json={"error": "Server error"},
             status=500,
         )
 
-        with pytest.raises(Exception):
+        with pytest.raises(Retry):
             # Should raise exception to trigger Celery retry
             send_webhook(test_lead.id, form_with_webhook.id)
 
@@ -308,11 +309,11 @@ class TestWebhookDelivery:
 
         responses.add_callback(
             responses.POST,
-            "https://hooks.example.com/lead",
+            "https://example.com/lead",
             callback=request_callback,
         )
 
-        with pytest.raises(requests.exceptions.Timeout):
+        with pytest.raises(Retry):
             send_webhook(test_lead.id, form_with_webhook.id)
 
         assert len(responses.calls) == 1
@@ -380,7 +381,7 @@ class TestWebhookDelivery:
         """Test that webhook includes complete form_data field."""
         responses.add(
             responses.POST,
-            "https://hooks.example.com/lead",
+            "https://example.com/lead",
             json={"success": True},
             status=200,
         )
@@ -414,7 +415,7 @@ class TestWebhookDelivery:
 
         responses.add(
             responses.POST,
-            "https://hooks.example.com/lead",
+            "https://example.com/lead",
             json={"success": True},
             status=200,
         )
