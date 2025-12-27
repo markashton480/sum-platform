@@ -12,11 +12,115 @@ import os
 import time
 from typing import Any
 
+import magic
 from django import forms
 
 FORM_CLASS_CACHE_TTL_SECONDS = 3600
 # In-process cache: not shared across workers or persisted across restarts.
 _FORM_CLASS_CACHE: dict[str, tuple[float, type[forms.Form]]] = {}
+
+# MIME type mapping for common file extensions
+# Maps file extensions to expected MIME types for validation
+EXTENSION_TO_MIME_TYPES = {
+    ".pdf": ["application/pdf"],
+    ".doc": ["application/msword"],
+    ".docx": [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/zip",  # Office files are ZIP archives
+    ],
+    ".xls": ["application/vnd.ms-excel"],
+    ".xlsx": [
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/zip",  # Office files are ZIP archives
+    ],
+    ".ppt": ["application/vnd.ms-powerpoint"],
+    ".pptx": [
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/zip",  # Office files are ZIP archives
+    ],
+    ".txt": ["text/plain"],
+    ".csv": ["text/csv", "text/plain"],
+    ".jpg": ["image/jpeg"],
+    ".jpeg": ["image/jpeg"],
+    ".png": ["image/png"],
+    ".gif": ["image/gif"],
+    ".bmp": ["image/bmp", "image/x-ms-bmp"],
+    ".tiff": ["image/tiff"],
+    ".tif": ["image/tiff"],
+    ".svg": ["image/svg+xml"],
+    ".webp": ["image/webp"],
+    ".zip": ["application/zip"],
+    ".rar": ["application/x-rar-compressed", "application/vnd.rar"],
+    ".7z": ["application/x-7z-compressed"],
+    ".tar": ["application/x-tar"],
+    ".gz": ["application/gzip"],
+    ".mp3": ["audio/mpeg"],
+    ".wav": ["audio/wav", "audio/x-wav"],
+    ".mp4": ["video/mp4"],
+    ".avi": ["video/x-msvideo"],
+    ".mov": ["video/quicktime"],
+    ".webm": ["video/webm"],
+    ".json": ["application/json"],
+    ".xml": ["application/xml", "text/xml"],
+}
+
+
+def _validate_mime_type(uploaded_file, allowed_extensions: list[str]) -> str | None:
+    """
+    Validate file's actual MIME type matches its extension.
+
+    Args:
+        uploaded_file: Django UploadedFile object
+        allowed_extensions: List of allowed file extensions (e.g., ['.pdf', '.doc'])
+
+    Returns:
+        Error message if validation fails, None if validation passes
+    """
+    if not allowed_extensions:
+        return None
+
+    # Get the file extension
+    original_name = uploaded_file.name or ""
+    _, file_ext = os.path.splitext(original_name)
+    file_ext = file_ext.lower()
+
+    if file_ext not in allowed_extensions:
+        # Extension already checked elsewhere, skip MIME check
+        return None
+
+    # Get expected MIME types for this extension
+    expected_mimes = EXTENSION_TO_MIME_TYPES.get(file_ext, [])
+    if not expected_mimes:
+        # Extension not in our MIME mapping, allow through
+        # This handles custom/uncommon file types
+        return None
+
+    # Read file content for MIME detection
+    try:
+        # Read first 2KB for MIME type detection
+        uploaded_file.seek(0)
+        file_header = uploaded_file.read(2048)
+        uploaded_file.seek(0)  # Reset file pointer
+
+        if not file_header:
+            return "File appears to be empty."
+
+        # Detect MIME type from file content
+        detected_mime = magic.from_buffer(file_header, mime=True)
+
+        # Check if detected MIME matches expected MIME types
+        if detected_mime not in expected_mimes:
+            return (
+                f"File content does not match extension '{file_ext}'. "
+                f"Expected {', '.join(expected_mimes)}, got {detected_mime}."
+            )
+
+    except Exception:
+        # Log error but don't block upload if MIME detection fails
+        # This is defense-in-depth, not primary validation
+        return None
+
+    return None
 
 
 def _file_validation_clean(form_instance):
@@ -46,6 +150,12 @@ def _file_validation_clean(form_instance):
             if not max_size_mb_display and max_size_bytes:
                 max_size_mb_display = max_size_bytes / (1024 * 1024)
             errors.append(f"File must be {max_size_mb_display:g}MB or smaller.")
+
+        # Validate MIME type matches extension (defense-in-depth)
+        if extensions:
+            mime_error = _validate_mime_type(uploaded, extensions)
+            if mime_error:
+                errors.append(mime_error)
 
         for message in errors:
             form_instance.add_error(field_name, message)

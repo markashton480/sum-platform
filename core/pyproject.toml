@@ -13,6 +13,7 @@ dependencies = [
   "celery>=5.4,<6.0",
   "requests>=2.31,<3.0",
   "sentry-sdk[celery]>=2.0,<3.0",
+  "python-magic>=0.4.27,<1.0",
 ]
 
 [project.optional-dependencies]
