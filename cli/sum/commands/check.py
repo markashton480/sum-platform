@@ -6,7 +6,7 @@ from pathlib import Path
 
 import click
 
-from cli.sum.utils.environment import ExecutionMode, detect_mode
+from cli.sum.utils.environment import ExecutionMode, detect_mode, resolve_project_path
 from cli.sum.utils.validation import (
     ProjectValidator,
     ValidationResult,
@@ -15,8 +15,6 @@ from cli.sum.utils.validation import (
 
 
 def _resolve_project_path(project: str | None) -> Path:
-    from cli.sum.commands.run import resolve_project_path
-
     return resolve_project_path(project)
 
 
@@ -74,6 +72,9 @@ def run_enhanced_checks(project_path: Path, mode: ExecutionMode) -> None:
 @click.argument("project", required=False)
 def check(project: str | None) -> None:
     """Validate project setup."""
-    project_path = _resolve_project_path(project)
+    try:
+        project_path = _resolve_project_path(project)
+    except FileNotFoundError as exc:
+        raise click.ClickException(str(exc)) from exc
     mode = detect_mode(project_path)
     run_enhanced_checks(project_path, mode)

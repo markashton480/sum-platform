@@ -3,7 +3,6 @@ from __future__ import annotations
 import os
 import socket
 import subprocess
-from pathlib import Path
 
 import click
 
@@ -12,7 +11,7 @@ from cli.sum.utils.environment import (
     ExecutionMode,
     detect_mode,
     find_monorepo_root,
-    get_clients_dir,
+    resolve_project_path,
 )
 
 
@@ -30,27 +29,6 @@ def find_available_port(start_port: int = 8000, max_attempts: int = 10) -> int:
     )
 
 
-def resolve_project_path(project: str | None) -> Path:
-    """Resolve project path from name or current directory."""
-    if project:
-        try:
-            clients_dir = get_clients_dir()
-        except FileNotFoundError as exc:
-            raise click.ClickException(str(exc)) from exc
-        project_path = clients_dir / project
-        if project_path.exists():
-            return project_path
-        raise click.ClickException(f"Project not found: {project}")
-
-    cwd = Path.cwd()
-    if (cwd / "manage.py").exists():
-        return cwd
-
-    raise click.ClickException(
-        "Not in a project directory. Either cd into a project or specify project name."
-    )
-
-
 @click.command()
 @click.argument("project", required=False)
 @click.option(
@@ -61,15 +39,17 @@ def resolve_project_path(project: str | None) -> Path:
 )
 def run(project: str | None, port: int) -> None:
     """Start development server for a project."""
-    project_path = resolve_project_path(project)
+    try:
+        project_path = resolve_project_path(project)
+    except FileNotFoundError as exc:
+        raise click.ClickException(str(exc)) from exc
     project_name = project_path.name
     mode = detect_mode(project_path)
 
     venv_manager = VenvManager()
     if not venv_manager.exists(project_path):
         raise click.ClickException(
-            f"Virtualenv not found at {project_path / '.venv'}. "
-            "Run 'sum init --full' or create manually."
+            f"Virtualenv not found at {project_path / '.venv'}. Run 'sum init --full' or create manually."
         )
 
     python_exe = venv_manager.get_python_executable(project_path)
@@ -96,7 +76,7 @@ def run(project: str | None, port: int) -> None:
             core_path = repo_root / "core"
             existing = env.get("PYTHONPATH", "")
             if existing:
-                env["PYTHONPATH"] = f"{core_path}{os.pathsep}{existing}"
+                env["PYTHONPATH"] = f"{existing}{os.pathsep}{core_path}"
             else:
                 env["PYTHONPATH"] = str(core_path)
 
