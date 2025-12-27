@@ -1,6 +1,24 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import TypedDict, Unpack
+
+
+class SetupConfigArgs(TypedDict, total=False):
+    full: bool
+    quick: bool
+    ci: bool
+    no_prompt: bool
+    skip_venv: bool
+    skip_migrations: bool
+    skip_seed: bool
+    skip_superuser: bool
+    run_server: bool
+    port: int
+    superuser_username: str
+    superuser_email: str
+    superuser_password: str
+    seed_preset: str | None
 
 
 @dataclass
@@ -34,6 +52,6 @@ class SetupConfig:
             self.no_prompt = True
 
     @classmethod
-    def from_cli_args(cls, **kwargs: object) -> SetupConfig:
+    def from_cli_args(cls, **kwargs: Unpack[SetupConfigArgs]) -> SetupConfig:
         """Create a SetupConfig from CLI arguments."""
         return cls(**kwargs)
