@@ -8,12 +8,15 @@ Dependencies: Django forms, FormDefinition fields.
 
 from __future__ import annotations
 
+import logging
 import os
 import time
 from typing import Any
 
 import magic
 from django import forms
+
+logger = logging.getLogger(__name__)
 
 FORM_CLASS_CACHE_TTL_SECONDS = 3600
 # In-process cache: not shared across workers or persisted across restarts.
@@ -106,7 +109,15 @@ def _validate_mime_type(uploaded_file, allowed_extensions: list[str]) -> str | N
             return "File appears to be empty."
 
         # Detect MIME type from file content
-        detected_mime = magic.from_buffer(file_header, mime=True)
+        try:
+            detected_mime = magic.from_buffer(file_header, mime=True)
+        except (magic.MagicException, AttributeError) as e:
+            # python-magic not properly installed or configured
+            logger.warning(
+                f"MIME detection failed for {original_name}: {e}. "
+                "Skipping MIME validation."
+            )
+            return None
 
         # Check if detected MIME matches expected MIME types
         if detected_mime not in expected_mimes:
@@ -115,9 +126,19 @@ def _validate_mime_type(uploaded_file, allowed_extensions: list[str]) -> str | N
                 f"Expected {', '.join(expected_mimes)}, got {detected_mime}."
             )
 
-    except Exception:
-        # Log error but don't block upload if MIME detection fails
-        # This is defense-in-depth, not primary validation
+    except OSError as e:
+        # File read error
+        logger.warning(
+            f"Could not read file {original_name} for MIME validation: {e}. "
+            "Skipping MIME validation."
+        )
+        return None
+    except Exception as e:
+        # Unexpected error - log but don't block upload
+        logger.error(
+            f"Unexpected error during MIME validation for {original_name}: {e}",
+            exc_info=True,
+        )
         return None
 
     return None
