@@ -160,45 +160,44 @@ class Command(BaseCommand):
     def _configure_branding(self, *, site: Site) -> SiteSettings:
         settings, _ = SiteSettings.objects.get_or_create(site=site)
 
-        # Company info
-        settings.company_name = BRAND_CONFIG["company_name"]
-        settings.established_year = BRAND_CONFIG["established_year"]
-        settings.tagline = BRAND_CONFIG["tagline"]
+        brand_fields = [
+            # Company info
+            "company_name",
+            "established_year",
+            "tagline",
+            # Contact
+            "phone_number",
+            "email",
+            "address",
+            "business_hours",
+            # Colors
+            "primary_color",
+            "secondary_color",
+            "accent_color",
+            "background_color",
+            "text_color",
+            "surface_color",
+            "surface_elevated_color",
+            "text_light_color",
+            # Typography
+            "heading_font",
+            "body_font",
+            # Social Links
+            "instagram_url",
+            "facebook_url",
+            "linkedin_url",
+            "twitter_url",
+            "youtube_url",
+            "tiktok_url",
+            # Analytics
+            "gtm_container_id",
+            "ga_measurement_id",
+            # Cookie Banner
+            "cookie_banner_enabled",
+        ]
 
-        # Contact
-        settings.phone_number = BRAND_CONFIG["phone_number"]
-        settings.email = BRAND_CONFIG["email"]
-        settings.address = BRAND_CONFIG["address"]
-        settings.business_hours = BRAND_CONFIG["business_hours"]
-
-        # Colors
-        settings.primary_color = BRAND_CONFIG["primary_color"]
-        settings.secondary_color = BRAND_CONFIG["secondary_color"]
-        settings.accent_color = BRAND_CONFIG["accent_color"]
-        settings.background_color = BRAND_CONFIG["background_color"]
-        settings.text_color = BRAND_CONFIG["text_color"]
-        settings.surface_color = BRAND_CONFIG["surface_color"]
-        settings.surface_elevated_color = BRAND_CONFIG["surface_elevated_color"]
-        settings.text_light_color = BRAND_CONFIG["text_light_color"]
-
-        # Typography
-        settings.heading_font = BRAND_CONFIG["heading_font"]
-        settings.body_font = BRAND_CONFIG["body_font"]
-
-        # Social Links
-        settings.instagram_url = BRAND_CONFIG["instagram_url"]
-        settings.facebook_url = BRAND_CONFIG["facebook_url"]
-        settings.linkedin_url = BRAND_CONFIG["linkedin_url"]
-        settings.twitter_url = BRAND_CONFIG["twitter_url"]
-        settings.youtube_url = BRAND_CONFIG["youtube_url"]
-        settings.tiktok_url = BRAND_CONFIG["tiktok_url"]
-
-        # Analytics
-        settings.gtm_container_id = BRAND_CONFIG["gtm_container_id"]
-        settings.ga_measurement_id = BRAND_CONFIG["ga_measurement_id"]
-
-        # Cookie Banner
-        settings.cookie_banner_enabled = BRAND_CONFIG["cookie_banner_enabled"]
+        for field_name in brand_fields:
+            setattr(settings, field_name, BRAND_CONFIG[field_name])
 
         # Images (logo, favicon, OG)
         settings.header_logo = self._create_logo_image()
