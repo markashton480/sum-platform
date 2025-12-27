@@ -11,11 +11,10 @@ concurrency:
 
 jobs:
   claude-review:
-    # Skip draft PRs and release/hotfix PRs (those get audit instead)
+    # Skip draft PRs and release PRs (those get audit instead)
     if: |
       github.event.pull_request.draft == false &&
       !startsWith(github.head_ref, 'release/') &&
-      !startsWith(github.head_ref, 'hotfix/') &&
       github.head_ref != 'develop'
 
     runs-on: ubuntu-latest
@@ -258,4 +257,4 @@ jobs:
 
             If no issues found, keep review brief: checks passed, approved.
 
-          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(echo:*),View"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(echo:*),View"'
