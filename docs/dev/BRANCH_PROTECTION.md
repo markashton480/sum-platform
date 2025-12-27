@@ -129,6 +129,16 @@ Standard CI pipeline:
 - make typecheck # mypy (if enabled)
 ```
 
+**Docs/CI fast path:** If a PR only touches docs or CI tooling files,
+the `ci` workflow short-circuits heavy jobs (lint/tests) while still
+reporting required checks. This keeps governance intact without running
+full suites for documentation or pipeline-only changes.
+
+**Docs/CI-only scope:**
+- `docs/`
+- `.github/`, `.agent/`, `.claude/`
+- `AGENTS.md`, `CLAUDE.md`, `README.md`
+
 ### `claude-review` (Feature branches and above)
 
 Claude's strategic review must not request changes:
@@ -283,6 +293,9 @@ Add `codecov/project` and `codecov/patch` as required checks for feature branche
 | `release/*` | 1 | ✅ | ✅ | — | ✅ | ❌ |
 | `feature/*` | 0 | ✅ | ✅ | — | — | ❌ |
 | `task/*` | 0 | ✅ | — | — | — | ✅ |
+
+**Docs/CI-only changes:** CI runs in fast-path mode; required checks still
+report success, but lint/test jobs are skipped.
 
 ---
 
