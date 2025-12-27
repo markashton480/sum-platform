@@ -257,4 +257,4 @@ jobs:
 
             If no issues found, keep review brief: checks passed, approved.
 
-          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(echo:*),View"'
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(echo:*),View"'
