@@ -62,8 +62,7 @@ jobs:
             echo "docs_ci_only=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-
-          allowed_regex='^(docs/|\\.github/|\\.agent/|\\.claude/|AGENTS\\.md|CLAUDE\\.md|README\\.md)$'
+          allowed_regex='^(docs/|\\.agent/|\\.claude/|AGENTS\\.md|CLAUDE\\.md|README\\.md)'
           docs_ci_only=true
 
           while IFS= read -r file; do
