@@ -60,10 +60,13 @@ BRAND_CONFIG = {
 }
 
 
-class ImageSpec(TypedDict, total=False):
+class RequiredImageSpec(TypedDict):
     key: str
     width: int
     height: int
+
+
+class ImageSpec(RequiredImageSpec, total=False):
     bg: str
     text: str
     label: str
@@ -369,6 +372,7 @@ class PlaceholderImageGenerator:
     }
 
     def __init__(self, prefix: str = IMAGE_PREFIX) -> None:
+        """Namespace generated image titles for easy lookup/cleanup."""
         self.prefix = prefix
 
     def generate_image(
@@ -399,13 +403,7 @@ class PlaceholderImageGenerator:
         draw = ImageDraw.Draw(img)
 
         display_label = label or key.replace("_", " ").title()
-        font: ImageFont.FreeTypeFont | ImageFont.ImageFont
-        try:
-            font = ImageFont.truetype(
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24
-            )
-        except OSError:
-            font = ImageFont.load_default()
+        font = self._get_placeholder_font(24)
 
         bbox = draw.textbbox((0, 0), display_label, font=font)
         text_width = bbox[2] - bbox[0]
@@ -416,7 +414,14 @@ class PlaceholderImageGenerator:
         draw.text((x, y), display_label, fill=text, font=font)
 
         dims_text = f"{width}x{height}"
-        draw.text((10, height - 30), dims_text, fill=text, font=font)
+        dims_bbox = draw.textbbox((0, 0), dims_text, font=font)
+        dims_height = dims_bbox[3] - dims_bbox[1]
+        padding = 10
+        dims_x = padding
+        space_below_label = height - (y + text_height) - padding
+        if space_below_label >= dims_height:
+            dims_y = height - dims_height - padding
+            draw.text((dims_x, dims_y), dims_text, fill=text, font=font)
 
         buffer = BytesIO()
         img.save(buffer, format="JPEG", quality=85)
@@ -429,6 +434,24 @@ class PlaceholderImageGenerator:
         wagtail_image.height = img.height
         wagtail_image.save()
         return wagtail_image
+
+    def _get_placeholder_font(
+        self, size: int
+    ) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+        """
+        Choose a legible font from common locations, fallback to default.
+        """
+        candidates = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/Library/Fonts/Arial.ttf",
+            "C:\\Windows\\Fonts\\arial.ttf",
+        ]
+        for path in candidates:
+            try:
+                return ImageFont.truetype(path, size)
+            except OSError:
+                continue
+        return ImageFont.load_default()
 
 
 class Command(BaseCommand):
@@ -478,6 +501,11 @@ class Command(BaseCommand):
         self.stdout.write(f"Configured branding for {settings.company_name}")
 
     def create_images(self) -> dict[str, Image]:
+        """
+        Generate or retrieve placeholder images for each manifest entry.
+
+        Idempotent: existing images are reused based on title matching.
+        """
         generator = PlaceholderImageGenerator(prefix=self.image_prefix)
         images: dict[str, Image] = {}
 
@@ -493,8 +521,7 @@ class Command(BaseCommand):
             images[spec["key"]] = img
             self.stdout.write(f"  Created: {spec['key']}")
 
-        self.images = images
-        self.stdout.write(f"Generated {len(images)} images")
+        self.stdout.write(f"Created {len(images)} placeholder images")
         return images
 
     def _setup_site(self, *, hostname: str, port: int) -> tuple[Site, HomePage]:
