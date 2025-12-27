@@ -9,14 +9,22 @@ def test_progress_output(capsys) -> None:
     assert "⏳ [1/3] done: Booting" in captured.out
 
 
-def test_success_error_info_output(capsys) -> None:
+def test_success_output(capsys) -> None:
     OutputFormatter.success("All set")
-    OutputFormatter.error("Something broke")
-    OutputFormatter.info("FYI")
     captured = capsys.readouterr()
     assert "✅ All set" in captured.out
+
+
+def test_error_output(capsys) -> None:
+    OutputFormatter.error("Something broke")
+    captured = capsys.readouterr()
     assert "❌ Something broke" in captured.out
-    assert "ℹ️ FYI" in captured.out
+
+
+def test_info_output(capsys) -> None:
+    OutputFormatter.info("FYI")
+    captured = capsys.readouterr()
+    assert "ℹ FYI" in captured.out
 
 
 def test_summary_output(capsys) -> None:

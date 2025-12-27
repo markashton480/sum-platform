@@ -75,6 +75,15 @@ def test_get_clients_dir_monorepo(tmp_path: Path) -> None:
     assert get_clients_dir(repo_root) == clients_dir
 
 
+def test_get_clients_dir_monorepo_missing_clients(tmp_path: Path) -> None:
+    repo_root = tmp_path / "repo"
+    (repo_root / "core").mkdir(parents=True)
+    (repo_root / "boilerplate").mkdir()
+
+    with pytest.raises(FileNotFoundError, match="Cannot locate clients directory"):
+        get_clients_dir(repo_root)
+
+
 def test_get_clients_dir_standalone(tmp_path: Path) -> None:
     project_root = tmp_path / "project"
     clients_dir = project_root / "clients"

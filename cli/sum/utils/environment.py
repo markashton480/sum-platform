@@ -39,7 +39,9 @@ def get_clients_dir(start_path: Path | None = None) -> Path:
     """Resolve the clients directory for monorepo or standalone mode."""
     repo_root = find_monorepo_root(start_path)
     if repo_root is not None:
-        return repo_root / "clients"
+        monorepo_clients = repo_root / "clients"
+        if monorepo_clients.is_dir():
+            return monorepo_clients
 
     search_path = _normalize_start_path(start_path)
     standalone_clients = search_path / "clients"
