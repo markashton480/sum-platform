@@ -39,9 +39,10 @@ class SetupOrchestrator:
         self.project_path = project_path
         self.mode = mode
 
-        # Initialize components
+        # Initialize components (reused across setup steps)
         self.venv_manager = VenvManager()
         self.deps_manager = DependencyManager(venv_manager=self.venv_manager)
+        self.django_executor: DjangoCommandExecutor | None = None
 
     def run_full_setup(self, config: SetupConfig) -> SetupResult:
         """Run complete setup based on configuration.
@@ -136,6 +137,16 @@ class SetupOrchestrator:
         """
         OutputFormatter.progress(step, total, message, status)
 
+    def _get_django_executor(self) -> DjangoCommandExecutor:
+        """Get or create the Django command executor (lazy initialization).
+
+        Returns:
+            The DjangoCommandExecutor instance.
+        """
+        if self.django_executor is None:
+            self.django_executor = DjangoCommandExecutor(self.project_path, self.mode)
+        return self.django_executor
+
     def _setup_venv(self, config: SetupConfig) -> None:
         """Create virtualenv.
 
@@ -158,8 +169,7 @@ class SetupOrchestrator:
         Args:
             config: The setup configuration.
         """
-        executor = DjangoCommandExecutor(self.project_path, self.mode)
-        db_manager = DatabaseManager(executor)
+        db_manager = DatabaseManager(self._get_django_executor())
         db_manager.migrate()
 
     def _seed_content(self, config: SetupConfig) -> None:
@@ -168,8 +178,7 @@ class SetupOrchestrator:
         Args:
             config: The setup configuration.
         """
-        executor = DjangoCommandExecutor(self.project_path, self.mode)
-        seeder = ContentSeeder(executor)
+        seeder = ContentSeeder(self._get_django_executor())
         seeder.seed_homepage(preset=config.seed_preset)
 
     def _create_superuser(self, config: SetupConfig) -> Path:
@@ -181,8 +190,7 @@ class SetupOrchestrator:
         Returns:
             Path to the credentials file (.env.local).
         """
-        executor = DjangoCommandExecutor(self.project_path, self.mode)
-        auth_manager = SuperuserManager(executor, self.project_path)
+        auth_manager = SuperuserManager(self._get_django_executor(), self.project_path)
         result = auth_manager.create(
             username=config.superuser_username,
             email=config.superuser_email,
@@ -197,9 +205,12 @@ class SetupOrchestrator:
             config: The setup configuration.
 
         Note:
-            This is a placeholder for scaffolding logic to be integrated from init command.
+            INTENTIONAL NO-OP: This step is deferred to issue #217 (Enhanced Init Command).
+            The existing init command's scaffolding logic will be integrated here when
+            the init command is refactored to use SetupOrchestrator. For now, this is
+            a placeholder that allows the orchestrator to reserve a step in the sequence.
         """
-        # TODO: Implementation to be integrated from existing init command
+        # Intentionally empty - scaffolding deferred to #217 (Enhanced Init Command)
         pass
 
     def _validate(self, config: SetupConfig) -> None:
@@ -209,9 +220,12 @@ class SetupOrchestrator:
             config: The setup configuration.
 
         Note:
-            This is a placeholder for validation logic to be integrated from init command.
+            INTENTIONAL NO-OP: This step is deferred to issue #217 (Enhanced Init Command).
+            The existing init command's validation logic will be integrated here when
+            the init command is refactored to use SetupOrchestrator. For now, this is
+            a placeholder that allows the orchestrator to reserve a step in the sequence.
         """
-        # TODO: Implementation to be integrated from existing init command
+        # Intentionally empty - validation deferred to #217 (Enhanced Init Command)
         pass
 
     def _start_server(self, config: SetupConfig) -> None:
@@ -219,8 +233,18 @@ class SetupOrchestrator:
 
         Args:
             config: The setup configuration.
+
+        Note:
+            If venv was skipped (skip_venv=True), falls back to sys.executable.
+            This allows server start to work even without a virtualenv.
         """
-        python = self.venv_manager.get_python_executable(self.project_path)
+        import sys
+
+        # Use venv python if available, otherwise fall back to system python
+        if self.venv_manager.exists(self.project_path):
+            python = self.venv_manager.get_python_executable(self.project_path)
+        else:
+            python = Path(sys.executable)
 
         # Start server as background process
         subprocess.Popen(

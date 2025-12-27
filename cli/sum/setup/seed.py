@@ -54,16 +54,27 @@ class ContentSeeder:
 
         Returns:
             True if homepage exists, False otherwise.
+
+        Raises:
+            SeedError: If the Django shell command fails.
         """
         result = self.django.run_command(
             [
                 "shell",
                 "-c",
-                "from home.models import HomePage; "
-                "print(HomePage.objects.filter(slug='home').exists())",
+                (
+                    "from home.models import HomePage; "
+                    "print(HomePage.objects.filter(slug='home').exists())"
+                ),
             ],
             check=False,
         )
+
+        if result.returncode != 0:
+            raise SeedError(
+                f"Failed to check homepage existence: {result.stderr or result.stdout}"
+            )
+
         return result.stdout.strip().lower() == "true"
 
     def _extract_page_id(self, output: str) -> int | None:

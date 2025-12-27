@@ -326,12 +326,17 @@ def test_create_superuser_calls_superuser_manager(
 
 
 @patch("cli.sum.setup.orchestrator.subprocess.Popen")
+@patch("cli.sum.setup.orchestrator.VenvManager.exists")
 @patch("cli.sum.setup.orchestrator.VenvManager.get_python_executable")
 def test_start_server_calls_subprocess(
-    mock_get_python: MagicMock, mock_popen: MagicMock, tmp_project_path: Path
+    mock_get_python: MagicMock,
+    mock_venv_exists: MagicMock,
+    mock_popen: MagicMock,
+    tmp_project_path: Path,
 ) -> None:
-    """Test _start_server starts Django dev server."""
+    """Test _start_server starts Django dev server with venv."""
     python_path = tmp_project_path / ".venv" / "bin" / "python"
+    mock_venv_exists.return_value = True
     mock_get_python.return_value = python_path
 
     config = SetupConfig(port=8080)
@@ -339,6 +344,7 @@ def test_start_server_calls_subprocess(
 
     orchestrator._start_server(config)
 
+    mock_venv_exists.assert_called_once_with(tmp_project_path)
     mock_get_python.assert_called_once_with(tmp_project_path)
     mock_popen.assert_called_once()
     call_args = mock_popen.call_args
@@ -346,6 +352,39 @@ def test_start_server_calls_subprocess(
     # Verify command
     assert call_args[0][0] == [
         str(python_path),
+        "manage.py",
+        "runserver",
+        "127.0.0.1:8080",
+    ]
+
+    # Verify working directory
+    assert call_args[1]["cwd"] == tmp_project_path
+
+
+@patch("cli.sum.setup.orchestrator.subprocess.Popen")
+@patch("cli.sum.setup.orchestrator.VenvManager.exists")
+def test_start_server_without_venv_uses_system_python(
+    mock_venv_exists: MagicMock,
+    mock_popen: MagicMock,
+    tmp_project_path: Path,
+) -> None:
+    """Test _start_server falls back to sys.executable when venv doesn't exist."""
+    import sys
+
+    mock_venv_exists.return_value = False
+
+    config = SetupConfig(port=8080, skip_venv=True, run_server=True)
+    orchestrator = SetupOrchestrator(tmp_project_path, ExecutionMode.STANDALONE)
+
+    orchestrator._start_server(config)
+
+    mock_venv_exists.assert_called_once_with(tmp_project_path)
+    mock_popen.assert_called_once()
+    call_args = mock_popen.call_args
+
+    # Verify command uses system python (sys.executable)
+    assert call_args[0][0][0] == sys.executable
+    assert call_args[0][0][1:] == [
         "manage.py",
         "runserver",
         "127.0.0.1:8080",

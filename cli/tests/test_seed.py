@@ -135,8 +135,10 @@ def test_check_homepage_exists_true(mock_executor: MagicMock) -> None:
         [
             "shell",
             "-c",
-            "from home.models import HomePage; "
-            "print(HomePage.objects.filter(slug='home').exists())",
+            (
+                "from home.models import HomePage; "
+                "print(HomePage.objects.filter(slug='home').exists())"
+            ),
         ],
         check=False,
     )
@@ -194,3 +196,52 @@ def test_extract_page_id_with_various_formats(mock_executor: MagicMock) -> None:
         )
         result = seeder.seed_homepage()
         assert result.page_id == expected_id
+
+
+def test_check_homepage_exists_raises_on_import_error(
+    mock_executor: MagicMock,
+) -> None:
+    """Test check_homepage_exists raises SeedError on ImportError."""
+    mock_executor.run_command.return_value = subprocess.CompletedProcess(
+        args=[
+            "python",
+            "manage.py",
+            "shell",
+            "-c",
+            "from home.models import HomePage; print(HomePage.objects.filter(slug='home').exists())",
+        ],
+        returncode=1,
+        stdout="",
+        stderr="ImportError: No module named 'home'",
+    )
+
+    seeder = ContentSeeder(mock_executor)
+
+    with pytest.raises(SeedError, match="Failed to check homepage existence"):
+        seeder.check_homepage_exists()
+
+
+def test_check_homepage_exists_raises_on_database_error(
+    mock_executor: MagicMock,
+) -> None:
+    """Test check_homepage_exists raises SeedError on database connection issues."""
+    mock_executor.run_command.return_value = subprocess.CompletedProcess(
+        args=[
+            "python",
+            "manage.py",
+            "shell",
+            "-c",
+            "from home.models import HomePage; print(HomePage.objects.filter(slug='home').exists())",
+        ],
+        returncode=1,
+        stdout="",
+        stderr="django.db.utils.OperationalError: could not connect to server",
+    )
+
+    seeder = ContentSeeder(mock_executor)
+
+    with pytest.raises(
+        SeedError,
+        match="Failed to check homepage existence.*could not connect to server",
+    ):
+        seeder.check_homepage_exists()
