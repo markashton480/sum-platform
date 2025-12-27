@@ -11,7 +11,7 @@ These values appear throughout and should be defined once:
 ```python
 BRAND = {
     "company_name": "Sage & Stone",
-    "established_year": 2025,
+    "established_year": 2005,
     "tagline": "Rooms that remember",
     "phone": "+44 (0) 20 1234 5678",
     "email": "hello@sageandstone.com",

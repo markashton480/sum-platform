@@ -1,10 +1,16 @@
-# Work Order: Sage & Stone Site Seeder (v2.0.0)
+# Work Order: Sage & Stone Site Seeder (v0.6.0)
 
 ---
 
 ## Parent
 
-**Version Declaration:** TBD (v2.0.0)
+**Version Declaration:** #TBD (v0.6.0)
+
+**Version Context:**
+- **Platform/Core Version:** v0.6.0 (sum-platform, sum-core)
+- **CLI Tool Version:** v2.0.0 (sum-cli)
+- **Relationship:** CLI v2.0.0 is being developed AS PART OF platform v0.6.0 release
+- **Related Work:** See #210 (CLI v2 Work Order) and #190 (CLI v2 subtasks)
 
 ---
 
@@ -12,10 +18,10 @@
 
 | Branch                     | Target          |
 | -------------------------- | --------------- |
-| `feature/sage-stone-seeder` | `release/2.0.0` |
+| `feature/sage-stone-seeder` | `release/0.6.0` |
 
 ```bash
-git checkout release/2.0.0
+git checkout release/0.6.0
 git checkout -b feature/sage-stone-seeder
 git push -u origin feature/sage-stone-seeder
 ```
@@ -29,6 +35,7 @@ git push -u origin feature/sage-stone-seeder
 - [ ] Configure navigation (header mega menu + footer), branding, and site settings
 - [ ] Generate placeholder images matching wireframe dimensions using PIL
 - [ ] Ensure idempotent operation with proper Wagtail page handling
+- [ ] Integrate with CLI v2.0.0 tooling (`sum init sage-and-stone --theme theme_a --seed-site`)
 
 ---
 
@@ -55,11 +62,16 @@ git push -u origin feature/sage-stone-seeder
    - Image generation outside transaction (see Architecture Decision)
    - DB operations in atomic block where appropriate
 
+4. CLI v2.0.0 integration:
+   - Command callable via `sum init sage-and-stone --seed-site` (CLI v2 tooling)
+   - Coordinate with CLI v2 subtasks (#210, #190) for integration points
+   - Works both as standalone management command and CLI-invoked seeder
+   - Complements existing `seed_showroom` command
+
 ### Out of Scope
 - Theme CSS/template modifications (theme concern)
 - Form submission handling (uses existing infrastructure)
 - Real image assets (use generated placeholders)
-- CLI v2 integration (Phase 2)
 - Multi-site support (single site demo)
 - Alert banner functionality (theme enhancement)
 
@@ -133,7 +145,7 @@ make lint && make test
 
 ```bash
 git fetch origin
-git rebase origin/release/2.0.0
+git rebase origin/release/0.6.0
 source .venv/bin/activate
 make lint && make test
 
@@ -171,7 +183,7 @@ python manage.py runserver
 - [ ] `type:work-order`
 - [ ] `component:cli`
 - [ ] `risk:medium`
-- [ ] Milestone: `v2.0.0`
+- [ ] Milestone: `v0.6.0`
 
 ---
 
@@ -183,7 +195,7 @@ python manage.py runserver
 - [ ] Manual QA confirms content matches wireframes
 - [ ] `seed_sage_stone --clear` works without errors
 - [ ] Documentation updated with usage instructions
-- [ ] Feature branch merged to `release/2.0.0` (PR approved)
+- [ ] Feature branch merged to `release/0.6.0` (PR approved)
 - [ ] No regressions to existing `seed_showroom` command
 
 ---
@@ -434,10 +446,10 @@ Kitchens (top)
 ## Target Usage
 
 ```bash
-# Future CLI v2 integration
+# Primary: CLI v2.0.0 integration (part of platform v0.6.0)
 sum init sage-and-stone --theme theme_a --seed-site
 
-# Current: Management command approach
+# Alternative: Direct management command
 python manage.py seed_sage_stone [--clear] [--images-only] [--content-only]
 ```
 
@@ -462,3 +474,6 @@ python manage.py seed_sage_stone [--clear] [--images-only] [--content-only]
 - sum_core blocks and page types available
 - PIL/Pillow for placeholder image generation
 - Database migrated with all sum_core models
+- CLI v2.0.0 tooling for integration (coordinate with #210, #190)
+  - `sum init` command with `--seed-site` flag
+  - Seeder orchestration framework from CLI v2 subtasks
