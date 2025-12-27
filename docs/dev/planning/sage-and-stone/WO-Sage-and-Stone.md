@@ -4,7 +4,7 @@
 
 ## Parent
 
-**Version Declaration:** #TBD (v0.6.0)
+**Version Declaration:** (v0.6.0)
 
 **Version Context:**
 - **Platform/Core Version:** v0.6.0 (sum-platform, sum-core)
