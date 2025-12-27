@@ -1,10 +1,27 @@
 # SUM CLI User Guide (v2)
 
-This guide covers the SUM Platform CLI tool, which provides commands for creating and managing SUM client projects.
+## ⚠️ Important: CLI v2 Availability
+
+**CLI v2 is currently available in monorepo development mode ONLY.**
+
+The features documented in this guide require installing the CLI in editable mode from the repository. The published package (v0.1.0) still ships CLI v1.
+
+**To use CLI v2 now:**
+```bash
+git clone https://github.com/markashton480/sum-platform.git
+cd sum-platform
+pip install -e ./cli
+```
+
+**Published package users:** See [CLI v1 reference](../cli.md#cli-v1-reference) for the currently shipped features.
+
+---
+
+This guide covers the SUM Platform CLI tool v2, which provides commands for creating and managing SUM client projects.
 
 ## Overview
 
-The SUM CLI (`sum`) provides three main commands:
+The SUM CLI v2 (`sum`) provides three main commands:
 
 - **`sum init`** - Initialize new client projects with optional full setup
 - **`sum run`** - Start the development server
@@ -12,7 +29,7 @@ The SUM CLI (`sum`) provides three main commands:
 
 ## Installation
 
-### Monorepo Development Mode
+### Monorepo Development Mode (Required for v2)
 
 From the repository root:
 
@@ -23,8 +40,10 @@ pip install -e ./cli
 
 ### Standalone Installation
 
+**Note:** The published package currently ships CLI v1 only. CLI v2 features are not yet available.
+
 ```bash
-pip install sum-cli
+pip install sum-cli  # Installs CLI v1 (basic scaffolding only)
 ```
 
 ## Commands

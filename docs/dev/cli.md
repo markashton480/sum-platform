@@ -2,14 +2,44 @@
 
 ## Quick Links
 
-📘 **[CLI User Guide](./CLI_USER_GUIDE.md)** - Complete user documentation for all commands
-🔧 **[CLI Developer Guide](./CLI_DEVELOPER_GUIDE.md)** - Architecture, testing, and development guide
+📘 **[CLI User Guide](./cli/USER_GUIDE.md)** - Complete user documentation for all commands
+🔧 **[CLI Developer Guide](./cli/DEVELOPER_GUIDE.md)** - Architecture, testing, and development guide
 
 ---
 
-## CLI v2 Overview
+## ⚠️ Important: CLI v2 Status
 
-The SUM CLI (`sum`) provides three main commands for creating and managing client projects:
+**CLI v2 code exists in this repository but is NOT YET PACKAGED for distribution.**
+
+The documentation below describes CLI v2 features that are available when running from the monorepo (`pip install -e ./cli`), but are **not available** in published packages. The published package still ships CLI v1.
+
+**Current packaging status:**
+- ✅ CLI v2 code: Merged in PR #250 (`cli/sum/` directory)
+- ✅ CLI v2 tests: 200 tests, 100% coverage
+- ❌ CLI v2 packaging: Not yet configured in `cli/pyproject.toml`
+- ❌ CLI v2 distribution: Not yet published
+
+**To use CLI v2 features now:**
+```bash
+# Clone the repository
+git clone https://github.com/markashton480/sum-platform.git
+cd sum-platform
+
+# Install in editable mode
+pip install -e ./cli
+
+# Verify you have v2
+sum init --help  # Should show --full, --quick flags
+```
+
+**For published package users:**
+The current published package (v0.1.0) provides CLI v1 features only. See "CLI v1 Reference" section below.
+
+---
+
+## CLI v2 Overview (Monorepo Development Only)
+
+The SUM CLI v2 (`sum`) provides three main commands for creating and managing client projects:
 
 - **`sum init`** - Initialize projects with optional full setup (venv, deps, migrations, seed, superuser)
 - **`sum run`** - Start development server with automatic port fallback
@@ -17,7 +47,9 @@ The SUM CLI (`sum`) provides three main commands for creating and managing clien
 
 ### What's New in v2
 
-**Note:** The `--theme` flag from v1 is not available in v2 yet. All projects use `theme_a` by default.
+**Notes:**
+- The `--theme` flag from v1 is not available in v2 yet. All projects use `theme_a` by default.
+- CLI v2 is available in monorepo development mode only (not yet packaged/published)
 
 ✅ **Enhanced `sum init`:**
 - `--full` mode for complete setup (venv → deps → migrate → seed → superuser)

@@ -1,5 +1,22 @@
 # SUM CLI Developer Guide (v2)
 
+## ⚠️ Important: CLI v2 Status
+
+**CLI v2 code is merged but NOT YET PACKAGED for distribution.**
+
+This guide documents the CLI v2 architecture and implementation that exists in the `cli/sum/` directory. However, `cli/pyproject.toml` still points to the v1 implementation (`sum_cli`).
+
+**Packaging status:**
+- ✅ Code: Merged in PR #250 (`cli/sum/` directory)
+- ✅ Tests: 200 tests with 100% coverage
+- ❌ Packaging: `cli/pyproject.toml` needs updating to ship v2
+- ❌ Dependencies: Click dependency not declared in pyproject.toml
+- ❌ Version: Still at 0.1.0 (v1)
+
+**Related issue:** Track packaging work in a future PR/issue.
+
+---
+
 This guide is for maintainers and developers working on the SUM Platform CLI tool itself.
 
 ## Table of Contents
