@@ -40,3 +40,23 @@ def test_summary_output(capsys) -> None:
     assert "🏷️  Project: demo-project" in captured.out
     assert "✅ Location: /tmp/demo" in captured.out
     assert "✅ Status: ready" in captured.out
+
+
+def test_summary_omits_sensitive_fields(capsys) -> None:
+    OutputFormatter.summary(
+        "demo-project",
+        {
+            "password": "secret",
+            "Location": "/tmp/demo",
+        },
+    )
+    captured = capsys.readouterr()
+    assert "secret" not in captured.out
+    assert "✅ Location: /tmp/demo" in captured.out
+
+
+def test_output_can_be_silent(capsys) -> None:
+    message = OutputFormatter.success("quiet success", emit=False)
+    captured = capsys.readouterr()
+    assert message == "✅ quiet success"
+    assert captured.out == ""

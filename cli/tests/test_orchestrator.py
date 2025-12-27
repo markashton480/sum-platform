@@ -33,7 +33,7 @@ def test_build_step_list_full_setup(tmp_project_path: Path) -> None:
     orchestrator = SetupOrchestrator(tmp_project_path, ExecutionMode.STANDALONE)
 
     steps = orchestrator._build_step_list(config)
-    step_names = [name for name, _ in steps]
+    step_names = [name.value for name, _ in steps]
 
     assert "Scaffolding structure" in step_names
     assert "Validating structure" in step_names
@@ -51,7 +51,7 @@ def test_build_step_list_quick_mode(tmp_project_path: Path) -> None:
     orchestrator = SetupOrchestrator(tmp_project_path, ExecutionMode.STANDALONE)
 
     steps = orchestrator._build_step_list(config)
-    step_names = [name for name, _ in steps]
+    step_names = [name.value for name, _ in steps]
 
     assert len(steps) == 4
     assert "Scaffolding structure" in step_names
@@ -69,7 +69,7 @@ def test_build_step_list_skip_venv(tmp_project_path: Path) -> None:
     orchestrator = SetupOrchestrator(tmp_project_path, ExecutionMode.STANDALONE)
 
     steps = orchestrator._build_step_list(config)
-    step_names = [name for name, _ in steps]
+    step_names = [name.value for name, _ in steps]
 
     assert "Creating virtualenv" not in step_names
     assert "Installing dependencies" not in step_names
@@ -82,7 +82,7 @@ def test_build_step_list_skip_migrations(tmp_project_path: Path) -> None:
     orchestrator = SetupOrchestrator(tmp_project_path, ExecutionMode.STANDALONE)
 
     steps = orchestrator._build_step_list(config)
-    step_names = [name for name, _ in steps]
+    step_names = [name.value for name, _ in steps]
 
     assert "Running migrations" not in step_names
     assert "Creating virtualenv" in step_names
@@ -95,7 +95,7 @@ def test_build_step_list_skip_seed(tmp_project_path: Path) -> None:
     orchestrator = SetupOrchestrator(tmp_project_path, ExecutionMode.STANDALONE)
 
     steps = orchestrator._build_step_list(config)
-    step_names = [name for name, _ in steps]
+    step_names = [name.value for name, _ in steps]
 
     assert "Seeding homepage" not in step_names
     assert "Running migrations" in step_names
@@ -108,7 +108,7 @@ def test_build_step_list_skip_superuser(tmp_project_path: Path) -> None:
     orchestrator = SetupOrchestrator(tmp_project_path, ExecutionMode.STANDALONE)
 
     steps = orchestrator._build_step_list(config)
-    step_names = [name for name, _ in steps]
+    step_names = [name.value for name, _ in steps]
 
     assert "Creating superuser" not in step_names
     assert "Seeding homepage" in step_names
@@ -120,7 +120,7 @@ def test_build_step_list_with_server(tmp_project_path: Path) -> None:
     orchestrator = SetupOrchestrator(tmp_project_path, ExecutionMode.STANDALONE)
 
     steps = orchestrator._build_step_list(config)
-    step_names = [name for name, _ in steps]
+    step_names = [name.value for name, _ in steps]
 
     assert "Starting server" in step_names
     assert step_names[-1] == "Starting server"  # Should be last step
