@@ -340,10 +340,9 @@ def test_mime_type_validation_rejects_spoofed_extensions(wagtail_default_site):
     assert not form.is_valid(), "Spoofed EXE as PDF should fail"
     assert "document" in form.errors
     assert any(
-        "content does not match" in str(e).lower()
-        or "expected format" in str(e).lower()
+        "appears to be" in str(e).lower() and "expected" in str(e).lower()
         for e in form.errors["document"]
-    )
+    ), f"Expected MIME mismatch error, got: {form.errors['document']}"
 
 
 @pytest.mark.django_db
