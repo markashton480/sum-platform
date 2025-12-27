@@ -84,7 +84,7 @@ sum run my-project
 sum check my-project
 ```
 
-See [CLI User Guide](./CLI_USER_GUIDE.md) for complete documentation.
+See [CLI User Guide](./cli/USER_GUIDE.md) for complete documentation.
 
 ---
 

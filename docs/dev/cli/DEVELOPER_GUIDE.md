@@ -1053,8 +1053,8 @@ Closes #124
 
 ### Documentation Standards
 
-- User-facing docs in `docs/dev/CLI_USER_GUIDE.md`
-- Developer docs in `docs/dev/CLI_DEVELOPER_GUIDE.md`
+- User-facing docs in `docs/dev/cli/USER_GUIDE.md`
+- Developer docs in `docs/dev/cli/DEVELOPER_GUIDE.md`
 - Update both for significant changes
 - Include code examples
 - Keep up to date with implementation
@@ -1079,7 +1079,7 @@ Closes #124
 
 ### Related Documentation
 
-- [CLI User Guide](./CLI_USER_GUIDE.md) - End-user command documentation
+- [CLI User Guide](./USER_GUIDE.md) - End-user command documentation
 - [Theme Guide](./THEME-GUIDE.md) - Theme system documentation
 - [Release Runbook](../ops-pack/RELEASE_RUNBOOK.md) - Release process
 - [Git Strategy](../../GIT_STRATEGY.md) - Branching model
