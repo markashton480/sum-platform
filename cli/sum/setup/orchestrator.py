@@ -5,6 +5,7 @@ from __future__ import annotations
 import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 
 from cli.sum.config import SetupConfig
@@ -27,6 +28,23 @@ class SetupResult:
     project_path: Path
     credentials_path: Path | None = None
     url: str = "http://127.0.0.1:8000/"
+
+
+class SetupStep(str, Enum):
+    """Ordered, typed identifiers for setup steps."""
+
+    SCAFFOLD = "Scaffolding structure"
+    VALIDATE = "Validating structure"
+    CREATE_VENV = "Creating virtualenv"
+    INSTALL_DEPS = "Installing dependencies"
+    MIGRATE = "Running migrations"
+    SEED = "Seeding homepage"
+    CREATE_SUPERUSER = "Creating superuser"
+    START_SERVER = "Starting server"
+
+
+StepFunction = Callable[[SetupConfig], Path | None]
+StepDefinition = tuple[SetupStep, StepFunction]
 
 
 class SetupOrchestrator:
@@ -63,19 +81,19 @@ class SetupOrchestrator:
         credentials_path: Path | None = None
 
         for step_num, (step_name, step_func) in enumerate(steps, 1):
-            self._show_progress(step_num, total_steps, step_name, "⏳")
+            self._show_progress(step_num, total_steps, step_name.value, "⏳")
             try:
                 result = step_func(config)
-                if step_name == "Creating superuser" and result:
+                if step_name is SetupStep.CREATE_SUPERUSER and result:
                     credentials_path = result
-                self._show_progress(step_num, total_steps, step_name, "✅")
+                self._show_progress(step_num, total_steps, step_name.value, "✅")
             except SetupError:
-                self._show_progress(step_num, total_steps, step_name, "❌")
+                self._show_progress(step_num, total_steps, step_name.value, "❌")
                 raise
             except Exception as e:
                 # Wrap unexpected exceptions
-                self._show_progress(step_num, total_steps, step_name, "❌")
-                raise SetupError(f"Unexpected error in '{step_name}': {e}") from e
+                self._show_progress(step_num, total_steps, step_name.value, "❌")
+                raise SetupError(f"Unexpected error in '{step_name.value}': {e}") from e
 
         return SetupResult(
             success=True,
@@ -84,9 +102,7 @@ class SetupOrchestrator:
             url=f"http://127.0.0.1:{config.port}/",
         )
 
-    def _build_step_list(
-        self, config: SetupConfig
-    ) -> list[tuple[str, Callable[[SetupConfig], Path | None]]]:
+    def _build_step_list(self, config: SetupConfig) -> list[StepDefinition]:
         """Build list of steps to execute based on config.
 
         Args:
@@ -96,15 +112,15 @@ class SetupOrchestrator:
             List of (step_name, step_function) tuples to execute.
         """
         # Always include scaffold and validate
-        steps: list[tuple[str, Callable[[SetupConfig], Path | None]]] = [
-            ("Scaffolding structure", self._scaffold),
-            ("Validating structure", self._validate),
+        steps: list[StepDefinition] = [
+            (SetupStep.SCAFFOLD, self._scaffold),
+            (SetupStep.VALIDATE, self._validate),
         ]
 
         # Venv and deps (unless skipped)
         if not config.skip_venv:
-            steps.append(("Creating virtualenv", self._setup_venv))
-            steps.append(("Installing dependencies", self._install_deps))
+            steps.append((SetupStep.CREATE_VENV, self._setup_venv))
+            steps.append((SetupStep.INSTALL_DEPS, self._install_deps))
 
         # Quick mode stops here
         if config.quick:
@@ -112,17 +128,17 @@ class SetupOrchestrator:
 
         # DB operations
         if not config.skip_migrations:
-            steps.append(("Running migrations", self._migrate))
+            steps.append((SetupStep.MIGRATE, self._migrate))
 
         if not config.skip_seed:
-            steps.append(("Seeding homepage", self._seed_content))
+            steps.append((SetupStep.SEED, self._seed_content))
 
         if not config.skip_superuser:
-            steps.append(("Creating superuser", self._create_superuser))
+            steps.append((SetupStep.CREATE_SUPERUSER, self._create_superuser))
 
         # Server (only if requested)
         if config.run_server:
-            steps.append(("Starting server", self._start_server))
+            steps.append((SetupStep.START_SERVER, self._start_server))
 
         return steps
 

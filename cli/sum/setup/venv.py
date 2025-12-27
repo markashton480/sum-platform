@@ -29,8 +29,9 @@ class VenvManager:
             )
         except subprocess.CalledProcessError as exc:
             OutputFormatter.error("Failed to create virtualenv")
+            details = exc.stderr or exc.stdout or "Unknown error"
             raise VenvError(
-                f"Failed to create virtualenv at {venv_path}: {exc.stderr}"
+                f"Failed to create virtualenv at {venv_path}: {details}"
             ) from exc
 
         OutputFormatter.success(f"Virtualenv created at {venv_path}")
