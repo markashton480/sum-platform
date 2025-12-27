@@ -52,3 +52,21 @@ def get_clients_dir(start_path: Path | None = None) -> Path:
         "Cannot locate clients directory. Ensure you're running inside the monorepo "
         "or from a standalone project root that contains a 'clients' folder."
     )
+
+
+def resolve_project_path(project: str | None, start_path: Path | None = None) -> Path:
+    """Resolve a project path from name or current directory."""
+    if project:
+        clients_dir = get_clients_dir(start_path)
+        project_path = clients_dir / project
+        if project_path.is_dir():
+            return project_path
+        raise FileNotFoundError(f"Project not found: {project}")
+
+    cwd = _normalize_start_path(start_path)
+    if (cwd / "manage.py").exists():
+        return cwd
+
+    raise FileNotFoundError(
+        "Not in a project directory. Either cd into a project or specify project name."
+    )
