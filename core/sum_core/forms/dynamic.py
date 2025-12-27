@@ -8,15 +8,185 @@ Dependencies: Django forms, FormDefinition fields.
 
 from __future__ import annotations
 
+import logging
 import os
 import time
 from typing import Any
 
 from django import forms
 
+try:
+    import magic
+
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
+
 FORM_CLASS_CACHE_TTL_SECONDS = 3600
 # In-process cache: not shared across workers or persisted across restarts.
 _FORM_CLASS_CACHE: dict[str, tuple[float, type[forms.Form]]] = {}
+
+# MIME type mapping for common file extensions
+# Maps file extensions to expected MIME types for validation
+# Note: Modern Office "x" formats (e.g. .docx, .xlsx, .pptx) are ZIP archives,
+# so application/zip is also accepted for those extensions.
+# Text-based formats include common MIME type variants/aliases.
+EXTENSION_TO_MIME_TYPES = {
+    ".pdf": ["application/pdf"],
+    ".doc": ["application/msword"],
+    ".docx": [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/zip",
+    ],
+    ".xls": ["application/vnd.ms-excel"],
+    ".xlsx": [
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/zip",
+    ],
+    ".ppt": ["application/vnd.ms-powerpoint"],
+    ".pptx": [
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/zip",
+    ],
+    ".txt": [
+        "text/plain",
+        "text/plain; charset=utf-8",
+        "text/plain; charset=us-ascii",
+    ],
+    ".csv": [
+        "text/csv",
+        "text/plain",
+        "application/csv",
+        "text/comma-separated-values",
+        "application/vnd.ms-excel",  # Excel sometimes opens CSVs
+    ],
+    ".jpg": ["image/jpeg"],
+    ".jpeg": ["image/jpeg"],
+    ".png": ["image/png"],
+    ".gif": ["image/gif"],
+    ".bmp": ["image/bmp", "image/x-ms-bmp"],
+    ".tiff": ["image/tiff"],
+    ".tif": ["image/tiff"],
+    ".svg": ["image/svg+xml", "application/xml", "text/xml"],
+    ".webp": ["image/webp"],
+    ".zip": ["application/zip", "application/x-zip-compressed"],
+    ".rar": ["application/x-rar-compressed", "application/vnd.rar"],
+    ".7z": ["application/x-7z-compressed"],
+    ".tar": ["application/x-tar"],
+    ".gz": ["application/gzip", "application/x-gzip"],
+    ".mp3": ["audio/mpeg"],
+    ".wav": ["audio/wav", "audio/x-wav"],
+    ".mp4": ["video/mp4"],
+    ".avi": ["video/x-msvideo"],
+    ".mov": ["video/quicktime"],
+    ".webm": ["video/webm"],
+    ".json": [
+        "application/json",
+        "text/json",
+        "text/plain",  # JSON often detected as plain text
+    ],
+    ".xml": ["application/xml", "text/xml"],
+}
+
+
+def _validate_mime_type(uploaded_file, allowed_extensions: list[str]) -> str | None:
+    """
+    Validate file's actual MIME type matches its extension.
+
+    Args:
+        uploaded_file: Django UploadedFile object
+        allowed_extensions: List of allowed file extensions (e.g., ['.pdf', '.doc'])
+
+    Returns:
+        Error message if validation fails, None if validation passes
+    """
+    if not MAGIC_AVAILABLE:
+        # python-magic not installed, skip MIME validation
+        # This is defense-in-depth, so we gracefully degrade
+        return None
+
+    if not allowed_extensions:
+        return None
+
+    # Get the file extension
+    original_name = uploaded_file.name or ""
+    _, file_ext = os.path.splitext(original_name)
+    file_ext = file_ext.lower()
+
+    if file_ext not in allowed_extensions:
+        # Extension already checked elsewhere, skip MIME check
+        return None
+
+    # Get expected MIME types for this extension
+    expected_mimes = EXTENSION_TO_MIME_TYPES.get(file_ext, [])
+    if not expected_mimes:
+        # Extension not in our MIME mapping, allow through
+        # This handles custom/uncommon file types
+        return None
+
+    # Read file content for MIME detection
+    try:
+        # Read first 2KB for MIME type detection
+        uploaded_file.seek(0)
+        file_header = uploaded_file.read(2048)
+        uploaded_file.seek(0)  # Reset file pointer
+
+        if not file_header:
+            return "File appears to be empty."
+
+        # Detect MIME type from file content
+        try:
+            detected_mime = magic.from_buffer(file_header, mime=True)
+        except AttributeError as e:
+            # The magic module does not provide from_buffer as expected
+            # This is a programming/configuration error that should be raised
+            logger.error(
+                "python-magic appears to be misconfigured or an unexpected version is installed: "
+                f"missing 'from_buffer' for {original_name}: {e}",
+                exc_info=True,
+            )
+            raise
+        except Exception as e:
+            # python-magic not properly installed or configured
+            # This includes magic.MagicException and other runtime errors
+            logger.warning(
+                f"MIME detection failed for {original_name}: {e}. "
+                "This may indicate python-magic or libmagic is not properly installed. "
+                "Skipping MIME validation."
+            )
+            return None
+
+        # Check if detected MIME matches expected MIME types
+        if detected_mime not in expected_mimes:
+            # User-friendly error message with detected MIME type for debugging
+            logger.info(
+                f"MIME mismatch for {original_name}: expected {expected_mimes}, "
+                f"got {detected_mime}"
+            )
+            expected_display = ", ".join(expected_mimes)
+            return (
+                f"File content appears to be '{detected_mime}', but expected {expected_display} "
+                f"for '{file_ext}' files. Please ensure you're uploading the correct file type."
+            )
+
+    except OSError as e:
+        # File read error
+        logger.warning(
+            f"Could not read file {original_name} for MIME validation: {e}. "
+            "Skipping MIME validation."
+        )
+        return None
+    except Exception as e:
+        # Unexpected error - log but don't block upload
+        logger.error(
+            f"Unexpected error during MIME validation for {original_name}: {e}",
+            exc_info=True,
+        )
+        return None
+
+    return None
 
 
 def _file_validation_clean(form_instance):
@@ -46,6 +216,12 @@ def _file_validation_clean(form_instance):
             if not max_size_mb_display and max_size_bytes:
                 max_size_mb_display = max_size_bytes / (1024 * 1024)
             errors.append(f"File must be {max_size_mb_display:g}MB or smaller.")
+
+        # Validate MIME type matches extension (defense-in-depth)
+        if extensions:
+            mime_error = _validate_mime_type(uploaded, extensions)
+            if mime_error:
+                errors.append(mime_error)
 
         for message in errors:
             form_instance.add_error(field_name, message)

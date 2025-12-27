@@ -845,7 +845,9 @@ class TestDynamicFormSubmission:
             ],
         )
         upload = SimpleUploadedFile(
-            "resume.pdf", b"pdf-data", content_type="application/pdf"
+            "resume.pdf",
+            b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n",
+            content_type="application/pdf",
         )
         data = make_dynamic_submission_data(form_definition, valid_time_token)
         data["attachment"] = upload
