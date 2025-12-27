@@ -8,6 +8,7 @@ Dependencies: Django, Wagtail, home.models.HomePage.
 
 from __future__ import annotations
 
+from argparse import ArgumentParser
 from typing import Any
 
 from django.core.management.base import BaseCommand
@@ -18,7 +19,7 @@ from wagtail.models import Page, Site
 class Command(BaseCommand):
     help = "Seed initial homepage for a new client project"
 
-    def add_arguments(self, parser) -> None:
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument(
             "--preset",
             type=str,
@@ -36,6 +37,15 @@ class Command(BaseCommand):
         force = options.get("force", False)
 
         root = Page.get_first_root_node()
+        site = Site.objects.filter(is_default_site=True).first()
+        if site is None:
+            self.stderr.write(
+                self.style.ERROR(
+                    "No default Wagtail Site exists. Create one in the Wagtail admin "
+                    "(Settings → Sites) or via fixtures, then rerun this command."
+                )
+            )
+            return
         existing = HomePage.objects.first()
 
         if existing and not force:
@@ -72,7 +82,6 @@ class Command(BaseCommand):
         root.add_child(instance=homepage)
         homepage.save_revision().publish()
 
-        site = Site.objects.get(is_default_site=True)
         site.root_page = homepage
         site.save()
         Site.clear_site_root_paths_cache()

@@ -16,6 +16,25 @@ from home.models import HomePage
 from wagtail.models import Page, Site
 
 
+def _body_signature(body) -> list[dict[str, str]]:
+    signature: list[dict[str, str]] = []
+    for block in body:
+        if block.block_type == "hero_gradient":
+            signature.append(
+                {
+                    "type": block.block_type,
+                    "headline": str(block.value["headline"]),
+                    "subheadline": block.value["subheadline"],
+                }
+            )
+            continue
+        if block.block_type == "rich_text":
+            signature.append({"type": block.block_type, "value": str(block.value)})
+            continue
+        signature.append({"type": block.block_type})
+    return signature
+
+
 @pytest.mark.django_db
 def test_seed_homepage_creates_published_homepage(wagtail_default_site: Site) -> None:
     out = StringIO()
@@ -82,7 +101,11 @@ def test_seed_homepage_force_recreates_homepage(wagtail_default_site: Site) -> N
 
 
 @pytest.mark.django_db
-def test_seed_homepage_accepts_preset_arg(wagtail_default_site: Site) -> None:
-    call_command("seed_homepage", preset="starter")
+def test_seed_homepage_preset_is_noop(wagtail_default_site: Site) -> None:
+    call_command("seed_homepage")
+    baseline = _body_signature(HomePage.objects.get(slug="home").body)
 
-    assert HomePage.objects.filter(slug="home").exists()
+    call_command("seed_homepage", force=True, preset="starter")
+    homepage = HomePage.objects.get(slug="home")
+
+    assert _body_signature(homepage.body) == baseline
