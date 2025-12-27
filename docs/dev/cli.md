@@ -17,6 +17,8 @@ The SUM CLI (`sum`) provides three main commands for creating and managing clien
 
 ### What's New in v2
 
+**Note:** The `--theme` flag from v1 is not available in v2 yet. All projects use `theme_a` by default.
+
 ✅ **Enhanced `sum init`:**
 - `--full` mode for complete setup (venv → deps → migrate → seed → superuser)
 - `--quick` mode for fast scaffolding with virtualenv and dependencies

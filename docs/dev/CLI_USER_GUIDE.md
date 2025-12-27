@@ -106,6 +106,8 @@ Runs up to 8 steps:
 | `--port <number>` | Development server port (default: 8000) |
 | `--preset <name>` | Content preset name (future use) |
 
+**Note:** The `--theme` flag from CLI v1 is not yet available in v2. All projects use the default theme (`theme_a`).
+
 #### Interactive Prompts
 
 When using `--full` without `--no-prompt`, you'll be asked:
@@ -468,7 +470,9 @@ If you're upgrading from CLI v1:
 
 ### Breaking Changes
 
-None! The basic `sum init <project>` behavior is unchanged. All new features are opt-in via flags.
+⚠️ **Removed `--theme` flag:** CLI v1's `--theme` option is not yet available in v2. All projects are initialized with the default theme (`theme_a`). This functionality is planned for restoration in a future update.
+
+**Workaround:** Manually swap themes after initialization by copying theme files to the project's active theme directory.
 
 ---
 
