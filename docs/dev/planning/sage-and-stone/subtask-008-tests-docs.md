@@ -384,6 +384,470 @@ def test_seed_showroom_still_works():
 
 ---
 
+### 5. E2E Tests (Critical User Journeys)
+
+Smoke tests to verify the generated site works for end users, not just database records.
+
+**Purpose:** Validate integration between seeder, sum_core blocks, and Theme A. Ensure the demo site delivers on its promise: a working, navigable site out of the box.
+
+**Tool:** Playwright (fast, reliable, multi-browser support)
+
+**Scope:** 5-7 critical journeys that exercise integration points
+
+**Run Frequency:**
+- **Locally:** Optional (slow, ~2-3 minutes)
+- **CI:** On PR to feature branch
+- **Nightly:** Full suite with multiple browsers (Chrome, Firefox, Safari)
+
+---
+
+#### Test Structure
+
+```
+tests/
+└── e2e/
+    ├── conftest.py                    # Playwright fixtures
+    ├── test_navigation.py             # Navigation journeys
+    ├── test_blog.py                   # Blog filtering & reading
+    ├── test_forms.py                  # Contact form submission
+    └── test_mobile.py                 # Mobile-specific journeys
+```
+
+---
+
+#### Journey 1: Mega Menu Navigation
+
+```python
+# tests/e2e/test_navigation.py
+import pytest
+from playwright.sync_api import Page, expect
+
+@pytest.mark.e2e
+def test_mega_menu_navigation_desktop(page: Page, live_server):
+    """User can navigate through 3-level mega menu to nested pages."""
+    page.goto(f"{live_server.url}")
+
+    # Verify homepage loaded
+    expect(page.locator("h1")).to_contain_text("Sage & Stone")
+
+    # Hover over "Kitchens" to open mega menu
+    kitchens_menu = page.locator("nav >> text=Kitchens")
+    kitchens_menu.hover()
+
+    # Mega menu should be visible
+    mega_menu = page.locator(".mega-menu, .submenu")
+    expect(mega_menu).to_be_visible()
+
+    # Click "Collections" submenu
+    collections = page.locator("text=Collections").first
+    collections.click()
+
+    # Sub-submenu should appear
+    expect(page.locator("text=The Heritage")).to_be_visible()
+
+    # Click "The Heritage" sub-submenu
+    page.click("text=The Heritage")
+
+    # Should navigate to collection detail page
+    page.wait_for_url("**/collections/the-heritage/**")
+    expect(page.locator("h1")).to_contain_text("The Heritage")
+
+    # Page should have content (not empty)
+    expect(page.locator("main")).not_to_be_empty()
+```
+
+---
+
+#### Journey 2: Blog Category Filtering
+
+```python
+# tests/e2e/test_blog.py
+import pytest
+from playwright.sync_api import Page, expect
+
+@pytest.mark.e2e
+def test_blog_category_filtering(page: Page, live_server):
+    """User can filter blog posts by category and read articles."""
+    page.goto(f"{live_server.url}/blog/")
+
+    # Verify blog index loaded
+    expect(page.locator("h1")).to_contain_text("Blog")
+
+    # Count total posts (should be 7)
+    post_cards = page.locator(".blog-post-card, article.post")
+    initial_count = post_cards.count()
+    assert initial_count == 7, f"Expected 7 posts, found {initial_count}"
+
+    # Click "Material Science" category filter
+    material_science_filter = page.locator("text=Material Science").first
+    material_science_filter.click()
+
+    # Wait for filter to apply (URL should update or posts should filter)
+    page.wait_for_timeout(500)
+
+    # Should show fewer posts (only Material Science)
+    filtered_count = post_cards.count()
+    assert filtered_count < initial_count, "Filter didn't reduce post count"
+    assert filtered_count > 0, "Filter removed all posts"
+
+    # All visible posts should have Material Science category
+    for i in range(filtered_count):
+        post = post_cards.nth(i)
+        expect(post.locator("text=Material Science")).to_be_visible()
+
+    # Click first post to read
+    first_post = post_cards.first
+    first_post.click()
+
+    # Should navigate to article detail page
+    page.wait_for_url("**/blog/**")
+
+    # Article should have content
+    article_body = page.locator("article.blog-post, .article-content")
+    expect(article_body).to_be_visible()
+    expect(article_body).not_to_be_empty()
+
+    # Should show category badge
+    expect(page.locator("text=Material Science")).to_be_visible()
+```
+
+---
+
+#### Journey 3: Contact Form Submission
+
+```python
+# tests/e2e/test_forms.py
+import pytest
+from playwright.sync_api import Page, expect
+
+@pytest.mark.e2e
+def test_contact_form_submission(page: Page, live_server):
+    """User can submit contact form successfully."""
+    page.goto(f"{live_server.url}/contact/")
+
+    # Verify contact page loaded
+    expect(page.locator("h1")).to_contain_text("Contact")
+
+    # Fill form fields
+    page.fill("input[name='name'], input[name='full_name']", "Test User")
+    page.fill("input[name='email']", "test@example.com")
+    page.fill("input[name='phone'], input[name='telephone']", "+44 1234 567890")
+    page.fill("textarea[name='message']", "Test inquiry about bespoke kitchens.")
+
+    # Submit form
+    submit_button = page.locator("button[type='submit'], input[type='submit']")
+    submit_button.click()
+
+    # Should see success message (or redirect to thank you page)
+    # Adjust selector based on actual implementation
+    success_indicator = page.locator(
+        "text=/thank you|success|received|we'll be in touch/i"
+    )
+    expect(success_indicator).to_be_visible(timeout=5000)
+
+    # Alternative: Check for redirect to thank you page
+    # page.wait_for_url("**/thank-you/**")
+    # expect(page.locator("h1")).to_contain_text("Thank You")
+```
+
+---
+
+#### Journey 4: Mobile Navigation Drill-Down
+
+```python
+# tests/e2e/test_mobile.py
+import pytest
+from playwright.sync_api import Page, expect
+
+@pytest.mark.e2e
+def test_mobile_navigation_drill_down(page: Page, live_server):
+    """User can navigate 3-level menu on mobile (drill-down pattern)."""
+    # Set mobile viewport
+    page.set_viewport_size({"width": 375, "height": 667})
+    page.goto(f"{live_server.url}")
+
+    # Open mobile menu (hamburger icon)
+    mobile_menu_toggle = page.locator(
+        "button.mobile-menu-toggle, .hamburger, [aria-label='Menu']"
+    )
+    mobile_menu_toggle.click()
+
+    # Mobile menu should be visible
+    mobile_menu = page.locator(".mobile-menu, nav.mobile")
+    expect(mobile_menu).to_be_visible()
+
+    # Click "Kitchens" to drill into submenu
+    kitchens = page.locator(".mobile-menu >> text=Kitchens")
+    kitchens.click()
+
+    # Should see submenu with back button
+    back_button = page.locator("button.back, text=Back")
+    expect(back_button).to_be_visible()
+
+    # Should see "Collections" option
+    collections = page.locator("text=Collections")
+    expect(collections).to_be_visible()
+
+    # Click "Collections" to drill deeper
+    collections.click()
+
+    # Should see sub-submenu
+    heritage = page.locator("text=The Heritage")
+    expect(heritage).to_be_visible()
+
+    # Click "The Heritage" to navigate to page
+    heritage.click()
+
+    # Should navigate to collection page
+    page.wait_for_url("**/collections/the-heritage/**")
+    expect(page.locator("h1")).to_contain_text("The Heritage")
+```
+
+---
+
+#### Journey 5: Portfolio Case Study Interaction
+
+```python
+# tests/e2e/test_portfolio.py
+import pytest
+from playwright.sync_api import Page, expect
+
+@pytest.mark.e2e
+def test_portfolio_case_study_viewing(page: Page, live_server):
+    """User can view portfolio case studies."""
+    page.goto(f"{live_server.url}/portfolio/")
+
+    # Verify portfolio page loaded
+    expect(page.locator("h1")).to_contain_text("Portfolio")
+
+    # Should see portfolio items
+    portfolio_items = page.locator(".portfolio-item, .case-study-card")
+    expect(portfolio_items.first).to_be_visible()
+
+    # Click first portfolio item
+    portfolio_items.first.click()
+
+    # Should open modal OR navigate to detail page
+    # Check for modal first
+    modal = page.locator(".modal, .case-study-modal, [role='dialog']")
+    if modal.is_visible(timeout=1000):
+        # Modal opened - verify content
+        expect(modal).to_be_visible()
+
+        # Should see case study details
+        expect(modal.locator(".case-study-detail, .project-details")).to_be_visible()
+
+        # Should see "brass plate" signature section (if implemented)
+        # This is the unique Sage & Stone feature from wireframes
+        signature = modal.locator("text=/Completed|Handcrafted by|GPS/i")
+        # May not be implemented in all versions
+
+        # Close modal
+        close_button = modal.locator("button.close, [aria-label='Close']")
+        close_button.click()
+        expect(modal).not_to_be_visible()
+    else:
+        # Navigated to detail page
+        page.wait_for_url("**/portfolio/**")
+        expect(page.locator(".case-study-detail")).to_be_visible()
+```
+
+---
+
+#### Journey 6: Legal Page Table of Contents
+
+```python
+# tests/e2e/test_legal.py
+import pytest
+from playwright.sync_api import Page, expect
+
+@pytest.mark.e2e
+def test_legal_page_toc_navigation(page: Page, live_server):
+    """User can use ToC to navigate long legal page."""
+    page.goto(f"{live_server.url}/terms-of-supply/")
+
+    # Verify legal page loaded
+    expect(page.locator("h1")).to_contain_text("Terms")
+
+    # Table of Contents should be visible
+    toc = page.locator(".table-of-contents, .toc, aside nav")
+    expect(toc).to_be_visible()
+
+    # Should have multiple sections listed
+    toc_links = toc.locator("a")
+    assert toc_links.count() >= 3, "ToC should have multiple sections"
+
+    # Click a section link (e.g., "Payment Terms")
+    payment_link = toc.locator("a >> text=/Payment/i").first
+    payment_link.click()
+
+    # Should scroll to section
+    payment_section = page.locator("#payment-terms, h2:has-text('Payment')")
+    expect(payment_section).to_be_in_viewport()
+
+    # URL should update with anchor (if implemented)
+    # expect(page.url).to_contain("#payment-terms")
+```
+
+---
+
+#### Journey 7: Site Search (Optional)
+
+```python
+# tests/e2e/test_search.py
+import pytest
+from playwright.sync_api import Page, expect
+
+@pytest.mark.e2e
+@pytest.mark.skipif("not FEATURE_SEARCH_ENABLED", reason="Search not implemented")
+def test_site_search_functionality(page: Page, live_server):
+    """User can search site content."""
+    page.goto(f"{live_server.url}")
+
+    # Open search (various implementations)
+    search_toggle = page.locator(
+        "button.search-toggle, [aria-label='Search'], .search-icon"
+    )
+
+    if search_toggle.is_visible(timeout=1000):
+        search_toggle.click()
+
+        # Search input should appear
+        search_input = page.locator("input[type='search'], input[name='q']")
+        expect(search_input).to_be_visible()
+
+        # Enter query
+        search_input.fill("oak")
+        search_input.press("Enter")
+
+        # Should navigate to results page or show results
+        page.wait_for_url("**/search/**", timeout=3000)
+
+        # Should see results
+        results = page.locator(".search-results, .results")
+        expect(results).to_be_visible()
+
+        result_items = page.locator(".search-result, .result-item")
+        assert result_items.count() > 0, "Search should return results for 'oak'"
+```
+
+---
+
+#### E2E Test Configuration
+
+```python
+# tests/e2e/conftest.py
+import pytest
+from playwright.sync_api import sync_playwright
+from django.core.management import call_command
+
+@pytest.fixture(scope="session")
+def django_db_setup(django_db_setup, django_db_blocker):
+    """Seed Sage & Stone site before E2E tests."""
+    with django_db_blocker.unblock():
+        # Clear and seed fresh site
+        call_command("seed_sage_stone", "--clear")
+        call_command("seed_sage_stone")
+
+@pytest.fixture(scope="function")
+def page(live_server):
+    """Provide Playwright page for each test."""
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context(
+            viewport={"width": 1920, "height": 1080},
+            locale="en-GB"
+        )
+        page = context.new_page()
+
+        yield page
+
+        page.close()
+        context.close()
+        browser.close()
+```
+
+---
+
+#### pytest.ini Configuration
+
+```ini
+[pytest]
+markers =
+    e2e: End-to-end tests using Playwright (slow, run separately)
+
+# Run E2E tests separately
+# pytest -m e2e
+# pytest -m "not e2e"  # Skip E2E in fast test runs
+```
+
+---
+
+#### CI/CD Integration
+
+```yaml
+# .github/workflows/e2e-tests.yml
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [feature/sage-stone-seeder]
+  schedule:
+    - cron: '0 2 * * *'  # Nightly at 2 AM
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install playwright pytest-playwright
+          playwright install chromium
+
+      - name: Run E2E tests
+        run: |
+          pytest -m e2e --video=retain-on-failure
+
+      - name: Upload failure videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-videos
+          path: test-results/
+```
+
+---
+
+#### What E2E Tests DO NOT Cover
+
+- ❌ **Pixel-perfect design** — Use visual regression testing for that
+- ❌ **Every single page** — Only key representatives
+- ❌ **All form validations** — Unit tests handle those
+- ❌ **Every block type** — Theme A's responsibility
+- ❌ **Performance** — Use separate load testing
+- ❌ **Accessibility** — Use separate a11y testing (though Playwright can check basics)
+
+---
+
+#### Success Metrics
+
+- [ ] All 7 E2E journeys pass on Chrome
+- [ ] Mobile journeys pass on mobile viewport
+- [ ] Tests run in under 3 minutes
+- [ ] Failure videos help debug issues
+- [ ] Tests catch integration bugs unit tests miss
+
+---
+
 ## Documentation Deliverables
 
 ### 1. User Documentation
@@ -571,6 +1035,8 @@ See #210 for CLI v2 architecture.
 - [ ] All unit tests written and passing (TDD approach)
 - [ ] Integration tests verify full site creation
 - [ ] Idempotency tests confirm safe re-runs
+- [ ] E2E tests pass for 7 critical user journeys
+- [ ] E2E tests validate generated site works for end users
 - [ ] CLI v2 integration tests pass (when CLI v2 available)
 - [ ] Regression test confirms seed_showroom still works
 - [ ] User documentation complete with examples
