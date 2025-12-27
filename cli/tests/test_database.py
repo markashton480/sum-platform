@@ -132,3 +132,18 @@ def test_database_manager_uses_provided_executor(tmp_path: Path) -> None:
     manager = DatabaseManager(executor)
 
     assert manager.django is executor
+
+
+def test_migrate_error_handles_empty_stderr(mock_executor: MagicMock) -> None:
+    """Test that migration error handles empty stderr gracefully."""
+    mock_executor.run_command.return_value = subprocess.CompletedProcess(
+        args=["python", "manage.py", "migrate", "--noinput"],
+        returncode=1,
+        stdout="Error in stdout",
+        stderr="",
+    )
+
+    manager = DatabaseManager(mock_executor)
+
+    with pytest.raises(MigrationError, match="Migration failed: Error in stdout"):
+        manager.migrate()

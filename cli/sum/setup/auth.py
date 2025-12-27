@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass
 from datetime import datetime
@@ -15,7 +16,14 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class SuperuserResult:
-    """Result of a superuser creation operation."""
+    """Result of a superuser creation operation.
+
+    Note:
+        credentials_path points to .env.local regardless of the created flag.
+        When created=False (user already existed), the file may not exist or
+        may contain different credentials. Only trust credentials_path when
+        created=True.
+    """
 
     success: bool
     username: str
@@ -54,19 +62,39 @@ class SuperuserManager:
 
         Returns:
             True if the user exists, False otherwise.
+
+        Raises:
+            SuperuserError: If the Django shell command fails or returns unexpected output.
         """
-        # Escape username to prevent injection
-        safe_username = username.replace("'", "\\'")
+        # Use JSON serialization to safely pass username and prevent injection
+        username_json = json.dumps(username)
         result = self.django.run_command(
             [
                 "shell",
                 "-c",
+                f"import json; "
                 f"from django.contrib.auth import get_user_model; "
-                f"print(get_user_model().objects.filter(username='{safe_username}').exists())",
+                f"username = json.loads({username_json}); "
+                f"print(get_user_model().objects.filter(username=username).exists())",
             ],
             check=False,
         )
-        return result.stdout.strip().lower() == "true"
+
+        # Check return code before parsing output
+        if result.returncode != 0:
+            raise SuperuserError(
+                f"Failed to check if user '{username}' exists: {result.stderr}"
+            )
+
+        # Validate output before returning
+        output = result.stdout.strip().lower()
+        if output not in {"true", "false"}:
+            raise SuperuserError(
+                f"Unexpected output when checking if user '{username}' exists: "
+                f"{result.stdout!r}"
+            )
+
+        return output == "true"
 
     def create(
         self,
@@ -116,7 +144,8 @@ class SuperuserManager:
         )
 
         if result.returncode != 0:
-            raise SuperuserError(f"Creation failed: {result.stderr}")
+            details = result.stderr or result.stdout or "Unknown error"
+            raise SuperuserError(f"Creation failed: {details}")
 
         # Only write .env.local if we actually created the user
         self._save_credentials(username, email, password)
@@ -146,4 +175,8 @@ DJANGO_SUPERUSER_USERNAME={_escape_env_value(username)}
 DJANGO_SUPERUSER_EMAIL={_escape_env_value(email)}
 DJANGO_SUPERUSER_PASSWORD={_escape_env_value(password)}
 """
+        # Write the file
         env_local.write_text(content)
+
+        # Set restrictive permissions (owner read/write only) for security
+        env_local.chmod(0o600)

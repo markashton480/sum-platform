@@ -34,7 +34,8 @@ class DatabaseManager:
         result = self.django.run_command(["migrate", "--noinput"], check=False)
 
         if result.returncode != 0:
-            raise MigrationError(f"Migration failed: {result.stderr}")
+            message = result.stderr or result.stdout or "Unknown error"
+            raise MigrationError(f"Migration failed: {message}")
 
         return MigrationResult(success=True, output=result.stdout)
 
