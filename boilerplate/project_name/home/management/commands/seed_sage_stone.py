@@ -72,7 +72,7 @@ class Command(BaseCommand):
 
     def _get_or_create_home_page(self, root: Page) -> tuple[HomePage, bool]:
         try:
-            home_page = root.get_children().type(HomePage).get(slug="home")
+            home_page = root.get_children().type(HomePage).get(slug="home").specific
             home_page.title = "Sage & Stone"
             home_page.seo_title = "Sage & Stone | Bespoke Kitchens, Herefordshire"
             home_page.search_description = (
@@ -82,8 +82,19 @@ class Command(BaseCommand):
             home_page.show_in_menus = False
             home_page.save_revision().publish()
             return home_page, False
-        except HomePage.DoesNotExist:
+        except Page.DoesNotExist:
             pass
+
+        conflict = root.get_children().filter(slug="home").first()
+        if conflict is not None:
+            self.stdout.write(
+                self.style.WARNING(
+                    "Existing page with slug 'home' is not a HomePage; renaming it."
+                )
+            )
+            conflict.slug = f"home-legacy-{conflict.id}"
+            conflict.title = f"{conflict.title} (Legacy)"
+            conflict.save_revision().publish()
 
         home_page = HomePage(
             title="Sage & Stone",
@@ -136,7 +147,7 @@ class Command(BaseCommand):
         FooterNavigation.objects.filter(site=site).delete()
 
         # Clear seeded categories and images
-        from sum_core.blog.models import Category
+        from sum_core.pages.blog import Category
 
         Category.objects.filter(
             name__in=[
