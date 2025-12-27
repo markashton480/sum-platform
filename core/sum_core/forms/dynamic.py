@@ -115,15 +115,21 @@ def _validate_mime_type(uploaded_file, allowed_extensions: list[str]) -> str | N
             # python-magic not properly installed or configured
             logger.warning(
                 f"MIME detection failed for {original_name}: {e}. "
+                "This may indicate python-magic or libmagic is not properly installed. "
                 "Skipping MIME validation."
             )
             return None
 
         # Check if detected MIME matches expected MIME types
         if detected_mime not in expected_mimes:
+            # User-friendly error message
+            logger.info(
+                f"MIME mismatch for {original_name}: expected {expected_mimes}, "
+                f"got {detected_mime}"
+            )
             return (
-                f"File content does not match extension '{file_ext}'. "
-                f"Expected {', '.join(expected_mimes)}, got {detected_mime}."
+                f"File content does not match the expected format for '{file_ext}' files. "
+                "Please ensure you're uploading the correct file type."
             )
 
     except OSError as e:

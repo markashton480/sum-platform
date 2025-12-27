@@ -312,8 +312,8 @@ def test_mime_type_validation_rejects_spoofed_extensions(wagtail_default_site):
 
     form_class = DynamicFormGenerator(form_def).generate_form_class()
 
-    # Valid PDF file (PDF header: %PDF)
-    valid_pdf = SimpleUploadedFile("document.pdf", b"%PDF-1.4\n...")
+    # Valid PDF file with proper PDF header
+    valid_pdf = SimpleUploadedFile("document.pdf", b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
     form = form_class(data={}, files={"document": valid_pdf})
     assert form.is_valid(), f"Valid PDF should pass: {form.errors}"
 
@@ -323,7 +323,9 @@ def test_mime_type_validation_rejects_spoofed_extensions(wagtail_default_site):
     assert not form.is_valid(), "Spoofed EXE as PDF should fail"
     assert "document" in form.errors
     assert any(
-        "content does not match" in str(e).lower() for e in form.errors["document"]
+        "content does not match" in str(e).lower()
+        or "expected format" in str(e).lower()
+        for e in form.errors["document"]
     )
 
 
