@@ -35,6 +35,7 @@ class Command(BaseCommand):
         preset = options.get("preset")
         force = options.get("force", False)
 
+        root = Page.get_first_root_node()
         existing = HomePage.objects.first()
 
         if existing and not force:
@@ -47,14 +48,18 @@ class Command(BaseCommand):
 
         if existing and force:
             self.stdout.write("Removing existing homepage...")
-            root = Page.get_first_root_node()
-            for site in Site.objects.filter(root_page_id=existing.id):
-                site.root_page = root
-                site.save()
-            Site.clear_site_root_paths_cache()
+            self._reset_sites_to_root(existing, root)
             existing.delete()
+            root = Page.get_first_root_node()
 
-        root = Page.get_first_root_node()
+        existing_home_child = root.get_children().filter(slug="home").first()
+        if existing_home_child and not isinstance(
+            existing_home_child.specific, HomePage
+        ):
+            self.stdout.write("Removing existing 'home' page to seed HomePage...")
+            self._reset_sites_to_root(existing_home_child, root)
+            existing_home_child.delete()
+            root = Page.get_first_root_node()
 
         homepage = HomePage(
             title="Welcome",
@@ -76,6 +81,12 @@ class Command(BaseCommand):
             self.style.SUCCESS(f"✅ Homepage created successfully (ID: {homepage.id})")
         )
         self.stdout.write("URL: http://127.0.0.1:8000/")
+
+    def _reset_sites_to_root(self, page: Page, root: Page) -> None:
+        for site in Site.objects.filter(root_page_id=page.id):
+            site.root_page = root
+            site.save()
+        Site.clear_site_root_paths_cache()
 
     def _get_default_content(self, preset: str | None) -> list[dict[str, Any]]:
         # Preset support is reserved for a future phase.
