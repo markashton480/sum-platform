@@ -30,6 +30,7 @@ _FORM_CLASS_CACHE: dict[str, tuple[float, type[forms.Form]]] = {}
 
 # MIME type mapping for common file extensions
 # Maps file extensions to expected MIME types for validation
+# Note: Text-based formats include common MIME type variants/aliases
 EXTENSION_TO_MIME_TYPES = {
     ".pdf": ["application/pdf"],
     ".doc": ["application/msword"],
@@ -47,8 +48,18 @@ EXTENSION_TO_MIME_TYPES = {
         "application/vnd.openxmlformats-officedocument.presentationml.presentation",
         "application/zip",  # Office files are ZIP archives
     ],
-    ".txt": ["text/plain"],
-    ".csv": ["text/csv", "text/plain"],
+    ".txt": [
+        "text/plain",
+        "text/plain; charset=utf-8",
+        "text/plain; charset=us-ascii",
+    ],
+    ".csv": [
+        "text/csv",
+        "text/plain",
+        "application/csv",
+        "text/comma-separated-values",
+        "application/vnd.ms-excel",  # Excel sometimes opens CSVs
+    ],
     ".jpg": ["image/jpeg"],
     ".jpeg": ["image/jpeg"],
     ".png": ["image/png"],
@@ -56,20 +67,24 @@ EXTENSION_TO_MIME_TYPES = {
     ".bmp": ["image/bmp", "image/x-ms-bmp"],
     ".tiff": ["image/tiff"],
     ".tif": ["image/tiff"],
-    ".svg": ["image/svg+xml"],
+    ".svg": ["image/svg+xml", "text/xml"],
     ".webp": ["image/webp"],
-    ".zip": ["application/zip"],
+    ".zip": ["application/zip", "application/x-zip-compressed"],
     ".rar": ["application/x-rar-compressed", "application/vnd.rar"],
     ".7z": ["application/x-7z-compressed"],
     ".tar": ["application/x-tar"],
-    ".gz": ["application/gzip"],
+    ".gz": ["application/gzip", "application/x-gzip"],
     ".mp3": ["audio/mpeg"],
     ".wav": ["audio/wav", "audio/x-wav"],
     ".mp4": ["video/mp4"],
     ".avi": ["video/x-msvideo"],
     ".mov": ["video/quicktime"],
     ".webm": ["video/webm"],
-    ".json": ["application/json"],
+    ".json": [
+        "application/json",
+        "text/json",
+        "text/plain",  # JSON often detected as plain text
+    ],
     ".xml": ["application/xml", "text/xml"],
 }
 
