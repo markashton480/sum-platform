@@ -14,7 +14,6 @@ from cli.sum.setup.auth import SuperuserManager
 from cli.sum.setup.database import DatabaseManager
 from cli.sum.setup.deps import DependencyManager
 from cli.sum.setup.scaffold import (
-    DEFAULT_THEME_SLUG,
     scaffold_project,
     validate_project_structure,
 )
@@ -229,7 +228,7 @@ class SetupOrchestrator:
             # project_path name should be the validated project slug from init.
             project_name=self.project_path.name,
             clients_dir=self.project_path.parent,
-            theme_slug=DEFAULT_THEME_SLUG,
+            theme_slug=config.theme_slug,
         )
 
     def _validate(self, config: SetupConfig) -> None:

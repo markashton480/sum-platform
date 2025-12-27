@@ -35,6 +35,7 @@ def _build_setup_config(
     run_server: bool,
     port: int,
     seed_preset: str | None,
+    theme_slug: str,
 ) -> SetupConfig:
     config = SetupConfig.from_cli_args(
         full=full,
@@ -48,6 +49,7 @@ def _build_setup_config(
         run_server=run_server,
         port=port,
         seed_preset=seed_preset,
+        theme_slug=theme_slug,
     )
 
     if prompts.no_prompt or prompts.ci:
@@ -103,6 +105,7 @@ def run_init(
     run_server: bool = False,
     port: int = 8000,
     preset: str | None = None,
+    theme: str = DEFAULT_THEME_SLUG,
 ) -> int:
     try:
         naming = validate_project_name(project_name)
@@ -128,7 +131,7 @@ def run_init(
             project_path = scaffold_project(
                 project_name=naming.slug,
                 clients_dir=clients_dir,
-                theme_slug=DEFAULT_THEME_SLUG,
+                theme_slug=theme,
             )
         except SetupError as exc:
             OutputFormatter.error(str(exc))
@@ -158,6 +161,7 @@ def run_init(
             run_server=run_server,
             port=port,
             seed_preset=preset,
+            theme_slug=theme,
         )
     except ValueError as exc:
         OutputFormatter.error(str(exc))
@@ -198,6 +202,7 @@ def _init_command(
     run_server: bool,
     port: int,
     preset: str | None,
+    theme: str,
 ) -> None:
     """Initialize a new client project."""
     result = run_init(
@@ -213,6 +218,7 @@ def _init_command(
         run_server=run_server,
         port=port,
         preset=preset,
+        theme=theme,
     )
     if result != 0:
         raise SystemExit(result)
@@ -286,6 +292,12 @@ else:
         default=None,
         help="Content preset name (future)",
     )
+    @click.option(
+        "--theme",
+        default=DEFAULT_THEME_SLUG,
+        show_default=True,
+        help="Theme slug to use",
+    )
     def _click_init(
         project_name: str,
         full: bool,
@@ -299,6 +311,7 @@ else:
         run_server: bool,
         port: int,
         preset: str | None,
+        theme: str,
     ) -> None:
         _init_command(
             project_name,
@@ -313,6 +326,7 @@ else:
             run_server=run_server,
             port=port,
             preset=preset,
+            theme=theme,
         )
 
     init = _click_init
