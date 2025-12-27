@@ -12,6 +12,11 @@ from cli.sum.exceptions import SetupError
 from cli.sum.setup.auth import SuperuserManager
 from cli.sum.setup.database import DatabaseManager
 from cli.sum.setup.deps import DependencyManager
+from cli.sum.setup.scaffold import (
+    DEFAULT_THEME_SLUG,
+    scaffold_project,
+    validate_project_structure,
+)
 from cli.sum.setup.seed import ContentSeeder
 from cli.sum.setup.venv import VenvManager
 from cli.sum.utils.django import DjangoCommandExecutor
@@ -203,30 +208,20 @@ class SetupOrchestrator:
 
         Args:
             config: The setup configuration.
-
-        Note:
-            INTENTIONAL NO-OP: This step is deferred to issue #217 (Enhanced Init Command).
-            The existing init command's scaffolding logic will be integrated here when
-            the init command is refactored to use SetupOrchestrator. For now, this is
-            a placeholder that allows the orchestrator to reserve a step in the sequence.
         """
-        # Intentionally empty - scaffolding deferred to #217 (Enhanced Init Command)
-        pass
+        scaffold_project(
+            project_name=self.project_path.name,
+            clients_dir=self.project_path.parent,
+            theme_slug=DEFAULT_THEME_SLUG,
+        )
 
     def _validate(self, config: SetupConfig) -> None:
         """Validate project structure.
 
         Args:
             config: The setup configuration.
-
-        Note:
-            INTENTIONAL NO-OP: This step is deferred to issue #217 (Enhanced Init Command).
-            The existing init command's validation logic will be integrated here when
-            the init command is refactored to use SetupOrchestrator. For now, this is
-            a placeholder that allows the orchestrator to reserve a step in the sequence.
         """
-        # Intentionally empty - validation deferred to #217 (Enhanced Init Command)
-        pass
+        validate_project_structure(self.project_path)
 
     def _start_server(self, config: SetupConfig) -> None:
         """Start development server in background.
