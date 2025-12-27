@@ -88,6 +88,7 @@ git push -u origin feature/sage-stone-seeder
 | 5   | Core Pages                | Home, About, Services, Portfolio     | `feature/sage-stone-seeder/005-pages`      | 🔲     |
 | 6   | Blog Content              | Categories, index, 7 articles        | `feature/sage-stone-seeder/006-blog`       | 🔲     |
 | 7   | Legal Pages               | Terms of Supply with sections        | `feature/sage-stone-seeder/007-legal`      | 🔲     |
+| 8   | Tests & Documentation     | TDD test suite and usage docs        | `feature/sage-stone-seeder/008-tests-docs` | 🔲     |
 
 **Status:** 🔲 Todo | 🔄 In Progress | ✅ Done
 
@@ -104,6 +105,7 @@ git push -u origin feature/sage-stone-seeder
 5. **Subtask 5** — Core Pages creates main page hierarchy
 6. **Subtask 6** — Blog Content depends on categories and site structure
 7. **Subtask 7** — Legal Pages (independent, can be parallel with 5-6)
+8. **Subtask 8** — Tests & Documentation (TDD throughout, final integration tests)
 
 ### Hot Files
 
@@ -189,7 +191,7 @@ python manage.py runserver
 
 ## Definition of Done
 
-- [ ] All 7 subtasks merged to feature branch
+- [ ] All 8 subtasks merged to feature branch
 - [ ] `make lint && make test` passes on feature branch
 - [ ] Integration test verifies full site creation
 - [ ] Manual QA confirms content matches wireframes
@@ -465,6 +467,7 @@ python manage.py seed_sage_stone [--clear] [--images-only] [--content-only]
 - [Subtask 5: Core Pages](./subtask-005-core-pages.md)
 - [Subtask 6: Blog Content](./subtask-006-blog-content.md)
 - [Subtask 7: Legal Pages](./subtask-007-legal-pages.md)
+- [Subtask 8: Tests & Documentation](./subtask-008-tests-docs.md)
 
 ---
 
