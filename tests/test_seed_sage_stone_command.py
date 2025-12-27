@@ -9,23 +9,30 @@ Dependencies: pytest, importlib.
 from __future__ import annotations
 
 import sys
+from collections.abc import Mapping
 from importlib import util
 from io import StringIO
+from typing import Any, cast
 
 import pytest
 from home.models import HomePage
+from sum_core.branding.models import SiteSettings
 from wagtail.images.models import Image
 from wagtail.models import Site
 
 from tests.utils import REPO_ROOT
 
+MODULE_NAME = "seed_sage_stone_command"
+
 
 def _load_seed_module():
+    if MODULE_NAME in sys.modules:
+        return sys.modules[MODULE_NAME]
     path = (
         REPO_ROOT
         / "boilerplate/project_name/home/management/commands/seed_sage_stone.py"
     )
-    spec = util.spec_from_file_location("seed_sage_stone_command", path)
+    spec = util.spec_from_file_location(MODULE_NAME, path)
     assert spec and spec.loader
     module = util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -44,6 +51,12 @@ def _run_seed_command(clear: bool = False, images_only: bool = False) -> None:
     command.handle(clear=clear, images_only=images_only)
 
 
+def _get_brand_config() -> Mapping[str, Any]:
+    command_cls = _load_seed_command()
+    module = sys.modules[command_cls.__module__]
+    return cast(Mapping[str, Any], module.BRAND_CONFIG)
+
+
 @pytest.mark.django_db
 def test_seed_sage_stone_creates_site_and_homepage(
     wagtail_default_site: Site,
@@ -59,6 +72,66 @@ def test_seed_sage_stone_creates_site_and_homepage(
 
     home_page = HomePage.objects.get(slug="home")
     assert home_page.live is True
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_configures_branding(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    site = Site.objects.get(hostname="localhost", port=8000)
+    settings = SiteSettings.for_site(site)
+    config = _get_brand_config()
+    command_cls = _load_seed_command()
+
+    assert settings.company_name == config["company_name"]
+    assert settings.primary_color == config["primary_color"]
+    assert settings.heading_font == config["heading_font"]
+    assert settings.phone_number == config["phone_number"]
+    assert settings.instagram_url == config["instagram_url"]
+    assert settings.cookie_banner_enabled is config["cookie_banner_enabled"]
+    assert settings.header_logo is not None
+    assert settings.footer_logo_id == settings.header_logo_id
+    assert settings.header_logo.title == f"{command_cls.image_prefix}_LOGO"
+    assert settings.favicon is not None
+    assert settings.favicon.title == f"{command_cls.image_prefix}_FAVICON"
+    assert settings.og_default_image_id is not None
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_branding_idempotent(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    site = Site.objects.get(hostname="localhost", port=8000)
+    settings = SiteSettings.for_site(site)
+    logo_id = settings.header_logo_id
+    favicon_id = settings.favicon_id
+    og_image_id = settings.og_default_image_id
+
+    _run_seed_command()
+
+    settings = SiteSettings.for_site(site)
+    assert SiteSettings.objects.filter(site=site).count() == 1
+    assert settings.header_logo_id == logo_id
+    assert settings.favicon_id == favicon_id
+    assert settings.og_default_image_id == og_image_id
+
+    command_cls = _load_seed_command()
+    assert Image.objects.filter(title=f"{command_cls.image_prefix}_LOGO").count() == 1
+    assert (
+        Image.objects.filter(title=f"{command_cls.image_prefix}_FAVICON").count() == 1
+    )
+    assert (
+        Image.objects.filter(title=f"{command_cls.image_prefix}_HERO_IMAGE").count()
+        == 1
+    )
 
 
 @pytest.mark.django_db
