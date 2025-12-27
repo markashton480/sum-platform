@@ -16,6 +16,7 @@ from home.models import HomePage
 from PIL import Image as PILImage
 from PIL import ImageDraw, ImageFont
 from sum_core.branding.models import SiteSettings
+from sum_core.navigation.models import FooterNavigation, HeaderNavigation
 from wagtail.images.models import Image
 from wagtail.models import Page, Site
 
@@ -474,6 +475,8 @@ class Command(BaseCommand):
 
         site, home_page = self._setup_site(hostname=hostname, port=port)
         settings = self._configure_branding(site=site)
+        pages = self._get_navigation_pages(site=site, home_page=home_page)
+        self._configure_navigation(site=site, pages=pages)
         self.stdout.write(f"Site configured: {site.site_name} (root={home_page.slug})")
         self.stdout.write(f"Configured branding for {settings.company_name}")
 
@@ -615,6 +618,366 @@ class Command(BaseCommand):
 
         settings.save()
         return settings
+
+    def _get_navigation_pages(self, *, site: Site, home_page: Page) -> dict[str, Page]:
+        root = site.root_page or home_page
+
+        return {
+            "home": home_page,
+            "about": self._get_page_by_slugs(root, ["about", "who-we-are"])
+            or home_page,
+            "services": self._get_page_by_slugs(root, ["services", "what-we-do"])
+            or home_page,
+            "portfolio": self._get_page_by_slugs(
+                root, ["portfolio", "our-portfolio", "kitchens"]
+            )
+            or home_page,
+            "blog_index": self._get_page_by_slugs(
+                root, ["journal", "blog", "blog-index"]
+            )
+            or home_page,
+            "contact": self._get_page_by_slugs(root, ["contact", "enquire", "enquiry"])
+            or home_page,
+            "terms": self._get_page_by_slugs(
+                root, ["terms", "terms-of-service", "terms-of-supply"]
+            )
+            or home_page,
+        }
+
+    def _get_page_by_slugs(self, root: Page, slugs: list[str]) -> Page | None:
+        for slug in slugs:
+            page = root.get_descendants(inclusive=True).filter(slug=slug).first()
+            if page:
+                return page
+        return None
+
+    def _configure_navigation(
+        self, *, site: Site, pages: dict[str, Page]
+    ) -> HeaderNavigation:
+        header = HeaderNavigation.for_site(site)
+        contact = pages["contact"]
+
+        header.show_phone_in_header = True
+
+        header.header_cta_enabled = True
+        header.header_cta_text = "Enquire"
+        header.header_cta_link = [
+            {
+                "type": "link",
+                "value": {
+                    "link_type": "page",
+                    "page": contact.id,
+                    "link_text": "Enquire",
+                },
+            }
+        ]
+
+        header.mobile_cta_enabled = True
+        header.mobile_cta_phone_enabled = True
+        header.mobile_cta_button_enabled = True
+        header.mobile_cta_button_text = "Enquire"
+        header.mobile_cta_button_link = [
+            {
+                "type": "link",
+                "value": {
+                    "link_type": "page",
+                    "page": contact.id,
+                    "link_text": "Enquire",
+                },
+            }
+        ]
+
+        header.menu_items = self._build_menu_items(pages)
+        header.save()
+        self.stdout.write("Configured header navigation")
+
+        self._configure_footer_navigation(site=site, pages=pages)
+        return header
+
+    def _build_menu_items(self, pages: dict[str, Page]) -> list[dict[str, Any]]:
+        portfolio = pages["portfolio"]
+        services = pages["services"]
+        about = pages["about"]
+        blog_index = pages["blog_index"]
+
+        return [
+            {
+                "type": "item",
+                "value": {
+                    "label": "Kitchens",
+                    "link": {
+                        "link_type": "page",
+                        "page": portfolio.id,
+                        "link_text": "Kitchens",
+                    },
+                    "children": [
+                        {
+                            "label": "Collections",
+                            "link": {
+                                "link_type": "anchor",
+                                "anchor": "collections",
+                                "link_text": "Collections",
+                            },
+                            "children": [
+                                {
+                                    "label": "The Heritage",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?collection=heritage",
+                                        "link_text": "The Heritage",
+                                    },
+                                },
+                                {
+                                    "label": "The Modernist",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?collection=modernist",
+                                        "link_text": "The Modernist",
+                                    },
+                                },
+                                {
+                                    "label": "The Utility",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?collection=utility",
+                                        "link_text": "The Utility",
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            "label": "Fitted Joinery",
+                            "link": {
+                                "link_type": "anchor",
+                                "anchor": "fitted-joinery",
+                                "link_text": "Fitted Joinery",
+                            },
+                            "children": [
+                                {
+                                    "label": "Larder Cupboards",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=larder",
+                                        "link_text": "Larder Cupboards",
+                                    },
+                                },
+                                {
+                                    "label": "Island Units",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=island",
+                                        "link_text": "Island Units",
+                                    },
+                                },
+                                {
+                                    "label": "Wall Cabinetry",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=wall",
+                                        "link_text": "Wall Cabinetry",
+                                    },
+                                },
+                                {
+                                    "label": "Boot Room Storage",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=bootroom",
+                                        "link_text": "Boot Room Storage",
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            "label": "Freestanding",
+                            "link": {
+                                "link_type": "anchor",
+                                "anchor": "freestanding",
+                                "link_text": "Freestanding",
+                            },
+                            "children": [
+                                {
+                                    "label": "Prep Tables",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=prep-table",
+                                        "link_text": "Prep Tables",
+                                    },
+                                },
+                                {
+                                    "label": "Butcher Blocks",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=butcher-block",
+                                        "link_text": "Butcher Blocks",
+                                    },
+                                },
+                                {
+                                    "label": "Dressers",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=dresser",
+                                        "link_text": "Dressers",
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
+            {
+                "type": "item",
+                "value": {
+                    "label": "What We Do",
+                    "link": {
+                        "link_type": "page",
+                        "page": services.id,
+                        "link_text": "What We Do",
+                    },
+                    "children": [],
+                },
+            },
+            {
+                "type": "item",
+                "value": {
+                    "label": "Who We Are",
+                    "link": {
+                        "link_type": "page",
+                        "page": about.id,
+                        "link_text": "Who We Are",
+                    },
+                    "children": [],
+                },
+            },
+            {
+                "type": "item",
+                "value": {
+                    "label": "Portfolio",
+                    "link": {
+                        "link_type": "page",
+                        "page": portfolio.id,
+                        "link_text": "Portfolio",
+                    },
+                    "children": [],
+                },
+            },
+            {
+                "type": "item",
+                "value": {
+                    "label": "Journal",
+                    "link": {
+                        "link_type": "page",
+                        "page": blog_index.id,
+                        "link_text": "Journal",
+                    },
+                    "children": [],
+                },
+            },
+        ]
+
+    def _configure_footer_navigation(
+        self, *, site: Site, pages: dict[str, Page]
+    ) -> FooterNavigation:
+        about = pages["about"]
+        services = pages["services"]
+        portfolio = pages["portfolio"]
+        blog_index = pages["blog_index"]
+        terms = pages["terms"]
+
+        footer = FooterNavigation.for_site(site)
+        footer.tagline = "Rooms that remember."
+        footer.auto_service_areas = False
+        footer.social_instagram = "https://instagram.com/sageandstone"
+        footer.social_facebook = ""
+        footer.social_linkedin = ""
+        footer.social_youtube = ""
+        footer.social_x = ""
+        footer.copyright_text = "© {year} Sage & Stone Ltd. All rights reserved."
+
+        footer.link_sections = [
+            {
+                "type": "section",
+                "value": {
+                    "title": "Explore",
+                    "links": [
+                        {
+                            "link_type": "page",
+                            "page": about.id,
+                            "link_text": "Who We Are",
+                        },
+                        {
+                            "link_type": "page",
+                            "page": services.id,
+                            "link_text": "What We Do",
+                        },
+                        {
+                            "link_type": "page",
+                            "page": blog_index.id,
+                            "link_text": "Journal",
+                        },
+                        {
+                            "link_type": "page",
+                            "page": portfolio.id,
+                            "link_text": "Our Portfolio",
+                        },
+                    ],
+                },
+            },
+            {
+                "type": "section",
+                "value": {
+                    "title": "Legal",
+                    "links": [
+                        {
+                            "link_type": "url",
+                            "url": "/privacy/",
+                            "link_text": "Privacy Policy",
+                        },
+                        {
+                            "link_type": "page",
+                            "page": terms.id,
+                            "link_text": "Terms of Service",
+                        },
+                        {
+                            "link_type": "url",
+                            "url": "/accessibility/",
+                            "link_text": "Accessibility",
+                        },
+                    ],
+                },
+            },
+            {
+                "type": "section",
+                "value": {
+                    "title": "Studio",
+                    "links": [
+                        {
+                            "link_type": "anchor",
+                            "anchor": "studio-address",
+                            "link_text": "The Old Joinery, Unit 4",
+                        },
+                        {
+                            "link_type": "anchor",
+                            "anchor": "studio-postcode",
+                            "link_text": "Herefordshire HR4 9AB",
+                        },
+                        {
+                            "link_type": "email",
+                            "email": "hello@sageandstone.com",
+                            "link_text": "hello@sageandstone.com",
+                        },
+                        {
+                            "link_type": "phone",
+                            "phone": "+44 (0) 20 1234 5678",
+                            "link_text": "+44 (0) 20 1234 5678",
+                        },
+                    ],
+                },
+            },
+        ]
+
+        footer.save()
+        self.stdout.write("Configured footer navigation")
+        return footer
 
     def _load_font(
         self, path: str, *, size: int
