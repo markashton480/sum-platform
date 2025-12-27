@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from sum_cli.util import validate_project_name
 
 from cli.sum.config import SetupConfig
@@ -11,9 +13,11 @@ from cli.sum.utils.output import OutputFormatter
 from cli.sum.utils.prompts import PromptManager
 
 try:
-    import click
+    import click as click_module
 except ImportError:  # pragma: no cover - click is expected in the CLI runtime
-    click = None
+    click_module = None
+
+click: Any | None = click_module
 
 
 def _build_setup_config(
@@ -180,101 +184,115 @@ def run_init(
     return 0
 
 
-if click:
+def _init_command(
+    project_name: str,
+    full: bool,
+    quick: bool,
+    no_prompt: bool,
+    ci: bool,
+    skip_venv: bool,
+    skip_migrations: bool,
+    skip_seed: bool,
+    skip_superuser: bool,
+    run_server: bool,
+    port: int,
+    preset: str | None,
+) -> None:
+    """Initialize a new client project."""
+    result = run_init(
+        project_name,
+        full=full,
+        quick=quick,
+        no_prompt=no_prompt,
+        ci=ci,
+        skip_venv=skip_venv,
+        skip_migrations=skip_migrations,
+        skip_seed=skip_seed,
+        skip_superuser=skip_superuser,
+        run_server=run_server,
+        port=port,
+        preset=preset,
+    )
+    if result != 0:
+        raise SystemExit(result)
 
-    @click.command()
-    @click.argument("project_name")
-    @click.option(
-        "--full",
-        is_flag=True,
-        help="Run complete setup (venv, deps, migrations, seed, superuser)",
-    )
-    @click.option(
-        "--quick",
-        is_flag=True,
-        help="Scaffold + venv + deps only (no database operations)",
-    )
-    @click.option(
-        "--no-prompt",
-        is_flag=True,
-        help="Non-interactive mode, use defaults",
-    )
-    @click.option(
-        "--ci",
-        is_flag=True,
-        help="CI mode (non-interactive, optimized output)",
-    )
-    @click.option(
-        "--skip-venv",
-        is_flag=True,
-        help="Skip virtualenv creation",
-    )
-    @click.option(
-        "--skip-migrations",
-        is_flag=True,
-        help="Skip database migrations",
-    )
-    @click.option(
-        "--skip-seed",
-        is_flag=True,
-        help="Skip homepage seeding",
-    )
-    @click.option(
-        "--skip-superuser",
-        is_flag=True,
-        help="Skip superuser creation",
-    )
-    @click.option(
-        "--run",
-        "run_server",
-        is_flag=True,
-        help="Start development server after setup",
-    )
-    @click.option(
-        "--port",
-        default=8000,
-        type=int,
-        show_default=True,
-        help="Development server port",
-    )
-    @click.option(
-        "--preset",
-        default=None,
-        help="Content preset name (future)",
-    )
-    def init(
-        project_name: str,
-        full: bool,
-        quick: bool,
-        no_prompt: bool,
-        ci: bool,
-        skip_venv: bool,
-        skip_migrations: bool,
-        skip_seed: bool,
-        skip_superuser: bool,
-        run_server: bool,
-        port: int,
-        preset: str | None,
-    ) -> None:
-        """Initialize a new client project."""
-        result = run_init(
-            project_name,
-            full=full,
-            quick=quick,
-            no_prompt=no_prompt,
-            ci=ci,
-            skip_venv=skip_venv,
-            skip_migrations=skip_migrations,
-            skip_seed=skip_seed,
-            skip_superuser=skip_superuser,
-            run_server=run_server,
-            port=port,
-            preset=preset,
-        )
-        if result != 0:
-            raise SystemExit(result)
 
+def _missing_click(*_args: object, **_kwargs: object) -> None:
+    raise RuntimeError("click is required to use the init command")
+
+
+if click is None:
+    init = _missing_click
 else:
-
-    def init(*_args: object, **_kwargs: object) -> None:
-        raise RuntimeError("click is required to use the init command")
+    init = click.command()(
+        click.argument("project_name")(
+            click.option(
+                "--full",
+                is_flag=True,
+                help="Run complete setup (venv, deps, migrations, seed, superuser)",
+            )(
+                click.option(
+                    "--quick",
+                    is_flag=True,
+                    help="Scaffold + venv + deps only (no database operations)",
+                )(
+                    click.option(
+                        "--no-prompt",
+                        is_flag=True,
+                        help="Non-interactive mode, use defaults",
+                    )(
+                        click.option(
+                            "--ci",
+                            is_flag=True,
+                            help="CI mode (non-interactive, optimized output)",
+                        )(
+                            click.option(
+                                "--skip-venv",
+                                is_flag=True,
+                                help="Skip virtualenv creation",
+                            )(
+                                click.option(
+                                    "--skip-migrations",
+                                    is_flag=True,
+                                    help="Skip database migrations",
+                                )(
+                                    click.option(
+                                        "--skip-seed",
+                                        is_flag=True,
+                                        help="Skip homepage seeding",
+                                    )(
+                                        click.option(
+                                            "--skip-superuser",
+                                            is_flag=True,
+                                            help="Skip superuser creation",
+                                        )(
+                                            click.option(
+                                                "--run",
+                                                "run_server",
+                                                is_flag=True,
+                                                help="Start development server after setup",
+                                            )(
+                                                click.option(
+                                                    "--port",
+                                                    default=8000,
+                                                    type=int,
+                                                    show_default=True,
+                                                    help="Development server port",
+                                                )(
+                                                    click.option(
+                                                        "--preset",
+                                                        default=None,
+                                                        help="Content preset name (future)",
+                                                    )(_init_command)
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    )

@@ -265,7 +265,7 @@ def scaffold_project(
     except ValueError as exc:
         raise SetupError(str(exc)) from exc
 
-    project_path = clients_dir / naming.slug
+    project_path: Path = clients_dir / naming.slug
     if project_path.exists():
         raise SetupError(f"Target directory already exists: {project_path}")
 
