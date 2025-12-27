@@ -11,11 +11,10 @@ concurrency:
 
 jobs:
   claude-review:
-    # Skip draft PRs and release/hotfix PRs (those get audit instead)
+    # Skip draft PRs and release PRs (those get audit instead)
     if: |
       github.event.pull_request.draft == false &&
       !startsWith(github.head_ref, 'release/') &&
-      !startsWith(github.head_ref, 'hotfix/') &&
       github.head_ref != 'develop'
 
     runs-on: ubuntu-latest
