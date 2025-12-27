@@ -1,4 +1,64 @@
-## SUM CLI (v1): `sum init`, `sum check`
+# SUM CLI Documentation
+
+## Quick Links
+
+📘 **[CLI User Guide](./CLI_USER_GUIDE.md)** - Complete user documentation for all commands
+🔧 **[CLI Developer Guide](./CLI_DEVELOPER_GUIDE.md)** - Architecture, testing, and development guide
+
+---
+
+## CLI v2 Overview
+
+The SUM CLI (`sum`) provides three main commands for creating and managing client projects:
+
+- **`sum init`** - Initialize projects with optional full setup (venv, deps, migrations, seed, superuser)
+- **`sum run`** - Start development server with automatic port fallback
+- **`sum check`** - Validate project setup with comprehensive checks
+
+### What's New in v2
+
+✅ **Enhanced `sum init`:**
+- `--full` mode for complete setup (venv → deps → migrate → seed → superuser)
+- `--quick` mode for fast scaffolding with virtualenv and dependencies
+- Interactive prompts for configuration
+- Automatic `.env.local` creation with secure credentials
+- Homepage seeding with default content
+
+✅ **New `sum run` command:**
+- Automatic virtualenv detection
+- Port fallback when default is in use
+- Monorepo mode support
+
+✅ **Enhanced `sum check`:**
+- Comprehensive validation (venv, packages, database, homepage)
+- Status indicators (OK/FAIL/SKIP)
+- Remediation guidance for failures
+
+### Quick Start
+
+```bash
+# Full setup (recommended)
+sum init my-project --full
+
+# Quick setup (scaffolding + venv + deps only)
+sum init my-project --quick
+
+# Start development server
+sum run my-project
+
+# Validate project
+sum check my-project
+```
+
+See [CLI User Guide](./CLI_USER_GUIDE.md) for complete documentation.
+
+---
+
+## CLI v1 Reference
+
+Below is the legacy v1 documentation for reference.
+
+### SUM CLI (v1): `sum init`, `sum check`
 
 This repo ships a minimal **filesystem scaffolding + validation CLI**.
 It intentionally does **not** create virtualenvs, install dependencies, initialise git, or touch databases.
