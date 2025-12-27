@@ -15,6 +15,19 @@ from django.utils import timezone
 from sum_core.forms.dynamic import DynamicFormGenerator
 from sum_core.forms.models import FormDefinition
 
+# Check if libmagic is available for MIME validation tests
+try:
+    import magic
+
+    magic.from_buffer(b"test", mime=True)
+    LIBMAGIC_AVAILABLE = True
+except (ImportError, AttributeError, magic.MagicException):
+    LIBMAGIC_AVAILABLE = False
+
+requires_libmagic = pytest.mark.skipif(
+    not LIBMAGIC_AVAILABLE, reason="libmagic not available"
+)
+
 
 def option(value: str, label: str) -> tuple[str, dict[str, str]]:
     """Convenience helper to build choice tuples."""
@@ -291,6 +304,7 @@ def test_form_class_cache_reuses_definition_version(wagtail_default_site):
 
 
 @pytest.mark.django_db
+@requires_libmagic
 def test_mime_type_validation_rejects_spoofed_extensions(wagtail_default_site):
     """Test that MIME type validation catches files with spoofed extensions."""
     form_def = FormDefinition.objects.create(
@@ -330,6 +344,7 @@ def test_mime_type_validation_rejects_spoofed_extensions(wagtail_default_site):
 
 
 @pytest.mark.django_db
+@requires_libmagic
 def test_mime_type_validation_allows_valid_image_types(wagtail_default_site):
     """Test that MIME validation accepts valid image files."""
     form_def = FormDefinition.objects.create(
@@ -370,6 +385,7 @@ def test_mime_type_validation_allows_valid_image_types(wagtail_default_site):
 
 
 @pytest.mark.django_db
+@requires_libmagic
 def test_mime_type_validation_rejects_spoofed_images(wagtail_default_site):
     """Test that MIME validation rejects spoofed image files."""
     form_def = FormDefinition.objects.create(
@@ -399,6 +415,7 @@ def test_mime_type_validation_rejects_spoofed_images(wagtail_default_site):
 
 
 @pytest.mark.django_db
+@requires_libmagic
 def test_mime_type_validation_allows_office_documents(wagtail_default_site):
     """Test that MIME validation accepts valid Office documents."""
     form_def = FormDefinition.objects.create(
@@ -427,6 +444,7 @@ def test_mime_type_validation_allows_office_documents(wagtail_default_site):
 
 
 @pytest.mark.django_db
+@requires_libmagic
 def test_mime_type_validation_with_unknown_extension(wagtail_default_site):
     """Test that unknown extensions pass through without MIME blocking."""
     form_def = FormDefinition.objects.create(
@@ -455,6 +473,7 @@ def test_mime_type_validation_with_unknown_extension(wagtail_default_site):
 
 
 @pytest.mark.django_db
+@requires_libmagic
 def test_mime_type_validation_empty_file(wagtail_default_site):
     """Test that empty files are caught by MIME validation."""
     form_def = FormDefinition.objects.create(

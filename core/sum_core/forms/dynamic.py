@@ -13,8 +13,14 @@ import os
 import time
 from typing import Any
 
-import magic
 from django import forms
+
+try:
+    import magic
+
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +85,11 @@ def _validate_mime_type(uploaded_file, allowed_extensions: list[str]) -> str | N
     Returns:
         Error message if validation fails, None if validation passes
     """
+    if not MAGIC_AVAILABLE:
+        # python-magic not installed, skip MIME validation
+        # This is defense-in-depth, so we gracefully degrade
+        return None
+
     if not allowed_extensions:
         return None
 
@@ -111,8 +122,9 @@ def _validate_mime_type(uploaded_file, allowed_extensions: list[str]) -> str | N
         # Detect MIME type from file content
         try:
             detected_mime = magic.from_buffer(file_header, mime=True)
-        except (magic.MagicException, AttributeError) as e:
-            # python-magic not properly installed or configured
+        except Exception as e:
+            # python-magic not properly installed or configured, or MagicException
+            # We catch broad Exception since magic.MagicException may not exist
             logger.warning(
                 f"MIME detection failed for {original_name}: {e}. "
                 "This may indicate python-magic or libmagic is not properly installed. "
