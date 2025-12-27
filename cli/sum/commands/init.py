@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from types import ModuleType
 
 from sum_cli.util import validate_project_name
 
@@ -12,12 +12,13 @@ from cli.sum.utils.environment import detect_mode, get_clients_dir
 from cli.sum.utils.output import OutputFormatter
 from cli.sum.utils.prompts import PromptManager
 
+click_module: ModuleType | None
 try:
     import click as click_module
 except ImportError:  # pragma: no cover - click is expected in the CLI runtime
     click_module = None
 
-click: Any | None = click_module
+click: ModuleType | None = click_module
 
 
 def _build_setup_config(
@@ -172,9 +173,9 @@ def run_init(
     summary_data = {
         "location": str(result.project_path),
         "url": result.url,
-        "credentials_path": str(result.credentials_path)
-        if result.credentials_path
-        else "N/A",
+        "credentials_path": (
+            str(result.credentials_path) if result.credentials_path else "N/A"
+        ),
     }
     if result.credentials_path:
         summary_data["username"] = config.superuser_username
