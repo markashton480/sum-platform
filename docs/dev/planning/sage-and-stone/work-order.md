@@ -1,24 +1,34 @@
-# Sage & Stone Site Seeder — Work Order
+# Work Order: Sage & Stone Site Seeder (v2.0.0)
 
-## Overview
+---
 
-**Objective:** Create management command(s) to programmatically generate the Sage & Stone bespoke kitchen website as a fully functioning Wagtail site, based on the wireframes in `docs/dev/design/wireframes/sage-and-stone/`.
+## Parent
 
-**Target Usage:**
+**Version Declaration:** TBD (v2.0.0)
+
+---
+
+## Branch
+
+| Branch                     | Target          |
+| -------------------------- | --------------- |
+| `feature/sage-stone-seeder` | `release/2.0.0` |
+
 ```bash
-# Future CLI v2 integration
-sum init sage-and-stone --theme theme_a --seed-site
-
-# Current: Management command approach
-python manage.py seed_sage_stone [--clear] [--images-only] [--content-only]
+git checkout release/2.0.0
+git checkout -b feature/sage-stone-seeder
+git push -u origin feature/sage-stone-seeder
 ```
 
-**Branch:** `feature/sage-stone-seeder` → `release/2.0.0`
+---
 
-**Dependencies:**
-- Theme A must be complete and applied
-- sum_core blocks and page types available
-- PIL/Pillow for placeholder image generation
+## Objective
+
+- [ ] Create management command `seed_sage_stone` that programmatically generates complete Sage & Stone site
+- [ ] Implement all 7 page types from wireframes with full StreamField content
+- [ ] Configure navigation (header mega menu + footer), branding, and site settings
+- [ ] Generate placeholder images matching wireframe dimensions using PIL
+- [ ] Ensure idempotent operation with proper Wagtail page handling
 
 ---
 
@@ -26,11 +36,11 @@ python manage.py seed_sage_stone [--clear] [--images-only] [--content-only]
 
 ### In Scope
 1. Management command `seed_sage_stone` that creates:
-   - All 7 page types from wireframe
+   - All 7 page types from wireframe (Home, About, Services, Portfolio, Blog, Blog Posts, Legal)
    - Complete StreamField content with copy from wireframes
    - Navigation structure (header mega menu, footer)
    - Site settings and branding configuration
-   - Blog categories
+   - Blog categories and 7 sample articles
    - Placeholder images matching wireframe dimensions
 
 2. Content fidelity to wireframe:
@@ -39,16 +49,142 @@ python manage.py seed_sage_stone [--clear] [--images-only] [--content-only]
    - Navigation hierarchy preserved
 
 3. Idempotent operation:
-   - Safe to re-run (get_or_create patterns)
-   - `--clear` flag for full reset
-   - Atomic transactions
+   - Wagtail page creation uses parent+slug lookups with explicit updates
+   - Simple models use get_or_create patterns
+   - `--clear` flag for full reset when significant structure changes needed
+   - Image generation outside transaction (see Architecture Decision)
+   - DB operations in atomic block where appropriate
 
 ### Out of Scope
-- Theme CSS/template modifications
-- Form submission handling (forms use existing infrastructure)
+- Theme CSS/template modifications (theme concern)
+- Form submission handling (uses existing infrastructure)
 - Real image assets (use generated placeholders)
 - CLI v2 integration (Phase 2)
-- Multi-site support
+- Multi-site support (single site demo)
+- Alert banner functionality (theme enhancement)
+
+---
+
+## Subtasks
+
+| #   | Subtask                   | Description                          | Branch                                     | Status |
+| --- | ------------------------- | ------------------------------------ | ------------------------------------------ | ------ |
+| 1   | Site & Root Setup         | Site object, root page configuration | `feature/sage-stone-seeder/001-site-setup` | 🔲     |
+| 2   | Image Generation          | PIL-based placeholder images         | `feature/sage-stone-seeder/002-images`     | 🔲     |
+| 3   | Branding Configuration    | SiteSettings with colors, fonts      | `feature/sage-stone-seeder/003-branding`   | 🔲     |
+| 4   | Navigation Structure      | Header mega menu + footer            | `feature/sage-stone-seeder/004-navigation` | 🔲     |
+| 5   | Core Pages                | Home, About, Services, Portfolio     | `feature/sage-stone-seeder/005-pages`      | 🔲     |
+| 6   | Blog Content              | Categories, index, 7 articles        | `feature/sage-stone-seeder/006-blog`       | 🔲     |
+| 7   | Legal Pages               | Terms of Supply with sections        | `feature/sage-stone-seeder/007-legal`      | 🔲     |
+
+**Status:** 🔲 Todo | 🔄 In Progress | ✅ Done
+
+---
+
+## Merge Plan
+
+### Order
+
+1. **Subtask 1** — Site & Root Setup establishes base site structure
+2. **Subtask 2** — Image Generation creates assets (independent, can be parallel)
+3. **Subtask 3** — Branding Configuration depends on site existing
+4. **Subtask 4** — Navigation Structure depends on site + pages for linking
+5. **Subtask 5** — Core Pages creates main page hierarchy
+6. **Subtask 6** — Blog Content depends on categories and site structure
+7. **Subtask 7** — Legal Pages (independent, can be parallel with 5-6)
+
+### Hot Files
+
+| File                                            | Owner      | Notes                                      |
+| ----------------------------------------------- | ---------- | ------------------------------------------ |
+| `seed_sage_stone.py`                            | All tasks  | Single command file, coordinate changes    |
+| `boilerplate/home/management/commands/`         | Subtask 1  | Command location, create directory first   |
+| Generated images in `media/`                    | Subtask 2  | Coordinate with pages that reference them  |
+
+---
+
+## Affected Paths
+
+```
+cli/sum_cli/boilerplate/project_name/home/management/commands/
+└── seed_sage_stone.py
+
+test_project/home/management/commands/
+└── seed_sage_stone.py  # For integration testing
+
+# Generated content (runtime)
+media/original_images/SS_*.png
+```
+
+---
+
+## Verification
+
+### After Each Task Merge
+
+```bash
+git checkout feature/sage-stone-seeder
+git pull origin feature/sage-stone-seeder
+source .venv/bin/activate
+make lint && make test
+```
+
+### Before Feature PR
+
+```bash
+git fetch origin
+git rebase origin/release/2.0.0
+source .venv/bin/activate
+make lint && make test
+
+# Manual verification
+python manage.py seed_sage_stone
+python manage.py runserver
+# Visit site and verify content matches wireframes
+```
+
+---
+
+## Risk
+
+**Level:** Medium
+
+**Factors:**
+- Complex Wagtail page tree management with revisions
+- Large StreamField content creation (potential for data structure errors)
+- Image generation performance with 20+ placeholder images
+- Idempotency challenges with tree-structured data
+- Dependency on Theme A being complete and correct
+
+**Mitigation:**
+- Use parent+slug lookups for proper tree handling (documented in Architecture)
+- Image generation outside transaction to prevent orphaned files
+- Thorough testing with `--clear` flag between runs
+- Content mapping review before implementation (documented separately)
+- Comprehensive integration tests for full seed → verify workflow
+- Reference existing `seed_showroom` patterns where applicable
+
+---
+
+## Labels
+
+- [ ] `type:work-order`
+- [ ] `component:cli`
+- [ ] `risk:medium`
+- [ ] Milestone: `v2.0.0`
+
+---
+
+## Definition of Done
+
+- [ ] All 7 subtasks merged to feature branch
+- [ ] `make lint && make test` passes on feature branch
+- [ ] Integration test verifies full site creation
+- [ ] Manual QA confirms content matches wireframes
+- [ ] `seed_sage_stone --clear` works without errors
+- [ ] Documentation updated with usage instructions
+- [ ] Feature branch merged to `release/2.0.0` (PR approved)
+- [ ] No regressions to existing `seed_showroom` command
 
 ---
 
@@ -70,14 +206,85 @@ Rationale:
 # seed_sage_stone.py
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        # Image generation OUTSIDE transaction to avoid orphaned files on rollback
+        self.create_images()        # Subtask 2
+
+        # Database operations in transaction
         with transaction.atomic():
             self.setup_site()           # Subtask 1
-            self.create_images()        # Subtask 2
             self.create_branding()      # Subtask 3
             self.create_navigation()    # Subtask 4
             self.create_pages()         # Subtask 5
             self.create_blog_content()  # Subtask 6
             self.finalize()             # Subtask 7
+```
+
+### Idempotency Strategy
+
+**Wagtail Pages:**
+Wagtail's tree structure and revision system require special handling:
+
+```python
+# Don't use simple get_or_create - it doesn't account for parent/tree position
+# BAD: HomePage.objects.get_or_create(slug="home")
+
+# GOOD: Look up by parent + slug, update if exists
+try:
+    home_page = root.get_children().type(HomePage).get(slug="home")
+    # Update fields if needed
+    home_page.title = "Updated Title"
+    home_page.save_revision().publish()
+except HomePage.DoesNotExist:
+    home_page = HomePage(...)
+    root.add_child(instance=home_page)
+    home_page.save_revision().publish()
+```
+
+**Simple Models:**
+Settings, navigation, snippets can use standard get_or_create:
+```python
+site_settings, created = SiteSettings.objects.get_or_create(
+    site=site,
+    defaults={...}
+)
+if not created:
+    # Update fields
+    site_settings.primary_color = "#..."
+    site_settings.save()
+```
+
+**When to Use `--clear`:**
+- Significant page hierarchy changes (reordering, parent changes)
+- Testing from clean slate
+- Structure changes that can't be handled by update logic
+
+### Command Location Decision
+
+**Decision: Boilerplate placement (not core)**
+
+Rationale:
+- This seeder is site-specific (Sage & Stone demo), not reusable core functionality
+- Similar to `seed_showroom`, it's a demonstration/starter content tool
+- Core should contain only reusable, site-agnostic components
+- Clients can customize or remove this command as needed
+
+**Primary Location:**
+```
+cli/sum_cli/boilerplate/project_name/home/management/commands/
+└── seed_sage_stone.py
+```
+
+**Testing Support:**
+```
+test_project/home/management/commands/
+└── seed_sage_stone.py  # Symlink or copy for integration tests
+```
+
+**Core Helpers (if needed):**
+If common image generation or seeding utilities emerge across multiple seeders, extract to:
+```
+core/sum_core/utils/
+└── seeding.py  # Reusable helpers only
 ```
 
 ---
@@ -202,28 +409,14 @@ Kitchens (top)
 
 ---
 
-## Subtask Breakdown
-
-| # | Subtask | Description | Est. Complexity |
-|---|---------|-------------|-----------------|
-| 1 | Site & Root Setup | Create Site, set root, configure basics | Low |
-| 2 | Image Generation | PIL-based placeholder images | Medium |
-| 3 | Branding Configuration | SiteSettings with colors, fonts, info | Low |
-| 4 | Navigation Structure | Header mega menu + footer | Medium |
-| 5 | Core Pages | Home, About, Services, Portfolio | High |
-| 6 | Blog Content | Categories + Index + 7 Articles | Medium |
-| 7 | Legal Pages | Terms of Supply with sections | Low |
-
----
-
 ## Success Criteria
 
 1. **Functional Site:** Running `seed_sage_stone` produces a navigable, styled website
 2. **Content Fidelity:** All wireframe copy present and correctly placed
 3. **Navigation Complete:** All menu items clickable, linking to correct pages
 4. **Visual Match:** Site structure matches wireframe layout (theme handles styling)
-5. **Idempotent:** Can re-run without errors or duplicates
-6. **Documented:** Clear instructions for customization
+5. **Idempotent:** Can re-run without errors or duplicates (with proper update logic)
+6. **Documented:** Clear usage instructions and customization guidance
 
 ---
 
@@ -233,22 +426,19 @@ Kitchens (top)
 2. **Integration Test:** Full seed → site structure verification
 3. **Manual QA:** Visual comparison with wireframe
 4. **Regression:** Ensure existing `seed_showroom` still works
+5. **Idempotency Test:** Run twice, verify single site exists with updated content
+6. **Clear Flag Test:** Run with `--clear`, verify clean slate rebuild
 
 ---
 
-## File Deliverables
+## Target Usage
 
-```
-core/sum_core/
-└── test_project/
-    └── home/
-        └── management/
-            └── commands/
-                └── seed_sage_stone.py
+```bash
+# Future CLI v2 integration
+sum init sage-and-stone --theme theme_a --seed-site
 
-# Or if packaged in boilerplate:
-cli/sum_cli/boilerplate/project_name/home/management/commands/
-└── seed_sage_stone.py
+# Current: Management command approach
+python manage.py seed_sage_stone [--clear] [--images-only] [--content-only]
 ```
 
 ---
@@ -266,28 +456,9 @@ cli/sum_cli/boilerplate/project_name/home/management/commands/
 
 ---
 
-## Risks & Mitigations
+## Dependencies
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Block type mismatch | High | Content mapping review before implementation |
-| Theme not supporting all blocks | Medium | Theme A audit for block template coverage |
-| Image generation performance | Low | Lazy generation, caching |
-| Complex navigation breaking | Medium | Thorough testing of menu hierarchy |
-
----
-
-## Timeline Estimate
-
-**Phase 1 (Core):** Subtasks 1-5 — Functional site with main pages
-**Phase 2 (Content):** Subtasks 6-7 — Blog and legal content
-**Phase 3 (Polish):** Testing, documentation, edge cases
-
----
-
-## Approval
-
-- [ ] Architecture reviewed
-- [ ] Content mapping validated
-- [ ] Theme compatibility confirmed
-- [ ] Ready for implementation
+- Theme A must be complete and applied
+- sum_core blocks and page types available
+- PIL/Pillow for placeholder image generation
+- Database migrated with all sum_core models

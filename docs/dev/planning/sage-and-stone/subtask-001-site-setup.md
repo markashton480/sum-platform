@@ -29,13 +29,14 @@ def setup_site(self, hostname="localhost", port=8000):
     home_page, created = self._get_or_create_home_page(root)
 
     # Get or create Site
+    # Include port in lookup since (hostname, port) is unique constraint in Wagtail
     site, site_created = Site.objects.get_or_create(
         hostname=hostname,
+        port=port,
         defaults={
             "site_name": "Sage & Stone",
             "root_page": home_page,
             "is_default_site": True,
-            "port": port,
         }
     )
 
@@ -56,14 +57,25 @@ def setup_site(self, hostname="localhost", port=8000):
 from home.models import HomePage
 
 def _get_or_create_home_page(self, root):
-    """Create the Sage & Stone homepage."""
+    """Create the Sage & Stone homepage.
 
+    Uses parent+slug lookup for proper Wagtail tree handling.
+    Updates existing page if found (idempotent).
+    """
+
+    # Look up by parent + slug to respect tree structure
     try:
-        home_page = HomePage.objects.get(slug="home")
+        home_page = root.get_children().type(HomePage).get(slug="home")
+        # Update existing page
+        home_page.title = "Sage & Stone"
+        home_page.seo_title = "Sage & Stone | Bespoke Kitchens, Herefordshire"
+        home_page.search_description = "Heirloom-quality kitchens, handcrafted in Herefordshire. 12 commissions per year. Lifetime guarantee."
+        home_page.save_revision().publish()
         return home_page, False
     except HomePage.DoesNotExist:
         pass
 
+    # Create new page
     home_page = HomePage(
         title="Sage & Stone",
         slug="home",
@@ -81,26 +93,56 @@ def _get_or_create_home_page(self, root):
 ### 3. Clear Existing Content (Optional)
 
 ```python
-def clear_existing_content(self):
-    """Remove all Sage & Stone content for fresh seed."""
+def clear_existing_content(self, hostname="localhost", port=8000):
+    """Remove Sage & Stone content for fresh seed.
 
-    # Get pages to delete (exclude Wagtail root)
-    HomePage.objects.filter(slug="home").delete()
-
-    # Clear settings
-    SiteSettings.objects.all().delete()
-    HeaderNavigation.objects.all().delete()
-    FooterNavigation.objects.all().delete()
-
-    # Clear categories
-    Category.objects.all().delete()
-
-    # Clear images created by seeder
-    # (Only if tagged with our prefix)
+    IMPORTANT: Scoped to the specific site to avoid data loss in multi-site setups.
+    """
     from wagtail.images.models import Image
+    from wagtail.models import Site
+
+    # Find the Sage & Stone site
+    try:
+        site = Site.objects.get(hostname=hostname, port=port)
+    except Site.DoesNotExist:
+        self.stdout.write("No existing Sage & Stone site found, nothing to clear")
+        return
+
+    # Delete entire page tree under site root (if it's a HomePage)
+    if site.root_page and site.root_page.specific_class.__name__ == 'HomePage':
+        # Delete all descendants and the root page itself
+        # This cascades to all child pages (About, Services, Blog, etc.)
+        site.root_page.get_descendants(inclusive=True).delete()
+        self.stdout.write(f"Deleted {site.root_page.title} and all descendant pages")
+
+    # Clear site-specific settings
+    # Note: SiteSettings is a singleton per site via ParentalKey
+    from sum_core.branding.models import SiteSettings
+    SiteSettings.for_site(site).delete()
+
+    # Clear navigation for this site
+    # Note: If HeaderNavigation/FooterNavigation are site-specific via FK,
+    # filter by site. Otherwise, consider prefixing or documenting manual cleanup.
+    from sum_core.navigation.models import HeaderNavigation, FooterNavigation
+    HeaderNavigation.objects.filter(site=site).delete()
+    FooterNavigation.objects.filter(site=site).delete()
+
+    # Clear categories - prefix-based approach to avoid deleting unrelated categories
+    from sum_core.blog.models import Category
+    Category.objects.filter(name__in=[
+        "Commission Stories",
+        "Material Science",
+        "The Workshop",
+        "Sage & Stone Updates"  # Any Sage & Stone specific categories
+    ]).delete()
+
+    # Clear images created by seeder (prefix-based)
     Image.objects.filter(title__startswith="SS_").delete()
 
-    self.stdout.write("Cleared existing Sage & Stone content")
+    # Delete the site object itself
+    site.delete()
+
+    self.stdout.write("Cleared existing Sage & Stone content (scoped to site)")
 ```
 
 ## Acceptance Criteria
