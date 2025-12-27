@@ -25,12 +25,9 @@ from tests.utils import REPO_ROOT
 MODULE_NAME = "seed_sage_stone_command"
 
 
-def _load_seed_command():
+def _load_seed_module():
     if MODULE_NAME in sys.modules:
-        command_cls = getattr(sys.modules[MODULE_NAME], "Command", None)
-        if command_cls:
-            return command_cls
-
+        return sys.modules[MODULE_NAME]
     path = (
         REPO_ROOT
         / "boilerplate/project_name/home/management/commands/seed_sage_stone.py"
@@ -40,14 +37,18 @@ def _load_seed_command():
     module = util.module_from_spec(spec)
     sys.modules[spec.name] = module
     spec.loader.exec_module(module)
-    return module.Command
+    return module
 
 
-def _run_seed_command(clear: bool = False) -> None:
+def _load_seed_command():
+    return _load_seed_module().Command
+
+
+def _run_seed_command(clear: bool = False, images_only: bool = False) -> None:
     command_cls = _load_seed_command()
     command = command_cls()
     command.stdout = StringIO()
-    command.handle(clear=clear)
+    command.handle(clear=clear, images_only=images_only)
 
 
 def _get_brand_config() -> Mapping[str, Any]:
@@ -94,9 +95,9 @@ def test_seed_sage_stone_configures_branding(
     assert settings.cookie_banner_enabled is config["cookie_banner_enabled"]
     assert settings.header_logo is not None
     assert settings.footer_logo_id == settings.header_logo_id
-    assert settings.header_logo.title == f"{command_cls.image_prefix}LOGO"
+    assert settings.header_logo.title == f"{command_cls.image_prefix}_LOGO"
     assert settings.favicon is not None
-    assert settings.favicon.title == f"{command_cls.image_prefix}FAVICON"
+    assert settings.favicon.title == f"{command_cls.image_prefix}_FAVICON"
     assert settings.og_default_image_id is not None
 
 
@@ -123,10 +124,13 @@ def test_seed_sage_stone_branding_idempotent(
     assert settings.og_default_image_id == og_image_id
 
     command_cls = _load_seed_command()
-    assert Image.objects.filter(title=f"{command_cls.image_prefix}LOGO").count() == 1
-    assert Image.objects.filter(title=f"{command_cls.image_prefix}FAVICON").count() == 1
+    assert Image.objects.filter(title=f"{command_cls.image_prefix}_LOGO").count() == 1
     assert (
-        Image.objects.filter(title=f"{command_cls.image_prefix}HERO_IMAGE").count() == 1
+        Image.objects.filter(title=f"{command_cls.image_prefix}_FAVICON").count() == 1
+    )
+    assert (
+        Image.objects.filter(title=f"{command_cls.image_prefix}_HERO_IMAGE").count()
+        == 1
     )
 
 
@@ -155,3 +159,46 @@ def test_seed_sage_stone_clear_rebuilds_site(
     assert HomePage.objects.filter(id=original_home_id).exists() is False
     assert HomePage.objects.filter(slug="home").count() == 1
     assert Site.objects.filter(hostname="localhost", port=8000).count() == 1
+
+
+@pytest.mark.django_db
+def test_placeholder_image_generation(wagtail_default_site: Site) -> None:
+    module = _load_seed_module()
+    generator = module.PlaceholderImageGenerator()
+
+    img = generator.generate_image("TEST", 800, 600)
+
+    assert img.title == f"{module.IMAGE_PREFIX}_TEST"
+    assert img.width == 800
+    assert img.height == 600
+
+
+@pytest.mark.django_db
+def test_placeholder_image_generation_idempotent(wagtail_default_site: Site) -> None:
+    module = _load_seed_module()
+    generator = module.PlaceholderImageGenerator()
+
+    first = generator.generate_image("TEST", 800, 600)
+    second = generator.generate_image("TEST", 800, 600)
+
+    assert first.pk == second.pk
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_generates_manifest_images(
+    wagtail_default_site: Site,
+) -> None:
+    module = _load_seed_module()
+    command_cls = module.Command
+    command = command_cls()
+    command.stdout = StringIO()
+
+    command.handle(images_only=True)
+    command.handle(images_only=True)
+
+    for spec in module.IMAGE_MANIFEST:
+        title = f"{module.IMAGE_PREFIX}_{spec['key']}"
+        assert Image.objects.filter(title=title).count() == 1
+        image = Image.objects.get(title=title)
+        assert image.width == spec["width"]
+        assert image.height == spec["height"]
