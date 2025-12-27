@@ -16,6 +16,9 @@ on:
       - develop
       - release/*
       - feature/*
+      - task/*
+      - fix/*
+      - feat/*
   # Enable manual workflow dispatch for debugging/ad-hoc runs
   workflow_dispatch:
 
