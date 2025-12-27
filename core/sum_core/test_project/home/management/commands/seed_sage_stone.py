@@ -418,8 +418,10 @@ class PlaceholderImageGenerator:
         dims_height = dims_bbox[3] - dims_bbox[1]
         padding = 10
         dims_x = padding
-        dims_y = max(padding, height - dims_height - padding)
-        draw.text((dims_x, dims_y), dims_text, fill=text, font=font)
+        space_below_label = height - (y + text_height) - padding
+        if space_below_label >= dims_height:
+            dims_y = height - dims_height - padding
+            draw.text((dims_x, dims_y), dims_text, fill=text, font=font)
 
         buffer = BytesIO()
         img.save(buffer, format="JPEG", quality=85)
@@ -440,7 +442,6 @@ class PlaceholderImageGenerator:
         Choose a legible font from common locations, fallback to default.
         """
         candidates = [
-            "DejaVuSans.ttf",
             "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
             "/Library/Fonts/Arial.ttf",
             "C:\\Windows\\Fonts\\arial.ttf",
