@@ -21,7 +21,10 @@ try:
 
     magic.from_buffer(b"test", mime=True)
     LIBMAGIC_AVAILABLE = True
-except (ImportError, AttributeError, magic.MagicException):
+except (ImportError, AttributeError):
+    LIBMAGIC_AVAILABLE = False
+except Exception:
+    # Catch MagicException and other errors during detection test
     LIBMAGIC_AVAILABLE = False
 
 requires_libmagic = pytest.mark.skipif(
@@ -442,6 +445,11 @@ def test_mime_type_validation_allows_office_documents(wagtail_default_site):
     form = form_class(data={}, files={"file": valid_docx})
     assert form.is_valid(), f"Valid DOCX should pass: {form.errors}"
 
+    # Valid XLSX (ZIP header - Office files are ZIP archives)
+    valid_xlsx = SimpleUploadedFile("spreadsheet.xlsx", b"PK\x03\x04" + b"\x00" * 100)
+    form = form_class(data={}, files={"file": valid_xlsx})
+    assert form.is_valid(), f"Valid XLSX should pass: {form.errors}"
+
 
 @pytest.mark.django_db
 @requires_libmagic
@@ -500,3 +508,6 @@ def test_mime_type_validation_empty_file(wagtail_default_site):
     form = form_class(data={}, files={"doc": empty_file})
     assert not form.is_valid(), "Empty file should fail"
     assert "doc" in form.errors
+    assert any(
+        "empty" in str(e).lower() for e in form.errors["doc"]
+    ), f"Expected 'empty' in error message, got: {form.errors['doc']}"

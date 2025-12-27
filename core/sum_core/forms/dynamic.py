@@ -30,23 +30,25 @@ _FORM_CLASS_CACHE: dict[str, tuple[float, type[forms.Form]]] = {}
 
 # MIME type mapping for common file extensions
 # Maps file extensions to expected MIME types for validation
-# Note: Text-based formats include common MIME type variants/aliases
+# Note: Modern Office "x" formats (e.g. .docx, .xlsx, .pptx) are ZIP archives,
+# so application/zip is also accepted for those extensions.
+# Text-based formats include common MIME type variants/aliases.
 EXTENSION_TO_MIME_TYPES = {
     ".pdf": ["application/pdf"],
     ".doc": ["application/msword"],
     ".docx": [
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/zip",  # Office files are ZIP archives
+        "application/zip",
     ],
     ".xls": ["application/vnd.ms-excel"],
     ".xlsx": [
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "application/zip",  # Office files are ZIP archives
+        "application/zip",
     ],
     ".ppt": ["application/vnd.ms-powerpoint"],
     ".pptx": [
         "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        "application/zip",  # Office files are ZIP archives
+        "application/zip",
     ],
     ".txt": [
         "text/plain",
@@ -67,7 +69,7 @@ EXTENSION_TO_MIME_TYPES = {
     ".bmp": ["image/bmp", "image/x-ms-bmp"],
     ".tiff": ["image/tiff"],
     ".tif": ["image/tiff"],
-    ".svg": ["image/svg+xml", "text/xml"],
+    ".svg": ["image/svg+xml", "application/xml", "text/xml"],
     ".webp": ["image/webp"],
     ".zip": ["application/zip", "application/x-zip-compressed"],
     ".rar": ["application/x-rar-compressed", "application/vnd.rar"],
@@ -137,9 +139,18 @@ def _validate_mime_type(uploaded_file, allowed_extensions: list[str]) -> str | N
         # Detect MIME type from file content
         try:
             detected_mime = magic.from_buffer(file_header, mime=True)
+        except AttributeError as e:
+            # The magic module does not provide from_buffer as expected
+            # This is a programming/configuration error that should be raised
+            logger.error(
+                "python-magic appears to be misconfigured or an unexpected version is installed: "
+                f"missing 'from_buffer' for {original_name}: {e}",
+                exc_info=True,
+            )
+            raise
         except Exception as e:
-            # python-magic not properly installed or configured, or MagicException
-            # We catch broad Exception since magic.MagicException may not exist
+            # python-magic not properly installed or configured
+            # This includes magic.MagicException and other runtime errors
             logger.warning(
                 f"MIME detection failed for {original_name}: {e}. "
                 "This may indicate python-magic or libmagic is not properly installed. "
@@ -149,14 +160,15 @@ def _validate_mime_type(uploaded_file, allowed_extensions: list[str]) -> str | N
 
         # Check if detected MIME matches expected MIME types
         if detected_mime not in expected_mimes:
-            # User-friendly error message
+            # User-friendly error message with detected MIME type for debugging
             logger.info(
                 f"MIME mismatch for {original_name}: expected {expected_mimes}, "
                 f"got {detected_mime}"
             )
+            expected_display = ", ".join(expected_mimes)
             return (
-                f"File content does not match the expected format for '{file_ext}' files. "
-                "Please ensure you're uploading the correct file type."
+                f"File content appears to be '{detected_mime}', but expected {expected_display} "
+                f"for '{file_ext}' files. Please ensure you're uploading the correct file type."
             )
 
     except OSError as e:
