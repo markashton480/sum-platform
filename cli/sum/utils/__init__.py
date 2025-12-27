@@ -9,6 +9,11 @@ from cli.sum.utils.environment import (
 )
 from cli.sum.utils.output import OutputFormatter
 from cli.sum.utils.prompts import PromptManager
+from cli.sum.utils.validation import (
+    ProjectValidator,
+    ValidationResult,
+    ValidationStatus,
+)
 
 __all__ = [
     "DjangoCommandExecutor",
@@ -18,4 +23,7 @@ __all__ = [
     "get_clients_dir",
     "OutputFormatter",
     "PromptManager",
+    "ProjectValidator",
+    "ValidationResult",
+    "ValidationStatus",
 ]
