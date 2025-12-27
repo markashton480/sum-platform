@@ -225,75 +225,94 @@ def _missing_click(*_args: object, **_kwargs: object) -> None:
 if click is None:
     init = _missing_click
 else:
-    init = click.command()(
-        click.argument("project_name")(
-            click.option(
-                "--full",
-                is_flag=True,
-                help="Run complete setup (venv, deps, migrations, seed, superuser)",
-            )(
-                click.option(
-                    "--quick",
-                    is_flag=True,
-                    help="Scaffold + venv + deps only (no database operations)",
-                )(
-                    click.option(
-                        "--no-prompt",
-                        is_flag=True,
-                        help="Non-interactive mode, use defaults",
-                    )(
-                        click.option(
-                            "--ci",
-                            is_flag=True,
-                            help="CI mode (non-interactive, optimized output)",
-                        )(
-                            click.option(
-                                "--skip-venv",
-                                is_flag=True,
-                                help="Skip virtualenv creation",
-                            )(
-                                click.option(
-                                    "--skip-migrations",
-                                    is_flag=True,
-                                    help="Skip database migrations",
-                                )(
-                                    click.option(
-                                        "--skip-seed",
-                                        is_flag=True,
-                                        help="Skip homepage seeding",
-                                    )(
-                                        click.option(
-                                            "--skip-superuser",
-                                            is_flag=True,
-                                            help="Skip superuser creation",
-                                        )(
-                                            click.option(
-                                                "--run",
-                                                "run_server",
-                                                is_flag=True,
-                                                help="Start development server after setup",
-                                            )(
-                                                click.option(
-                                                    "--port",
-                                                    default=8000,
-                                                    type=int,
-                                                    show_default=True,
-                                                    help="Development server port",
-                                                )(
-                                                    click.option(
-                                                        "--preset",
-                                                        default=None,
-                                                        help="Content preset name (future)",
-                                                    )(_init_command)
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
+
+    @click.command()
+    @click.argument("project_name")
+    @click.option(
+        "--full",
+        is_flag=True,
+        help="Run complete setup (venv, deps, migrations, seed, superuser)",
     )
+    @click.option(
+        "--quick",
+        is_flag=True,
+        help="Scaffold + venv + deps only (no database operations)",
+    )
+    @click.option(
+        "--no-prompt",
+        is_flag=True,
+        help="Non-interactive mode, use defaults",
+    )
+    @click.option(
+        "--ci",
+        is_flag=True,
+        help="CI mode (non-interactive, optimized output)",
+    )
+    @click.option(
+        "--skip-venv",
+        is_flag=True,
+        help="Skip virtualenv creation",
+    )
+    @click.option(
+        "--skip-migrations",
+        is_flag=True,
+        help="Skip database migrations",
+    )
+    @click.option(
+        "--skip-seed",
+        is_flag=True,
+        help="Skip homepage seeding",
+    )
+    @click.option(
+        "--skip-superuser",
+        is_flag=True,
+        help="Skip superuser creation",
+    )
+    @click.option(
+        "--run",
+        "run_server",
+        is_flag=True,
+        help="Start development server after setup",
+    )
+    @click.option(
+        "--port",
+        default=8000,
+        type=int,
+        show_default=True,
+        help="Development server port",
+    )
+    @click.option(
+        "--preset",
+        default=None,
+        help="Content preset name (future)",
+    )
+    def _click_init(
+        project_name: str,
+        full: bool,
+        quick: bool,
+        no_prompt: bool,
+        ci: bool,
+        skip_venv: bool,
+        skip_migrations: bool,
+        skip_seed: bool,
+        skip_superuser: bool,
+        run_server: bool,
+        port: int,
+        preset: str | None,
+    ) -> None:
+        _init_command(
+            project_name,
+            full=full,
+            quick=quick,
+            no_prompt=no_prompt,
+            ci=ci,
+            skip_venv=skip_venv,
+            skip_migrations=skip_migrations,
+            skip_seed=skip_seed,
+            skip_superuser=skip_superuser,
+            run_server=run_server,
+            port=port,
+            preset=preset,
+        )
+
+    init = _click_init

@@ -210,6 +210,7 @@ class SetupOrchestrator:
             config: The setup configuration.
         """
         scaffold_project(
+            # project_path name should be the validated project slug from init.
             project_name=self.project_path.name,
             clients_dir=self.project_path.parent,
             theme_slug=DEFAULT_THEME_SLUG,

@@ -115,10 +115,7 @@ def _resolve_theme_dir(theme_slug: str, repo_root: Path | None) -> Path:
 
 def _get_theme(theme_slug: str, repo_root: Path | None) -> tuple[ThemeManifest, Path]:
     theme_dir = _resolve_theme_dir(theme_slug, repo_root)
-    try:
-        return _read_manifest(theme_dir), theme_dir
-    except ThemeValidationError as exc:
-        raise ThemeValidationError(str(exc)) from exc
+    return _read_manifest(theme_dir), theme_dir
 
 
 def _resolve_boilerplate_source(repo_root: Path | None) -> BoilerplateSource:
@@ -278,13 +275,6 @@ def scaffold_project(
     except ThemeValidationError as exc:
         raise SetupError(f"Theme '{theme_slug}' is invalid: {exc}") from exc
 
-    contract_errors = _theme_contract_errors(theme_source_dir, theme_slug)
-    if contract_errors:
-        raise SetupError(
-            f"Theme '{theme_slug}' is missing required files:\n  - "
-            + "\n  - ".join(contract_errors)
-        )
-
     boilerplate_source = _resolve_boilerplate_source(repo_root)
 
     try:
@@ -315,10 +305,10 @@ def scaffold_project(
         _copy_theme_to_active(project_path, theme_source_dir, theme_slug)
         _write_theme_config(project_path, theme_slug, theme_manifest.version)
     except Exception as exc:
-        repo_root = find_monorepo_root(project_path)
         try:
             safe_rmtree(project_path, tmp_root=None, repo_root=repo_root)
         except Exception:
+            # Cleanup failures should not mask the original init error.
             pass
         raise SetupError(f"Project created but failed to finalize init: {exc}") from exc
 

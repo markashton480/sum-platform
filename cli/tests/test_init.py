@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from importlib import import_module
 from pathlib import Path
 from typing import Any
 
 from cli.sum.commands.init import _build_setup_config, run_init
 from cli.sum.setup.orchestrator import SetupResult
 from cli.sum.utils.prompts import PromptManager
+
+init_module = import_module("cli.sum.commands.init")
 
 
 def test_run_init_scaffold_only_uses_scaffold(monkeypatch, tmp_path: Path) -> None:
@@ -27,10 +30,10 @@ def test_run_init_scaffold_only_uses_scaffold(monkeypatch, tmp_path: Path) -> No
     def fail_orchestrator(*_args: object, **_kwargs: object) -> None:
         raise AssertionError("orchestrator should not be called for scaffold only")
 
-    monkeypatch.setattr("cli.sum.commands.init.get_clients_dir", lambda: clients_dir)
-    monkeypatch.setattr("cli.sum.commands.init.scaffold_project", fake_scaffold)
+    monkeypatch.setattr(init_module, "get_clients_dir", lambda: clients_dir)
+    monkeypatch.setattr(init_module, "scaffold_project", fake_scaffold)
     monkeypatch.setattr(
-        "cli.sum.commands.init.SetupOrchestrator.run_full_setup", fail_orchestrator
+        init_module.SetupOrchestrator, "run_full_setup", fail_orchestrator
     )
 
     assert run_init("acme-kitchens") == 0
@@ -60,9 +63,9 @@ def test_run_init_full_builds_config_and_runs_orchestrator(
             url="http://127.0.0.1:9000/",
         )
 
-    monkeypatch.setattr("cli.sum.commands.init.get_clients_dir", lambda: clients_dir)
+    monkeypatch.setattr(init_module, "get_clients_dir", lambda: clients_dir)
     monkeypatch.setattr(
-        "cli.sum.commands.init.SetupOrchestrator.run_full_setup", fake_run_full_setup
+        init_module.SetupOrchestrator, "run_full_setup", fake_run_full_setup
     )
 
     assert (
@@ -92,9 +95,10 @@ def test_run_init_rejects_full_and_quick(monkeypatch, tmp_path: Path) -> None:
 
     error_messages: list[str] = []
 
-    monkeypatch.setattr("cli.sum.commands.init.get_clients_dir", lambda: clients_dir)
+    monkeypatch.setattr(init_module, "get_clients_dir", lambda: clients_dir)
     monkeypatch.setattr(
-        "cli.sum.commands.init.OutputFormatter.error",
+        init_module.OutputFormatter,
+        "error",
         lambda message: error_messages.append(message),
     )
 

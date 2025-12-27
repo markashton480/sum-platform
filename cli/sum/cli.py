@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from typing import cast
+
 import click
 
 from cli.sum.commands.check import check
+from cli.sum.commands.init import init
 from cli.sum.commands.run import run
 
 
@@ -13,13 +16,7 @@ def cli() -> None:
 
 cli.add_command(check)
 cli.add_command(run)
-
-try:
-    from cli.sum.commands.init import init
-except ModuleNotFoundError:
-    init = None
-else:
-    cli.add_command(init)
+cli.add_command(cast("click.Command", init))
 
 
 if __name__ == "__main__":
