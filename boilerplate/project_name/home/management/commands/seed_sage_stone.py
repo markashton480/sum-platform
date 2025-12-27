@@ -16,6 +16,7 @@ from wagtail.models import Page, Site
 
 class Command(BaseCommand):
     help = "Create the Sage & Stone site root and HomePage."
+    image_prefix = "SS_"
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
@@ -92,9 +93,11 @@ class Command(BaseCommand):
                     "Existing page with slug 'home' is not a HomePage; renaming it."
                 )
             )
-            conflict.slug = f"home-legacy-{conflict.id}"
-            conflict.title = f"{conflict.title} (Legacy)"
-            conflict.save_revision().publish()
+            conflict_page = conflict.specific
+            conflict_page.slug = f"home-legacy-{conflict_page.id}"
+            conflict_page.title = f"{conflict_page.title} (Legacy)"
+            conflict_page.save()
+            conflict_page.save_revision().publish()
 
         home_page = HomePage(
             title="Sage & Stone",
@@ -125,7 +128,7 @@ class Command(BaseCommand):
             return
 
         root_page = site.root_page
-        if root_page and root_page.specific_class.__name__ == "HomePage":
+        if root_page and root_page.specific_class == HomePage:
             root_page.get_descendants(inclusive=True).delete()
             self.stdout.write(
                 f"Deleted {root_page.title} and all descendant pages"
@@ -157,7 +160,6 @@ class Command(BaseCommand):
                 "Sage & Stone Updates",
             ]
         ).delete()
-        Image.objects.filter(title__startswith="SS_").delete()
+        Image.objects.filter(title__startswith=self.image_prefix).delete()
 
-        site.delete()
         self.stdout.write("Cleared existing Sage & Stone content (scoped to site)")
