@@ -6,15 +6,13 @@ labels: ["type:task"]
 projects: ["markashton480/12"]
 ---
 
-# Subtask Template
-
-**Title:** `GH-NNN: <Short Deliverable Description>`
+# **Title:** `TASK: <TASK-ID> <title>`
 
 ---
 
 ## Parent
 
-**Work Order:** #YYY — [Feature Name]
+**Work Order:** <#WORK-ORDER-ID> - <WORK-ORDER-TITLE>
 
 ---
 
@@ -33,13 +31,17 @@ git push -u origin feature/<scope>/<seq>-<slug>
 
 ---
 
+# Objective
+
+<Overview of what this task is doing>
+
+---
+
 ## Deliverable
 
 This subtask will deliver:
 
--
-
----
+- ***
 
 ## Boundaries
 
@@ -110,7 +112,7 @@ tests/<component>/test_<feature>.py
 - [ ] `agent:*`
 - [ ] `component:*`
 - [ ] `risk:*`
-- [ ] Milestone: `vX.Y.Z`
+- [ ] Milestone: `vX.Y.Z` <see the VD (Version Declaration)>
 
 ---
 
@@ -146,3 +148,7 @@ tests/<component>/test_<feature>.py
 
 Closes #NNN
 ```
+
+## PR Description
+
+Use markdown + provide a full work report in the PR description.
