@@ -17,6 +17,7 @@ from typing import Any, cast
 import pytest
 from home.models import HomePage
 from sum_core.branding.models import SiteSettings
+from sum_core.navigation.models import FooterNavigation, HeaderNavigation
 from wagtail.images.models import Image
 from wagtail.models import Site
 
@@ -202,3 +203,56 @@ def test_seed_sage_stone_generates_manifest_images(
         image = Image.objects.get(title=title)
         assert image.width == spec["width"]
         assert image.height == spec["height"]
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_configures_header_navigation(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    site = Site.objects.get(hostname="localhost", port=8000)
+    header = HeaderNavigation.for_site(site)
+
+    assert header.show_phone_in_header is True
+    assert header.header_cta_enabled is True
+    assert header.header_cta_text == "Enquire"
+    assert header.mobile_cta_enabled is True
+    assert header.mobile_cta_phone_enabled is True
+    assert header.mobile_cta_button_enabled is True
+    assert len(header.menu_items) == 5
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_kitchens_mega_menu(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    site = Site.objects.get(hostname="localhost", port=8000)
+    header = HeaderNavigation.for_site(site)
+
+    kitchens = header.menu_items[0]
+    assert kitchens.value["label"] == "Kitchens"
+    assert len(kitchens.value["children"]) == 3
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_configures_footer_navigation(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    site = Site.objects.get(hostname="localhost", port=8000)
+    footer = FooterNavigation.for_site(site)
+
+    assert footer.tagline == "Rooms that remember."
+    assert len(footer.link_sections) == 3
+    assert footer.social_instagram == "https://instagram.com/sageandstone"
+    assert footer.copyright_text == "© {year} Sage & Stone Ltd. All rights reserved."

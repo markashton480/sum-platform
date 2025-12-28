@@ -16,6 +16,7 @@ from home.models import HomePage
 from PIL import Image as PILImage
 from PIL import ImageDraw, ImageFont
 from sum_core.branding.models import SiteSettings
+from sum_core.navigation.models import FooterNavigation, HeaderNavigation
 from wagtail.images.models import Image
 from wagtail.models import Page, Site
 
@@ -497,6 +498,8 @@ class Command(BaseCommand):
 
         site, home_page = self._setup_site(hostname=hostname, port=port)
         settings = self._configure_branding(site=site)
+        pages = self._get_navigation_pages(site=site, home_page=home_page)
+        self._configure_navigation(site=site, pages=pages)
         self.stdout.write(f"Site configured: {site.site_name} (root={home_page.slug})")
         self.stdout.write(f"Configured branding for {settings.company_name}")
 
@@ -642,6 +645,370 @@ class Command(BaseCommand):
 
         settings.save()
         return settings
+
+    def _get_navigation_pages(self, *, site: Site, home_page: Page) -> dict[str, Page]:
+        """Resolve navigation pages for the header/footer, with home fallbacks."""
+        root = site.root_page or home_page
+        slug_groups = {
+            "about": ["about", "who-we-are"],
+            "services": ["services", "what-we-do"],
+            "portfolio": ["portfolio", "our-portfolio", "kitchens"],
+            "blog_index": ["journal", "blog", "blog-index"],
+            "contact": ["contact", "enquire", "enquiry"],
+            "terms": ["terms", "terms-of-service", "terms-of-supply"],
+        }
+        all_slugs = {slug for group in slug_groups.values() for slug in group}
+        pages_by_slug = self._build_pages_by_slug(root, all_slugs)
+
+        return {
+            "home": home_page,
+            "about": self._get_page_by_slugs(
+                root, slug_groups["about"], pages_by_slug=pages_by_slug
+            )
+            or home_page,
+            "services": self._get_page_by_slugs(
+                root, slug_groups["services"], pages_by_slug=pages_by_slug
+            )
+            or home_page,
+            "portfolio": self._get_page_by_slugs(
+                root, slug_groups["portfolio"], pages_by_slug=pages_by_slug
+            )
+            or home_page,
+            "blog_index": self._get_page_by_slugs(
+                root, slug_groups["blog_index"], pages_by_slug=pages_by_slug
+            )
+            or home_page,
+            "contact": self._get_page_by_slugs(
+                root, slug_groups["contact"], pages_by_slug=pages_by_slug
+            )
+            or home_page,
+            "terms": self._get_page_by_slugs(
+                root, slug_groups["terms"], pages_by_slug=pages_by_slug
+            )
+            or home_page,
+        }
+
+    def _build_pages_by_slug(self, root: Page, slugs: set[str]) -> dict[str, Page]:
+        """Build a lookup of page.slug -> Page for candidate slugs."""
+        if not slugs:
+            return {}
+
+        candidates = root.get_descendants(inclusive=True).filter(slug__in=slugs)
+        pages_by_slug: dict[str, Page] = {}
+        for page in candidates:
+            pages_by_slug.setdefault(page.slug, page)
+        return pages_by_slug
+
+    def _get_page_by_slugs(
+        self,
+        root: Page,
+        slugs: list[str],
+        *,
+        pages_by_slug: dict[str, Page] | None = None,
+    ) -> Page | None:
+        """Return the first matching page for the given slug priority list."""
+        if not slugs:
+            return None
+
+        pages_by_slug = pages_by_slug or self._build_pages_by_slug(root, set(slugs))
+
+        for slug in slugs:
+            page = pages_by_slug.get(slug)
+            if page:
+                return page
+        return None
+
+    def _configure_navigation(
+        self, *, site: Site, pages: dict[str, Page]
+    ) -> HeaderNavigation:
+        """Configure header and footer navigation settings for the site."""
+        header = HeaderNavigation.for_site(site)
+        contact = pages["contact"]
+
+        header.show_phone_in_header = True
+
+        header.header_cta_enabled = True
+        header.header_cta_text = "Enquire"
+        header.header_cta_link = self._build_enquire_cta_link(page_id=contact.id)
+
+        header.mobile_cta_enabled = True
+        header.mobile_cta_phone_enabled = True
+        header.mobile_cta_button_enabled = True
+        header.mobile_cta_button_text = "Enquire"
+        header.mobile_cta_button_link = self._build_enquire_cta_link(page_id=contact.id)
+
+        header.menu_items = self._build_menu_items(pages)
+        header.save()
+        self.stdout.write("Configured header navigation")
+
+        self._configure_footer_navigation(site=site, pages=pages)
+        return header
+
+    def _build_enquire_cta_link(self, *, page_id: int) -> list[dict[str, Any]]:
+        """Build a single link payload for the Enquire CTA."""
+        return [
+            {
+                "type": "link",
+                "value": {
+                    "link_type": "page",
+                    "page": page_id,
+                    "link_text": "Enquire",
+                },
+            }
+        ]
+
+    def _build_menu_items(self, pages: dict[str, Page]) -> list[dict[str, Any]]:
+        """Build the header menu items, including the Kitchens mega menu."""
+        portfolio = pages["portfolio"]
+        services = pages["services"]
+        about = pages["about"]
+        blog_index = pages["blog_index"]
+
+        return [
+            {
+                "type": "item",
+                "value": {
+                    "label": "Kitchens",
+                    "link": {
+                        "link_type": "page",
+                        "page": portfolio.id,
+                        "link_text": "Kitchens",
+                    },
+                    "children": [
+                        {
+                            "label": "Collections",
+                            "link": {
+                                "link_type": "anchor",
+                                "anchor": "collections",
+                                "link_text": "Collections",
+                            },
+                            "children": [
+                                {
+                                    "label": "The Heritage",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?collection=heritage",
+                                        "link_text": "The Heritage",
+                                    },
+                                },
+                                {
+                                    "label": "The Modernist",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?collection=modernist",
+                                        "link_text": "The Modernist",
+                                    },
+                                },
+                                {
+                                    "label": "The Utility",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?collection=utility",
+                                        "link_text": "The Utility",
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            "label": "Fitted Joinery",
+                            "link": {
+                                "link_type": "anchor",
+                                "anchor": "fitted-joinery",
+                                "link_text": "Fitted Joinery",
+                            },
+                            "children": [
+                                {
+                                    "label": "Larder Cupboards",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=larder",
+                                        "link_text": "Larder Cupboards",
+                                    },
+                                },
+                                {
+                                    "label": "Island Units",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=island",
+                                        "link_text": "Island Units",
+                                    },
+                                },
+                                {
+                                    "label": "Wall Cabinetry",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=wall",
+                                        "link_text": "Wall Cabinetry",
+                                    },
+                                },
+                                {
+                                    "label": "Boot Room Storage",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=bootroom",
+                                        "link_text": "Boot Room Storage",
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            "label": "Freestanding",
+                            "link": {
+                                "link_type": "anchor",
+                                "anchor": "freestanding",
+                                "link_text": "Freestanding",
+                            },
+                            "children": [
+                                {
+                                    "label": "Prep Tables",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=prep-table",
+                                        "link_text": "Prep Tables",
+                                    },
+                                },
+                                {
+                                    "label": "Butcher Blocks",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=butcher-block",
+                                        "link_text": "Butcher Blocks",
+                                    },
+                                },
+                                {
+                                    "label": "Dressers",
+                                    "link": {
+                                        "link_type": "url",
+                                        "url": "/portfolio/?type=dresser",
+                                        "link_text": "Dressers",
+                                    },
+                                },
+                            ],
+                        },
+                    ],
+                },
+            },
+            self._build_simple_menu_item(label="What We Do", page=services),
+            self._build_simple_menu_item(label="Who We Are", page=about),
+            self._build_simple_menu_item(label="Portfolio", page=portfolio),
+            self._build_simple_menu_item(label="Journal", page=blog_index),
+        ]
+
+    def _build_simple_menu_item(self, *, label: str, page: Page) -> dict[str, Any]:
+        """Build a single-level menu item pointing to a page."""
+        return {
+            "type": "item",
+            "value": {
+                "label": label,
+                "link": {
+                    "link_type": "page",
+                    "page": page.id,
+                    "link_text": label,
+                },
+                "children": [],
+            },
+        }
+
+    def _configure_footer_navigation(
+        self, *, site: Site, pages: dict[str, Page]
+    ) -> FooterNavigation:
+        """Configure footer link sections, tagline, and social overrides."""
+        about = pages["about"]
+        services = pages["services"]
+        portfolio = pages["portfolio"]
+        blog_index = pages["blog_index"]
+        terms = pages["terms"]
+
+        footer = FooterNavigation.for_site(site)
+        footer.tagline = "Rooms that remember."
+        footer.auto_service_areas = False
+        footer.social_instagram = "https://instagram.com/sageandstone"
+        footer.social_facebook = ""
+        footer.social_linkedin = ""
+        footer.social_youtube = ""
+        footer.social_x = ""
+        footer.copyright_text = "© {year} Sage & Stone Ltd. All rights reserved."
+
+        explore_links = [
+            self._build_footer_link(
+                link_type="page", page=about.id, link_text="Who We Are"
+            ),
+            self._build_footer_link(
+                link_type="page", page=services.id, link_text="What We Do"
+            ),
+            self._build_footer_link(
+                link_type="page", page=blog_index.id, link_text="Journal"
+            ),
+            self._build_footer_link(
+                link_type="page", page=portfolio.id, link_text="Our Portfolio"
+            ),
+        ]
+        legal_links = [
+            self._build_footer_link(
+                link_type="url", url="/privacy/", link_text="Privacy Policy"
+            ),
+            self._build_footer_link(
+                link_type="page", page=terms.id, link_text="Terms of Service"
+            ),
+            self._build_footer_link(
+                link_type="url", url="/accessibility/", link_text="Accessibility"
+            ),
+        ]
+        studio_links = [
+            self._build_footer_link(
+                link_type="anchor",
+                anchor="studio-address",
+                link_text="The Old Joinery, Unit 4",
+            ),
+            self._build_footer_link(
+                link_type="anchor",
+                anchor="studio-postcode",
+                link_text="Herefordshire HR4 9AB",
+            ),
+            self._build_footer_link(
+                link_type="email",
+                email="hello@sageandstone.com",
+                link_text="hello@sageandstone.com",
+            ),
+            self._build_footer_link(
+                link_type="phone",
+                phone="+44 (0) 20 1234 5678",
+                link_text="+44 (0) 20 1234 5678",
+            ),
+        ]
+
+        footer.link_sections = [
+            self._build_footer_section(title="Explore", links=explore_links),
+            self._build_footer_section(title="Legal", links=legal_links),
+            self._build_footer_section(title="Studio", links=studio_links),
+        ]
+
+        footer.save()
+        self.stdout.write("Configured footer navigation")
+        return footer
+
+    def _build_footer_section(
+        self, *, title: str, links: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """Build a footer section payload for link_sections."""
+        return {
+            "type": "section",
+            "value": {
+                "title": title,
+                "links": links,
+            },
+        }
+
+    def _build_footer_link(
+        self, *, link_type: str, link_text: str, **kwargs: Any
+    ) -> dict[str, Any]:
+        """Build a UniversalLink-style payload for footer links."""
+        link = {
+            "link_type": link_type,
+            "link_text": link_text,
+        }
+        link.update(kwargs)
+        return link
 
     def _load_font(
         self, path: str, *, size: int
