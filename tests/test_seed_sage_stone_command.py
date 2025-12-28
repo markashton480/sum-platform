@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Mapping
+from datetime import date
 from importlib import util
 from io import StringIO
 from typing import Any, cast
@@ -19,6 +20,7 @@ from home.models import HomePage
 from sum_core.branding.models import SiteSettings
 from sum_core.navigation.models import FooterNavigation, HeaderNavigation
 from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
+from sum_core.pages.legal import LegalPage
 from sum_core.pages.standard import StandardPage
 from wagtail.images.models import Image
 from wagtail.models import Site
@@ -208,6 +210,47 @@ def test_seed_sage_stone_generates_manifest_images(
 
 
 @pytest.mark.django_db
+def test_terms_page_created(wagtail_default_site: Site) -> None:
+    _run_seed_command()
+
+    page = LegalPage.objects.get(slug="terms")
+    assert page.title == "Terms of Supply"
+    assert page.last_updated == date(2025, 1, 15)
+    assert page.live is True
+
+
+@pytest.mark.django_db
+def test_terms_has_sections(wagtail_default_site: Site) -> None:
+    _run_seed_command()
+
+    page = LegalPage.objects.get(slug="terms")
+    assert len(page.sections) == 6
+
+
+@pytest.mark.django_db
+def test_section_anchors(wagtail_default_site: Site) -> None:
+    _run_seed_command()
+
+    page = LegalPage.objects.get(slug="terms")
+    anchors = [section.value["anchor"] for section in page.sections]
+
+    assert "definitions" in anchors
+    assert "scope" in anchors
+    assert "payment" in anchors
+    assert "materials" in anchors
+    assert "access" in anchors
+    assert "guarantee" in anchors
+
+
+@pytest.mark.django_db
+def test_placeholder_pages_created(wagtail_default_site: Site) -> None:
+    _run_seed_command()
+
+    assert StandardPage.objects.filter(slug="privacy", live=True).exists()
+    assert StandardPage.objects.filter(slug="accessibility", live=True).exists()
+
+
+@pytest.mark.django_db
 def test_seed_sage_stone_configures_header_navigation(
     wagtail_default_site: Site,
 ) -> None:
@@ -283,7 +326,14 @@ def test_seed_sage_stone_core_pages_have_content(
     home = HomePage.objects.get(slug="home")
     assert len(home.body) > 0
 
-    for slug in ["about", "services", "portfolio", "contact"]:
+    for slug in [
+        "about",
+        "services",
+        "portfolio",
+        "contact",
+        "privacy",
+        "accessibility",
+    ]:
         page = StandardPage.objects.get(slug=slug)
         assert len(page.body) > 0
 
@@ -297,9 +347,19 @@ def test_seed_sage_stone_pages_are_children_of_home(
     _run_seed_command()
 
     home = HomePage.objects.get(slug="home")
-    for slug in ["about", "services", "portfolio", "contact"]:
+    for slug in [
+        "about",
+        "services",
+        "portfolio",
+        "contact",
+        "privacy",
+        "accessibility",
+    ]:
         page = StandardPage.objects.get(slug=slug)
         assert page.get_parent().id == home.id
+
+    terms = LegalPage.objects.get(slug="terms")
+    assert terms.get_parent().id == home.id
 
 
 @pytest.mark.django_db
