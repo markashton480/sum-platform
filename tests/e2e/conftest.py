@@ -26,7 +26,7 @@ if TYPE_CHECKING:
 
 def pytest_configure(config: Config) -> None:
     """Set default base URL if not provided."""
-    if not config.option.base_url:
+    if not getattr(config.option, "base_url", None):
         config.option.base_url = os.environ.get("E2E_BASE_URL", "http://localhost:8000")
 
 
