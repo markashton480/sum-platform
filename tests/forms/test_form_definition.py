@@ -137,6 +137,24 @@ def test_webhook_accepts_valid_url_when_enabled(wagtail_default_site):
 
 
 @pytest.mark.django_db
+def test_webhook_allowlist_denylist_overlap_rejected(wagtail_default_site):
+    form_def = FormDefinition(
+        site=wagtail_default_site,
+        name="Overlap Form",
+        slug="overlap-form",
+        webhook_enabled=True,
+        webhook_url="https://api.example.com/webhook",
+        webhook_field_allowlist="ssn,service",
+        webhook_field_denylist="ssn",
+    )
+
+    with pytest.raises(ValidationError) as excinfo:
+        form_def.full_clean()
+
+    assert "webhook_field_denylist" in excinfo.value.message_dict
+
+
+@pytest.mark.django_db
 def test_auto_reply_fields_persist(wagtail_default_site):
     """Auto-reply fields should store provided values."""
     form_def = FormDefinition.objects.create(
