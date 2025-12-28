@@ -105,6 +105,7 @@ addopts = [
     "--cov-report=term-missing",
     "--cov-report=term-missing",
     "--cov-report=html",
+    "--ignore=tests/e2e",
 ]
 pythonpath = ["core", "core/sum_core/test_project", "cli"]
 DJANGO_SETTINGS_MODULE = "sum_core.test_project.test_project.settings"
