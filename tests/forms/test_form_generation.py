@@ -15,6 +15,22 @@ from django.utils import timezone
 from sum_core.forms.dynamic import DynamicFormGenerator
 from sum_core.forms.models import FormDefinition
 
+# Check if libmagic is available for MIME validation tests
+try:
+    import magic
+
+    magic.from_buffer(b"test", mime=True)
+    LIBMAGIC_AVAILABLE = True
+except (ImportError, AttributeError):
+    LIBMAGIC_AVAILABLE = False
+except Exception:
+    # Catch MagicException and other errors during detection test
+    LIBMAGIC_AVAILABLE = False
+
+requires_libmagic = pytest.mark.skipif(
+    not LIBMAGIC_AVAILABLE, reason="libmagic not available"
+)
+
 
 def option(value: str, label: str) -> tuple[str, dict[str, str]]:
     """Convenience helper to build choice tuples."""
@@ -240,7 +256,8 @@ def test_file_upload_validation(wagtail_default_site):
 
     form_class = DynamicFormGenerator(form_def).generate_form_class()
 
-    good_file = SimpleUploadedFile("resume.pdf", b"pdf")
+    # Valid PDF file with proper PDF header
+    good_file = SimpleUploadedFile("resume.pdf", b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
     form = form_class(data={}, files={"resume": good_file})
     assert form.is_valid()
 
@@ -249,7 +266,10 @@ def test_file_upload_validation(wagtail_default_site):
     assert not form.is_valid()
     assert "resume" in form.errors
 
-    oversized_file = SimpleUploadedFile("resume.pdf", b"x" * (1024 * 1024 + 1))
+    # Oversized file with proper PDF header
+    oversized_file = SimpleUploadedFile(
+        "resume.pdf", b"%PDF-1.4\n" + b"x" * (1024 * 1024 + 1)
+    )
     form = form_class(data={}, files={"resume": oversized_file})
     assert not form.is_valid()
     assert "resume" in form.errors
@@ -284,3 +304,209 @@ def test_form_class_cache_reuses_definition_version(wagtail_default_site):
     new_class = DynamicFormGenerator(form_def).generate_form_class()
 
     assert new_class is not form_class
+
+
+@pytest.mark.django_db
+@requires_libmagic
+def test_mime_type_validation_rejects_spoofed_extensions(wagtail_default_site):
+    """Test that MIME type validation catches files with spoofed extensions."""
+    form_def = FormDefinition.objects.create(
+        site=wagtail_default_site,
+        name="Secure Upload",
+        slug="secure-upload",
+        fields=[
+            (
+                "file_upload",
+                {
+                    "field_name": "document",
+                    "label": "Document",
+                    "allowed_extensions": ".pdf",
+                    "max_file_size_mb": 5,
+                },
+            )
+        ],
+    )
+
+    form_class = DynamicFormGenerator(form_def).generate_form_class()
+
+    # Valid PDF file with proper PDF header
+    valid_pdf = SimpleUploadedFile("document.pdf", b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
+    form = form_class(data={}, files={"document": valid_pdf})
+    assert form.is_valid(), f"Valid PDF should pass: {form.errors}"
+
+    # Spoofed PDF: EXE file renamed to .pdf (MZ header for Windows executable)
+    spoofed_pdf = SimpleUploadedFile("malicious.pdf", b"MZ\x90\x00" + b"x" * 100)
+    form = form_class(data={}, files={"document": spoofed_pdf})
+    assert not form.is_valid(), "Spoofed EXE as PDF should fail"
+    assert "document" in form.errors
+    assert any(
+        "appears to be" in str(e).lower() and "expected" in str(e).lower()
+        for e in form.errors["document"]
+    ), f"Expected MIME mismatch error, got: {form.errors['document']}"
+
+
+@pytest.mark.django_db
+@requires_libmagic
+def test_mime_type_validation_allows_valid_image_types(wagtail_default_site):
+    """Test that MIME validation accepts valid image files."""
+    form_def = FormDefinition.objects.create(
+        site=wagtail_default_site,
+        name="Image Upload",
+        slug="image-upload",
+        fields=[
+            (
+                "file_upload",
+                {
+                    "field_name": "photo",
+                    "label": "Photo",
+                    "allowed_extensions": ".jpg,.png",
+                    "max_file_size_mb": 5,
+                },
+            )
+        ],
+    )
+
+    form_class = DynamicFormGenerator(form_def).generate_form_class()
+
+    # Valid PNG (complete PNG header with IHDR chunk)
+    valid_png = SimpleUploadedFile(
+        "photo.png",
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+        b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89",
+    )
+    form = form_class(data={}, files={"photo": valid_png})
+    assert form.is_valid(), f"Valid PNG should pass: {form.errors}"
+
+    # Valid JPEG (JPEG header with SOI and APP0 markers)
+    valid_jpg = SimpleUploadedFile(
+        "photo.jpg",
+        b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00",
+    )
+    form = form_class(data={}, files={"photo": valid_jpg})
+    assert form.is_valid(), f"Valid JPEG should pass: {form.errors}"
+
+
+@pytest.mark.django_db
+@requires_libmagic
+def test_mime_type_validation_rejects_spoofed_images(wagtail_default_site):
+    """Test that MIME validation rejects spoofed image files."""
+    form_def = FormDefinition.objects.create(
+        site=wagtail_default_site,
+        name="Photo Upload",
+        slug="photo-upload",
+        fields=[
+            (
+                "file_upload",
+                {
+                    "field_name": "image",
+                    "label": "Image",
+                    "allowed_extensions": ".png",
+                    "max_file_size_mb": 5,
+                },
+            )
+        ],
+    )
+
+    form_class = DynamicFormGenerator(form_def).generate_form_class()
+
+    # Text file renamed to .png
+    spoofed_png = SimpleUploadedFile("fake.png", b"This is just text content")
+    form = form_class(data={}, files={"image": spoofed_png})
+    assert not form.is_valid(), "Text file masquerading as PNG should fail"
+    assert "image" in form.errors
+
+
+@pytest.mark.django_db
+@requires_libmagic
+def test_mime_type_validation_allows_office_documents(wagtail_default_site):
+    """Test that MIME validation accepts valid Office documents."""
+    form_def = FormDefinition.objects.create(
+        site=wagtail_default_site,
+        name="Document Upload",
+        slug="doc-upload",
+        fields=[
+            (
+                "file_upload",
+                {
+                    "field_name": "file",
+                    "label": "File",
+                    "allowed_extensions": ".docx,.xlsx",
+                    "max_file_size_mb": 10,
+                },
+            )
+        ],
+    )
+
+    form_class = DynamicFormGenerator(form_def).generate_form_class()
+
+    # Valid DOCX (ZIP header - Office files are ZIP archives)
+    valid_docx = SimpleUploadedFile("document.docx", b"PK\x03\x04" + b"\x00" * 100)
+    form = form_class(data={}, files={"file": valid_docx})
+    assert form.is_valid(), f"Valid DOCX should pass: {form.errors}"
+
+    # Valid XLSX (ZIP header - Office files are ZIP archives)
+    valid_xlsx = SimpleUploadedFile("spreadsheet.xlsx", b"PK\x03\x04" + b"\x00" * 100)
+    form = form_class(data={}, files={"file": valid_xlsx})
+    assert form.is_valid(), f"Valid XLSX should pass: {form.errors}"
+
+
+@pytest.mark.django_db
+@requires_libmagic
+def test_mime_type_validation_with_unknown_extension(wagtail_default_site):
+    """Test that unknown extensions pass through without MIME blocking."""
+    form_def = FormDefinition.objects.create(
+        site=wagtail_default_site,
+        name="Custom Upload",
+        slug="custom-upload",
+        fields=[
+            (
+                "file_upload",
+                {
+                    "field_name": "data",
+                    "label": "Data File",
+                    "allowed_extensions": ".xyz",  # Not in MIME mapping
+                    "max_file_size_mb": 5,
+                },
+            )
+        ],
+    )
+
+    form_class = DynamicFormGenerator(form_def).generate_form_class()
+
+    # Unknown extension should pass through (no MIME check)
+    unknown_file = SimpleUploadedFile("data.xyz", b"custom data format")
+    form = form_class(data={}, files={"data": unknown_file})
+    assert form.is_valid(), f"Unknown extension should pass: {form.errors}"
+
+
+@pytest.mark.django_db
+@requires_libmagic
+def test_mime_type_validation_empty_file(wagtail_default_site):
+    """Test that empty files are caught by MIME validation."""
+    form_def = FormDefinition.objects.create(
+        site=wagtail_default_site,
+        name="PDF Upload",
+        slug="pdf-upload",
+        fields=[
+            (
+                "file_upload",
+                {
+                    "field_name": "doc",
+                    "label": "Document",
+                    "allowed_extensions": ".pdf",
+                    "max_file_size_mb": 5,
+                },
+            )
+        ],
+    )
+
+    form_class = DynamicFormGenerator(form_def).generate_form_class()
+
+    # Empty file
+    empty_file = SimpleUploadedFile("empty.pdf", b"")
+    form = form_class(data={}, files={"doc": empty_file})
+    assert not form.is_valid(), "Empty file should fail"
+    assert "doc" in form.errors
+    assert any(
+        "empty" in str(e).lower() for e in form.errors["doc"]
+    ), f"Expected 'empty' in error message, got: {form.errors['doc']}"

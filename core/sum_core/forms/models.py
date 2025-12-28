@@ -9,6 +9,7 @@ Dependencies: Django ORM, Wagtail Site.
 from __future__ import annotations
 
 import logging
+import re
 
 from django.contrib import messages
 from django.contrib.contenttypes.models import ContentType
@@ -211,6 +212,23 @@ class FormDefinition(models.Model):
         blank=True,
         help_text="Endpoint to receive submission payloads.",
     )
+    webhook_signing_secret = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="Optional shared secret used to sign webhook payloads.",
+    )
+    webhook_field_allowlist = models.TextField(
+        blank=True,
+        help_text=(
+            "Comma-separated list of form field keys allowed in webhook payloads."
+        ),
+    )
+    webhook_field_denylist = models.TextField(
+        blank=True,
+        help_text=(
+            "Comma-separated list of form field keys to exclude from webhook payloads."
+        ),
+    )
 
     panels = [
         MultiFieldPanel(
@@ -243,6 +261,9 @@ class FormDefinition(models.Model):
             [
                 FieldPanel("webhook_enabled"),
                 FieldPanel("webhook_url"),
+                FieldPanel("webhook_signing_secret"),
+                FieldPanel("webhook_field_allowlist"),
+                FieldPanel("webhook_field_denylist"),
             ],
             heading="Webhooks",
         ),
@@ -301,6 +322,9 @@ class FormDefinition(models.Model):
                 auto_reply_body=self.auto_reply_body,
                 webhook_enabled=self.webhook_enabled,
                 webhook_url=self.webhook_url,
+                webhook_signing_secret=self.webhook_signing_secret,
+                webhook_field_allowlist=self.webhook_field_allowlist,
+                webhook_field_denylist=self.webhook_field_denylist,
             )
 
             try:
@@ -322,10 +346,30 @@ class FormDefinition(models.Model):
                 "Webhook URL is required when webhooks are enabled."
             )
 
+        allowlist = self._parse_webhook_field_list(self.webhook_field_allowlist)
+        denylist = self._parse_webhook_field_list(self.webhook_field_denylist)
+        overlap = allowlist.intersection(denylist)
+        if overlap:
+            errors["webhook_field_denylist"] = ValidationError(
+                "Fields cannot be both allowed and denied.",
+            )
+
         if errors:
             raise ValidationError(errors)
 
         super().clean()
+
+    @staticmethod
+    def _parse_webhook_field_list(value: str) -> set[str]:
+        return {
+            item.strip() for item in re.split(r"[,\n]+", value or "") if item.strip()
+        }
+
+    def get_webhook_allowlist(self) -> set[str]:
+        return self._parse_webhook_field_list(self.webhook_field_allowlist)
+
+    def get_webhook_denylist(self) -> set[str]:
+        return self._parse_webhook_field_list(self.webhook_field_denylist)
 
     def get_usage_pages(self) -> list:
         """Return pages that reference this form definition."""

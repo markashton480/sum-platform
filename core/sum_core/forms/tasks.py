@@ -8,7 +8,10 @@ Dependencies: Celery, Django email backend, HTTP client, Lead model.
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import ipaddress
+import json
 import logging
 import re
 import socket
@@ -37,6 +40,7 @@ WEBHOOK_TIMEOUT = 10  # seconds
 NAME_TOKEN = re.compile(r"{{\s*name\s*}}")
 NAME_NEWLINE = re.compile(r"[\r\n]+")
 NAME_CONTROL = re.compile(r"[\x00-\x1F\x7F]")
+WEBHOOK_SIGNATURE_HEADER = "X-SUM-Webhook-Signature"
 
 
 def _parse_recipients(emails: str) -> list[str]:
@@ -128,6 +132,11 @@ def _build_webhook_payload(
 
     The payload includes form metadata, submission data, and attribution fields.
     """
+    filtered_data = _filter_webhook_data(
+        lead.form_data,
+        allowlist=form_definition.get_webhook_allowlist(),
+        denylist=form_definition.get_webhook_denylist(),
+    )
     payload: dict[str, object] = {
         "event": "form.submitted",
         "timestamp": (lead.submitted_at or timezone.now()).isoformat(),
@@ -144,7 +153,7 @@ def _build_webhook_payload(
                 "phone": lead.phone,
                 "message": lead.message,
             },
-            "data": lead.form_data,
+            "data": filtered_data,
             "created_at": lead.submitted_at.isoformat() if lead.submitted_at else None,
         },
         "attribution": {
@@ -160,6 +169,38 @@ def _build_webhook_payload(
     if request_id:
         payload["request_id"] = request_id
     return payload
+
+
+def _filter_webhook_data(
+    data: dict[str, object] | None,
+    *,
+    allowlist: set[str],
+    denylist: set[str],
+) -> dict[str, object]:
+    filtered = dict(data or {})
+    if allowlist:
+        filtered = {key: value for key, value in filtered.items() if key in allowlist}
+    if denylist:
+        filtered = {
+            key: value for key, value in filtered.items() if key not in denylist
+        }
+    return filtered
+
+
+def _build_webhook_body(payload: dict[str, object]) -> str:
+    return json.dumps(payload, separators=(",", ":"), sort_keys=True)
+
+
+def _build_webhook_signature(secret: str, body: str) -> str:
+    return hmac.new(secret.encode(), body.encode(), hashlib.sha256).hexdigest()
+
+
+def _build_webhook_headers(secret: str, body: str) -> dict[str, str]:
+    headers = {"Content-Type": "application/json"}
+    if secret:
+        signature = _build_webhook_signature(secret, body)
+        headers[WEBHOOK_SIGNATURE_HEADER] = f"sha256={signature}"
+    return headers
 
 
 def _interpolate_name(template: str, name: str) -> str:
@@ -795,11 +836,15 @@ def send_webhook(
         )
         return
 
+    webhook_secret = (form_definition.webhook_signing_secret or "").strip()
+    body = _build_webhook_body(payload)
+    headers = _build_webhook_headers(webhook_secret, body)
+
     try:
         response = requests.post(
             webhook_url,
-            json=payload,
-            headers={"Content-Type": "application/json"},
+            data=body,
+            headers=headers,
             timeout=WEBHOOK_TIMEOUT,
         )
         response.raise_for_status()

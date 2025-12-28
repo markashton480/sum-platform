@@ -7,6 +7,7 @@ Family: Forms, Leads, Notifications, Async processing.
 
 from __future__ import annotations
 
+import json
 from unittest.mock import Mock, patch
 
 import pytest
@@ -174,7 +175,7 @@ class TestDynamicFormTasks:
             send_webhook(lead.id, form_definition.id)
 
         assert mock_post.called
-        payload = mock_post.call_args[1]["json"]
+        payload = json.loads(mock_post.call_args[1]["data"])
         assert payload["event"] == "form.submitted"
         assert payload["form"]["id"] == form_definition.id
         assert payload["submission"]["id"] == lead.id
@@ -198,7 +199,7 @@ class TestDynamicFormTasks:
         ) as mock_post:
             send_webhook(lead.id, form_definition.id, request_id="req-123")
 
-        payload = mock_post.call_args[1]["json"]
+        payload = json.loads(mock_post.call_args[1]["data"])
         assert payload["request_id"] == "req-123"
 
     def test_webhook_skips_when_disabled(self, lead, form_definition):
@@ -259,3 +260,92 @@ class TestDynamicFormTasks:
         lead.refresh_from_db()
         assert lead.form_webhook_status == WebhookStatus.IN_PROGRESS
         assert "Boom" in lead.form_webhook_last_error
+
+
+class TestWebhookSSRFProtection:
+    """
+    Test SSRF (Server-Side Request Forgery) protection in webhook delivery.
+
+    Phase 2: Security-critical tests for webhook URL validation.
+    Ensures webhooks cannot be used to probe internal networks or cloud metadata services.
+    """
+
+    @pytest.mark.parametrize(
+        "webhook_url",
+        [
+            "http://127.0.0.1/admin",
+            "http://127.0.0.1:8000/secret",
+            "http://localhost/internal",
+            "http://0.0.0.0/test",
+            "http://[::1]/ipv6-localhost",
+            "http://10.0.0.1/private",
+            "http://10.255.255.255/private",
+            "http://172.16.0.1/private",
+            "http://172.31.255.255/private",
+            "http://192.168.0.1/private",
+            "http://192.168.255.255/private",
+            "http://169.254.169.254/latest/meta-data/",  # AWS metadata
+            "http://metadata.google.internal/",  # GCP metadata
+        ],
+    )
+    def test_webhook_blocks_private_ip_addresses(
+        self, lead, form_definition, webhook_url
+    ):
+        """Test webhook delivery rejects private/internal IP addresses."""
+        form_definition.webhook_url = webhook_url
+        form_definition.save(update_fields=["webhook_url"])
+
+        with patch("sum_core.forms.tasks.requests.post") as mock_post:
+            send_webhook(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert not mock_post.called
+        assert lead.form_webhook_status == WebhookStatus.FAILED
+        # Error message should indicate the webhook was blocked for security
+        error_msg = lead.form_webhook_last_error.lower()
+        assert any(
+            phrase in error_msg
+            for phrase in ["non-public", "private", "not be resolved", "not allowed"]
+        )
+
+    def test_webhook_rejects_file_scheme(self, lead, form_definition):
+        """Test webhook delivery rejects file:// URLs."""
+        form_definition.webhook_url = "file:///etc/passwd"
+        form_definition.save(update_fields=["webhook_url"])
+
+        with patch("sum_core.forms.tasks.requests.post") as mock_post:
+            send_webhook(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert not mock_post.called
+        assert lead.form_webhook_status == WebhookStatus.FAILED
+
+
+class TestEmailRetryBehavior:
+    """
+    Test email retry and error persistence.
+
+    Phase 2: Tests for retry logic and error tracking in email notifications.
+    """
+
+    def test_email_notification_persists_error_message(self, lead, form_definition):
+        """Test email errors are persisted to lead for debugging."""
+        error_msg = "Connection refused to SMTP server"
+        with patch("sum_core.forms.tasks.send_mail", side_effect=Exception(error_msg)):
+            with pytest.raises(Exception):
+                send_form_notification(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert lead.form_notification_status == EmailStatus.IN_PROGRESS
+        assert error_msg in lead.form_notification_last_error
+
+    def test_auto_reply_persists_error_message(self, lead, form_definition):
+        """Test auto-reply errors are persisted to lead for debugging."""
+        error_msg = "SMTP timeout after 30s"
+        with patch("sum_core.forms.tasks.send_mail", side_effect=Exception(error_msg)):
+            with pytest.raises(Exception):
+                send_auto_reply(lead.id, form_definition.id)
+
+        lead.refresh_from_db()
+        assert lead.auto_reply_status == EmailStatus.IN_PROGRESS
+        assert error_msg in lead.auto_reply_last_error
