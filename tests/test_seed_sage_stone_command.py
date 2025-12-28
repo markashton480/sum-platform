@@ -361,6 +361,7 @@ def test_seed_sage_stone_pages_are_children_of_home(
     terms = LegalPage.objects.get(slug="terms")
     assert terms.get_parent().id == home.id
 
+
 @pytest.mark.django_db
 def test_seed_sage_stone_categories_created(
     wagtail_default_site: Site,
