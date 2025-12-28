@@ -12,15 +12,16 @@ assumes a manual process for v0.6.0 and keeps deploy access scoped to the
 
 ## Key generation (ed25519 preferred)
 
-Generate the key locally on the operator machine:
+Generate the key locally on the operator machine (use a dedicated filename to
+avoid clobbering defaults):
 
 ```bash
-ssh-keygen -t ed25519 -C "deploy@<operator-domain>"
+ssh-keygen -t ed25519 -f ~/.ssh/sum-deploy -C "deploy@<operator-domain>"
 ```
 
 Suggested defaults:
 
-- Location: `~/.ssh/id_ed25519`
+- Location: `~/.ssh/sum-deploy`
 - Passphrase: required for operator laptops
 
 ## Key distribution
@@ -29,13 +30,13 @@ Suggested defaults:
    for first access):
 
 ```bash
-ssh-copy-id -i ~/.ssh/id_ed25519.pub deploy@<vps-ip>
+ssh-copy-id -i ~/.ssh/sum-deploy.pub deploy@<vps-ip>
 ```
 
 2. Verify the key works:
 
 ```bash
-ssh deploy@<vps-ip> "echo connected"
+ssh -i ~/.ssh/sum-deploy deploy@<vps-ip> "echo connected"
 ```
 
 3. Confirm permissions on the server:
@@ -52,10 +53,14 @@ sudo chown -R deploy:deploy /home/deploy/.ssh
   - `PasswordAuthentication no`
 - Disable root SSH login:
   - `PermitRootLogin no`
-- Reload sshd after changes:
+- Keep your current SSH session open, and verify a new login works before
+  closing it.
+- Reload sshd after changes (restart if reload does not pick up config
+  updates):
 
 ```bash
 sudo systemctl reload ssh
+sudo systemctl restart ssh
 ```
 
 Optional but recommended:
@@ -66,7 +71,7 @@ Optional but recommended:
 ## Key rotation and access audit
 
 - Rotate keys annually, or immediately on personnel change.
-- Review `~deploy/.ssh/authorized_keys` during audits.
+- Review `/home/deploy/.ssh/authorized_keys` during audits.
 - Remove unused keys promptly.
 
 ## Secrets handling (adjacent guidance)

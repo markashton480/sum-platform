@@ -69,7 +69,7 @@ sudo usermod -aG sudo deploy
 
 - Use SSH keys (disable password login once verified)
 - Consider: disable root SSH login
-- Full process: `infrastructure/docs/ssh-strategy.md`
+- Full process: `./ssh-strategy.md`
 
 Edit `/etc/ssh/sshd_config` carefully, then:
 
