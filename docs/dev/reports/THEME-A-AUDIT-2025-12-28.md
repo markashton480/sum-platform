@@ -297,7 +297,7 @@ Wireframe shows multiple social icons, but footer.html only renders Instagram:
 | Dual CTA buttons | YES | YES | PASS |
 | Floating card | Wireframe: NO | Theme: YES | ENHANCED |
 
-**ISSUE #5 (MODERATE):** Missing parallax effect on hero image
+**ISSUE #5 (CRITICAL - MUST FIX):** Missing parallax effect on hero image
 
 Wireframe has:
 ```javascript
