@@ -326,7 +326,14 @@ def test_seed_sage_stone_core_pages_have_content(
     home = HomePage.objects.get(slug="home")
     assert len(home.body) > 0
 
-    for slug in ["about", "services", "portfolio", "contact"]:
+    for slug in [
+        "about",
+        "services",
+        "portfolio",
+        "contact",
+        "privacy",
+        "accessibility",
+    ]:
         page = StandardPage.objects.get(slug=slug)
         assert len(page.body) > 0
 
@@ -340,10 +347,19 @@ def test_seed_sage_stone_pages_are_children_of_home(
     _run_seed_command()
 
     home = HomePage.objects.get(slug="home")
-    for slug in ["about", "services", "portfolio", "contact"]:
+    for slug in [
+        "about",
+        "services",
+        "portfolio",
+        "contact",
+        "privacy",
+        "accessibility",
+    ]:
         page = StandardPage.objects.get(slug=slug)
         assert page.get_parent().id == home.id
 
+    terms = LegalPage.objects.get(slug="terms")
+    assert terms.get_parent().id == home.id
 
 @pytest.mark.django_db
 def test_seed_sage_stone_categories_created(
