@@ -170,3 +170,115 @@ def test_auto_reply_fields_persist(wagtail_default_site):
     assert form_def.auto_reply_enabled is True
     assert form_def.auto_reply_subject == "Thanks for reaching out"
     assert form_def.auto_reply_body == "We'll get back to you shortly."
+
+
+# Phase 2: Additional validation tests for edge cases and security
+
+
+@pytest.mark.django_db
+def test_webhook_url_accepts_http_for_dev(wagtail_default_site):
+    """HTTP webhook URLs should be accepted (useful for local dev/testing)."""
+    form_def = FormDefinition(
+        site=wagtail_default_site,
+        name="Dev Form",
+        slug="dev-form",
+        webhook_enabled=True,
+        webhook_url="http://localhost:8080/webhook",
+    )
+
+    form_def.full_clean()  # Should not raise
+    assert form_def.webhook_url == "http://localhost:8080/webhook"
+
+
+@pytest.mark.django_db
+def test_webhook_disabled_allows_empty_url(wagtail_default_site):
+    """When webhook is disabled, URL can be empty."""
+    form_def = FormDefinition(
+        site=wagtail_default_site,
+        name="No Webhook Form",
+        slug="no-webhook",
+        webhook_enabled=False,
+        webhook_url="",
+    )
+
+    form_def.full_clean()  # Should not raise
+    assert form_def.webhook_url == ""
+
+
+@pytest.mark.django_db
+def test_allowlist_only_validation(wagtail_default_site):
+    """Allowlist without denylist should be valid."""
+    form_def = FormDefinition(
+        site=wagtail_default_site,
+        name="Allowlist Form",
+        slug="allowlist-form",
+        webhook_enabled=True,
+        webhook_url="https://api.example.com/webhook",
+        webhook_field_allowlist="name,email,phone",
+        webhook_field_denylist="",
+    )
+
+    form_def.full_clean()  # Should not raise
+
+
+@pytest.mark.django_db
+def test_denylist_only_validation(wagtail_default_site):
+    """Denylist without allowlist should be valid."""
+    form_def = FormDefinition(
+        site=wagtail_default_site,
+        name="Denylist Form",
+        slug="denylist-form",
+        webhook_enabled=True,
+        webhook_url="https://api.example.com/webhook",
+        webhook_field_allowlist="",
+        webhook_field_denylist="ssn,credit_card",
+    )
+
+    form_def.full_clean()  # Should not raise
+
+
+@pytest.mark.django_db
+def test_auto_reply_template_variables_stored(wagtail_default_site):
+    """Auto-reply templates with {{variables}} should be stored correctly."""
+    form_def = FormDefinition(
+        site=wagtail_default_site,
+        name="Template Form",
+        slug="template-form",
+        auto_reply_enabled=True,
+        auto_reply_subject="Hello {{name}}!",
+        auto_reply_body="Dear {{name}},\n\nWe received your {{message}}.\n\nThanks!",
+    )
+
+    form_def.full_clean()
+    form_def.save()
+    form_def.refresh_from_db()
+
+    assert "{{name}}" in form_def.auto_reply_subject
+    assert "{{name}}" in form_def.auto_reply_body
+    assert "{{message}}" in form_def.auto_reply_body
+
+
+@pytest.mark.django_db
+def test_notification_emails_whitespace_handling(wagtail_default_site):
+    """Whitespace around email addresses should not cause validation errors."""
+    form_def = FormDefinition(
+        site=wagtail_default_site,
+        name="Whitespace Form",
+        slug="whitespace-form",
+        notification_emails="  admin@example.com  ,  support@example.com  ",
+    )
+
+    form_def.full_clean()  # Should not raise (validator should handle whitespace)
+
+
+@pytest.mark.django_db
+def test_form_definition_default_success_message(wagtail_default_site):
+    """FormDefinition should have a default success message."""
+    form_def = FormDefinition.objects.create(
+        site=wagtail_default_site,
+        name="Default Message Form",
+        slug="default-message",
+    )
+
+    assert form_def.success_message
+    assert len(form_def.success_message) > 0
