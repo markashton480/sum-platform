@@ -1,321 +1,284 @@
-# GH Project Operating Guide (SUM Platform)
+# Project Planning Guidelines
 
-**Purpose:** A lightweight, auditable way to run parallel work across multiple agents/models while keeping merges, releases, and verification predictable.
+> **Coordinate parallel work** across multiple agents while keeping merges, releases, and verification predictable.
 
-This process assumes:
-- `main` is always stable and shippable (no direct commits).
-- Every change is traceable to a GitHub Issue.
-- Releases are cut from `main` using the release checklist and verified.
+**Git Model:** See [`GIT_STRATEGY.md`](GIT_STRATEGY.md) for the 5-tier branch model.
 
 ---
 
-## 1) Core concepts
+## 1) Issue Hierarchy
 
-### 1.1 Milestones = Release trains
-We use GitHub **Milestones** as release containers. Milestone names match release tags:
+```
+Milestone: v0.7.0
+│
+├── Version Declaration: v0.7.0              ←→  release/0.7.0
+│   │
+│   ├── WO: Dynamic Forms                    ←→  feature/forms
+│   │   ├── GH-101: FormDefinition snippet   ←→  feature/forms/001-definition
+│   │   ├── GH-102: Field blocks             ←→  feature/forms/002-fields
+│   │   └── GH-103: Dynamic form block       ←→  feature/forms/003-block
+│   │
+│   └── WO: Blog System                      ←→  feature/blog
+│       ├── GH-104: Category snippet         ←→  feature/blog/001-category
+│       └── GH-105: Blog pages               ←→  feature/blog/002-pages
+```
 
-- `v0.6.2` (patch train)
-- `v0.7.0` (minor train)
+### Issue Types
 
-**Rule:** If it’s meant to ship in the next release, it must be in that Milestone.
+| Type | Purpose | Branch | PR Target |
+|------|---------|--------|-----------|
+| **Version Declaration** | Scope + intent for a release | `release/X.Y.0` | `develop` |
+| **Work Order (WO)** | Coordinate a feature | `feature/<scope>` | `release/X.Y.0` |
+| **Subtask** | Atomic deliverable | `feature/<scope>/<seq>-<slug>` | `feature/<scope>` |
 
-### 1.2 Work Orders = Parent coordination issues
-A **Work Order (WO)** is a parent Issue used to coordinate parallel work that could otherwise collide. It defines:
-- the outcome
-- boundaries / ownership
-- merge order
-- verification focus
+### When to Use What
 
-A WO contains **subtasks** as separate Issues (child tickets), assigned to agents/models.
+**Single subtask:** One agent, limited scope, low collision risk.
 
-### 1.3 Subtasks = Atomic deliverables
-A subtask should be small enough that:
-- one agent can complete it end-to-end
-- it touches a limited set of files/areas
-- it can be reviewed/merged independently
+**Work Order + subtasks:** Multiple agents, multiple files, merge order matters.
 
-### 1.4 Project board = Live execution view
-GitHub Projects (v2) is the “what’s happening now” view:
-- work status
-- who is doing it
-- which model did it
-- which release it’s for
-- where conflicts/risk might be brewing
-
----
-
-## 2) Required GitHub configuration
-
-### 2.1 Labels (recommended minimum set)
-**Type**
-- `type:work-order`
-- `type:task`
-- `type:bug`
-- `type:release`
-
-**Ownership**
-- `agent:codex-a`, `agent:codex-b`, `agent:codex-c`, `agent:claude`, `agent:human`
-
-**Model tracking**
-- `model:codex-5.1-max`
-- `model:codex-5.2-extra-high`
-- `model:claude`
-- `model:human`
-- `model:other`
-
-**Risk**
-- `risk:low`, `risk:med`, `risk:high`
-
-**Component**
-- `component:core`, `component:cli`, `component:boilerplate`, `component:infra`, `component:docs`
-
-### 2.2 Project fields (v2)
-Add these fields to the Project:
-
-**Execution**
-- `Status` (Todo / Queue / In Progress / Holding / Done)
-- `Agent` (single select)
-- `Model Planned` (single select)
-- `Model Used` (single select)
-
-**Change clarity**
-- `Component` (single select)
-- `Change Type` (single select: feat / fix / chore / refactor / docs)
-- `Risk` (single select: Low / Med / High)
-- `Release` (text or iteration; usually mirrors Milestone, e.g. `v0.7.0`)
-
-> Note: Labels make model visible directly on the issue. Project fields make it filterable/trackable at scale.
+**Version Declaration:** Always — one per milestone, defines what ships.
 
 ---
 
-## 3) Work intake: how a new piece of work is created
+## 2) GitHub Configuration
 
-### 3.1 Decide: single issue vs Work Order
-Use a **single Issue** when:
-- one person/agent can do it
-- low collision risk
-- limited scope and files
+### Labels
 
-Use a **Work Order** when:
-- multiple agents will work in parallel
-- multiple components are involved
-- risk of merge conflicts is non-trivial
-- you need a planned merge order
+| Category | Labels |
+|----------|--------|
+| **Type** | `type:version-declaration`, `type:work-order`, `type:task`, `type:bug` |
+| **Agent** | `agent:codex-a`, `agent:codex-b`, `agent:claude`, `agent:human` |
+| **Model** | `model:o3`, `model:claude-sonnet`, `model:claude-opus`, `model:human` |
+| **Risk** | `risk:low`, `risk:med`, `risk:high` |
+| **Component** | `component:core`, `component:cli`, `component:boilerplate`, `component:themes`, `component:docs` |
 
-### 3.2 Work Order template
-Create a parent Issue titled:
+### Project Fields
 
-**`WO: <Outcome> (vX.Y.Z)`**
-
-**WO body should include:**
-- **Objective:** what “done” means (2–5 bullets)
-- **Scope boundaries:** which areas are in/out
-- **Affected paths:** directories/files likely touched
-- **Subtasks:** links to child issues (see 3.3)
-- **Merge plan:** order + who merges + dependency notes
-- **Verification focus:** smoke + any delta checks
-
-Apply labels:
-- `type:work-order`
-- relevant `component:*` and `risk:*`
-- assign Milestone `vX.Y.Z`
-
-Set Project fields:
-- `Release = vX.Y.Z`
-- `Risk`, `Component` (if clear at WO level)
-
-### 3.3 Create subtasks (child Issues)
-Create child Issues titled:
-
-**`<ticket-id>: <short deliverable>`**  
-Example: `GH-123: Add leads status transitions`
-
-Each subtask must include:
-- **Deliverable**
-- **Boundaries** (“do not touch X”; “only change Y”)
-- **Acceptance criteria**
-- **Test commands to run**
-- **Files/paths expected to change** (best-effort)
-
-Apply labels:
-- `type:task` (or `type:bug`)
-- `agent:*` (who you intend to do it)
-- `component:*`
-- `risk:*` (optional but useful)
-- Milestone `vX.Y.Z`
-
-Set Project fields:
-- `Agent = …`
-- `Model Planned = …`
-- `Component / Change Type / Risk`
-- `Release = vX.Y.Z`
+| Field | Type | Purpose |
+|-------|------|---------|
+| Status | Select | Todo / In Progress / Review / Done |
+| Agent | Select | Who is assigned |
+| Model Planned | Select | Intended model |
+| Model Used | Select | Actual model (set on completion) |
+| Component | Select | Which area |
+| Change Type | Select | feat / fix / chore / refactor / docs |
+| Risk | Select | Low / Med / High |
+| Release | Text | Version (e.g., `v0.7.0`) |
 
 ---
 
-## 4) Parallelism rules (how we avoid merge hell)
+## 3) Starting a Version
 
-### 4.1 One agent, one slice
-Do not assign two agents to change the same “hot area” in the same train unless you explicitly plan the merge order.
+### 3.1 Create Milestone + Version Declaration
 
-Prefer slicing by:
-- directory (`core/` vs `cli/` vs `boilerplate/`)
-- vertical feature ownership (one agent owns end-to-end)
-- interface ownership (one agent changes the contract; others consume)
+```bash
+# 1. Create milestone in GitHub: v0.7.0
 
-### 4.2 Declare “hot files”
-If a WO touches hot files (examples):
-- dependency pins / lockfiles
-- boilerplate templates
-- shared settings/config
-- central routing / registries
+# 2. Create Version Declaration issue using template
+#    Title: "Version Declaration: v0.7.0"
+#    Labels: type:version-declaration
+#    Milestone: v0.7.0
 
-…then the WO must include an explicit merge order and a single owner for those files.
+# 3. Create release branch
+git checkout develop
+git pull origin develop
+git checkout -b release/0.7.0
+git push -u origin release/0.7.0
+```
 
-### 4.3 Use Draft PRs early
-Agents should open a Draft PR early (after first meaningful commit) to:
-- surface collisions early
-- anchor discussion + review
-- ensure Issues/Project automatically link to PRs
+### 3.2 Create Work Orders
 
----
+For each feature in the Version Declaration:
 
-## 5) Branching + PR conventions
+```bash
+# 1. Create Work Order issue using template
+#    Title: "WO: Dynamic Form System (v0.7.0)"
+#    Labels: type:work-order, component:*, risk:*
+#    Milestone: v0.7.0
 
-### 5.1 Branch naming
-Branch names follow the operational git policy style:
+# 2. Create feature branch
+git checkout release/0.7.0
+git checkout -b feature/forms
+git push -u origin feature/forms
+```
 
-- `feat/gh-123-leads-status`
-- `fix/gh-124-boilerplate-drift`
-- `chore/gh-125-ci-timeouts`
-- `docs/gh-126-gh-project-guide`
+### 3.3 Create Subtasks
 
-### 5.2 PR naming + linking
-PR title:
-- `GH-123: <summary>`
+For each task in the Work Order:
 
-PR body must include:
-- `Closes #123` (or “Refs #123” if it shouldn’t auto-close)
-- test evidence (commands + results)
-- any notable risk/rollback notes
+```bash
+# 1. Create subtask issue using template
+#    Title: "GH-101: Add FormDefinition snippet"
+#    Labels: type:task, agent:*, component:*, risk:*
+#    Milestone: v0.7.0
 
-### 5.3 Merge discipline
-- Only merge when the issue is actually done.
-- Prefer `--no-ff` merges for traceability (squash only for tiny, isolated changes).
-- If multiple PRs are part of a WO, merge in the planned order.
-
----
-
-## 6) Model tracking (planned vs used)
-
-### 6.1 When to set fields
-- **On assignment:** set `Model Planned`
-- **On completion:** set `Model Used` + apply `model:*` label
-
-### 6.2 Why both?
-- `Model Planned` shows intent and helps routing work.
-- `Model Used` is ground truth for reliability analysis (which models regress, which excel).
-
-### 6.3 “Done” requires Model Used
-A subtask cannot be moved to **Done** unless:
-- `Model Used` is set
-- matching `model:*` label is applied
+# 2. Create task branch
+git checkout feature/forms
+git checkout -b feature/forms/001-definition
+git push -u origin feature/forms/001-definition
+```
 
 ---
 
-## 7) Definition of Done
+## 4) Executing Work
 
-### 7.1 Subtask DoD
-A subtask is “Done” when:
-- acceptance criteria met
-- tests specified in the issue have been run and passed
-- PR is merged to `main` (or explicitly approved to defer merge)
-- `Model Used` set + `model:*` label applied
-- any follow-up docs/notes are captured (if needed)
+### Task Workflow
 
-### 7.2 Work Order DoD
-A Work Order is “Done” when:
-- all child issues are Done (or explicitly cut/deferred)
-- merge plan executed without unresolved collisions
-- verification focus items are checked
-- release train remains coherent (Milestone still true)
+```
+1. Check out task branch
+2. Implement (satisfy acceptance criteria, stay within boundaries)
+3. Run: make lint && make test
+4. Commit with conventional message + "Closes #NNN"
+5. Push and create PR → feature branch
+6. Wait for CI, address feedback
+7. PR merged (squash) by reviewer
+8. Set Model Used + apply model:* label
+```
 
----
+### Feature Completion
 
-## 8) Release workflow integration
+When all subtasks merged to `feature/<scope>`:
 
-### 8.1 Release issue per Milestone
-Each Milestone must have one parent “Release” issue:
+```bash
+git checkout feature/forms
+git pull origin feature/forms
+make lint && make test
 
-**`Release: vX.Y.Z`**
+# Create PR: feature/forms → release/0.7.0
+# Merge strategy: --no-ff (preserves feature boundary)
+```
 
-It owns:
-- version selection and gates
-- boilerplate pinning
-- tagging
-- post-tag verification
-- record keeping
+### Version Completion
 
-### 8.2 Gates and verification
-Releases must follow the repo’s operational release checklist:
-- pre-flight: clean `main`
-- run `make release-check`
-- update boilerplate pinning to the new tag
-- create annotated tag on `main`
-- post-tag verify via `sum init` + `sum check`
-- update loop-sites matrix and release notes
+When all features merged to `release/X.Y.0`:
 
-### 8.3 Deploy/upgrade/rollback linkage (if applicable)
-If a release involves deploy/upgrade:
-- follow deploy/upgrade runbooks
-- do smoke tests immediately after
-- know rollback triggers and the rollback path
-- record anything surprising in “what broke last time”
+```bash
+git checkout release/0.7.0
+git pull origin release/0.7.0
+make release-check
+
+# Create PR: release/0.7.0 → develop (squash)
+# Run release audit before merge
+# Then: develop → main → sync → tag
+```
 
 ---
 
-## 9) Record keeping (non-negotiable)
+## 5) Parallelism Rules
 
-After each release event and any noteworthy operational incident:
-- Update **loop-sites matrix** (what’s running where)
-- Append to **what broke last time** (lessons, pitfalls, workarounds)
+### One Agent, One Task
 
----
+Never assign two agents to the same subtask. Agents can work on different subtasks within the same feature.
 
-## 10) Suggested Project views
+### Hot File Ownership
 
-Create saved views in GitHub Projects:
-1) **Kanban (Execution)**  
-   Group by Status, show Agent + Model Planned/Used
+If multiple tasks touch the same files:
 
-2) **By Agent**  
-   Filter `Status != Done`, group by Agent
+1. Declare in Work Order which task owns the hot files
+2. Define merge order
+3. Later tasks rebase before merging
 
-3) **By Model Used**  
-   Group by Model Used, filter last 30–90 days when auditing reliability
+```markdown
+### Merge Order
+1. GH-101: Form Definition (owns models.py)
+2. GH-102: Field Blocks (depends on 101)
+3. GH-103: Dynamic Form Block (depends on 102)
+```
 
-4) **By Release (Train)**  
-   Filter `Release = vX.Y.Z` (or Milestone view via Issues)
+### Cross-Feature Dependencies
 
-5) **High Risk / Holding**  
-   Filter `Risk = High OR Status = Holding` to surface blockers
+If features depend on each other:
 
----
-
-## 11) Optional automation (later)
-Once the manual process is stable, consider automation:
-- Sync `model:*` labels → `Model Used` field
-- Auto-set `Release` field from Milestone
-- Auto-move status on PR open/merge
-
-Keep automation minimal and auditable—prefer “help humans do the right thing” over “complex magic”.
+1. Declare in Version Declaration
+2. Merge dependent feature first
+3. Rebase other features on release branch
 
 ---
 
-## Appendix A: Quick start checklist
-- [ ] Create/confirm labels (type, agent, component, risk, model)
-- [ ] Add Project fields (Agent, Model Planned, Model Used, Component, Change Type, Risk, Release)
-- [ ] Adopt WO template and subtask template
-- [ ] Enforce DoD: Model Used + label required before Done
-- [ ] Ensure a Release issue exists for each Milestone train
+## 6) Definition of Done
 
+### Subtask DoD
 
+- [ ] Acceptance criteria met
+- [ ] `make lint && make test` passes
+- [ ] PR merged to feature branch
+- [ ] **Model Used** field set
+- [ ] `model:*` label applied
+
+### Work Order DoD
+
+- [ ] All subtasks Done
+- [ ] Feature branch merged to release branch
+- [ ] No unresolved conflicts
+
+### Version Declaration DoD
+
+- [ ] All Work Orders Done
+- [ ] Release branch merged to develop
+- [ ] Develop merged to main
+- [ ] Tag created on public repo
+- [ ] Verification passes
+
+---
+
+## 7) Model Tracking
+
+### When to Set
+
+| Event | Action |
+|-------|--------|
+| Task assigned | Set `Model Planned` |
+| Task completed | Set `Model Used` + apply `model:*` label |
+
+### Enforcement
+
+A subtask cannot move to Done without:
+- `Model Used` field set
+- Matching `model:*` label applied
+
+---
+
+## 8) PR Conventions
+
+### Titles
+
+| Level | Format |
+|-------|--------|
+| Task | `GH-NNN: <summary>` |
+| Feature | `feat(<scope>): <summary>` |
+| Version | `Release vX.Y.0` |
+
+### Bodies
+
+```markdown
+## Summary
+- What changed
+
+## Testing
+- `make lint` ✓
+- `make test` ✓
+
+Closes #NNN
+```
+
+---
+
+## 9) Suggested Project Views
+
+| View | Configuration |
+|------|---------------|
+| **Kanban** | Group by Status, show Agent |
+| **By Agent** | Filter Status ≠ Done, group by Agent |
+| **By Release** | Filter by Release field |
+| **High Risk** | Filter Risk = High OR Status = Holding |
+
+---
+
+## Related Documents
+
+- [`GIT_STRATEGY.md`](GIT_STRATEGY.md) — Branch model
+- [`VERSION_DECLARATION_TEMPLATE.md`](templates/VERSION_DECLARATION_TEMPLATE.md) — Version planning
+- [`work-order-template.md`](templates/work-order-template.md) — Feature coordination
+- [`subtask-template.md`](templates/subtask-template.md) — Task specification
+- [`RELEASE_RUNBOOK.md`](RELEASE_RUNBOOK.md) — Release process

@@ -18,14 +18,14 @@ install-dev:
 lint: ## Run all linting and typechecking (strict)
 	ruff check . --config pyproject.toml
 	mypy core cli tests
-	black --check --exclude '(?:^|/)(clients)/' core cli tests
+	black --check --config pyproject.toml core cli tests
 	isort --settings-path pyproject.toml --check-only core cli tests
 
 lint-strict: lint
 
 format: ## Auto-format code
-	black --exclude '(?:^|/)(clients)/' .
-	isort .
+	black --config pyproject.toml core cli tests
+	isort --settings-path pyproject.toml core cli tests
 
 
 test: ## Run tests with pytest

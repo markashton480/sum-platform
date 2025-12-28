@@ -226,6 +226,37 @@ def test_init_includes_seed_showroom_command(
     assert "settings.favicon_id" in text
 
 
+def test_init_includes_seed_sage_stone_command(
+    monkeypatch, isolated_theme_env, apply_isolated_theme_env, theme_snapshot
+) -> None:
+    """Generated client projects should include the seed_sage_stone command."""
+    output_root = Path(isolated_theme_env["SUM_CLIENT_OUTPUT_PATH"])
+    theme_root = Path(isolated_theme_env["SUM_THEME_PATH"]) / "theme_a"
+    before_snapshot = theme_snapshot(theme_root)
+    unique_suffix = int(time.time() * 1000) % 100000
+    project_name = f"seed-sage-stone-{unique_suffix}"
+    python_pkg = project_name.replace("-", "_")
+
+    monkeypatch.chdir(output_root)
+    project_root = output_root / "clients" / project_name
+
+    code = run_init(project_name, theme_slug="theme_a")
+    assert code == 0
+    assert_output_boundary(project_root, output_root)
+    assert_source_theme_present(theme_root)
+    assert theme_snapshot(theme_root) == before_snapshot
+
+    cmd = (
+        project_root
+        / python_pkg
+        / "home"
+        / "management"
+        / "commands"
+        / "seed_sage_stone.py"
+    )
+    assert cmd.exists(), "seed_sage_stone should be present in generated project"
+
+
 def test_init_settings_include_canonical_theme_override(
     monkeypatch, isolated_theme_env, apply_isolated_theme_env, theme_snapshot
 ) -> None:

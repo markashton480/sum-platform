@@ -107,6 +107,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: Install system dependencies
+        if: needs.changes.outputs.docs_ci_only != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1
+
       - name: Install dependencies
         if: needs.changes.outputs.docs_ci_only != 'true'
         run: |
@@ -148,6 +154,12 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
+
+      - name: Install system dependencies
+        if: needs.changes.outputs.docs_ci_only != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1
 
       - name: Install dependencies
         if: needs.changes.outputs.docs_ci_only != 'true'
@@ -194,6 +206,12 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
+
+      - name: Install system dependencies
+        if: needs.changes.outputs.docs_ci_only != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1
 
       - name: Install dependencies
         if: needs.changes.outputs.docs_ci_only != 'true'
@@ -248,6 +266,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: Install system dependencies
+        if: needs.changes.outputs.docs_ci_only != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1
+
       - name: Install dependencies
         if: needs.changes.outputs.docs_ci_only != 'true'
         run: |
@@ -300,6 +324,12 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
+
+      - name: Install system dependencies
+        if: needs.changes.outputs.docs_ci_only != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1
 
       - name: Install dependencies
         if: needs.changes.outputs.docs_ci_only != 'true'

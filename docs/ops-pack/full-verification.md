@@ -35,7 +35,7 @@ Full verification goes **beyond smoke tests** to verify:
 
 ```bash
 # View changes between tags
-git log v0.5.0..v0.6.0 --oneline
+git log v0.6.0..v0.6.1 --oneline
 ```
 
 **Focus verification on:**
@@ -49,7 +49,7 @@ git log v0.5.0..v0.6.0 --oneline
 
 **Example:**
 
-- `v0.5.0` → `v0.6.0`: Added blog pages, dynamic forms, Theme A
+- `v0.6.0` → `v0.6.1`: Added blog pages, dynamic forms, Theme A
   - **Focus:** Blog listing/detail pages, form submissions, new theme rendering
 
 ---

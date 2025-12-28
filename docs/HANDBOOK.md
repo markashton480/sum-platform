@@ -74,7 +74,7 @@ _You launch and maintain sites._
 
 - **Focus**: `cli/`, `boilerplate/`, deployments, upgrades.
 - **Read**: [Operations Router](ROUTER.md), [VPS Golden Path](dev/deploy/vps-golden-path.md).
-- **Tool**: `sum init`, `sum check`, `make deploy`.
+- **Tool**: `sum init`, `sum check`, deploy runbooks.
 
 ### ✍️ I am a Content Editor / Marketer
 
@@ -271,6 +271,19 @@ Individual detail pages for business services.
 - **Key Fields**: `body`, `featured_image`, `short_description`.
 - **Hierarchy**: Must be a child of `ServiceIndexPage`.
 
+#### 4. `LegalPage` (Core)
+
+Specialized page for legal content (Terms, Privacy Policy, Cookie Policy).
+
+- **Key Fields**: `sections` (StreamField of `LegalSectionBlock`).
+- **Module**: `sum_core.pages.legal.LegalPage`.
+- **Features**:
+  - Auto-generated Table of Contents from section anchors.
+  - Print-friendly styling.
+  - SEO fields inherited from `SeoFieldsMixin`.
+- **Subpage Types**: None (leaf page).
+- **Usage**: Create as children of HomePage. Link from SiteSettings for footer display.
+
 ---
 
 ### Core Block Catalog
@@ -310,6 +323,17 @@ Accordion-style questions.
   - `items`: List of Question/Answer pairs.
 - **SEO**: Automatically generates `FAQPage` JSON-LD schema.
 
+#### Legal Section (`legal_section`)
+
+Anchored sections for legal pages with Table of Contents support.
+
+- **Fields**:
+  - `anchor`: URL-safe identifier (lowercase letters, numbers, hyphens).
+  - `heading`: Section title displayed in TOC and as H2.
+  - `body`: RichText content (supports H3, H4, bold, italic, links, lists).
+- **Usage**: Used exclusively in `LegalPage.sections` StreamField.
+- **Template**: `sum_core/blocks/legal_section.html` (theme-overridable).
+
 ---
 
 ### Global Page Features
@@ -335,7 +359,7 @@ When developing custom blocks or modifying existing ones:
 ### Development Guidelines
 
 - Follow the [Hygiene Standards](dev/hygiene.md).
-- Reference the [Navigation System](dev/NAV/navigation.md).
+- Reference the [Navigation tags reference](dev/navigation-tags-reference.md).
 - Review your theme's README for styling conventions.
 - For Theme A, see [Theme A Documentation](../themes/theme_a/README.md).
 
@@ -554,7 +578,7 @@ To cut a release properly, follow these steps exactly:
 | **Theme**   | `cd themes/<theme>/tailwind`       | Navigate to theme build directory             |
 | **Theme**   | `npm run build`                    | Compile theme CSS (production)                |
 | **Theme**   | `npm run watch`                    | Watch mode for theme development              |
-| **Ops**     | `make deploy`                      | Production sync (environment specific)        |
+| **Ops**     | Deploy runbooks                    | Production sync (environment specific)        |
 
 ### Production Deployment (The Golden Path)
 

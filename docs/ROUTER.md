@@ -104,15 +104,14 @@ Use these when **building features** or **understanding the platform**, not for 
 - **[Page types reference](dev/page-types-reference.md)** — available page models and their fields
 - **[Navigation tags reference](dev/navigation-tags-reference.md)** — header/footer/sticky CTA template tags
 
-### Design system
+### Design assets
 
-- **[CSS Architecture and Tokens](dev/design/css-architecture-and-tokens.md)** — design token system and CSS structure
-- **[Design system philosophy](dev/design/design_system.md)** — brand-agnostic "frame not paint" approach
+- **[Design references](dev/design/)** — HTML mockups and visual references
 
 ### Development standards
 
 - **[Hygiene standards](dev/hygiene.md)** — lint/test/formatting requirements
-- **[Daily code review](dev/reviews/daily_code_review.md)** — review checklist and quality gates
+- **[Daily code review](dev/agents/reviews/daily_code_review.md)** — review checklist and quality gates
 
 ---
 

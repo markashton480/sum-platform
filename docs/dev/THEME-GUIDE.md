@@ -18,7 +18,8 @@
 8. [Phase 7: Navigation & Footer](#8-phase-7-navigation--footer)
 9. [Phase 8: JavaScript Interactions](#9-phase-8-javascript-interactions)
 10. [Phase 9: Build, Test & Polish](#10-phase-9-build-test--polish)
-11. [Quick Reference](#11-quick-reference)
+11. [Phase 10: Cookie Banner & Legal Page Templates](#11-phase-10-cookie-banner--legal-page-templates-v06)
+12. [Quick Reference](#12-quick-reference)
 
 ---
 
@@ -1320,7 +1321,7 @@ themes/theme_b/
 
 ---
 
-## 11. Quick Reference
+## 12. Quick Reference
 
 ### Template Tags Cheat Sheet
 
@@ -1410,12 +1411,152 @@ themes/theme_b/
 
 ---
 
+## 11. Phase 10: Cookie Banner & Legal Page Templates (v0.6+)
+
+### Cookie Banner Override
+
+The cookie banner is included via `sum_core/includes/cookie_banner.html`. Themes can override styling but **must preserve the DOM contract** for the JS to function:
+
+**Required DOM Elements:**
+
+```html
+{# Theme override: templates/sum_core/includes/cookie_banner.html #}
+{% load branding_tags wagtailcore_tags %}
+{% get_site_settings as site_settings %}
+
+{% if site_settings.cookie_banner_enabled %}
+  {# Container: MUST have .cookie-banner class #}
+  <aside class="cookie-banner" aria-label="Cookie preferences" style="display: none;" aria-hidden="true">
+
+    {# Content area - style as needed #}
+    <div class="cookie-banner__content">
+      <p>Your cookie message here...</p>
+      {% if site_settings.privacy_policy_page %}
+        <a href="{% pageurl site_settings.privacy_policy_page %}">Privacy Policy</a>
+      {% endif %}
+    </div>
+
+    {# Buttons: MUST have data-cookie-consent attributes #}
+    <div class="cookie-banner__actions">
+      <button type="button" data-cookie-consent="accept">Accept</button>
+      <button type="button" data-cookie-consent="reject">Reject</button>
+    </div>
+
+    {# Status: MUST have .cookie-banner__status and aria-live #}
+    <p class="cookie-banner__status" aria-live="polite"></p>
+
+  </aside>
+{% endif %}
+```
+
+**Contract Checklist:**
+
+| Element | Selector | Required |
+|---------|----------|----------|
+| Container | `.cookie-banner` | Yes |
+| Accept button | `[data-cookie-consent="accept"]` | Yes |
+| Reject button | `[data-cookie-consent="reject"]` | Yes |
+| Status message | `.cookie-banner__status` with `aria-live="polite"` | Yes |
+| Initial visibility | `style="display: none;"` | Yes |
+| ARIA hidden | `aria-hidden="true"` | Yes |
+
+**Footer "Manage Cookies" Link:**
+
+The footer should include a link to re-open the banner:
+
+```html
+{% if site_settings.cookie_banner_enabled %}
+  <a href="#" data-cookie-consent="manage">Manage cookies</a>
+{% endif %}
+```
+
+### Legal Page Template
+
+Legal pages use the `theme/legal_page.html` template. This is theme-owned and must render the `LegalPage` model fields.
+
+**Template Structure:**
+
+```html
+{# themes/your_theme/templates/theme/legal_page.html #}
+{% extends "theme/base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+  {# Hero/Header Section #}
+  <section class="legal-header">
+    <h1>{{ page.title }}</h1>
+    {% if page.search_description %}
+      <p>{{ page.search_description }}</p>
+    {% endif %}
+    {% if page.last_updated %}
+      <time datetime="{{ page.last_updated|date:'Y-m-d' }}">
+        Last updated: {{ page.last_updated|date:"F Y" }}
+      </time>
+    {% endif %}
+    <button onclick="window.print()">Print Document</button>
+  </section>
+
+  {# Table of Contents (generated from sections) #}
+  {% if page.sections %}
+    <nav aria-label="Table of Contents">
+      {% for section in page.sections %}
+        <a href="#{{ section.value.anchor|slugify }}">
+          {{ section.value.heading }}
+        </a>
+      {% endfor %}
+    </nav>
+
+    {# Section Content #}
+    {% for section in page.sections %}
+      <article id="{{ section.value.anchor|slugify }}" class="scroll-mt-24">
+        <h2>{{ section.value.heading }}</h2>
+        <div class="prose">
+          {{ section.value.body|richtext }}
+        </div>
+      </article>
+    {% endfor %}
+  {% endif %}
+{% endblock %}
+```
+
+**Legal Page Contract:**
+
+| Field | Access | Purpose |
+|-------|--------|---------|
+| `page.title` | String | Page heading |
+| `page.search_description` | String | Intro text |
+| `page.last_updated` | Date | Last updated date |
+| `page.sections` | StreamField | LegalSectionBlock list |
+| `section.value.anchor` | String | Section ID for linking |
+| `section.value.heading` | String | Section heading |
+| `section.value.body` | RichText | Section content |
+
+**Accessibility Requirements:**
+
+- Section IDs must use `{{ section.value.anchor|slugify }}`
+- ToC links must match section IDs
+- Add `.scroll-mt-*` class for fixed header offset
+- Include print button functionality
+- Desktop: Sticky sidebar ToC recommended
+- Mobile: Collapsible dropdown ToC recommended
+
+**See Theme A Reference:**
+
+Study `themes/theme_a/templates/theme/legal_page.html` for a complete implementation including:
+- Breadcrumb navigation
+- Desktop sticky sidebar ToC
+- Mobile collapsible ToC with JS toggle
+- Print-friendly styling
+- Proper ARIA attributes
+
+---
+
 ## Need Help?
 
 - **Block fields reference:** See `docs/dev/design/blocks-reference.md`
 - **CSS architecture:** See `docs/dev/design/css-architecture-and-tokens.md`
 - **Design philosophy:** See `docs/dev/design/design_system.md`
-- **Wiring inventory:** See `docs/WIRING-INVENTORY.md`
+- **Wiring inventory:** See `docs/dev/WIRING-INVENTORY.md`
 - **Example theme:** Study `themes/theme_a/` as reference
 
 ---

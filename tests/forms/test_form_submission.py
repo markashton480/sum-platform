@@ -13,9 +13,13 @@ from unittest import mock
 
 import pytest
 from django.core.cache import cache
+from django.core.files.storage import default_storage
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
-from sum_core.forms.models import FormConfiguration
+from sum_core.forms.cache import get_form_definition_cache_version
+from sum_core.forms.models import FormConfiguration, FormDefinition
 from sum_core.forms.services import generate_time_token, get_rate_limit_cache_key
+from sum_core.forms.views import FormSubmissionView
 from sum_core.leads.models import Lead
 
 
@@ -70,6 +74,80 @@ def make_valid_submission_data(time_token: str = "") -> dict:
         "_time_token": time_token,
         "company": "",  # Honeypot empty
     }
+
+
+def make_select_option(value: str, label: str) -> tuple[str, dict[str, str]]:
+    """Helper to define select options for dynamic forms."""
+    return ("option", {"value": value, "label": label})
+
+
+def create_dynamic_form_definition(wagtail_site, *, is_active: bool = True):
+    """Create a minimal dynamic FormDefinition for submission tests."""
+    return FormDefinition.objects.create(
+        site=wagtail_site,
+        name="Dynamic Contact",
+        slug="dynamic-contact",
+        is_active=is_active,
+        fields=[
+            ("text_input", {"field_name": "name", "label": "Name"}),
+            ("email_input", {"field_name": "email", "label": "Email"}),
+            ("textarea", {"field_name": "message", "label": "Message"}),
+            (
+                "phone_input",
+                {"field_name": "phone", "label": "Phone", "required": False},
+            ),
+            (
+                "select",
+                {
+                    "field_name": "service",
+                    "label": "Service",
+                    "choices": [make_select_option("roofing", "Roofing")],
+                    "allow_multiple": False,
+                },
+            ),
+        ],
+    )
+
+
+def make_dynamic_submission_data(form_definition, time_token: str = "") -> dict:
+    """Create valid dynamic form submission data."""
+    return {
+        "form_definition_id": str(form_definition.id),
+        "name": "Jane Smith",
+        "email": "jane@example.com",
+        "message": "Looking for a quote.",
+        "phone": "07700 900456",
+        "service": "roofing",
+        "_time_token": time_token,
+        "website": "",
+    }
+
+
+@pytest.mark.django_db
+def test_form_definition_cache_invalidates_on_update(wagtail_site):
+    form_definition = create_dynamic_form_definition(wagtail_site)
+    view = FormSubmissionView()
+
+    cached = view._get_form_definition(str(form_definition.pk), wagtail_site)
+    version_before = get_form_definition_cache_version(
+        wagtail_site.pk, form_definition.pk
+    )
+
+    assert cached is not None
+    assert version_before is not None
+
+    form_definition.name = "Updated"
+    form_definition.save(update_fields=["name"])
+
+    version_after = get_form_definition_cache_version(
+        wagtail_site.pk, form_definition.pk
+    )
+    refreshed = view._get_form_definition(str(form_definition.pk), wagtail_site)
+
+    assert version_after is not None
+    assert version_before != version_after
+    assert refreshed is not None
+    assert refreshed.name == "Updated"
 
 
 @pytest.mark.django_db
@@ -592,6 +670,209 @@ class TestFormSubmissionSuccess:
 
         assert response.status_code == 200
         assert cache.get(cache_key) == 1
+
+
+@pytest.mark.django_db
+class TestDynamicFormSubmission:
+    """Tests for dynamic form submission handling."""
+
+    def test_dynamic_submission_creates_lead(
+        self, client, wagtail_site, form_config, valid_time_token
+    ):
+        """Dynamic form submission should create a Lead."""
+        form_definition = create_dynamic_form_definition(wagtail_site)
+        data = make_dynamic_submission_data(form_definition, valid_time_token)
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 5
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                HTTP_HOST=wagtail_site.hostname,
+            )
+
+        assert response.status_code == 200
+        lead = Lead.objects.latest("submitted_at")
+        assert lead.form_type == form_definition.slug
+        assert lead.form_data["service"] == "roofing"
+        assert lead.form_data["ip_address"] == "127.0.0.1"
+
+    def test_dynamic_validation_errors_return_400(
+        self, client, wagtail_site, form_config
+    ):
+        """Missing required fields should return validation errors."""
+        form_definition = create_dynamic_form_definition(wagtail_site)
+        data = make_dynamic_submission_data(form_definition)
+        del data["email"]
+
+        response = client.post(
+            "/forms/submit/",
+            data=data,
+            HTTP_HOST=wagtail_site.hostname,
+        )
+
+        assert response.status_code == 400
+        resp_data = response.json()
+        assert "email" in resp_data["errors"]
+
+    def test_dynamic_honeypot_blocks_submission(
+        self, client, wagtail_site, form_config
+    ):
+        """Filled honeypot should be rejected for dynamic forms."""
+        form_definition = create_dynamic_form_definition(wagtail_site)
+        data = make_dynamic_submission_data(form_definition)
+        data["website"] = "bot"
+
+        response = client.post(
+            "/forms/submit/",
+            data=data,
+            HTTP_HOST=wagtail_site.hostname,
+        )
+
+        assert response.status_code == 400
+
+    def test_dynamic_timing_too_fast_returns_400(
+        self, client, wagtail_site, form_config, valid_time_token
+    ):
+        """Dynamic submission too fast should return 400."""
+        form_definition = create_dynamic_form_definition(wagtail_site)
+        data = make_dynamic_submission_data(form_definition, valid_time_token)
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 1
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                HTTP_HOST=wagtail_site.hostname,
+            )
+
+        assert response.status_code == 400
+
+    def test_dynamic_rate_limit_exceeded_returns_429(
+        self, client, wagtail_site, form_config
+    ):
+        """Rate limiting should apply to dynamic submissions."""
+        form_definition = create_dynamic_form_definition(wagtail_site)
+        data = make_dynamic_submission_data(form_definition)
+
+        cache_key = get_rate_limit_cache_key("127.0.0.1", wagtail_site.id)
+        cache.set(cache_key, 20, timeout=3600)
+
+        response = client.post(
+            "/forms/submit/",
+            data=data,
+            HTTP_HOST=wagtail_site.hostname,
+        )
+
+        assert response.status_code == 429
+
+    def test_dynamic_inactive_form_rejected(self, client, wagtail_site, form_config):
+        """Inactive form definitions should be rejected."""
+        form_definition = create_dynamic_form_definition(wagtail_site, is_active=False)
+        data = make_dynamic_submission_data(form_definition)
+
+        response = client.post(
+            "/forms/submit/",
+            data=data,
+            HTTP_HOST=wagtail_site.hostname,
+        )
+
+        assert response.status_code == 400
+        resp_data = response.json()
+        assert "inactive" in resp_data["errors"]["__all__"][0].lower()
+
+    def test_dynamic_attribution_fields_preserved(
+        self, client, wagtail_site, form_config, valid_time_token
+    ):
+        """UTM and referrer fields should persist on dynamic submissions."""
+        form_definition = create_dynamic_form_definition(wagtail_site)
+        data = make_dynamic_submission_data(form_definition, valid_time_token)
+        data.update(
+            {
+                "utm_source": "google",
+                "utm_medium": "cpc",
+                "utm_campaign": "spring",
+                "page_url": "https://example.com/contact",
+                "landing_page_url": "https://example.com/",
+                "referrer_url": "https://google.com",
+            }
+        )
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 5
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                HTTP_HOST=wagtail_site.hostname,
+            )
+
+        assert response.status_code == 200
+        lead = Lead.objects.latest("submitted_at")
+        assert lead.utm_source == "google"
+        assert lead.utm_medium == "cpc"
+        assert lead.utm_campaign == "spring"
+        assert lead.page_url == "https://example.com/contact"
+        assert lead.landing_page_url == "https://example.com/"
+        assert lead.referrer_url == "https://google.com"
+
+    def test_dynamic_file_upload_saved(
+        self, client, wagtail_site, form_config, valid_time_token
+    ):
+        """File uploads should be persisted and referenced in form_data."""
+        form_definition = FormDefinition.objects.create(
+            site=wagtail_site,
+            name="Dynamic Upload",
+            slug="dynamic-upload",
+            fields=[
+                ("text_input", {"field_name": "name", "label": "Name"}),
+                ("email_input", {"field_name": "email", "label": "Email"}),
+                ("textarea", {"field_name": "message", "label": "Message"}),
+                (
+                    "file_upload",
+                    {
+                        "field_name": "attachment",
+                        "label": "Attachment",
+                        "allowed_extensions": ".pdf",
+                        "max_file_size_mb": 5,
+                    },
+                ),
+            ],
+        )
+        upload = SimpleUploadedFile(
+            "resume.pdf",
+            b"%PDF-1.4\n%\xe2\xe3\xcf\xd3\n",
+            content_type="application/pdf",
+        )
+        data = make_dynamic_submission_data(form_definition, valid_time_token)
+        data["attachment"] = upload
+
+        with mock.patch("sum_core.forms.services.time.time") as mock_time:
+            token_time = int(valid_time_token.split(":")[0])
+            mock_time.return_value = token_time + 5
+
+            response = client.post(
+                "/forms/submit/",
+                data=data,
+                HTTP_HOST=wagtail_site.hostname,
+            )
+
+        assert response.status_code == 200
+        lead = Lead.objects.latest("submitted_at")
+        file_path = None
+        try:
+            file_payload = lead.form_data["attachment"]
+            assert file_payload["name"] == "resume.pdf"
+            file_path = file_payload["path"]
+            assert default_storage.exists(file_path)
+        finally:
+            if file_path:
+                default_storage.delete(file_path)
 
 
 @pytest.mark.django_db
