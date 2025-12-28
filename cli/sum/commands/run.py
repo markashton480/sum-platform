@@ -1,3 +1,5 @@
+"""Run command for starting SUM projects with virtualenv awareness."""
+
 from __future__ import annotations
 
 import os
@@ -16,7 +18,12 @@ from cli.sum.utils.environment import (
 
 
 def find_available_port(start_port: int = 8000, max_attempts: int = 10) -> int:
-    """Find an available port starting from start_port."""
+    """Find an available port starting from start_port.
+
+    Example:
+        port = find_available_port(8000, max_attempts=5)
+        # Returns the first available port between 8000 and 8004
+    """
     for port in range(start_port, start_port + max_attempts):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             try:

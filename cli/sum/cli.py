@@ -1,3 +1,5 @@
+"""Command-line entrypoint wiring for the SUM platform CLI."""
+
 from __future__ import annotations
 
 from typing import cast

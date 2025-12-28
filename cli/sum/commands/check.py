@@ -1,3 +1,5 @@
+"""Check command for validating SUM project readiness."""
+
 from __future__ import annotations
 
 import sys
@@ -39,7 +41,11 @@ def _virtualenv_check(validator: ProjectValidator) -> ValidationResult:
 
 
 def run_enhanced_checks(project_path: Path, mode: ExecutionMode) -> None:
-    """Run enhanced validation checks."""
+    """Run enhanced validation checks.
+
+    Example:
+        run_enhanced_checks(Path('clients/demo'), ExecutionMode.STANDALONE)
+    """
     validator = ProjectValidator(project_path, mode)
 
     checks: list[tuple[str, Callable[[], ValidationResult]]] = [

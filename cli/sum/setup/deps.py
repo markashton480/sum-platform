@@ -40,7 +40,8 @@ class DependencyManager:
             raise DependencyError(f"Virtualenv python not found at {python}") from exc
         except subprocess.CalledProcessError as exc:
             OutputFormatter.error("pip install failed")
-            raise DependencyError(f"pip install failed: {exc.stderr}") from exc
+            details = exc.stderr or exc.stdout or "Unknown error"
+            raise DependencyError(f"pip install failed: {details}") from exc
 
         OutputFormatter.success("Dependencies installed")
 
