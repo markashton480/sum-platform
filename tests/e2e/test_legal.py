@@ -11,21 +11,20 @@ from playwright.sync_api import Page, expect
 
 
 @pytest.mark.e2e
-@pytest.mark.django_db(transaction=True)
 class TestLegalPageTocNavigation:
     """E2E tests for legal page table of contents navigation."""
 
-    def test_terms_page_loads(self, page: Page, live_server, seeded_database) -> None:
+    def test_terms_page_loads(self, page: Page, base_url, seeded_database) -> None:
         """Terms of Supply page should load successfully."""
-        page.goto(f"{live_server.url}/terms-of-supply/")
+        page.goto(f"{base_url}/terms-of-supply/")
 
         expect(page.locator("body")).to_be_visible()
 
     def test_legal_page_has_content(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Legal page should have substantial content."""
-        page.goto(f"{live_server.url}/terms-of-supply/")
+        page.goto(f"{base_url}/terms-of-supply/")
 
         # Get main content
         content = page.locator("main, article, .content").first
@@ -36,10 +35,10 @@ class TestLegalPageTocNavigation:
         assert len(text) > 500, "Legal page should have substantial content"
 
     def test_legal_page_has_sections(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Legal page should have multiple sections."""
-        page.goto(f"{live_server.url}/terms-of-supply/")
+        page.goto(f"{base_url}/terms-of-supply/")
 
         # Look for section headings
         headings = page.locator("h2, h3, .section-heading").all()
@@ -47,9 +46,9 @@ class TestLegalPageTocNavigation:
         # Should have multiple sections
         assert len(headings) >= 2, "Legal page should have multiple sections"
 
-    def test_legal_page_has_toc(self, page: Page, live_server, seeded_database) -> None:
+    def test_legal_page_has_toc(self, page: Page, base_url, seeded_database) -> None:
         """Legal page may have a table of contents."""
-        page.goto(f"{live_server.url}/terms-of-supply/")
+        page.goto(f"{base_url}/terms-of-supply/")
 
         # Look for ToC element
         toc_selectors = [
@@ -72,10 +71,10 @@ class TestLegalPageTocNavigation:
         # No ToC found - this is acceptable as it's optional
 
     def test_legal_page_anchor_links_work(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Anchor links within legal page should work."""
-        page.goto(f"{live_server.url}/terms-of-supply/")
+        page.goto(f"{base_url}/terms-of-supply/")
 
         # Find internal anchor links
         anchor_links = page.locator("a[href^='#']").all()
@@ -93,10 +92,10 @@ class TestLegalPageTocNavigation:
                 assert "#" in page.url or True  # Soft check
 
     def test_legal_page_is_readable(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Legal page text should be readable (not placeholder)."""
-        page.goto(f"{live_server.url}/terms-of-supply/")
+        page.goto(f"{base_url}/terms-of-supply/")
 
         # Get text content
         text = page.locator("main, article, .content").inner_text().lower()
@@ -116,19 +115,19 @@ class TestLegalPageTocNavigation:
         terms_found = sum(1 for term in legal_terms if term in text)
         assert terms_found >= 2, "Legal page should contain legal terminology"
 
-    def test_privacy_page_loads(self, page: Page, live_server, seeded_database) -> None:
+    def test_privacy_page_loads(self, page: Page, base_url, seeded_database) -> None:
         """Privacy policy page should load if it exists."""
-        response = page.goto(f"{live_server.url}/privacy/")
+        response = page.goto(f"{base_url}/privacy/")
 
         # Page may or may not exist
         if response and response.status == 200:
             expect(page.locator("body")).to_be_visible()
 
     def test_accessibility_page_loads(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Accessibility statement page should load if it exists."""
-        response = page.goto(f"{live_server.url}/accessibility/")
+        response = page.goto(f"{base_url}/accessibility/")
 
         # Page may or may not exist
         if response and response.status == 200:

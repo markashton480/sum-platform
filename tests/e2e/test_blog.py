@@ -11,13 +11,12 @@ from playwright.sync_api import Page, expect
 
 
 @pytest.mark.e2e
-@pytest.mark.django_db(transaction=True)
 class TestBlogCategoryFiltering:
     """E2E tests for blog category filtering and article reading."""
 
-    def test_blog_index_loads(self, page: Page, live_server, seeded_database) -> None:
+    def test_blog_index_loads(self, page: Page, base_url, seeded_database) -> None:
         """Blog index page should load with posts."""
-        page.goto(f"{live_server.url}/blog/")
+        page.goto(f"{base_url}/blog/")
 
         # Page should load
         expect(page.locator("body")).to_be_visible()
@@ -26,9 +25,9 @@ class TestBlogCategoryFiltering:
         page_content = page.content()
         assert len(page_content) > 500, "Blog page should have substantial content"
 
-    def test_blog_shows_posts(self, page: Page, live_server, seeded_database) -> None:
+    def test_blog_shows_posts(self, page: Page, base_url, seeded_database) -> None:
         """Blog index should display blog post cards or listings."""
-        page.goto(f"{live_server.url}/blog/")
+        page.goto(f"{base_url}/blog/")
 
         # Look for post indicators (various selectors)
         post_selectors = [
@@ -50,12 +49,10 @@ class TestBlogCategoryFiltering:
         # Should find at least some posts (7 expected)
         assert posts_found, "Should display blog posts on index page"
 
-    def test_blog_post_is_readable(
-        self, page: Page, live_server, seeded_database
-    ) -> None:
+    def test_blog_post_is_readable(self, page: Page, base_url, seeded_database) -> None:
         """Individual blog posts should be readable."""
         # First get blog index to find a post link
-        page.goto(f"{live_server.url}/blog/")
+        page.goto(f"{base_url}/blog/")
 
         # Find links within the blog section
         blog_links = page.locator("a[href*='/blog/']").all()
@@ -68,7 +65,7 @@ class TestBlogCategoryFiltering:
                 href
                 and "/blog/" in href
                 and href != "/blog/"
-                and href != f"{live_server.url}/blog/"
+                and href != f"{base_url}/blog/"
             ):
                 post_link = link
                 break
@@ -86,11 +83,9 @@ class TestBlogCategoryFiltering:
             ).first
             expect(content).to_be_visible()
 
-    def test_category_links_exist(
-        self, page: Page, live_server, seeded_database
-    ) -> None:
+    def test_category_links_exist(self, page: Page, base_url, seeded_database) -> None:
         """Blog should display category filter links."""
-        page.goto(f"{live_server.url}/blog/")
+        page.goto(f"{base_url}/blog/")
 
         # Look for category indicators
         category_selectors = [

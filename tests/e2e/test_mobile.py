@@ -11,26 +11,23 @@ from playwright.sync_api import Page, expect
 
 
 @pytest.mark.e2e
-@pytest.mark.django_db(transaction=True)
 class TestMobileNavigationDrillDown:
     """E2E tests for mobile navigation patterns."""
 
-    def test_mobile_homepage_loads(
-        self, page: Page, live_server, seeded_database
-    ) -> None:
+    def test_mobile_homepage_loads(self, page: Page, base_url, seeded_database) -> None:
         """Homepage should load on mobile viewport."""
         # Set mobile viewport
         page.set_viewport_size({"width": 375, "height": 667})
-        page.goto(live_server.url)
+        page.goto(base_url)
 
         expect(page.locator("body")).to_be_visible()
 
     def test_mobile_menu_toggle_exists(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Mobile menu toggle (hamburger) should be visible on mobile."""
         page.set_viewport_size({"width": 375, "height": 667})
-        page.goto(live_server.url)
+        page.goto(base_url)
 
         # Look for mobile menu toggle
         toggle_selectors = [
@@ -57,10 +54,10 @@ class TestMobileNavigationDrillDown:
             toggle_found or page.locator("nav").is_visible()
         ), "Should have mobile menu toggle or visible navigation"
 
-    def test_mobile_menu_opens(self, page: Page, live_server, seeded_database) -> None:
+    def test_mobile_menu_opens(self, page: Page, base_url, seeded_database) -> None:
         """Clicking mobile menu toggle should open navigation."""
         page.set_viewport_size({"width": 375, "height": 667})
-        page.goto(live_server.url)
+        page.goto(base_url)
 
         # Find and click mobile menu toggle
         toggle_selectors = [
@@ -101,13 +98,13 @@ class TestMobileNavigationDrillDown:
             menu_visible = len(nav_links) > 0
 
     def test_mobile_navigation_works(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """User should be able to navigate to pages on mobile."""
         page.set_viewport_size({"width": 375, "height": 667})
 
         # Try navigating directly to a page
-        page.goto(f"{live_server.url}/about/")
+        page.goto(f"{base_url}/about/")
 
         expect(page.locator("body")).to_be_visible()
 
@@ -117,7 +114,7 @@ class TestMobileNavigationDrillDown:
             expect(main).not_to_be_empty()
 
     def test_mobile_pages_are_responsive(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Pages should render properly on mobile viewport."""
         page.set_viewport_size({"width": 375, "height": 667})
@@ -131,7 +128,7 @@ class TestMobileNavigationDrillDown:
         ]
 
         for path in pages_to_test:
-            page.goto(f"{live_server.url}{path}")
+            page.goto(f"{base_url}{path}")
 
             # Page should load without horizontal scroll
             body = page.locator("body")

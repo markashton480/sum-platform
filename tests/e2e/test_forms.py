@@ -11,31 +11,28 @@ from playwright.sync_api import Page, expect
 
 
 @pytest.mark.e2e
-@pytest.mark.django_db(transaction=True)
 class TestContactFormSubmission:
     """E2E tests for contact form submission."""
 
-    def test_contact_page_loads(self, page: Page, live_server, seeded_database) -> None:
+    def test_contact_page_loads(self, page: Page, base_url, seeded_database) -> None:
         """Contact page should load successfully."""
-        page.goto(f"{live_server.url}/contact/")
+        page.goto(f"{base_url}/contact/")
 
         expect(page.locator("body")).to_be_visible()
 
-    def test_contact_form_exists(
-        self, page: Page, live_server, seeded_database
-    ) -> None:
+    def test_contact_form_exists(self, page: Page, base_url, seeded_database) -> None:
         """Contact page should have a form."""
-        page.goto(f"{live_server.url}/contact/")
+        page.goto(f"{base_url}/contact/")
 
         # Look for form element
         form = page.locator("form").first
         expect(form).to_be_visible()
 
     def test_contact_form_has_required_fields(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Contact form should have name, email, and message fields."""
-        page.goto(f"{live_server.url}/contact/")
+        page.goto(f"{base_url}/contact/")
 
         # Check for common form fields
         # Email field
@@ -54,10 +51,10 @@ class TestContactFormSubmission:
         expect(message_field).to_be_visible()
 
     def test_contact_form_has_submit_button(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Contact form should have a submit button."""
-        page.goto(f"{live_server.url}/contact/")
+        page.goto(f"{base_url}/contact/")
 
         # Look for submit button
         submit_button = page.locator(
@@ -68,10 +65,10 @@ class TestContactFormSubmission:
         expect(submit_button).to_be_visible()
 
     def test_contact_form_can_be_filled(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """User should be able to fill out the contact form."""
-        page.goto(f"{live_server.url}/contact/")
+        page.goto(f"{base_url}/contact/")
 
         # Find and fill form fields
         # Try multiple selectors for each field type
@@ -116,10 +113,10 @@ class TestContactFormSubmission:
         assert "Test inquiry" in message_value
 
     def test_contact_form_submission(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """User should be able to submit the contact form."""
-        page.goto(f"{live_server.url}/contact/")
+        page.goto(f"{base_url}/contact/")
 
         # Fill required fields
         email_field = page.locator("input[name='email'], input[type='email']").first

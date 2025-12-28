@@ -11,23 +11,18 @@ from playwright.sync_api import Page, expect
 
 
 @pytest.mark.e2e
-@pytest.mark.django_db(transaction=True)
 class TestPortfolioCaseStudyViewing:
     """E2E tests for portfolio case study viewing."""
 
-    def test_portfolio_page_loads(
-        self, page: Page, live_server, seeded_database
-    ) -> None:
+    def test_portfolio_page_loads(self, page: Page, base_url, seeded_database) -> None:
         """Portfolio page should load successfully."""
-        page.goto(f"{live_server.url}/portfolio/")
+        page.goto(f"{base_url}/portfolio/")
 
         expect(page.locator("body")).to_be_visible()
 
-    def test_portfolio_shows_items(
-        self, page: Page, live_server, seeded_database
-    ) -> None:
+    def test_portfolio_shows_items(self, page: Page, base_url, seeded_database) -> None:
         """Portfolio page should display portfolio items."""
-        page.goto(f"{live_server.url}/portfolio/")
+        page.goto(f"{base_url}/portfolio/")
 
         # Look for portfolio items
         item_selectors = [
@@ -56,10 +51,10 @@ class TestPortfolioCaseStudyViewing:
         assert items_found, "Portfolio page should display items or images"
 
     def test_portfolio_items_have_images(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Portfolio items should have images."""
-        page.goto(f"{live_server.url}/portfolio/")
+        page.goto(f"{base_url}/portfolio/")
 
         # Find images in the portfolio area
         images = page.locator("main img, .content img, article img").all()
@@ -68,10 +63,10 @@ class TestPortfolioCaseStudyViewing:
         assert len(images) >= 1, "Portfolio should display images"
 
     def test_portfolio_item_interaction(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Clicking a portfolio item should show details."""
-        page.goto(f"{live_server.url}/portfolio/")
+        page.goto(f"{base_url}/portfolio/")
 
         # Find clickable portfolio items
         clickable_selectors = [
@@ -110,10 +105,10 @@ class TestPortfolioCaseStudyViewing:
                 expect(page.locator("body")).to_be_visible()
 
     def test_portfolio_has_descriptions(
-        self, page: Page, live_server, seeded_database
+        self, page: Page, base_url, seeded_database
     ) -> None:
         """Portfolio items should have descriptive text."""
-        page.goto(f"{live_server.url}/portfolio/")
+        page.goto(f"{base_url}/portfolio/")
 
         # Get page text content
         text_content = page.locator("main, .content").inner_text()
