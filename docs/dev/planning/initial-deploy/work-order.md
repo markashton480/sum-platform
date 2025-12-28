@@ -83,13 +83,9 @@ git push -u origin feature/initial-deploy
 │              MERGE DEPENDENCY GRAPH              │
 ├─────────────────────────────────────────────────┤
 │                                                 │
-│   #1 Consolidate Docs ─┐                        │
-│                        ├──► PR to feature/      │
-│   #2 SSH Key Strategy ─┘     initial-deploy     │
-│                        │                        │
-│                        └──► PR feature/         │
-│                              initial-deploy     │
-│                              -> release/0.6.0   │
+│   #1 Consolidate Docs ──► #2 SSH Key Strategy ──►│
+│   PR to feature/initial-deploy ──► PR feature/   │
+│   initial-deploy -> release/0.6.0               │
 │                                                 │
 │   #3 Provision VPS (ops, no merge)              │
 │        │                                        │
@@ -102,12 +98,13 @@ git push -u origin feature/initial-deploy
 └─────────────────────────────────────────────────┘
 ```
 
-1. **#1 + #2** — Can run in parallel; both are documentation
-2. **#1 + #2** — PRs merge into `feature/initial-deploy`
-3. **#3** — Requires SSH strategy defined; VPS provisioned manually
-4. **#4** — Requires VPS ready; executes deploy.sh
-5. **#5** — Requires deployment complete; validates and records
-6. **Feature PR** — Merge `feature/initial-deploy` into `release/0.6.0` with `--no-ff`
+1. **#1** — Consolidate docs
+2. **#2** — SSH strategy after docs move (references new path)
+3. **Docs PRs** — Merge #1 and #2 into `feature/initial-deploy`
+4. **Feature PR** — Merge `feature/initial-deploy` into `release/0.6.0` with `--no-ff`
+5. **#3** — Requires SSH strategy defined; VPS provisioned manually
+6. **#4** — Requires VPS ready; executes deploy.sh
+7. **#5** — Requires deployment complete; validates and records
 
 ### Hot Files
 
