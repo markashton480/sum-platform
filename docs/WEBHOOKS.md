@@ -83,6 +83,9 @@ request body is serialized as compact JSON with sorted keys:
 json.dumps(payload, separators=(",", ":"), sort_keys=True)
 ```
 
+Treat signing secrets as sensitive credentials. Store them securely and rotate
+regularly.
+
 #### Verification example (Python)
 
 ```python
@@ -90,10 +93,10 @@ import hashlib
 import hmac
 
 secret = "supersecret"
-raw_body = request_body_bytes  # Use the exact body bytes received
+request_body_bytes = b"..."  # Use the exact body bytes received
 signature = hmac.new(
     secret.encode(),
-    raw_body,
+    request_body_bytes,
     hashlib.sha256,
 ).hexdigest()
 

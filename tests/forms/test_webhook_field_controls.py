@@ -62,3 +62,17 @@ def test_webhook_allowlist_includes_only_fields(lead, form_definition):
     data = payload["submission"]["data"]
 
     assert set(data.keys()) == {"service", "budget"}
+
+
+@pytest.mark.django_db
+def test_webhook_allowlist_then_denylist(lead, form_definition):
+    form_definition.webhook_field_allowlist = "service, ssn"
+    form_definition.webhook_field_denylist = "ssn"
+    form_definition.save(
+        update_fields=["webhook_field_allowlist", "webhook_field_denylist"]
+    )
+
+    payload = _build_webhook_payload(lead, form_definition)
+    data = payload["submission"]["data"]
+
+    assert set(data.keys()) == {"service"}
