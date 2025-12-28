@@ -30,12 +30,12 @@ git push -u origin feature/sage-stone-seeder
 
 ## Objective
 
-- [ ] Create management command `seed_sage_stone` that programmatically generates complete Sage & Stone site
-- [ ] Implement all 7 page types from wireframes with full StreamField content
-- [ ] Configure navigation (header mega menu + footer), branding, and site settings
-- [ ] Generate placeholder images matching wireframe dimensions using PIL
-- [ ] Ensure idempotent operation with proper Wagtail page handling
-- [ ] Integrate with CLI v2.0.0 tooling (`sum init sage-and-stone --theme theme_a --seed-site`)
+- [x] Create management command `seed_sage_stone` that programmatically generates complete Sage & Stone site
+- [x] Implement all 7 page types from wireframes with full StreamField content
+- [x] Configure navigation (header mega menu + footer), branding, and site settings
+- [x] Generate placeholder images matching wireframe dimensions using PIL
+- [x] Ensure idempotent operation with proper Wagtail page handling
+- [x] Seeder ready for CLI v2.0.0 integration (CLI command changes tracked in #210)
 
 ---
 
@@ -67,6 +67,7 @@ git push -u origin feature/sage-stone-seeder
    - Coordinate with CLI v2 subtasks (#210, #190) for integration points
    - Works both as standalone management command and CLI-invoked seeder
    - Complements existing `seed_showroom` command
+   - **Note:** The seeder management command is implemented here; the actual CLI `sum init` command modifications are tracked in #210
 
 ### Out of Scope
 - Theme CSS/template modifications (theme concern)
@@ -81,14 +82,14 @@ git push -u origin feature/sage-stone-seeder
 
 | #   | Subtask                   | Description                          | Branch                                     | Status |
 | --- | ------------------------- | ------------------------------------ | ------------------------------------------ | ------ |
-| 1   | Site & Root Setup         | Site object, root page configuration | `feature/sage-stone-seeder/001-site-setup` | 🔲     |
-| 2   | Image Generation          | PIL-based placeholder images         | `feature/sage-stone-seeder/002-images`     | 🔲     |
-| 3   | Branding Configuration    | SiteSettings with colors, fonts      | `feature/sage-stone-seeder/003-branding`   | 🔲     |
-| 4   | Navigation Structure      | Header mega menu + footer            | `feature/sage-stone-seeder/004-navigation` | 🔲     |
-| 5   | Core Pages                | Home, About, Services, Portfolio     | `feature/sage-stone-seeder/005-pages`      | 🔲     |
-| 6   | Blog Content              | Categories, index, 7 articles        | `feature/sage-stone-seeder/006-blog`       | 🔲     |
-| 7   | Legal Pages               | Terms of Supply with sections        | `feature/sage-stone-seeder/007-legal`      | 🔲     |
-| 8   | Tests & Documentation     | TDD test suite and usage docs        | `feature/sage-stone-seeder/008-tests-docs` | 🔲     |
+| 1   | Site & Root Setup         | Site object, root page configuration | `feature/sage-stone-seeder/001-site-setup` | ✅     |
+| 2   | Image Generation          | PIL-based placeholder images         | `feature/sage-stone-seeder/002-images`     | ✅     |
+| 3   | Branding Configuration    | SiteSettings with colors, fonts      | `feature/sage-stone-seeder/003-branding`   | ✅     |
+| 4   | Navigation Structure      | Header mega menu + footer            | `feature/sage-stone-seeder/004-navigation` | ✅     |
+| 5   | Core Pages                | Home, About, Services, Portfolio     | `feature/sage-stone-seeder/005-pages`      | ✅     |
+| 6   | Blog Content              | Categories, index, 7 articles        | `feature/sage-stone-seeder/006-blog`       | ✅     |
+| 7   | Legal Pages               | Terms of Supply with sections        | `feature/sage-stone-seeder/007-legal`      | ✅     |
+| 8   | Tests & Documentation     | TDD test suite and usage docs        | `feature/sage-stone-seeder/008-tests-docs` | ✅     |
 
 **Status:** 🔲 Todo | 🔄 In Progress | ✅ Done
 
@@ -191,14 +192,14 @@ python manage.py runserver
 
 ## Definition of Done
 
-- [ ] All 8 subtasks merged to feature branch
-- [ ] `make lint && make test` passes on feature branch
-- [ ] Integration test verifies full site creation
+- [x] All 8 subtasks merged to feature branch
+- [x] `make lint && make test` passes on feature branch
+- [x] Integration test verifies full site creation
 - [ ] Manual QA confirms content matches wireframes
-- [ ] `seed_sage_stone --clear` works without errors
-- [ ] Documentation updated with usage instructions
+- [x] `seed_sage_stone --clear` works without errors
+- [x] Documentation updated with usage instructions
 - [ ] Feature branch merged to `release/0.6.0` (PR approved)
-- [ ] No regressions to existing `seed_showroom` command
+- [x] No regressions to existing `seed_showroom` command
 
 ---
 
