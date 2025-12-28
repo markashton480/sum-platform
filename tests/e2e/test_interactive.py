@@ -18,23 +18,7 @@ class TestInteractiveElements:
         """Page may have accordion/FAQ elements."""
         page.goto(base_url)
 
-        # Look for accordion/FAQ elements
-        accordion_selectors = [
-            "[class*='accordion']",
-            "[class*='faq']",
-            "[data-accordion]",
-            "details",
-            "[role='tablist']",
-        ]
-
-        accordion_found = False
-        for selector in accordion_selectors:
-            if page.locator(selector).count() > 0:
-                accordion_found = True
-                break
-
         # Accordion is optional - just ensure page loads
-        assert accordion_found or True  # Accordion optional
         expect(page.locator("body")).to_be_visible()
 
     def test_accordion_interaction(self, page: Page, base_url, seeded_database) -> None:
@@ -60,13 +44,7 @@ class TestInteractiveElements:
         """Page should support smooth scrolling to anchors."""
         page.goto(base_url)
 
-        # Check for smooth scroll class
-        html = page.locator("html")
-        html_class = html.get_attribute("class") or ""
-
-        # Either has smooth-scroll class or scroll-behavior in CSS
-        has_smooth = "smooth" in html_class or True  # Smooth scroll optional
-        assert has_smooth
+        # Smooth scrolling is optional; at minimum the page should render successfully
         expect(page.locator("body")).to_be_visible()
 
     def test_form_validation_feedback(
@@ -109,11 +87,7 @@ class TestInteractiveElements:
         """Images may use lazy loading."""
         page.goto(base_url)
 
-        # Check for lazy loading attributes
-        lazy_images = page.locator("img[loading='lazy']").count()
-
-        # Lazy loading is optional but good practice
-        assert lazy_images >= 0  # May have lazy images
+        # Lazy loading is optional but good practice; just ensure page is functional
         expect(page.locator("body")).to_be_visible()
 
     def test_page_transitions(self, page: Page, base_url, seeded_database) -> None:

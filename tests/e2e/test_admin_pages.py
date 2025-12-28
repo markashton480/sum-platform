@@ -118,7 +118,7 @@ class TestAdminPageEditing:
         )
 
         # Preview should be available
-        assert preview.count() >= 1 or True, "Preview may be available"
+        assert preview.count() >= 1, "Preview should be available"
 
     def test_page_has_seo_tab(self, page: Page, base_url, seeded_database) -> None:
         """Edit page should have SEO/promote tab."""

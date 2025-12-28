@@ -56,18 +56,21 @@ class TestBlogCategoryFiltering:
                 post_link = link
                 break
 
-        if post_link:
-            post_link.click()
-            page.wait_for_load_state("networkidle")
+        assert (
+            post_link is not None
+        ), "Expected at least one blog post link on journal index page"
 
-            # Should be on a blog post page
-            expect(page.locator("body")).to_be_visible()
+        post_link.click()
+        page.wait_for_load_state("networkidle")
 
-            # Should have article content
-            content = page.locator(
-                "article, .post-content, .article-content, .blog-post-content, main"
-            ).first
-            expect(content).to_be_visible()
+        # Should be on a blog post page
+        expect(page.locator("body")).to_be_visible()
+
+        # Should have article content
+        content = page.locator(
+            "article, .post-content, .article-content, .blog-post-content, main"
+        ).first
+        expect(content).to_be_visible()
 
     def test_category_links_exist(self, page: Page, base_url, seeded_database) -> None:
         """Blog should display category filter links."""
@@ -100,3 +103,4 @@ class TestBlogCategoryFiltering:
 
         # Note: This may fail if theme doesn't display categories
         # That's valuable feedback for the integration
+        assert has_category, "Blog should display category names or category filter UI"

@@ -15,11 +15,16 @@ Run with:
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 import pytest
 
+if TYPE_CHECKING:
+    from playwright.sync_api import Page
+    from pytest import Config
 
-def pytest_configure(config):
+
+def pytest_configure(config: Config) -> None:
     """Set default base URL if not provided."""
     if not config.option.base_url:
         config.option.base_url = os.environ.get("E2E_BASE_URL", "http://localhost:8000")
@@ -48,7 +53,7 @@ def _session_media_root(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def browser_context_args(browser_context_args):
+def browser_context_args(browser_context_args: dict) -> dict:
     """Configure browser context for tests."""
     return {
         **browser_context_args,
@@ -74,3 +79,28 @@ def seeded_database():
     """
     # This is a marker fixture - actual seeding happens outside test session
     pass
+
+
+@pytest.fixture
+def admin_login():
+    """
+    Fixture that provides a helper function to log into Wagtail admin.
+
+    Usage in tests:
+        def test_something(self, page: Page, base_url, admin_login):
+            admin_login(page, base_url)
+            # Now logged into admin...
+
+    Note: Uses hardcoded credentials (admin/adminpass123) that match the
+    seeded database. For production, use environment variables.
+    """
+
+    def _login(page: Page, base_url: str) -> None:
+        """Helper to log into admin with seeded credentials."""
+        page.goto(f"{base_url}/admin/login/")
+        page.locator("input[name='username']").fill("admin")
+        page.locator("input[name='password']").fill("adminpass123")
+        page.locator("button[type='submit']").click()
+        page.wait_for_load_state("networkidle")
+
+    return _login

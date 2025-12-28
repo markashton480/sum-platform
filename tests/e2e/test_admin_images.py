@@ -149,7 +149,9 @@ class TestAdminImageManagement:
                 search_found = True
                 break
 
-        # Search is common but not required
-        # Just log whether search exists
-        assert search_found or True  # Search optional
+        # Search is common but not required in all deployments
+        # If it's not available, skip rather than asserting a tautology
+        if not search_found:
+            pytest.skip("Image search is not enabled in this configuration")
+
         expect(page.locator("body")).to_be_visible()

@@ -68,7 +68,8 @@ class TestLegalPageTocNavigation:
                 # ToC found - test passes
                 return
 
-        # No ToC found - this is acceptable as it's optional
+        # No ToC found - this is acceptable as it's optional; skip this test explicitly
+        pytest.skip("Legal page has no optional table of contents")
 
     def test_legal_page_anchor_links_work(
         self, page: Page, base_url, seeded_database
@@ -88,8 +89,10 @@ class TestLegalPageTocNavigation:
                 anchor.click(force=True)
                 page.wait_for_timeout(300)
 
-                # URL should update with anchor
-                assert "#" in page.url or True  # Soft check
+                # URL should update with anchor after clicking a visible link
+                assert (
+                    "#" in page.url
+                ), "Clicking an anchor link should update the URL with a fragment"
                 return
 
         # No visible anchor links found - verify page has anchors in content

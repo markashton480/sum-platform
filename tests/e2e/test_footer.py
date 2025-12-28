@@ -109,23 +109,5 @@ class TestFooterNavigation:
         """Footer may have social media links."""
         page.goto(base_url)
 
-        # Look for social media indicators
-        social_selectors = [
-            "footer .social",
-            "footer [class*='social']",
-            "footer a[href*='facebook']",
-            "footer a[href*='instagram']",
-            "footer a[href*='twitter']",
-            "footer a[href*='linkedin']",
-            "footer a[href*='pinterest']",
-        ]
-
-        social_found = False
-        for selector in social_selectors:
-            if page.locator(selector).count() > 0:
-                social_found = True
-                break
-
-        # Social links are optional but common
-        assert social_found or True  # Social links optional
+        # Social links are optional; this test only ensures the footer is visible
         expect(page.locator("footer")).to_be_visible()

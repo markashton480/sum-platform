@@ -97,6 +97,11 @@ class TestMobileNavigationDrillDown:
             nav_links = page.locator("nav a").all()
             menu_visible = len(nav_links) > 0
 
+        # Ensure that either the mobile menu or navigation links are visible
+        assert (
+            menu_visible
+        ), "Mobile menu or navigation links should be visible after toggling the menu"
+
     def test_mobile_navigation_works(
         self, page: Page, base_url, seeded_database
     ) -> None:
