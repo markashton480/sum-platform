@@ -460,7 +460,7 @@ const observer = new IntersectionObserver((entries, obs) => {
 
 ### 3.5 Critical Global Functions
 
-**ISSUE #7 (CRITICAL):** Global function exposure for onclick handlers
+**ISSUE #7 (MINOR):** Global function exposure for onclick handlers
 
 ```javascript
 // main.js lines 36-56
