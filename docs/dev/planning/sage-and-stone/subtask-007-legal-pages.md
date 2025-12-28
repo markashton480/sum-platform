@@ -1,0 +1,398 @@
+# Subtask 007: Legal Pages
+
+## Overview
+
+Create LegalPage for Terms of Supply with full sections matching the wireframe.
+
+## Deliverables
+
+1. Terms of Supply LegalPage with 6 sections
+2. Privacy Policy placeholder (StandardPage)
+3. Accessibility placeholder (StandardPage)
+
+## Implementation
+
+### 1. Terms of Supply
+
+```python
+from sum_core.pages.legal import LegalPage
+from datetime import date
+
+def create_legal_pages(self, home_page):
+    """Create legal pages."""
+
+    pages = {}
+
+    # Terms of Supply (main legal page)
+    pages["terms"] = self._create_terms_page(home_page)
+
+    # Placeholder pages for footer links
+    pages["privacy"] = self._create_privacy_page(home_page)
+    pages["accessibility"] = self._create_accessibility_page(home_page)
+
+    return pages
+
+
+def _create_terms_page(self, home_page):
+    """Create Terms of Supply with full sections."""
+
+    try:
+        page = LegalPage.objects.get(slug="terms")
+        return page
+    except LegalPage.DoesNotExist:
+        pass
+
+    page = LegalPage(
+        title="Terms of Supply",
+        slug="terms",
+        seo_title="Terms of Supply | Sage & Stone",
+        search_description="Terms and conditions for Sage & Stone bespoke kitchen commissions. Payment structure, guarantees, and what to expect.",
+        show_in_menus=False,
+        last_updated=date(2025, 1, 15),
+        sections=[
+            # Section 1: Definitions
+            {
+                "type": "legal_section",
+                "value": {
+                    "anchor": "definitions",
+                    "heading": "1. Definitions",
+                    "body": """<p>In these Terms of Supply:</p>
+<ul>
+<li><strong>"The Company"</strong> means Sage & Stone Ltd, registered in England and Wales (Company No. 12345678), with registered office at The Old Joinery, Unit 4, Herefordshire HR4 9AB.</li>
+<li><strong>"The Client"</strong> means the individual or entity commissioning works from the Company.</li>
+<li><strong>"The Works"</strong> means all furniture, joinery, and installation services commissioned by the Client and detailed in the accepted Quotation.</li>
+<li><strong>"The Contract"</strong> means the agreement formed upon the Client's acceptance of the Company's Quotation.</li>
+<li><strong>"The Quotation"</strong> means the written proposal provided by the Company, including specifications, drawings, and pricing.</li>
+</ul>"""
+                }
+            },
+
+            # Section 2: Scope of Works
+            {
+                "type": "legal_section",
+                "value": {
+                    "anchor": "scope",
+                    "heading": "2. Scope of Works",
+                    "body": """<p>The scope of works is defined exclusively by the accepted Quotation and accompanying drawings. Any variations to the Works must be agreed in writing and may affect the Contract price and completion timeline.</p>
+
+<p>The Company reserves the right to make minor modifications to designs where necessary for structural integrity or material availability, provided such modifications do not materially affect the overall appearance or function of the Works.</p>
+
+<h3>In Plain English</h3>
+<p>What's in the quote is what you get. Want changes? No problem—but let's discuss the impact first. If we need to make small tweaks for practical reasons, we'll always explain why.</p>"""
+                }
+            },
+
+            # Section 3: Payment Structure
+            {
+                "type": "legal_section",
+                "value": {
+                    "anchor": "payment",
+                    "heading": "3. Payment Structure",
+                    "body": """<p>Payment is due in three stages:</p>
+<ul>
+<li><strong>40%</strong> upon acceptance of Quotation (the "Deposit"). This confirms your commission and secures your place in our production schedule.</li>
+<li><strong>40%</strong> upon completion of workshop production, prior to delivery. This covers material costs and workshop time.</li>
+<li><strong>20%</strong> upon completion of installation and final sign-off. This is your quality assurance—we don't consider the job finished until you're completely satisfied.</li>
+</ul>
+
+<p>All payments are due within 14 days of invoice date. The Company reserves the right to charge interest on overdue amounts at 4% above the Bank of England base rate.</p>
+
+<p>The Deposit is non-refundable once workshop production has commenced, as materials will have been ordered and cut specifically for your commission.</p>
+
+<h3>In Plain English</h3>
+<p>We don't ask for full payment upfront. You pay as we progress, with the final balance due only when you're completely happy with the finished kitchen. This protects both of us.</p>"""
+                }
+            },
+
+            # Section 4: Living Materials
+            {
+                "type": "legal_section",
+                "value": {
+                    "anchor": "materials",
+                    "heading": "4. Living Materials",
+                    "body": """<p>Solid timber is a natural material that continues to respond to its environment throughout its life. The following characteristics are inherent properties of real wood and are not considered defects:</p>
+
+<ul>
+<li><strong>Seasonal movement:</strong> Timber expands and contracts with changes in humidity. This is normal and anticipated in our joinery details.</li>
+<li><strong>Checking:</strong> Small surface cracks may appear as the wood continues to stabilise. These are cosmetic and do not affect structural integrity.</li>
+<li><strong>Colour variation:</strong> Natural variations in grain and colour are part of what makes each piece unique. Timber also changes colour over time with exposure to light.</li>
+<li><strong>Knots and character marks:</strong> Unless specifically requested, we embrace the natural character of the timber, including knots, mineral streaks, and other natural features.</li>
+</ul>
+
+<p>We select and season our timber to minimise these effects, but some degree of natural behaviour should be expected and, we believe, embraced.</p>
+
+<h3>In Plain English</h3>
+<p>Wood is alive—even after it becomes furniture. Small cracks, colour changes, and seasonal movement are signs of authenticity, not failure. It's what separates real craftsmanship from plastic pretenders. We don't hide from these characteristics; we celebrate them.</p>"""
+                }
+            },
+
+            # Section 5: Access & Logistics
+            {
+                "type": "legal_section",
+                "value": {
+                    "anchor": "access",
+                    "heading": "5. Access & Logistics",
+                    "body": """<p>The Client agrees to provide:</p>
+
+<ul>
+<li><strong>Clear access</strong> to all work areas during agreed installation dates. This includes removing existing furniture, appliances, and personal items from the installation area.</li>
+<li><strong>Reasonable facilities</strong> for our installation team, including access to toilet facilities, running water, and electricity.</li>
+<li><strong>Timely decisions</strong> when variations or unforeseen circumstances arise. Delays in client decisions may affect the project timeline.</li>
+<li><strong>Accurate information</strong> about the property, including any known issues with walls, floors, plumbing, or electrical systems.</li>
+</ul>
+
+<p>The Company will provide reasonable notice of installation dates and will work with the Client to minimise disruption. However, delays caused by lack of access, incomplete preparation, or pending client decisions may result in additional costs and extended timelines.</p>
+
+<p>Delivery of items is to the nearest accessible point on the ground floor unless alternative arrangements have been agreed and quoted for.</p>
+
+<h3>In Plain English</h3>
+<p>We need the space clear and ready when we arrive. If something unexpected comes up, quick decisions help us stay on schedule. We'll always work with you to minimise hassle.</p>"""
+                }
+            },
+
+            # Section 6: The Guarantee
+            {
+                "type": "legal_section",
+                "value": {
+                    "anchor": "guarantee",
+                    "heading": "6. The Guarantee",
+                    "body": """<p>All Sage & Stone joinery carries our <strong>Lifetime Joinery Guarantee</strong>. This covers:</p>
+
+<ul>
+<li>Structural integrity of all joints and carcasses</li>
+<li>Drawer and door mechanisms (hinges, runners, catches)</li>
+<li>Finish adhesion and integrity</li>
+<li>Any defect in materials or workmanship</li>
+</ul>
+
+<p>The guarantee does <strong>not</strong> cover:</p>
+
+<ul>
+<li>Natural timber movement and colour change (see Section 4)</li>
+<li>Damage caused by misuse, accident, or negligence</li>
+<li>Damage caused by exposure to excessive moisture or heat</li>
+<li>Appliances (these are covered by manufacturer warranties)</li>
+<li>Consumable items such as handles and hinges after 5 years</li>
+<li>Modifications made by third parties</li>
+<li>Normal wear and tear</li>
+</ul>
+
+<p>To make a claim under this guarantee, contact us at <a href="mailto:hello@sageandstone.com">hello@sageandstone.com</a> with photographs and a description of the issue. We will arrange an inspection at a mutually convenient time.</p>
+
+<p>This guarantee is transferable to subsequent owners of the property, subject to notification to the Company.</p>
+
+<h3>In Plain English</h3>
+<p>If our joinery fails, we fix it. Forever. But we can't be responsible for accidents, natural aging, or problems caused by misuse. If something goes wrong, just get in touch—we'll sort it out.</p>"""
+                }
+            },
+        ]
+    )
+
+    home_page.add_child(instance=page)
+    page.save_revision().publish()
+    self.stdout.write("  Created Terms of Supply page")
+    return page
+```
+
+### 2. Privacy Policy Placeholder
+
+```python
+def _create_privacy_page(self, home_page):
+    """Create Privacy Policy placeholder."""
+
+    try:
+        page = StandardPage.objects.get(slug="privacy")
+        return page
+    except StandardPage.DoesNotExist:
+        pass
+
+    page = StandardPage(
+        title="Privacy Policy",
+        slug="privacy",
+        seo_title="Privacy Policy | Sage & Stone",
+        search_description="How Sage & Stone collects, uses, and protects your personal information.",
+        show_in_menus=False,
+        body=[
+            {
+                "type": "page_header",
+                "value": {
+                    "eyebrow": "Legal",
+                    "heading": "Privacy Policy",
+                    "intro": "This policy explains how we collect, use, and protect your personal information."
+                }
+            },
+            {
+                "type": "rich_text",
+                "value": {
+                    "align": "left",
+                    "body": """<p><em>Last updated: January 2025</em></p>
+
+<h2>Information We Collect</h2>
+<p>When you contact us or request a consultation, we collect:</p>
+<ul>
+<li>Your name and contact details</li>
+<li>Information about your project</li>
+<li>Communications between us</li>
+</ul>
+
+<h2>How We Use Your Information</h2>
+<p>We use your information to:</p>
+<ul>
+<li>Respond to your enquiries</li>
+<li>Prepare quotations and manage your commission</li>
+<li>Send you updates about your project</li>
+<li>Improve our services</li>
+</ul>
+
+<h2>Your Rights</h2>
+<p>You have the right to access, correct, or delete your personal information. Contact us at <a href="mailto:hello@sageandstone.com">hello@sageandstone.com</a> to make a request.</p>
+
+<h2>Contact</h2>
+<p>For privacy-related questions, contact our Data Protection Lead at <a href="mailto:hello@sageandstone.com">hello@sageandstone.com</a>.</p>"""
+                }
+            },
+        ]
+    )
+
+    home_page.add_child(instance=page)
+    page.save_revision().publish()
+    self.stdout.write("  Created Privacy Policy page")
+    return page
+```
+
+### 3. Accessibility Placeholder
+
+```python
+def _create_accessibility_page(self, home_page):
+    """Create Accessibility Statement placeholder."""
+
+    try:
+        page = StandardPage.objects.get(slug="accessibility")
+        return page
+    except StandardPage.DoesNotExist:
+        pass
+
+    page = StandardPage(
+        title="Accessibility",
+        slug="accessibility",
+        seo_title="Accessibility Statement | Sage & Stone",
+        search_description="Our commitment to making the Sage & Stone website accessible to all users.",
+        show_in_menus=False,
+        body=[
+            {
+                "type": "page_header",
+                "value": {
+                    "eyebrow": "Legal",
+                    "heading": "Accessibility Statement",
+                    "intro": "Our commitment to making this website accessible to all users."
+                }
+            },
+            {
+                "type": "rich_text",
+                "value": {
+                    "align": "left",
+                    "body": """<p><em>Last updated: January 2025</em></p>
+
+<h2>Our Commitment</h2>
+<p>Sage & Stone is committed to ensuring digital accessibility for people with disabilities. We continually improve the user experience for everyone and apply relevant accessibility standards.</p>
+
+<h2>Conformance Status</h2>
+<p>We aim to conform to WCAG 2.1 Level AA standards. We regularly review our website to identify and fix accessibility issues.</p>
+
+<h2>Feedback</h2>
+<p>If you encounter any accessibility barriers on our website, please contact us:</p>
+<ul>
+<li>Email: <a href="mailto:hello@sageandstone.com">hello@sageandstone.com</a></li>
+<li>Phone: +44 (0) 20 1234 5678</li>
+</ul>
+
+<p>We welcome your feedback and will do our best to respond within 5 working days.</p>
+
+<h2>Technical Specifications</h2>
+<p>This website relies on the following technologies for accessibility:</p>
+<ul>
+<li>HTML</li>
+<li>CSS</li>
+<li>JavaScript</li>
+<li>WAI-ARIA</li>
+</ul>"""
+                }
+            },
+        ]
+    )
+
+    home_page.add_child(instance=page)
+    page.save_revision().publish()
+    self.stdout.write("  Created Accessibility page")
+    return page
+```
+
+## Acceptance Criteria
+
+- [ ] LegalPage created with slug "terms"
+- [ ] 6 legal sections with correct anchors
+- [ ] Each section has "In Plain English" explanation
+- [ ] last_updated date set
+- [ ] Privacy Policy placeholder created
+- [ ] Accessibility placeholder created
+- [ ] All pages published
+- [ ] Idempotent: no duplicates
+
+## Dependencies
+
+- Subtask 001 (Site exists)
+- Subtask 005 (Home page exists as parent)
+
+## Section Structure
+
+```
+LegalPage.sections (StreamField)
+└── LegalSectionBlock
+    ├── anchor (regex validated)
+    ├── heading (CharBlock)
+    └── body (RichTextBlock with h3-h4)
+```
+
+## Testing
+
+```python
+def test_terms_page_created():
+    call_command("seed_sage_stone")
+
+    page = LegalPage.objects.get(slug="terms")
+    assert page.title == "Terms of Supply"
+    assert page.last_updated == date(2025, 1, 15)
+
+def test_terms_has_sections():
+    call_command("seed_sage_stone")
+
+    page = LegalPage.objects.get(slug="terms")
+    assert len(page.sections) == 6
+
+def test_section_anchors():
+    call_command("seed_sage_stone")
+
+    page = LegalPage.objects.get(slug="terms")
+    anchors = [s["value"]["anchor"] for s in page.sections]
+
+    assert "definitions" in anchors
+    assert "scope" in anchors
+    assert "payment" in anchors
+    assert "materials" in anchors
+    assert "access" in anchors
+    assert "guarantee" in anchors
+
+def test_placeholder_pages_created():
+    call_command("seed_sage_stone")
+
+    assert StandardPage.objects.filter(slug="privacy").exists()
+    assert StandardPage.objects.filter(slug="accessibility").exists()
+```
+
+## Notes
+
+- Legal content is comprehensive and realistic
+- "In Plain English" sections match wireframe style
+- Placeholders are sufficient for demo; real client would replace
+- Company registration number is placeholder
+- Email/phone match brand constants
