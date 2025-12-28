@@ -54,7 +54,7 @@ This subtask will deliver:
 ## Acceptance Criteria
 
 - [ ] `https://sage-and-stone.lintel.site/` returns HTTP 200
-- [ ] `https://sage-and-stone.lintel.site/health/` returns HTTP 200 (or 503 with "degraded" acceptable for first deploy)
+- [ ] `https://sage-and-stone.lintel.site/health/` returns HTTP 200
 - [ ] Homepage renders with correct theme
 - [ ] Static files load (CSS, JS)
 - [ ] Gunicorn service is running: `systemctl status sum-sage-and-stone-gunicorn.service`
@@ -129,8 +129,8 @@ No files in sum-platform repository.
 
 - [ ] `type:task`
 - [ ] `agent:human`
-- [ ] `component:infrastructure`
-- [ ] `risk:medium`
+- [ ] `component:infra`
+- [ ] `risk:med`
 - [ ] Milestone: `v0.6.0`
 
 ---
@@ -139,9 +139,9 @@ No files in sum-platform repository.
 
 - [ ] Agent: human
 - [ ] Model Planned: human
-- [ ] Component: infrastructure
+- [ ] Component: infra
 - [ ] Change Type: chore
-- [ ] Risk: medium
+- [ ] Risk: med
 - [ ] Release: `v0.6.0`
 
 ---

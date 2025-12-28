@@ -115,7 +115,7 @@ infrastructure/docs/vps-golden-path.md      # Cross-reference added
 - [ ] `type:task`
 - [ ] `agent:claude`
 - [ ] `component:docs`
-- [ ] `component:infrastructure`
+- [ ] `component:infra`
 - [ ] `risk:low`
 - [ ] Milestone: `v0.6.0`
 
@@ -125,7 +125,7 @@ infrastructure/docs/vps-golden-path.md      # Cross-reference added
 
 - [ ] Agent: claude
 - [ ] Model Planned: claude-sonnet
-- [ ] Component: docs, infrastructure
+- [ ] Component: docs, infra
 - [ ] Change Type: docs
 - [ ] Risk: low
 - [ ] Release: `v0.6.0`

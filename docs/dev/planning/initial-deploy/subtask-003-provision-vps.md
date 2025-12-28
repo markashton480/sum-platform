@@ -138,8 +138,8 @@ No files in repository. VPS configuration only.
 
 - [ ] `type:task`
 - [ ] `agent:human`
-- [ ] `component:infrastructure`
-- [ ] `risk:medium`
+- [ ] `component:infra`
+- [ ] `risk:med`
 - [ ] Milestone: `v0.6.0`
 
 ---
@@ -148,9 +148,9 @@ No files in repository. VPS configuration only.
 
 - [ ] Agent: human
 - [ ] Model Planned: human
-- [ ] Component: infrastructure
+- [ ] Component: infra
 - [ ] Change Type: chore
-- [ ] Risk: medium
+- [ ] Risk: med
 - [ ] Release: `v0.6.0`
 
 ---
