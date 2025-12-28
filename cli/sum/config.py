@@ -20,6 +20,7 @@ class SetupConfigArgs(TypedDict, total=False):
     superuser_password: str
     seed_preset: str | None
     seed_site: str | None
+    theme_slug: str
 
 
 @dataclass
@@ -45,6 +46,7 @@ class SetupConfig:
 
     seed_preset: str | None = None
     seed_site: str | None = None
+    theme_slug: str = "theme_a"
 
     def __post_init__(self) -> None:
         """Validate configuration."""
