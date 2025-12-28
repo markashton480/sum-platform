@@ -143,6 +143,7 @@ def test_build_setup_config_prompts_full_flow(monkeypatch) -> None:
         port=8000,
         seed_preset=None,
         seed_site=None,
+        theme_slug="theme_a",
     )
 
     assert confirm_messages == [
@@ -161,3 +162,96 @@ def test_build_setup_config_prompts_full_flow(monkeypatch) -> None:
     assert config.superuser_email == "admin2@example.com"
     assert config.superuser_password == "secret"
     assert config.run_server is True
+
+
+def test_run_init_scaffold_with_custom_theme(monkeypatch, tmp_path: Path) -> None:
+    """Test that run_init passes custom theme to scaffold_project."""
+    clients_dir = tmp_path / "clients"
+    clients_dir.mkdir(parents=True)
+
+    scaffold_calls: list[dict[str, Any]] = []
+
+    def fake_scaffold(project_name: str, clients_dir: Path, theme_slug: str) -> Path:
+        scaffold_calls.append(
+            {
+                "project_name": project_name,
+                "clients_dir": clients_dir,
+                "theme_slug": theme_slug,
+            }
+        )
+        return clients_dir / project_name
+
+    def fail_orchestrator(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("orchestrator should not be called for scaffold only")
+
+    monkeypatch.setattr(init_module, "get_clients_dir", lambda: clients_dir)
+    monkeypatch.setattr(init_module, "scaffold_project", fake_scaffold)
+    monkeypatch.setattr(
+        init_module.SetupOrchestrator, "run_full_setup", fail_orchestrator
+    )
+
+    assert run_init("acme-kitchens", theme="theme_b") == 0
+    assert scaffold_calls == [
+        {
+            "project_name": "acme-kitchens",
+            "clients_dir": clients_dir,
+            "theme_slug": "theme_b",
+        }
+    ]
+
+
+def test_run_init_full_passes_theme_to_config(monkeypatch, tmp_path: Path) -> None:
+    """Test that run_init with full mode passes theme to SetupConfig."""
+    clients_dir = tmp_path / "clients"
+    clients_dir.mkdir(parents=True)
+
+    captured: dict[str, Any] = {}
+
+    def fake_run_full_setup(self, config) -> SetupResult:
+        captured["config"] = config
+        return SetupResult(
+            success=True,
+            project_path=self.project_path,
+            credentials_path=Path("credentials.env"),
+            url="http://127.0.0.1:8000/",
+        )
+
+    monkeypatch.setattr(init_module, "get_clients_dir", lambda: clients_dir)
+    monkeypatch.setattr(
+        init_module.SetupOrchestrator, "run_full_setup", fake_run_full_setup
+    )
+
+    assert (
+        run_init(
+            "acme-kitchens",
+            full=True,
+            no_prompt=True,
+            theme="theme_b",
+        )
+        == 0
+    )
+
+    config = captured["config"]
+    assert config.theme_slug == "theme_b"
+
+
+def test_build_setup_config_includes_theme_slug(monkeypatch) -> None:
+    """Test that _build_setup_config correctly sets theme_slug in config."""
+    config = _build_setup_config(
+        prompts=PromptManager(no_prompt=True),
+        full=True,
+        quick=False,
+        no_prompt=True,
+        ci=False,
+        skip_venv=True,
+        skip_migrations=True,
+        skip_seed=True,
+        skip_superuser=True,
+        run_server=False,
+        port=8000,
+        seed_preset=None,
+        seed_site=None,
+        theme_slug="theme_b",
+    )
+
+    assert config.theme_slug == "theme_b"

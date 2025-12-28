@@ -7,44 +7,56 @@ class OutputFormatter:
     """Formatting helpers for CLI output."""
 
     @staticmethod
-    def progress(step: int, total: int, message: str, status: str = "running") -> str:
+    def progress(
+        step: int, total: int, message: str, status: str = "running", emit: bool = True
+    ) -> str:
         """Format, print, and return a progress line for a multi-step operation."""
         line = f"⏳ [{step}/{total}] {status}: {message}"
-        print(line)
+        if emit:
+            print(line)
         return line
 
     @staticmethod
-    def success(message: str) -> str:
+    def success(message: str, emit: bool = True) -> str:
         """Format, print, and return a success message string."""
         line = f"✅ {message}"
-        print(line)
+        if emit:
+            print(line)
         return line
 
     @staticmethod
-    def error(message: str) -> str:
+    def error(message: str, emit: bool = True) -> str:
         """Format, print, and return an error message string."""
         line = f"❌ {message}"
-        print(line)
+        if emit:
+            print(line)
         return line
 
     @staticmethod
-    def info(message: str) -> str:
+    def info(message: str, emit: bool = True) -> str:
         """Format, print, and return an informational message string."""
         line = f"ℹ {message}"
-        print(line)
+        if emit:
+            print(line)
         return line
 
     @staticmethod
-    def summary(project_name: str, data: Mapping[str, str]) -> str:
-        """Format, print, and return a formatted summary block for a project."""
+    def summary(project_name: str, data: Mapping[str, str], emit: bool = True) -> str:
+        """Format, print, and return a formatted summary block for a project.
+
+        Password values are intentionally omitted from the output for safety.
+        """
         lines = [
             "📋 Summary",
             "--------------------",
             f"🏷️  Project: {project_name}",
         ]
         for key, value in data.items():
+            if key.lower() == "password":
+                continue
             lines.append(f"✅ {key}: {value}")
         lines.append("--------------------")
         output = "\n".join(lines)
-        print(output)
+        if emit:
+            print(output)
         return output

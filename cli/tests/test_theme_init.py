@@ -219,6 +219,12 @@ def test_init_includes_seed_showroom_command(
     assert "header.items" not in text
     assert "sub_items" not in text
 
+    # Branding seeding should use sum_core SiteSettings fields.
+    assert "settings.company_name" in text
+    assert "settings.header_logo_id" in text
+    assert "settings.footer_logo_id" in text
+    assert "settings.favicon_id" in text
+
 
 def test_init_includes_seed_sage_stone_command(
     monkeypatch, isolated_theme_env, apply_isolated_theme_env, theme_snapshot

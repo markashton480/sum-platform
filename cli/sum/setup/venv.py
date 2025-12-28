@@ -29,8 +29,9 @@ class VenvManager:
             )
         except subprocess.CalledProcessError as exc:
             OutputFormatter.error("Failed to create virtualenv")
+            details = exc.stderr or exc.stdout or "Unknown error"
             raise VenvError(
-                f"Failed to create virtualenv at {venv_path}: {exc.stderr}"
+                f"Failed to create virtualenv at {venv_path}: {details}"
             ) from exc
 
         OutputFormatter.success(f"Virtualenv created at {venv_path}")
@@ -39,21 +40,15 @@ class VenvManager:
     def get_python_executable(self, project_path: Path) -> Path:
         """Return the Python executable inside the project virtualenv."""
         python_path = project_path / ".venv" / "bin" / "python"
-        OutputFormatter.info(f"Using virtualenv python at {python_path}")
         return python_path
 
     def is_activated(self) -> bool:
         """Return True when running inside a virtualenv."""
         active = bool(os.environ.get("VIRTUAL_ENV")) or sys.prefix != sys.base_prefix
-        if active:
-            OutputFormatter.info("Virtualenv is active")
-        else:
-            OutputFormatter.info("Virtualenv is not active")
         return active
 
     def exists(self, project_path: Path) -> bool:
         """Return True when the project virtualenv exists."""
         venv_path = project_path / ".venv"
         exists = venv_path.is_dir()
-        OutputFormatter.info(f"Virtualenv exists at {venv_path}: {exists}")
         return exists
