@@ -18,6 +18,7 @@ import pytest
 from home.models import HomePage
 from sum_core.branding.models import SiteSettings
 from sum_core.navigation.models import FooterNavigation, HeaderNavigation
+from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
 from sum_core.pages.standard import StandardPage
 from wagtail.images.models import Image
 from wagtail.models import Site
@@ -299,3 +300,79 @@ def test_seed_sage_stone_pages_are_children_of_home(
     for slug in ["about", "services", "portfolio", "contact"]:
         page = StandardPage.objects.get(slug=slug)
         assert page.get_parent().id == home.id
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_categories_created(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    assert Category.objects.count() == 3
+    assert Category.objects.filter(slug="material-science").exists()
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_blog_index_created(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    index = BlogIndexPage.objects.get(slug="journal")
+    assert index.title == "The Ledger"
+    assert index.posts_per_page == 9
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_blog_posts_created(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    posts = BlogPostPage.objects.all()
+    assert posts.count() == 7
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_posts_have_categories(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    post = BlogPostPage.objects.get(slug="art-of-seasoning-timber")
+    assert post.category.slug == "material-science"
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_posts_have_content_and_images(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    for post in BlogPostPage.objects.all():
+        assert post.featured_image_id is not None
+        assert len(post.body) > 0
+        assert post.excerpt
+        assert post.reading_time >= 1
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_posts_ordered_by_date(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    posts = list(BlogPostPage.objects.live().order_by("-published_date"))
+    assert posts[0].slug == "art-of-seasoning-timber"

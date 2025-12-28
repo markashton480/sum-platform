@@ -7,6 +7,8 @@ pointing at it. Supports idempotent re-runs and a scoped --clear reset.
 
 from __future__ import annotations
 
+from copy import deepcopy
+from datetime import datetime
 from io import BytesIO
 from typing import Any, TypedDict
 
@@ -17,6 +19,7 @@ from PIL import Image as PILImage
 from PIL import ImageDraw, ImageFont
 from sum_core.branding.models import SiteSettings
 from sum_core.navigation.models import FooterNavigation, HeaderNavigation
+from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
 from sum_core.pages.standard import StandardPage
 from wagtail.images.models import Image
 from wagtail.models import Page, Site
@@ -361,6 +364,574 @@ IMAGE_MANIFEST: list[ImageSpec] = [
     },
 ]
 
+CATEGORIES = [
+    {
+        "name": "Commission Stories",
+        "slug": "commission-stories",
+        "description": "Behind the scenes of our kitchen commissions",
+    },
+    {
+        "name": "Material Science",
+        "slug": "material-science",
+        "description": "Deep dives into timber, joinery, and craft",
+    },
+    {
+        "name": "The Workshop",
+        "slug": "the-workshop",
+        "description": "News and updates from Herefordshire",
+    },
+]
+
+BLOG_POSTS = [
+    {
+        "title": "The Art of Seasoning Timber",
+        "slug": "art-of-seasoning-timber",
+        "category_slug": "material-science",
+        "published_date": "2025-11-15",
+        "image_key": "BLOG_TIMBER_IMAGE",
+        "excerpt": (
+            "Why we wait years before a single plank touches our workshop. "
+            "The ancient practice that separates heirloom furniture from firewood."
+        ),
+        "author_name": "Thomas J. Wright",
+        "body": [
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p class='lead'>There's a reason antique furniture survives "
+                        "centuries while modern pieces warp within years. The secret "
+                        "isn't in the joinery or the finish--it's in the waiting.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>When a tree is felled, its wood contains up to 80% moisture. "
+                        "Use it immediately, and you're building with a ticking time "
+                        "bomb. As that moisture escapes over months and years, the wood "
+                        "shrinks, twists, and cracks. Every joint loosens. Every surface "
+                        "cups.</p><p>This is why we season every piece of timber that "
+                        "enters our workshop. It's also why we turn away clients who "
+                        "can't wait.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "editorial_header",
+                "value": {
+                    "align": "left",
+                    "eyebrow": "",
+                    "heading": "Understanding Moisture Content",
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>Freshly cut timber has a moisture content (MC) of 60-80%. "
+                        "For furniture making, we need to bring this down to 8-12%--"
+                        "equilibrium with a typical heated home. Get this wrong, and "
+                        "disaster follows.</p><blockquote>Wood remembers. Every stress, "
+                        "every rush, every shortcut--it will express them eventually."
+                        "</blockquote><p>Traditional air drying takes approximately "
+                        "one year per inch of thickness. A 2-inch oak board needs two "
+                        "full years before it's ready. Modern kiln drying can "
+                        "accelerate this, but at a cost to the wood's character and "
+                        "stability.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "image_block",
+                "value": {
+                    "image": None,
+                    "alt_text": "Oak boards stacked for air drying",
+                    "caption": (
+                        "Our timber stacks: each board separated by spacers for airflow"
+                    ),
+                    "full_width": True,
+                },
+            },
+            {
+                "type": "editorial_header",
+                "value": {
+                    "align": "left",
+                    "eyebrow": "",
+                    "heading": "The Waiting Game",
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>At Sage & Stone, we maintain our own timber stocks. When "
+                        "you commission a kitchen, the oak for your cabinetry has "
+                        "likely been seasoning in our yard for three years or more.</p>"
+                        "<p>This isn't inefficiency--it's insurance. We're building "
+                        "furniture your grandchildren will use. A few years of patience "
+                        "now prevents decades of problems later.</p><p>We've had clients "
+                        "ask us to rush. We've had competitors promise faster delivery. "
+                        "Both paths lead to the same destination: furniture that fails."
+                        "</p>"
+                    ),
+                },
+            },
+            {
+                "type": "quote",
+                "value": {
+                    "quote": "Speed is the enemy of legacy.",
+                    "author": "Thomas J. Wright",
+                    "role": "Founder",
+                },
+            },
+            {
+                "type": "editorial_header",
+                "value": {
+                    "align": "left",
+                    "eyebrow": "",
+                    "heading": "Our Approach",
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>Every board in our workshop has a story. We know where it "
+                        "grew, when it was felled, and how long it's been drying. This "
+                        "provenance isn't just record-keeping--it's quality control.</p>"
+                        "<p>When you receive your Sage & Stone kitchen, you're "
+                        "receiving timber that's been cared for as carefully as the "
+                        "finished joinery. The waiting is part of the craft.</p><p>If "
+                        "you're ready to begin your commission--and to embrace the pace "
+                        'that quality demands--<a href="/contact/">we\'d love to hear '
+                        "from you</a>.</p>"
+                    ),
+                },
+            },
+        ],
+    },
+    {
+        "title": "Inside the Kensington Commission",
+        "slug": "inside-kensington-commission",
+        "category_slug": "commission-stories",
+        "published_date": "2025-10-28",
+        "image_key": "BLOG_KENSINGTON",
+        "excerpt": (
+            "A behind-the-scenes look at our most ambitious London project. "
+            "From first survey to final handover."
+        ),
+        "author_name": "Marcus T.",
+        "body": [
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p class='lead'>The Kensington Commission began with a phone "
+                        "call and ended with a standing ovation from the installation "
+                        "team. Here's what happened in between.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>When the clients first contacted us, they'd already spoken "
+                        "to three other kitchen companies. Each had promised quick "
+                        "turnarounds and competitive pricing. None had asked about their "
+                        "grandparents' kitchen table.</p><p>We did. Because that's where "
+                        "the real brief lives.</p><p>It turned out their favourite "
+                        "piece of furniture was a simple oak table, handed down through "
+                        "three generations. They wanted their new kitchen to feel like "
+                        "that--permanent, loved, and utterly without pretension.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "editorial_header",
+                "value": {
+                    "align": "left",
+                    "eyebrow": "",
+                    "heading": "The Design Phase",
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>We spent four weeks on design alone. Not because we're slow, "
+                        "but because we're thorough. Every drawer, every handle, every "
+                        "sight line was considered and reconsidered.</p><p>The clients "
+                        "visited our workshop twice during this phase. We believe you "
+                        "should see where your kitchen is born--the sawdust, the "
+                        "offcuts, the half-finished pieces that will eventually become "
+                        "yours.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "quote",
+                "value": {
+                    "quote": (
+                        "They didn't just show us drawings. They showed us the wood "
+                        "that would become our kitchen. That's when we knew we'd "
+                        "chosen right."
+                    ),
+                    "author": "The Clients",
+                    "role": "Kensington",
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>The installation took eleven days. Our team of four worked "
+                        "in near-silence, communicating in the shorthand that comes "
+                        "from years of collaboration. The clients barely knew we were "
+                        "there--which is exactly how we like it.</p><p>When we handed "
+                        "over the keys, the kitchen had already been cleaned three "
+                        "times. We don't leave fingerprints, literal or metaphorical.</p>"
+                    ),
+                },
+            },
+        ],
+    },
+    {
+        "title": "Hand-Cut vs Machine Dovetails",
+        "slug": "hand-cut-vs-machine-dovetails",
+        "category_slug": "material-science",
+        "published_date": "2025-10-15",
+        "image_key": "BLOG_DOVETAILS",
+        "excerpt": (
+            "The joints that define quality craftsmanship. Why we cut every "
+            "dovetail by hand, and why it matters."
+        ),
+        "author_name": "David R.",
+        "body": [
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p class='lead'>You can spot a hand-cut dovetail from across "
+                        "the room. The subtle irregularities. The confident asymmetry. "
+                        "The unmistakable mark of a human hand.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>Machine-cut dovetails are perfect. That's the problem.</p>"
+                        "<p>When every joint is identical, when every angle is exactly "
+                        "1:8, something essential is lost. The furniture becomes a "
+                        "product, not a piece. It could have been made anywhere, by "
+                        "anyone, at any time.</p><p>Hand-cut dovetails are different. "
+                        "Each one carries the signature of its maker--the angle they "
+                        "prefer, the saw marks they leave, the tiny variations that "
+                        "accumulate into character.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "editorial_header",
+                "value": {
+                    "align": "left",
+                    "eyebrow": "",
+                    "heading": "The Technical Argument",
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>Beyond aesthetics, hand-cut dovetails offer practical "
+                        "advantages:</p><ul><li><strong>Custom fit:</strong> Each joint "
+                        "is cut to match the specific piece of wood, accounting for "
+                        "grain direction and density variations.</li><li><strong>Tighter "
+                        "tolerances:</strong> A skilled craftsman can achieve fits that "
+                        "machines cannot, because they can feel when the joint is right."
+                        "</li><li><strong>Repair potential:</strong> Hand-cut joints can "
+                        "be disassembled and repaired. Machine-cut joints often cannot."
+                        "</li></ul>"
+                    ),
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>At Sage & Stone, every drawer box, every carcass joint, "
+                        "every corner is hand-cut. It takes longer. It costs more. But "
+                        "sixty years from now, when your grandchildren are cooking in "
+                        "your kitchen, the dovetails will still be tight.</p><p>That's "
+                        "the only metric that matters.</p>"
+                    ),
+                },
+            },
+        ],
+    },
+    {
+        "title": "Workshop Update: New Finishing Room",
+        "slug": "workshop-update-finishing-room",
+        "category_slug": "the-workshop",
+        "published_date": "2025-09-30",
+        "image_key": "BLOG_WORKSHOP",
+        "excerpt": (
+            "A major upgrade to our Herefordshire facility. Controlled environment "
+            "finishing for even better results."
+        ),
+        "author_name": "Thomas J. Wright",
+        "body": [
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p class='lead'>After eighteen months of planning and three "
+                        "months of construction, our new finishing room is complete. "
+                        "Here's why it matters.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>Finishing is where good furniture becomes great furniture. "
+                        "The final coats of oil or lacquer seal in all the work that "
+                        "came before--and any dust, debris, or moisture that happens to "
+                        "land during application.</p><p>Our new room eliminates those "
+                        "risks. Temperature-controlled to within 2C, humidity-regulated, "
+                        "and positively pressured to keep dust out. It's overkill for "
+                        "most workshops. For us, it's essential.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>The investment was significant. But when you're building "
+                        "furniture to last generations, the finish needs to match. Our "
+                        "clients deserve nothing less.</p><p>If you'd like to see the "
+                        'new facility, <a href="/contact/">book a workshop visit</a>. '
+                        "We're proud to show it off.</p>"
+                    ),
+                },
+            },
+        ],
+    },
+    {
+        "title": "The Georgian Restoration: A 12-Month Journey",
+        "slug": "georgian-restoration-journey",
+        "category_slug": "commission-stories",
+        "published_date": "2025-09-15",
+        "image_key": "BLOG_GEORGIAN",
+        "excerpt": (
+            "Restoring a 1780s kitchen required patience, research, and a willingness "
+            "to learn from the past."
+        ),
+        "author_name": "Sarah M.",
+        "body": [
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p class='lead'>When we first saw the Georgian townhouse "
+                        "kitchen, we knew this would be different. The original "
+                        "cabinetry--what remained of it--dated to 1783.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>The brief was clear: restore what could be saved, replace "
+                        "what couldn't, and make the joins invisible. No one looking "
+                        "at the finished kitchen should be able to tell where the 18th "
+                        "century ends and the 21st begins.</p><p>This required research. "
+                        "We spent weeks studying Georgian joinery techniques, visiting "
+                        "museum collections, and consulting with conservation "
+                        "specialists. The dovetails of 1783 are subtly different from "
+                        "those we cut today. The moulding profiles have changed. Even "
+                        "the way the wood was prepared--its texture, its finish--carries "
+                        "period signatures.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "quote",
+                "value": {
+                    "quote": (
+                        "We weren't just matching the old work. We were learning from "
+                        "craftsmen who died two centuries ago."
+                    ),
+                    "author": "Sarah M.",
+                    "role": "Finishing Specialist",
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>The project took twelve months from first survey to final "
+                        "handover. Expensive by any measure. But the kitchen is now "
+                        "better than it was in 1783--more functional, better preserved, "
+                        "and ready for another two centuries of service.</p><p>That's "
+                        "the kind of work we live for.</p>"
+                    ),
+                },
+            },
+        ],
+    },
+    {
+        "title": "Why We Don't Use MDF",
+        "slug": "why-we-dont-use-mdf",
+        "category_slug": "material-science",
+        "published_date": "2025-08-20",
+        "image_key": "BLOG_MDF",
+        "excerpt": (
+            "The material that dominates modern kitchens has no place in ours. "
+            "Here's why solid timber wins."
+        ),
+        "author_name": "Thomas J. Wright",
+        "body": [
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p class='lead'>MDF--medium-density fibreboard--is everywhere. "
+                        "It's cheap, stable, and easy to work with. It's also the "
+                        "reason most modern kitchens are destined for landfill within "
+                        "twenty years.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>The problems with MDF are fundamental:</p><ul><li><strong>"
+                        "Water damage is catastrophic:</strong> Once MDF gets wet, it "
+                        "swells and never recovers. Solid timber can be dried and "
+                        "refinished.</li><li><strong>It cannot be repaired:</strong> "
+                        "Damaged MDF must be replaced. Damaged timber can be patched, "
+                        "filled, or refinished.</li><li><strong>It has no character:</strong> "
+                        "MDF is manufactured uniformity. Timber has grain, colour "
+                        "variation, and warmth.</li><li><strong>It off-gasses:</strong> "
+                        "MDF contains formaldehyde resins that continue releasing "
+                        "chemicals for years.</li></ul>"
+                    ),
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>We understand why manufacturers use MDF. It's predictable "
+                        "and profitable. But we're not building for the next fiscal "
+                        "quarter--we're building for the next century.</p><p>Every Sage "
+                        "& Stone kitchen is solid timber throughout. Carcasses, doors, "
+                        "drawers, shelves--not a scrap of MDF anywhere. It costs more. "
+                        "It takes longer. But it lasts forever.</p><p>That's a trade "
+                        "we'll make every time.</p>"
+                    ),
+                },
+            },
+        ],
+    },
+    {
+        "title": "Meet Marcus: Our New Project Director",
+        "slug": "meet-marcus-project-director",
+        "category_slug": "the-workshop",
+        "published_date": "2025-08-01",
+        "image_key": "BLOG_MARCUS",
+        "excerpt": (
+            "After five years as Senior Installer, Marcus takes on a new role. "
+            "Here's what that means for our clients."
+        ),
+        "author_name": "Thomas J. Wright",
+        "body": [
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p class='lead'>Marcus joined Sage & Stone five years ago. "
+                        "Last month, he became our Project Director. For our clients, "
+                        "this is very good news.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>The Project Director role is new for us. Previously, I "
+                        "handled all client communications personally. As our order "
+                        "book has grown, this became unsustainable. Clients deserve "
+                        "more attention than I could give them.</p><p>Marcus was the "
+                        "obvious choice. He knows our processes inside out--literally, "
+                        "having installed more Sage & Stone kitchens than anyone else. "
+                        "He understands what we promise and how we deliver.</p>"
+                    ),
+                },
+            },
+            {
+                "type": "quote",
+                "value": {
+                    "quote": (
+                        "I've seen what happens when installation goes wrong. My job "
+                        "is making sure it never does."
+                    ),
+                    "author": "Marcus T.",
+                    "role": "Project Director",
+                },
+            },
+            {
+                "type": "content",
+                "value": {
+                    "align": "left",
+                    "body": (
+                        "<p>If you're a current client, Marcus is now your primary "
+                        "contact for project updates and scheduling. If you're "
+                        "considering a commission, he'll be the one guiding you "
+                        "through the process.</p><p>He's very good. You're in safe "
+                        "hands.</p>"
+                    ),
+                },
+            },
+        ],
+    },
+]
+
 
 class PlaceholderImageGenerator:
     """Generate branded placeholder images."""
@@ -499,6 +1070,8 @@ class Command(BaseCommand):
 
         site, home_page = self._setup_site(hostname=hostname, port=port)
         self.create_pages(home_page=home_page)
+        categories = self.create_categories()
+        self.create_blog_content(home_page=home_page, categories=categories)
         settings = self._configure_branding(site=site)
         pages = self._get_navigation_pages(site=site, home_page=home_page)
         self._configure_navigation(site=site, pages=pages)
@@ -1621,6 +2194,151 @@ class Command(BaseCommand):
         message = "  Created Contact page" if created else "  Updated Contact page"
         self.stdout.write(message)
         return page
+
+    def create_categories(self) -> dict[str, Category]:
+        """Create blog categories."""
+        categories: dict[str, Category] = {}
+        for data in CATEGORIES:
+            category, created = Category.objects.get_or_create(
+                slug=data["slug"],
+                defaults={
+                    "name": data["name"],
+                    "description": data["description"],
+                },
+            )
+            if not created:
+                category.name = data["name"]
+                category.description = data["description"]
+                category.save()
+            categories[data["slug"]] = category
+            self.stdout.write(f"  Category: {category.name}")
+        return categories
+
+    def create_blog_index(self, home_page: HomePage) -> BlogIndexPage:
+        """Create the blog index page."""
+        try:
+            page = BlogIndexPage.objects.child_of(home_page).get(slug="journal")
+            page.title = "The Ledger"
+            page.seo_title = "The Ledger | Notes from the Workshop | Sage & Stone"
+            page.search_description = (
+                "Stories of timber, craft, and the kitchens we build. Insights from "
+                "28 years of bespoke joinery."
+            )
+            page.show_in_menus = True
+            page.intro = (
+                "Notes from the workshop. Stories of timber, craft, and the kitchens "
+                "we build."
+            )
+            page.posts_per_page = 9
+            page.save_revision().publish()
+            return page
+        except BlogIndexPage.DoesNotExist:
+            pass
+
+        conflict = home_page.get_children().filter(slug="journal").first()
+        if conflict is not None:
+            self.stdout.write(
+                self.style.WARNING(
+                    "Existing page with slug 'journal' is not a BlogIndexPage; renaming it."
+                )
+            )
+            conflict_page = conflict.specific
+            conflict_page.slug = f"journal-legacy-{conflict_page.id}"
+            conflict_page.title = f"{conflict_page.title} (Legacy)"
+            conflict_page.save()
+            conflict_page.save_revision().publish()
+
+        page = BlogIndexPage(
+            title="The Ledger",
+            slug="journal",
+            seo_title="The Ledger | Notes from the Workshop | Sage & Stone",
+            search_description=(
+                "Stories of timber, craft, and the kitchens we build. Insights from "
+                "28 years of bespoke joinery."
+            ),
+            show_in_menus=True,
+            intro=(
+                "Notes from the workshop. Stories of timber, craft, and the kitchens "
+                "we build."
+            ),
+            posts_per_page=9,
+        )
+
+        home_page.add_child(instance=page)
+        page.save_revision().publish()
+        self.stdout.write("  Created Blog Index: The Ledger")
+        return page
+
+    def create_blog_content(
+        self, *, home_page: HomePage, categories: dict[str, Category]
+    ) -> BlogIndexPage:
+        """Create blog index and all posts."""
+        blog_index = self.create_blog_index(home_page)
+        for post_data in BLOG_POSTS:
+            self._create_blog_post(blog_index, post_data, categories)
+        return blog_index
+
+    def _create_blog_post(
+        self,
+        blog_index: BlogIndexPage,
+        post_data: dict[str, Any],
+        categories: dict[str, Category],
+    ) -> BlogPostPage:
+        """Create a single blog post."""
+        category = categories[post_data["category_slug"]]
+        body = self._prepare_blog_body(post_data)
+        published_date = datetime.strptime(post_data["published_date"], "%Y-%m-%d")
+
+        try:
+            page = BlogPostPage.objects.child_of(blog_index).get(slug=post_data["slug"])
+            page.title = post_data["title"]
+            page.category = category
+            page.published_date = published_date
+            page.featured_image = self.images.get(post_data["image_key"])
+            page.excerpt = post_data["excerpt"]
+            page.author_name = post_data["author_name"]
+            page.seo_title = f"{post_data['title']} | The Ledger | Sage & Stone"
+            page.search_description = post_data["excerpt"][:160]
+            page.body = body
+            page.save_revision().publish()
+            return page
+        except BlogPostPage.DoesNotExist:
+            pass
+
+        page = BlogPostPage(
+            title=post_data["title"],
+            slug=post_data["slug"],
+            category=category,
+            published_date=published_date,
+            featured_image=self.images.get(post_data["image_key"]),
+            excerpt=post_data["excerpt"],
+            author_name=post_data["author_name"],
+            seo_title=f"{post_data['title']} | The Ledger | Sage & Stone",
+            search_description=post_data["excerpt"][:160],
+            body=body,
+        )
+
+        blog_index.add_child(instance=page)
+        page.save_revision().publish()
+        self.stdout.write(f"  Blog post: {page.title}")
+        return page
+
+    def _prepare_blog_body(self, post_data: dict[str, Any]) -> list[dict[str, Any]]:
+        body = [deepcopy(block) for block in post_data["body"]]
+        for block in body:
+            if block["type"] != "image_block":
+                continue
+            value = block.get("value", {})
+            if value.get("image") is not None:
+                continue
+            image_key = post_data.get("image_key", "BLOG_TIMBER_IMAGE")
+            alt_text = value.get("alt_text", "")
+            if "STACK" in alt_text.upper():
+                image_key = "BLOG_TIMBER_STACK"
+            image = self.images.get(image_key)
+            if image is not None:
+                value["image"] = image.pk
+        return body
 
     def _get_navigation_pages(self, *, site: Site, home_page: Page) -> dict[str, Page]:
         """Resolve navigation pages for the header/footer, with home fallbacks."""
