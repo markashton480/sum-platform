@@ -18,6 +18,7 @@ import pytest
 from home.models import HomePage
 from sum_core.branding.models import SiteSettings
 from sum_core.navigation.models import FooterNavigation, HeaderNavigation
+from sum_core.pages.standard import StandardPage
 from wagtail.images.models import Image
 from wagtail.models import Site
 
@@ -256,3 +257,45 @@ def test_seed_sage_stone_configures_footer_navigation(
     assert len(footer.link_sections) == 3
     assert footer.social_instagram == "https://instagram.com/sageandstone"
     assert footer.copyright_text == "© {year} Sage & Stone Ltd. All rights reserved."
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_creates_core_pages(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    for slug in ["about", "services", "portfolio", "contact"]:
+        assert StandardPage.objects.filter(slug=slug).exists()
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_core_pages_have_content(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    home = HomePage.objects.get(slug="home")
+    assert len(home.body) > 0
+
+    for slug in ["about", "services", "portfolio", "contact"]:
+        page = StandardPage.objects.get(slug=slug)
+        assert len(page.body) > 0
+
+
+@pytest.mark.django_db
+def test_seed_sage_stone_pages_are_children_of_home(
+    wagtail_default_site: Site,
+) -> None:
+    assert wagtail_default_site.is_default_site
+
+    _run_seed_command()
+
+    home = HomePage.objects.get(slug="home")
+    for slug in ["about", "services", "portfolio", "contact"]:
+        page = StandardPage.objects.get(slug=slug)
+        assert page.get_parent().id == home.id
