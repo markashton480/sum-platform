@@ -18,7 +18,7 @@ The production settings in the SUM boilerplate already configure Redis as the de
 
 ### 1. Documentation: VPS Golden Path
 
-**File**: `docs/dev/deploy/vps-golden-path.md`
+**File**: `infrastructure/docs/vps-golden-path.md`
 
 **Changes**:
 
@@ -237,7 +237,7 @@ The following manual verification is recommended on a staging VPS:
 
 ## Files Modified
 
-1. `docs/dev/deploy/vps-golden-path.md` - Documentation updates
+1. `infrastructure/docs/vps-golden-path.md` - Documentation updates
 2. `infrastructure/scripts/provision_vps.sh` - Redis installation and verification
 3. `infrastructure/scripts/deploy.sh` - Pre-deployment Redis check
 4. `infrastructure/systemd/sum-site-gunicorn.service.template` - Soft Redis dependency

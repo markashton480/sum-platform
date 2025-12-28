@@ -16,7 +16,7 @@ I'll analyze the task requirements and implement them carefully. Let me start by
 
 Now let me examine the current state of the files I need to update. Let me start by looking at the VPS golden path documentation:
 
-*Viewed [vps-golden-path.md](file:///home/mark/workspaces/sum-platform/docs/dev/deploy/vps-golden-path.md) *
+*Viewed [vps-golden-path.md](file:///home/mark/workspaces/sum-platform/infrastructure/docs/vps-golden-path.md) *
 
 ### Planner Response
 
@@ -77,13 +77,13 @@ Based on my review of the task CM-M6-02 and the codebase:
 **Current State:**
 1. The boilerplate production settings ([production.py](cci:7://file:///home/mark/workspaces/sum-platform/boilerplate/project_name/settings/production.py:0:0-0:0)) **already configure Redis** as the default cache backend with fallback to `redis://localhost:6379/0`
 2. The health check already treats cache as **critical** (as noted in M6-001 report)
-3. Documentation in [vps-golden-path.md](cci:7://file:///home/mark/workspaces/sum-platform/docs/dev/deploy/vps-golden-path.md:0:0-0:0) (line 27-34) treats Redis as "optional" or "only if you enable cache/Celery"
+3. Documentation in [vps-golden-path.md](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/docs/vps-golden-path.md:0:0-0:0) (line 27-34) treats Redis as "optional" or "only if you enable cache/Celery"
 4. The provisioning script ([provision_vps.sh](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/scripts/provision_vps.sh:0:0-0:0)) doesn't install Redis
 5. The deploy script ([deploy.sh](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/scripts/deploy.sh:0:0-0:0)) doesn't verify Redis is running
 6. The systemd templates mention Redis only in comments (optional)
 
 **What needs to change:**
-1. Update [docs/dev/deploy/vps-golden-path.md](cci:7://file:///home/mark/workspaces/sum-platform/docs/dev/deploy/vps-golden-path.md:0:0-0:0) to make Redis mandatory and add "Why Redis is required" section
+1. Update [infrastructure/docs/vps-golden-path.md](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/docs/vps-golden-path.md:0:0-0:0) to make Redis mandatory and add "Why Redis is required" section
 2. Update [infrastructure/scripts/provision_vps.sh](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/scripts/provision_vps.sh:0:0-0:0) to install and enable Redis by default
 3. Update [infrastructure/scripts/deploy.sh](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/scripts/deploy.sh:0:0-0:0) to add Redis sanity check
 4. Update systemd templates to add Redis dependencies
@@ -109,9 +109,9 @@ Excellent! Now let me update the .env section to make Redis variables required:
 
 Now let me add an operational sanity checklist section at the end of the document:
 
-*Viewed [vps-golden-path.md](file:///home/mark/workspaces/sum-platform/docs/dev/deploy/vps-golden-path.md) *
+*Viewed [vps-golden-path.md](file:///home/mark/workspaces/sum-platform/infrastructure/docs/vps-golden-path.md) *
 
-*Viewed [vps-golden-path.md](file:///home/mark/workspaces/sum-platform/docs/dev/deploy/vps-golden-path.md) *
+*Viewed [vps-golden-path.md](file:///home/mark/workspaces/sum-platform/infrastructure/docs/vps-golden-path.md) *
 
 *Edited relevant file*
 
@@ -155,7 +155,7 @@ Perfect! Now let me run linting to make sure the scripts are clean:
 
 That's fine - shellcheck isn't required for this project. Let me now verify the changes make sense by reviewing what we've done:
 
-*User accepted the command `git diff docs/dev/deploy/vps-golden-path.md | head -100`*
+*User accepted the command `git diff infrastructure/docs/vps-golden-path.md | head -100`*
 
 ### Planner Response
 
@@ -215,7 +215,7 @@ I've successfully implemented **CM-M6-02: Make Redis Required in VPS Golden Path
 
 ### ✅ All Changes Implemented
 
-**1. Documentation ([docs/dev/deploy/vps-golden-path.md](cci:7://file:///home/mark/workspaces/sum-platform/docs/dev/deploy/vps-golden-path.md:0:0-0:0))**
+**1. Documentation ([infrastructure/docs/vps-golden-path.md](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/docs/vps-golden-path.md:0:0-0:0))**
 - Updated title to explicitly include Redis
 - Moved Redis from "optional" to required baseline packages
 - Added comprehensive "Why Redis is required" section explaining:
@@ -274,7 +274,7 @@ I've successfully implemented **CM-M6-02: Make Redis Required in VPS Golden Path
 
 ### Files Modified
 
-1. [docs/dev/deploy/vps-golden-path.md](cci:7://file:///home/mark/workspaces/sum-platform/docs/dev/deploy/vps-golden-path.md:0:0-0:0)
+1. [infrastructure/docs/vps-golden-path.md](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/docs/vps-golden-path.md:0:0-0:0)
 2. [infrastructure/scripts/provision_vps.sh](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/scripts/provision_vps.sh:0:0-0:0)
 3. [infrastructure/scripts/deploy.sh](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/scripts/deploy.sh:0:0-0:0)
 4. [infrastructure/systemd/sum-site-gunicorn.service.template](cci:7://file:///home/mark/workspaces/sum-platform/infrastructure/systemd/sum-site-gunicorn.service.template:0:0-0:0)

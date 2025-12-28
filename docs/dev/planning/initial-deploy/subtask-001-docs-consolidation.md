@@ -41,7 +41,7 @@ This subtask will deliver:
 
 ### Do
 
-- Move vps-golden-path.md to infrastructure/docs/
+- Move docs/dev/deploy/vps-golden-path.md to infrastructure/docs/vps-golden-path.md
 - Create infrastructure/docs/ directory
 - Update reference in deploy-runbook.md (line 4: `../dev/deploy/vps-golden-path.md`)
 - Search for and update any other references to the old path
@@ -153,7 +153,7 @@ docs/ops-pack/deploy-runbook.md             # Reference update
 ```
 chore(docs): consolidate deploy docs into /infrastructure/
 
-- Move vps-golden-path.md to infrastructure/docs/
+- Move docs/dev/deploy/vps-golden-path.md to infrastructure/docs/vps-golden-path.md
 - Update reference in deploy-runbook.md
 - Remove empty docs/dev/deploy/ directory
 

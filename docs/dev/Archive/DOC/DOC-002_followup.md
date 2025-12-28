@@ -21,7 +21,7 @@ This was a **documentation-only** task with no code or infrastructure changes.
 
 Three key documentation files were updated to explicitly lock Redis and health check semantics:
 
-#### 1. **VPS Golden Path** (`docs/dev/deploy/vps-golden-path.md`)
+#### 1. **VPS Golden Path** (`infrastructure/docs/vps-golden-path.md`)
 
 **Location:** "Why Redis is required" section (lines 28-40)
 
@@ -145,7 +145,7 @@ Three key documentation files were updated to explicitly lock Redis and health c
 
 | File                                        | Lines Changed    | Purpose                                                                                         |
 | ------------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------- |
-| `docs/dev/deploy/vps-golden-path.md`        | 28-40            | Added explicit Redis baseline blockquote, strengthened health semantics and Celery relationship |
+| `infrastructure/docs/vps-golden-path.md`        | 28-40            | Added explicit Redis baseline blockquote, strengthened health semantics and Celery relationship |
 | `docs/dev/master-docs/SUM-PLATFORM-SSOT.md` | 205-224, 841-846 | Added Redis baseline and health semantics to Runtime Architecture and Health Check sections     |
 | `docs/dev/CODEBASE-STRUCTURE.md`            | 107              | Added inline note about ops module health endpoint semantics                                    |
 
@@ -227,7 +227,7 @@ This task is complete and self-contained.
 
 2. **New Documentation:** Any new ops/deployment/architecture docs should reference the "Redis Baseline" and "Health Semantics" sections in the SSOT to maintain single source of truth.
 
-3. **Onboarding:** Consider adding a link to `docs/dev/deploy/vps-golden-path.md#why-redis-is-required` in the main README for new contributors/operators.
+3. **Onboarding:** Consider adding a link to `infrastructure/docs/vps-golden-path.md#why-redis-is-required` in the main README for new contributors/operators.
 
 ---
 
