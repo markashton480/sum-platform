@@ -620,38 +620,70 @@ class Command(BaseCommand):
         return settings
 
     def _get_navigation_pages(self, *, site: Site, home_page: Page) -> dict[str, Page]:
+        """Resolve navigation pages for the header/footer, with home fallbacks."""
         root = site.root_page or home_page
+        slug_groups = {
+            "about": ["about", "who-we-are"],
+            "services": ["services", "what-we-do"],
+            "portfolio": ["portfolio", "our-portfolio", "kitchens"],
+            "blog_index": ["journal", "blog", "blog-index"],
+            "contact": ["contact", "enquire", "enquiry"],
+            "terms": ["terms", "terms-of-service", "terms-of-supply"],
+        }
+        all_slugs = {slug for group in slug_groups.values() for slug in group}
+        pages_by_slug = self._build_pages_by_slug(root, all_slugs)
 
         return {
             "home": home_page,
-            "about": self._get_page_by_slugs(root, ["about", "who-we-are"])
+            "about": self._get_page_by_slugs(
+                root, slug_groups["about"], pages_by_slug=pages_by_slug
+            )
             or home_page,
-            "services": self._get_page_by_slugs(root, ["services", "what-we-do"])
+            "services": self._get_page_by_slugs(
+                root, slug_groups["services"], pages_by_slug=pages_by_slug
+            )
             or home_page,
             "portfolio": self._get_page_by_slugs(
-                root, ["portfolio", "our-portfolio", "kitchens"]
+                root, slug_groups["portfolio"], pages_by_slug=pages_by_slug
             )
             or home_page,
             "blog_index": self._get_page_by_slugs(
-                root, ["journal", "blog", "blog-index"]
+                root, slug_groups["blog_index"], pages_by_slug=pages_by_slug
             )
             or home_page,
-            "contact": self._get_page_by_slugs(root, ["contact", "enquire", "enquiry"])
+            "contact": self._get_page_by_slugs(
+                root, slug_groups["contact"], pages_by_slug=pages_by_slug
+            )
             or home_page,
             "terms": self._get_page_by_slugs(
-                root, ["terms", "terms-of-service", "terms-of-supply"]
+                root, slug_groups["terms"], pages_by_slug=pages_by_slug
             )
             or home_page,
         }
 
-    def _get_page_by_slugs(self, root: Page, slugs: list[str]) -> Page | None:
+    def _build_pages_by_slug(self, root: Page, slugs: set[str]) -> dict[str, Page]:
+        """Build a lookup of page.slug -> Page for candidate slugs."""
         if not slugs:
-            return None
+            return {}
 
         candidates = root.get_descendants(inclusive=True).filter(slug__in=slugs)
         pages_by_slug: dict[str, Page] = {}
         for page in candidates:
             pages_by_slug.setdefault(page.slug, page)
+        return pages_by_slug
+
+    def _get_page_by_slugs(
+        self,
+        root: Page,
+        slugs: list[str],
+        *,
+        pages_by_slug: dict[str, Page] | None = None,
+    ) -> Page | None:
+        """Return the first matching page for the given slug priority list."""
+        if not slugs:
+            return None
+
+        pages_by_slug = pages_by_slug or self._build_pages_by_slug(root, set(slugs))
 
         for slug in slugs:
             page = pages_by_slug.get(slug)
@@ -662,6 +694,7 @@ class Command(BaseCommand):
     def _configure_navigation(
         self, *, site: Site, pages: dict[str, Page]
     ) -> HeaderNavigation:
+        """Configure header and footer navigation settings for the site."""
         header = HeaderNavigation.for_site(site)
         contact = pages["contact"]
 
@@ -685,6 +718,7 @@ class Command(BaseCommand):
         return header
 
     def _build_enquire_cta_link(self, *, page_id: int) -> list[dict[str, Any]]:
+        """Build a single link payload for the Enquire CTA."""
         return [
             {
                 "type": "link",
@@ -697,6 +731,7 @@ class Command(BaseCommand):
         ]
 
     def _build_menu_items(self, pages: dict[str, Page]) -> list[dict[str, Any]]:
+        """Build the header menu items, including the Kitchens mega menu."""
         portfolio = pages["portfolio"]
         services = pages["services"]
         about = pages["about"]
@@ -826,59 +861,31 @@ class Command(BaseCommand):
                     ],
                 },
             },
-            {
-                "type": "item",
-                "value": {
-                    "label": "What We Do",
-                    "link": {
-                        "link_type": "page",
-                        "page": services.id,
-                        "link_text": "What We Do",
-                    },
-                    "children": [],
-                },
-            },
-            {
-                "type": "item",
-                "value": {
-                    "label": "Who We Are",
-                    "link": {
-                        "link_type": "page",
-                        "page": about.id,
-                        "link_text": "Who We Are",
-                    },
-                    "children": [],
-                },
-            },
-            {
-                "type": "item",
-                "value": {
-                    "label": "Portfolio",
-                    "link": {
-                        "link_type": "page",
-                        "page": portfolio.id,
-                        "link_text": "Portfolio",
-                    },
-                    "children": [],
-                },
-            },
-            {
-                "type": "item",
-                "value": {
-                    "label": "Journal",
-                    "link": {
-                        "link_type": "page",
-                        "page": blog_index.id,
-                        "link_text": "Journal",
-                    },
-                    "children": [],
-                },
-            },
+            self._build_simple_menu_item(label="What We Do", page=services),
+            self._build_simple_menu_item(label="Who We Are", page=about),
+            self._build_simple_menu_item(label="Portfolio", page=portfolio),
+            self._build_simple_menu_item(label="Journal", page=blog_index),
         ]
+
+    def _build_simple_menu_item(self, *, label: str, page: Page) -> dict[str, Any]:
+        """Build a single-level menu item pointing to a page."""
+        return {
+            "type": "item",
+            "value": {
+                "label": label,
+                "link": {
+                    "link_type": "page",
+                    "page": page.id,
+                    "link_text": label,
+                },
+                "children": [],
+            },
+        }
 
     def _configure_footer_navigation(
         self, *, site: Site, pages: dict[str, Page]
     ) -> FooterNavigation:
+        """Configure footer link sections, tagline, and social overrides."""
         about = pages["about"]
         services = pages["services"]
         portfolio = pages["portfolio"]
@@ -895,91 +902,86 @@ class Command(BaseCommand):
         footer.social_x = ""
         footer.copyright_text = "© {year} Sage & Stone Ltd. All rights reserved."
 
+        explore_links = [
+            self._build_footer_link(
+                link_type="page", page=about.id, link_text="Who We Are"
+            ),
+            self._build_footer_link(
+                link_type="page", page=services.id, link_text="What We Do"
+            ),
+            self._build_footer_link(
+                link_type="page", page=blog_index.id, link_text="Journal"
+            ),
+            self._build_footer_link(
+                link_type="page", page=portfolio.id, link_text="Our Portfolio"
+            ),
+        ]
+        legal_links = [
+            self._build_footer_link(
+                link_type="url", url="/privacy/", link_text="Privacy Policy"
+            ),
+            self._build_footer_link(
+                link_type="page", page=terms.id, link_text="Terms of Service"
+            ),
+            self._build_footer_link(
+                link_type="url", url="/accessibility/", link_text="Accessibility"
+            ),
+        ]
+        studio_links = [
+            self._build_footer_link(
+                link_type="anchor",
+                anchor="studio-address",
+                link_text="The Old Joinery, Unit 4",
+            ),
+            self._build_footer_link(
+                link_type="anchor",
+                anchor="studio-postcode",
+                link_text="Herefordshire HR4 9AB",
+            ),
+            self._build_footer_link(
+                link_type="email",
+                email="hello@sageandstone.com",
+                link_text="hello@sageandstone.com",
+            ),
+            self._build_footer_link(
+                link_type="phone",
+                phone="+44 (0) 20 1234 5678",
+                link_text="+44 (0) 20 1234 5678",
+            ),
+        ]
+
         footer.link_sections = [
-            {
-                "type": "section",
-                "value": {
-                    "title": "Explore",
-                    "links": [
-                        {
-                            "link_type": "page",
-                            "page": about.id,
-                            "link_text": "Who We Are",
-                        },
-                        {
-                            "link_type": "page",
-                            "page": services.id,
-                            "link_text": "What We Do",
-                        },
-                        {
-                            "link_type": "page",
-                            "page": blog_index.id,
-                            "link_text": "Journal",
-                        },
-                        {
-                            "link_type": "page",
-                            "page": portfolio.id,
-                            "link_text": "Our Portfolio",
-                        },
-                    ],
-                },
-            },
-            {
-                "type": "section",
-                "value": {
-                    "title": "Legal",
-                    "links": [
-                        {
-                            "link_type": "url",
-                            "url": "/privacy/",
-                            "link_text": "Privacy Policy",
-                        },
-                        {
-                            "link_type": "page",
-                            "page": terms.id,
-                            "link_text": "Terms of Service",
-                        },
-                        {
-                            "link_type": "url",
-                            "url": "/accessibility/",
-                            "link_text": "Accessibility",
-                        },
-                    ],
-                },
-            },
-            {
-                "type": "section",
-                "value": {
-                    "title": "Studio",
-                    "links": [
-                        {
-                            "link_type": "anchor",
-                            "anchor": "studio-address",
-                            "link_text": "The Old Joinery, Unit 4",
-                        },
-                        {
-                            "link_type": "anchor",
-                            "anchor": "studio-postcode",
-                            "link_text": "Herefordshire HR4 9AB",
-                        },
-                        {
-                            "link_type": "email",
-                            "email": "hello@sageandstone.com",
-                            "link_text": "hello@sageandstone.com",
-                        },
-                        {
-                            "link_type": "phone",
-                            "phone": "+44 (0) 20 1234 5678",
-                            "link_text": "+44 (0) 20 1234 5678",
-                        },
-                    ],
-                },
-            },
+            self._build_footer_section(title="Explore", links=explore_links),
+            self._build_footer_section(title="Legal", links=legal_links),
+            self._build_footer_section(title="Studio", links=studio_links),
         ]
 
         footer.save()
         self.stdout.write("Configured footer navigation")
         return footer
+
+    def _build_footer_section(
+        self, *, title: str, links: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """Build a footer section payload for link_sections."""
+        return {
+            "type": "section",
+            "value": {
+                "title": title,
+                "links": links,
+            },
+        }
+
+    def _build_footer_link(
+        self, *, link_type: str, link_text: str, **kwargs: Any
+    ) -> dict[str, Any]:
+        """Build a UniversalLink-style payload for footer links."""
+        link = {
+            "link_type": link_type,
+            "link_text": link_text,
+        }
+        link.update(kwargs)
+        return link
 
     def _load_font(
         self, path: str, *, size: int
