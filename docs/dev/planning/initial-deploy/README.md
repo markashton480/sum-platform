@@ -23,12 +23,10 @@ This Work Order covers the first deployment of a SUM platform consumer site (Sag
 ## Dependencies
 
 ```
-Subtask 1 (Docs) ──┐
-                   ├──► Subtask 3 (VPS) ──► Subtask 4 (Deploy) ──► Subtask 5 (Smoke Tests)
-Subtask 2 (SSH) ───┘
+Subtask 1 (Docs) ──► Subtask 2 (SSH) ──► Subtask 3 (VPS) ──► Subtask 4 (Deploy) ──► Subtask 5 (Smoke Tests)
 ```
 
-- Subtasks 1 & 2 can run in parallel (both are documentation)
+- Subtask 2 depends on docs consolidation (so references point to infrastructure/docs/)
 - Subtask 3 requires SSH strategy documented
 - Subtask 4 requires VPS provisioned
 - Subtask 5 requires deployment complete
