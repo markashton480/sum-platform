@@ -7,6 +7,7 @@ pointing at it. Supports idempotent re-runs and a scoped --clear reset.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from datetime import datetime
 from io import BytesIO
 from typing import Any, TypedDict
@@ -2325,14 +2326,7 @@ class Command(BaseCommand):
         return page
 
     def _prepare_blog_body(self, post_data: dict[str, Any]) -> list[dict[str, Any]]:
-        body: list[dict[str, Any]] = []
-        for block in post_data["body"]:
-            block_copy = dict(block)
-            value = block_copy.get("value")
-            if isinstance(value, dict):
-                block_copy["value"] = value.copy()
-            body.append(block_copy)
-
+        body = [deepcopy(block) for block in post_data["body"]]
         for block in body:
             if block["type"] != "image_block":
                 continue
