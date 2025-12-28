@@ -35,6 +35,7 @@ def _build_setup_config(
     run_server: bool,
     port: int,
     seed_preset: str | None,
+    seed_site: str | None,
     theme_slug: str,
 ) -> SetupConfig:
     config = SetupConfig.from_cli_args(
@@ -49,6 +50,7 @@ def _build_setup_config(
         run_server=run_server,
         port=port,
         seed_preset=seed_preset,
+        seed_site=seed_site,
         theme_slug=theme_slug,
     )
 
@@ -67,7 +69,7 @@ def _build_setup_config(
             )
         if not config.skip_seed:
             config.skip_seed = not prompts.confirm(
-                "Seed initial homepage?", default=True
+                "Seed initial content?", default=True
             )
         if not config.skip_superuser:
             if prompts.confirm("Create superuser?", default=True):
@@ -105,6 +107,7 @@ def run_init(
     run_server: bool = False,
     port: int = 8000,
     preset: str | None = None,
+    seed_site: str | None = None,
     theme: str = DEFAULT_THEME_SLUG,
 ) -> int:
     try:
@@ -161,6 +164,7 @@ def run_init(
             run_server=run_server,
             port=port,
             seed_preset=preset,
+            seed_site=seed_site,
             theme_slug=theme,
         )
     except ValueError as exc:
@@ -202,6 +206,7 @@ def _init_command(
     run_server: bool,
     port: int,
     preset: str | None,
+    seed_site: str | None,
     theme: str,
 ) -> None:
     """Initialize a new client project."""
@@ -218,6 +223,7 @@ def _init_command(
         run_server=run_server,
         port=port,
         preset=preset,
+        seed_site=seed_site,
         theme=theme,
     )
     if result != 0:
@@ -267,7 +273,7 @@ else:
     @click.option(
         "--skip-seed",
         is_flag=True,
-        help="Skip homepage seeding",
+        help="Skip content seeding",
     )
     @click.option(
         "--skip-superuser",
@@ -293,6 +299,12 @@ else:
         help="Content preset name (future)",
     )
     @click.option(
+        "--seed-site",
+        default=None,
+        type=click.Choice(["sage-and-stone"], case_sensitive=False),
+        help="Seed site content (supported: sage-and-stone)",
+    )
+    @click.option(
         "--theme",
         default=DEFAULT_THEME_SLUG,
         show_default=True,
@@ -311,6 +323,7 @@ else:
         run_server: bool,
         port: int,
         preset: str | None,
+        seed_site: str | None,
         theme: str,
     ) -> None:
         _init_command(
@@ -326,6 +339,7 @@ else:
             run_server=run_server,
             port=port,
             preset=preset,
+            seed_site=seed_site,
             theme=theme,
         )
 
