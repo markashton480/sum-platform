@@ -49,6 +49,23 @@ class ContentSeeder:
 
         return SeedResult(success=True, page_id=self._extract_page_id(result.stdout))
 
+    def seed_sage_stone(self) -> SeedResult:
+        """Run the Sage & Stone site seeder.
+
+        Raises:
+            SeedError: If seeding fails.
+
+        Returns:
+            SeedResult with success=True.
+        """
+        result = self.django.run_command(["seed_sage_stone"], check=False)
+
+        if result.returncode != 0:
+            details = result.stderr or result.stdout
+            raise SeedError(f"Seeding failed: {details}")
+
+        return SeedResult(success=True)
+
     def check_homepage_exists(self) -> bool:
         """Check if homepage is already created.
 

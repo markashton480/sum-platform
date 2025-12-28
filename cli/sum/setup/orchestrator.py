@@ -13,10 +13,7 @@ from cli.sum.exceptions import SetupError
 from cli.sum.setup.auth import SuperuserManager
 from cli.sum.setup.database import DatabaseManager
 from cli.sum.setup.deps import DependencyManager
-from cli.sum.setup.scaffold import (
-    scaffold_project,
-    validate_project_structure,
-)
+from cli.sum.setup.scaffold import scaffold_project, validate_project_structure
 from cli.sum.setup.seed import ContentSeeder
 from cli.sum.setup.venv import VenvManager
 from cli.sum.utils.django import DjangoCommandExecutor
@@ -193,12 +190,18 @@ class SetupOrchestrator:
         db_manager.migrate()
 
     def _seed_content(self, config: SetupConfig) -> None:
-        """Seed homepage content.
+        """Seed site content.
 
         Args:
             config: The setup configuration.
         """
         seeder = ContentSeeder(self._get_django_executor())
+        if config.seed_site:
+            seed_site = config.seed_site.lower()
+            if seed_site == "sage-and-stone":
+                seeder.seed_sage_stone()
+                return
+            raise SetupError(f"Unknown seed site: {config.seed_site}")
         seeder.seed_homepage(preset=config.seed_preset)
 
     def _create_superuser(self, config: SetupConfig) -> Path:

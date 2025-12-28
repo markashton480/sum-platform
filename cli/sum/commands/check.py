@@ -44,7 +44,7 @@ def run_enhanced_checks(project_path: Path, mode: ExecutionMode) -> None:
     """Run enhanced validation checks.
 
     Example:
-        run_enhanced_checks(Path(\"clients/demo\"), ExecutionMode.STANDALONE)
+        run_enhanced_checks(Path('clients/demo'), ExecutionMode.STANDALONE)
     """
     validator = ProjectValidator(project_path, mode)
 

@@ -76,6 +76,7 @@ def test_run_init_full_builds_config_and_runs_orchestrator(
             skip_migrations=True,
             run_server=True,
             port=9000,
+            seed_site="sage-and-stone",
         )
         == 0
     )
@@ -87,6 +88,7 @@ def test_run_init_full_builds_config_and_runs_orchestrator(
     assert config.skip_migrations is True
     assert config.run_server is True
     assert config.port == 9000
+    assert config.seed_site == "sage-and-stone"
 
 
 def test_run_init_rejects_full_and_quick(monkeypatch, tmp_path: Path) -> None:
@@ -110,7 +112,7 @@ def test_build_setup_config_prompts_full_flow(monkeypatch) -> None:
     responses = {
         "Setup Python environment?": False,
         "Run database migrations?": True,
-        "Seed initial homepage?": False,
+        "Seed initial content?": False,
         "Create superuser?": True,
         "Start development server?": True,
     }
@@ -140,13 +142,14 @@ def test_build_setup_config_prompts_full_flow(monkeypatch) -> None:
         run_server=False,
         port=8000,
         seed_preset=None,
+        seed_site=None,
         theme_slug="theme_a",
     )
 
     assert confirm_messages == [
         "Setup Python environment?",
         "Run database migrations?",
-        "Seed initial homepage?",
+        "Seed initial content?",
         "Create superuser?",
         "Start development server?",
     ]
@@ -247,6 +250,7 @@ def test_build_setup_config_includes_theme_slug(monkeypatch) -> None:
         run_server=False,
         port=8000,
         seed_preset=None,
+        seed_site=None,
         theme_slug="theme_b",
     )
 

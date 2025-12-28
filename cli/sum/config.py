@@ -19,6 +19,7 @@ class SetupConfigArgs(TypedDict, total=False):
     superuser_email: str
     superuser_password: str
     seed_preset: str | None
+    seed_site: str | None
     theme_slug: str
 
 
@@ -44,6 +45,7 @@ class SetupConfig:
     superuser_password: str = "admin"
 
     seed_preset: str | None = None
+    seed_site: str | None = None
     theme_slug: str = "theme_a"
 
     def __post_init__(self) -> None:
