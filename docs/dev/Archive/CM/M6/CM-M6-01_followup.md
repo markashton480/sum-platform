@@ -33,7 +33,7 @@ WorkingDirectory=/srv/sum/__SITE_SLUG__/app
 
 ### 2. Caddy Configuration Import Documentation
 
-**File**: `docs/dev/deploy/vps-golden-path.md`
+**File**: `infrastructure/docs/vps-golden-path.md`
 
 **Change**: Added explicit instructions in section "8) Caddy setup + domain + TLS"
 
@@ -58,7 +58,7 @@ import /etc/caddy/sites-enabled/*.caddy
 
 ### 3. Documentation Clarity Improvement
 
-**File**: `docs/dev/deploy/vps-golden-path.md`
+**File**: `infrastructure/docs/vps-golden-path.md`
 
 **Change**: Enhanced the socket permission explanation
 
@@ -146,7 +146,7 @@ Consider adding these checks to the deploy script:
 ## Files Modified
 
 1. `infrastructure/systemd/sum-site-gunicorn.service.template`
-2. `docs/dev/deploy/vps-golden-path.md`
+2. `infrastructure/docs/vps-golden-path.md`
 
 ## Validation
 

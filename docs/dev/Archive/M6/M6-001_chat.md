@@ -11,7 +11,7 @@ Please carefully review the task in @docs/dev/M6/M6-001.md and implement. Take y
 
 **Cursor**
 
-Plan: I’m going to (1) scan the repo for existing deployment/docs conventions and the Django project layout (wsgi module, settings, health endpoint), (2) add the `infrastructure/` templates + scripts exactly as M6-001 specifies with safe defaults and placeholder variables, (3) write the new runbook `docs/dev/deploy/vps-golden-path.md`, update `boilerplate/.env.example`, and finally (4) produce the required work report in `docs/dev/M6/M6-01_followup.md`.
+Plan: I’m going to (1) scan the repo for existing deployment/docs conventions and the Django project layout (wsgi module, settings, health endpoint), (2) add the `infrastructure/` templates + scripts exactly as M6-001 specifies with safe defaults and placeholder variables, (3) write the new runbook `infrastructure/docs/vps-golden-path.md`, update `boilerplate/.env.example`, and finally (4) produce the required work report in `docs/dev/M6/M6-01_followup.md`.
 
 Nice: the repo already has production settings patterns (`settings/production.py`) keyed off env vars like `DJANGO_DB_*`, `ALLOWED_HOSTS`, and `REDIS_URL`, which we can align the systemd/Caddy scripts to without inventing new config knobs. Next I’ll inspect the existing `infrastructure/` directory and current boilerplate env guidance so we extend—not conflict—with what’s already here.
 
@@ -1349,7 +1349,7 @@ Good progress: infrastructure templates + scripts are in place and `.env.example
 
 ```markdown
 *** Begin Patch
-*** Update File: docs/dev/deploy/vps-golden-path.md
+*** Update File: infrastructure/docs/vps-golden-path.md
 @@
 -Install baseline packages (as root):
 +Install baseline packages (as root):
@@ -1768,7 +1768,7 @@ Implemented the **M6-001 “VPS golden path”** deliverables:
   - `backup_db.sh`
   - `restore_db.sh`
   - `provision_vps.sh` (optional helper)
-- **Added**: `docs/dev/deploy/vps-golden-path.md`
+- **Added**: `infrastructure/docs/vps-golden-path.md`
 - **Changed**: `boilerplate/project_name/settings/base.py`
 - **Changed**: `cli/sum_cli/boilerplate/project_name/settings/base.py`
 - **Changed**: `boilerplate/.env.example` (dotfile; updated via terminal edit due to editor ignore)
@@ -1776,7 +1776,7 @@ Implemented the **M6-001 “VPS golden path”** deliverables:
 
 ### How To Use (quick pointers)
 
-- **Runbook**: follow `docs/dev/deploy/vps-golden-path.md` end-to-end on a fresh VPS.
+- **Runbook**: follow `infrastructure/docs/vps-golden-path.md` end-to-end on a fresh VPS.
 - **Deploy script**:
   - `/srv/sum/bin/deploy.sh --site-slug <slug> --ref <tag> --domain <domain>`
   - Supports `--no-restart` for debugging.
@@ -1806,7 +1806,7 @@ Implemented the **M6-001 “VPS golden path”** deliverables:
   - Caddy template: `infrastructure/caddy/Caddyfile.template`
   - systemd templates: `infrastructure/systemd/sum-site-gunicorn.service.template`, `sum-site-gunicorn.socket.template` (optional), `sum-site-celery.service.template` (optional)
   - scripts: `infrastructure/scripts/deploy.sh`, `backup_db.sh`, `restore_db.sh`, `provision_vps.sh` (optional)
-- **Runbook**: `docs/dev/deploy/vps-golden-path.md`
+- **Runbook**: `infrastructure/docs/vps-golden-path.md`
 - **Boilerplate support for VPS static/media paths**:
   - `boilerplate/project_name/settings/base.py` + `cli/sum_cli/boilerplate/project_name/settings/base.py` now allow env overrides:
     - `DJANGO_STATIC_ROOT`
@@ -1817,7 +1817,7 @@ Implemented the **M6-001 “VPS golden path”** deliverables:
     - Added docs for `DJANGO_STATIC_ROOT`, `DJANGO_MEDIA_ROOT`, and optional `SITE_DOMAIN` (used by deploy smoke checks)
 
 ### Where to start
-- Follow: `docs/dev/deploy/vps-golden-path.md`
+- Follow: `infrastructure/docs/vps-golden-path.md`
 - Then use:
   - **Deploy**: `deploy.sh --site-slug <slug> [--ref <tag>] [--domain <domain>]`
   - **Backup**: `backup_db.sh --site-slug <slug>`

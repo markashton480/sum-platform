@@ -28,7 +28,7 @@ Implemented the **M6-001 “VPS golden path”** deliverables:
   - `backup_db.sh`
   - `restore_db.sh`
   - `provision_vps.sh` (optional helper)
-- **Added**: `docs/dev/deploy/vps-golden-path.md`
+- **Added**: `infrastructure/docs/vps-golden-path.md`
 - **Changed**: `boilerplate/project_name/settings/base.py`
 - **Changed**: `cli/sum_cli/boilerplate/project_name/settings/base.py`
 - **Changed**: `boilerplate/.env.example` (dotfile; updated via terminal edit due to editor ignore)
@@ -36,7 +36,7 @@ Implemented the **M6-001 “VPS golden path”** deliverables:
 
 ### How To Use (quick pointers)
 
-- **Runbook**: follow `docs/dev/deploy/vps-golden-path.md` end-to-end on a fresh VPS.
+- **Runbook**: follow `infrastructure/docs/vps-golden-path.md` end-to-end on a fresh VPS.
 - **Deploy script**:
   - `/srv/sum/bin/deploy.sh --site-slug <slug> --ref <tag> --domain <domain>`
   - Supports `--no-restart` for debugging.

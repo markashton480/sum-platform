@@ -1,7 +1,7 @@
 # Deploy Runbook (Fresh VPS)
 
 **Purpose:** Deploy a new SUM client site from bare VPS to production-ready.  
-**Reference:** [`docs/dev/deploy/vps-golden-path.md`](../dev/deploy/vps-golden-path.md)
+**Reference:** [`infrastructure/docs/vps-golden-path.md`](../../infrastructure/docs/vps-golden-path.md)
 
 ---
 

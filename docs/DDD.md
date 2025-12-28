@@ -200,7 +200,7 @@ Tooling and scripts for the two-repo release flow:
 - **Legacy (archived/moved):** `agent-prompt.md`, `sync-to-public.py`, `release-sync.yml`
 - **`two-repo-setup.md`** - Two-repository model documentation
 
-### Deployment Documentation (`docs/dev/deploy/`)
+### Deployment Documentation (`infrastructure/docs/`)
 
 - **`vps-golden-path.md`** - Production deployment guide
   - Ubuntu + Caddy + systemd + Postgres setup
