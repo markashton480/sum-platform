@@ -645,8 +645,16 @@ class Command(BaseCommand):
         }
 
     def _get_page_by_slugs(self, root: Page, slugs: list[str]) -> Page | None:
+        if not slugs:
+            return None
+
+        candidates = root.get_descendants(inclusive=True).filter(slug__in=slugs)
+        pages_by_slug: dict[str, Page] = {}
+        for page in candidates:
+            pages_by_slug.setdefault(page.slug, page)
+
         for slug in slugs:
-            page = root.get_descendants(inclusive=True).filter(slug=slug).first()
+            page = pages_by_slug.get(slug)
             if page:
                 return page
         return None
@@ -661,31 +669,13 @@ class Command(BaseCommand):
 
         header.header_cta_enabled = True
         header.header_cta_text = "Enquire"
-        header.header_cta_link = [
-            {
-                "type": "link",
-                "value": {
-                    "link_type": "page",
-                    "page": contact.id,
-                    "link_text": "Enquire",
-                },
-            }
-        ]
+        header.header_cta_link = self._build_enquire_cta_link(page_id=contact.id)
 
         header.mobile_cta_enabled = True
         header.mobile_cta_phone_enabled = True
         header.mobile_cta_button_enabled = True
         header.mobile_cta_button_text = "Enquire"
-        header.mobile_cta_button_link = [
-            {
-                "type": "link",
-                "value": {
-                    "link_type": "page",
-                    "page": contact.id,
-                    "link_text": "Enquire",
-                },
-            }
-        ]
+        header.mobile_cta_button_link = self._build_enquire_cta_link(page_id=contact.id)
 
         header.menu_items = self._build_menu_items(pages)
         header.save()
@@ -693,6 +683,18 @@ class Command(BaseCommand):
 
         self._configure_footer_navigation(site=site, pages=pages)
         return header
+
+    def _build_enquire_cta_link(self, *, page_id: int) -> list[dict[str, Any]]:
+        return [
+            {
+                "type": "link",
+                "value": {
+                    "link_type": "page",
+                    "page": page_id,
+                    "link_text": "Enquire",
+                },
+            }
+        ]
 
     def _build_menu_items(self, pages: dict[str, Page]) -> list[dict[str, Any]]:
         portfolio = pages["portfolio"]
