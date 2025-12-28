@@ -120,7 +120,7 @@ docs/ops-pack/deploy-runbook.md             # Reference update
 - [ ] `type:task`
 - [ ] `agent:claude`
 - [ ] `component:docs`
-- [ ] `component:infrastructure`
+- [ ] `component:infra`
 - [ ] `risk:low`
 - [ ] Milestone: `v0.6.0`
 
@@ -130,7 +130,7 @@ docs/ops-pack/deploy-runbook.md             # Reference update
 
 - [ ] Agent: claude
 - [ ] Model Planned: claude-sonnet
-- [ ] Component: docs, infrastructure
+- [ ] Component: docs, infra
 - [ ] Change Type: chore
 - [ ] Risk: low
 - [ ] Release: `v0.6.0`

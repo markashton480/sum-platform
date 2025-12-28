@@ -119,7 +119,7 @@ docs/ops-pack/what-broke-last-time.md   # Add issues if any
 - [ ] `type:task`
 - [ ] `agent:human`
 - [ ] `component:docs`
-- [ ] `component:infrastructure`
+- [ ] `component:infra`
 - [ ] `risk:low`
 - [ ] Milestone: `v0.6.0`
 
@@ -129,7 +129,7 @@ docs/ops-pack/what-broke-last-time.md   # Add issues if any
 
 - [ ] Agent: human
 - [ ] Model Planned: human
-- [ ] Component: docs, infrastructure
+- [ ] Component: docs, infra
 - [ ] Change Type: docs
 - [ ] Risk: low
 - [ ] Release: `v0.6.0`
@@ -153,7 +153,7 @@ docs/ops-pack/what-broke-last-time.md   # Add issues if any
 ```bash
 curl -i "https://sage-and-stone.lintel.site/health/"
 ```
-- [ ] Returns HTTP 200 (ok or degraded acceptable)
+- [ ] Returns HTTP 200
 - [ ] 503 = STOP and investigate
 
 ### 2. Redis Connectivity

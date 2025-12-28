@@ -25,6 +25,9 @@ WO_BODY=$(cat <<'EOF'
 | ----------------------- | --------------- |
 | `feature/initial-deploy` | `release/0.6.0` |
 
+Subtasks merge into `feature/initial-deploy`. The feature branch merges into
+`release/0.6.0` via a PR using `--no-ff`.
+
 ## Objective
 
 - [ ] Consolidate and organize deployment documentation into `/infrastructure/`
@@ -89,7 +92,7 @@ WO_NUMBER=$(gh issue create \
   --repo "$REPO" \
   --title "WO: Initial Sage & Stone Deployment (v0.6.0)" \
   --body "$WO_BODY" \
-  --label "type:work-order,component:infrastructure,component:docs,risk:medium" \
+  --label "type:work-order,component:infra,component:docs,risk:med" \
   --milestone "$MILESTONE" \
   | grep -oE '[0-9]+$')
 
@@ -133,7 +136,7 @@ ST1_NUMBER=$(gh issue create \
   --repo "$REPO" \
   --title "Consolidate deployment documentation into /infrastructure/" \
   --body "$ST1_BODY" \
-  --label "type:task,component:docs,component:infrastructure,risk:low" \
+  --label "type:task,component:docs,component:infra,risk:low" \
   --milestone "$MILESTONE" \
   | grep -oE '[0-9]+$')
 
@@ -181,7 +184,7 @@ ST2_NUMBER=$(gh issue create \
   --repo "$REPO" \
   --title "Document SSH key strategy for VPS deployment" \
   --body "$ST2_BODY" \
-  --label "type:task,component:docs,component:infrastructure,risk:low" \
+  --label "type:task,component:docs,component:infra,risk:low" \
   --milestone "$MILESTONE" \
   | grep -oE '[0-9]+$')
 
@@ -229,7 +232,7 @@ ST3_NUMBER=$(gh issue create \
   --repo "$REPO" \
   --title "Provision staging VPS for Sage & Stone" \
   --body "$ST3_BODY" \
-  --label "type:task,agent:human,component:infrastructure,risk:medium" \
+  --label "type:task,agent:human,component:infra,risk:med" \
   --milestone "$MILESTONE" \
   | grep -oE '[0-9]+$')
 
@@ -273,7 +276,7 @@ ST4_NUMBER=$(gh issue create \
   --repo "$REPO" \
   --title "Deploy Sage & Stone to staging VPS" \
   --body "$ST4_BODY" \
-  --label "type:task,agent:human,component:infrastructure,risk:medium" \
+  --label "type:task,agent:human,component:infra,risk:med" \
   --milestone "$MILESTONE" \
   | grep -oE '[0-9]+$')
 
@@ -318,7 +321,7 @@ ST5_NUMBER=$(gh issue create \
   --repo "$REPO" \
   --title "Execute smoke tests and update operational tracking" \
   --body "$ST5_BODY" \
-  --label "type:task,agent:human,component:docs,component:infrastructure,risk:low" \
+  --label "type:task,agent:human,component:docs,component:infra,risk:low" \
   --milestone "$MILESTONE" \
   | grep -oE '[0-9]+$')
 

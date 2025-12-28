@@ -16,6 +16,9 @@
 | ----------------------- | --------------- |
 | `feature/initial-deploy` | `release/0.6.0` |
 
+Subtasks merge into `feature/initial-deploy`. The feature branch merges into
+`release/0.6.0` via a PR using `--no-ff`.
+
 ```bash
 git checkout release/0.6.0
 git checkout -b feature/initial-deploy
@@ -81,8 +84,12 @@ git push -u origin feature/initial-deploy
 ├─────────────────────────────────────────────────┤
 │                                                 │
 │   #1 Consolidate Docs ─┐                        │
-│                        ├──► PR to release/0.6.0 │
-│   #2 SSH Key Strategy ─┘                        │
+│                        ├──► PR to feature/      │
+│   #2 SSH Key Strategy ─┘     initial-deploy     │
+│                        │                        │
+│                        └──► PR feature/         │
+│                              initial-deploy     │
+│                              -> release/0.6.0   │
 │                                                 │
 │   #3 Provision VPS (ops, no merge)              │
 │        │                                        │
@@ -96,9 +103,11 @@ git push -u origin feature/initial-deploy
 ```
 
 1. **#1 + #2** — Can run in parallel; both are documentation
-2. **#3** — Requires SSH strategy defined; VPS provisioned manually
-3. **#4** — Requires VPS ready; executes deploy.sh
-4. **#5** — Requires deployment complete; validates and records
+2. **#1 + #2** — PRs merge into `feature/initial-deploy`
+3. **#3** — Requires SSH strategy defined; VPS provisioned manually
+4. **#4** — Requires VPS ready; executes deploy.sh
+5. **#5** — Requires deployment complete; validates and records
+6. **Feature PR** — Merge `feature/initial-deploy` into `release/0.6.0` with `--no-ff`
 
 ### Hot Files
 
@@ -188,9 +197,9 @@ curl -i "https://sage-and-stone.lintel.site/admin/"
 ## Labels
 
 - [ ] `type:work-order`
-- [ ] `component:infrastructure`
+- [ ] `component:infra`
 - [ ] `component:docs`
-- [ ] `risk:medium`
+- [ ] `risk:med`
 - [ ] Milestone: `v0.6.0`
 
 ---
