@@ -16,7 +16,7 @@ class TestBlogCategoryFiltering:
 
     def test_blog_index_loads(self, page: Page, base_url, seeded_database) -> None:
         """Blog index page should load with posts."""
-        page.goto(f"{base_url}/blog/")
+        page.goto(f"{base_url}/journal/")
 
         # Page should load
         expect(page.locator("body")).to_be_visible()
@@ -27,35 +27,21 @@ class TestBlogCategoryFiltering:
 
     def test_blog_shows_posts(self, page: Page, base_url, seeded_database) -> None:
         """Blog index should display blog post cards or listings."""
-        page.goto(f"{base_url}/blog/")
+        page.goto(f"{base_url}/journal/")
 
-        # Look for post indicators (various selectors)
-        post_selectors = [
-            ".blog-post-card",
-            "article.post",
-            ".post-card",
-            ".blog-post",
-            "article",
-            ".post-listing a",
-        ]
-
-        posts_found = False
-        for selector in post_selectors:
-            posts = page.locator(selector).all()
-            if len(posts) > 0:
-                posts_found = True
-                break
+        # Look for post indicators - articles are the main container
+        posts = page.locator("article").all()
 
         # Should find at least some posts (7 expected)
-        assert posts_found, "Should display blog posts on index page"
+        assert len(posts) >= 1, "Should display blog posts on index page"
 
     def test_blog_post_is_readable(self, page: Page, base_url, seeded_database) -> None:
         """Individual blog posts should be readable."""
         # First get blog index to find a post link
-        page.goto(f"{base_url}/blog/")
+        page.goto(f"{base_url}/journal/")
 
         # Find links within the blog section
-        blog_links = page.locator("a[href*='/blog/']").all()
+        blog_links = page.locator("a[href*='/journal/']").all()
 
         # Filter to actual post links (not the index itself)
         post_link = None
@@ -63,9 +49,9 @@ class TestBlogCategoryFiltering:
             href = link.get_attribute("href")
             if (
                 href
-                and "/blog/" in href
-                and href != "/blog/"
-                and href != f"{base_url}/blog/"
+                and "/journal/" in href
+                and href != "/journal/"
+                and href != f"{base_url}/journal/"
             ):
                 post_link = link
                 break
@@ -85,7 +71,7 @@ class TestBlogCategoryFiltering:
 
     def test_category_links_exist(self, page: Page, base_url, seeded_database) -> None:
         """Blog should display category filter links."""
-        page.goto(f"{base_url}/blog/")
+        page.goto(f"{base_url}/journal/")
 
         # Look for category indicators
         category_selectors = [

@@ -66,10 +66,18 @@ class TestMegaMenuNavigation:
         # Should have multiple navigation links
         assert len(nav_links) >= 1, "Should have at least one navigation link"
 
-        # Click the first non-home link
+        # Click the first visible non-home link
         for link in nav_links:
             href = link.get_attribute("href")
-            if href and href != "/" and href != "#" and not href.startswith("mailto:"):
+            # Only try to click visible links (not hidden in mega menu)
+            if (
+                href
+                and href != "/"
+                and href != "#"
+                and not href.startswith("mailto:")
+                and not href.startswith("#")
+                and link.is_visible()
+            ):
                 link.click()
                 page.wait_for_load_state("networkidle")
 
