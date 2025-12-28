@@ -19,6 +19,10 @@ A Django/Wagtail foundation for launching lead-focused websites for home improve
 
 - Python 3.12+
 - PostgreSQL (recommended for production)
+- libmagic (for file type validation)
+  - **Ubuntu/Debian**: `sudo apt-get install libmagic1`
+  - **macOS**: `brew install libmagic`
+  - **Windows**: Install python-magic-bin: `pip install python-magic-bin`
 
 ### Install SUM Core
 

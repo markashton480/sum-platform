@@ -7,6 +7,7 @@ Family: Forms, Leads, Notifications, Async processing.
 
 from __future__ import annotations
 
+import json
 from unittest.mock import Mock, patch
 
 import pytest
@@ -174,7 +175,7 @@ class TestDynamicFormTasks:
             send_webhook(lead.id, form_definition.id)
 
         assert mock_post.called
-        payload = mock_post.call_args[1]["json"]
+        payload = json.loads(mock_post.call_args[1]["data"])
         assert payload["event"] == "form.submitted"
         assert payload["form"]["id"] == form_definition.id
         assert payload["submission"]["id"] == lead.id
@@ -198,7 +199,7 @@ class TestDynamicFormTasks:
         ) as mock_post:
             send_webhook(lead.id, form_definition.id, request_id="req-123")
 
-        payload = mock_post.call_args[1]["json"]
+        payload = json.loads(mock_post.call_args[1]["data"])
         assert payload["request_id"] == "req-123"
 
     def test_webhook_skips_when_disabled(self, lead, form_definition):
