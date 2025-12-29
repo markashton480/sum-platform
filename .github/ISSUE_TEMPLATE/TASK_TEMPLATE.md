@@ -8,7 +8,7 @@ projects: ["markashton480/12"]
 
 # Ticket: <title>
 
-**Task ID:** GH-<!-- This will be the issue number once created -->
+**Task ID:** `<WO-CODE>-<seq>` <!-- e.g., BLOG-01, FORMS-03 — get the code from your parent WO -->
 
 > Use **TASK** for feature work / chores.
 > Use **FIX** for bugs/regressions.
@@ -19,7 +19,7 @@ projects: ["markashton480/12"]
 
 ## Parent
 
-**Work Order:** #YYY — WO: <feature title>
+**Work Order:** #YYY — WO: <feature title> (Code: `<WO-CODE>`)
 
 ## Branch
 

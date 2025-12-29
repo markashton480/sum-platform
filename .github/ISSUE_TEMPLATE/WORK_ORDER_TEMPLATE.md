@@ -8,6 +8,10 @@ projects: ["markashton480/12"]
 
 # Work Order: <feature title>
 
+**WO Code:** `<CODE>` <!-- 2-6 uppercase chars, e.g., BLOG, FORMS, AUTH -->
+
+> Derive from the feature name. Tasks under this WO will be numbered `<CODE>-01`, `<CODE>-02`, etc.
+
 ## Parent
 
 **Version Declaration:** #NNN — VD: <version> - <vd title>
@@ -56,12 +60,12 @@ git push -u origin feature/<work-order-slug>
 
 ## Subtasks
 
-Create TASK/FIX issues under this WO.
+Create TASK/FIX issues under this WO. Use the WO Code for task IDs.
 
-| # | Ticket | Branch | Status |
+| Task ID | Ticket | Branch | Status |
 |---|---|---|---|
-| 1 | #XXX: TASK: <title> | `task/<task-slug>` | 🔲 |
-| 2 | #YYY: FIX: <title> | `fix/<task-slug>` | 🔲 |
+| `<CODE>-01` | #XXX: TASK: <title> | `task/<task-slug>` | 🔲 |
+| `<CODE>-02` | #YYY: FIX: <title> | `fix/<task-slug>` | 🔲 |
 
 **Status:** 🔲 Todo | 🔄 In Progress | ✅ Done
 
