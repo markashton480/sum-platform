@@ -115,6 +115,13 @@ python manage.py runserver
 
 ## Development Setup
 
+Create and activate a virtual environment (recommended):
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
 Clone the repository and install the development tooling:
 
 ```bash
