@@ -1,9 +1,12 @@
 # Git Strategy
 
-> **Single source of truth** for branch model, naming conventions, and workflows.
-> All other documentation references this document.
+> **Single source of truth** for branch model, naming conventions, and merge rules.
 
----
+This strategy is intentionally simple:
+
+- **1 Version Declaration (VD) → 1 `release/<version>` branch**
+- **1 Work Order (WO) → 1 `feature/<work-order-slug>` branch**
+- **1 Task Ticket (TASK/FIX) → 1 `task/*` or `fix/*` branch**
 
 ## Repository Model
 
@@ -11,352 +14,162 @@ SUM Platform uses a **two-repository model**:
 
 | Repository | Visibility | Purpose |
 |------------|------------|---------|
-| [`sum-platform`](https://github.com/markashton480/sum-platform) | **Private** | Development monorepo |
-| [`sum-core`](https://github.com/markashton480/sum-core) | **Public** | Distribution repo for `pip install` |
+| `sum-platform` | Private | Development monorepo |
+| `sum-core` | Public | Distribution repo for `pip install` |
 
-Releases sync from `sum-platform` to `sum-core`. Tags are created on `sum-core` because that's what client projects reference.
+Releases sync from `sum-platform` → `sum-core`. Tags are created on `sum-core` because that’s what client projects reference.
 
 ---
 
-## Five-Tier Branch Model
+## Branch Model
 
 ```
-main                              Stable, tagged releases
+main                              Production, tagged releases
   ↑ PR (squash)
 develop                           Stable integration, always deployable
   ↑ PR (squash)
-release/X.Y.0                     Version integration, release candidate
+release/<version>                 Version integration (maps to VD)
   ↑ PR (merge --no-ff)
-feature/<scope>                   Feature integration
+feature/<work-order-slug>         Feature integration (maps to WO)
   ↑ PR (squash)
-feature/<scope>/<seq>-<slug>      Task branch (actual work happens here)
+task/<task-slug>   or  fix/<task-slug>   Actual implementation work (maps to TASK/FIX)
 ```
 
-### Visual Flow
+### Why tasks are NOT nested under `feature/<...>/...`
 
-```
-main ←────────────────────────────────────────────────────────────────┐
-  │                                                                   │
-  │                                                            PR (squash)
-  │                                                                   │
-develop ←─────────────────────────────────────────────────────┐       │
-  │                                                           │       │
-  │                                                    PR (squash)    │
-  │                                                           │       │
-release/0.7.0 ←───────────────────────────┐                   │       │
-  │                                       │                   │       │
-  │                              PR (merge --no-ff)           │       │
-  │                                       │                   │       │
-  ├── feature/forms ←──────────┐          │                   │       │
-  │     │                      │          │                   │       │
-  │     │              PR (squash)        │                   │       │
-  │     │                      │          │                   │       │
-  │     ├── feature/forms/001-definition ─┘                   │       │
-  │     ├── feature/forms/002-fields                          │       │
-  │     └── feature/forms/003-block                           │       │
-  │                                                           │       │
-  └── feature/blog ←───────────┐                              │       │
-        │                      │                              │       │
-        ├── feature/blog/001-category ─────────────────────────       │
-        └── feature/blog/002-listing                                  │
-                                                                      │
-hotfix/security-fix ──────────────────────────────────────────────────┘
-```
+Git **cannot** have both:
 
----
+- `feature/blog-upgrades` **and**
+- `feature/blog-upgrades/some-task`
 
-## Branch Roles
+because refs behave like file paths (a branch is a file under `refs/heads/`).
 
-| Branch | Lifetime | Protection | Purpose |
-|--------|----------|------------|---------|
-| `main` | Permanent | PR + CI required | Production releases, tagged |
-| `develop` | Permanent | PR + CI required | Stable integration, always deployable |
-| `release/X.Y.0` | Per-version | PR + CI required | Version staging, release candidate |
-| `feature/<scope>` | Per-feature | Unprotected | Feature integration point |
-| `feature/<scope>/<task>` | Per-task | Unprotected | Actual implementation work |
-| `hotfix/<slug>` | Per-fix | N/A | Emergency production fixes |
-
-### Protection Rules (GitHub Settings)
-
-**`main`:**
-- ☑️ Require pull request before merging
-- ☑️ Require status checks (`lint-and-test`)
-- ☑️ Require linear history
-- ☑️ Do not allow bypassing
-
-**`develop`:**
-- ☑️ Require pull request before merging
-- ☑️ Require status checks (`lint-and-test`)
-- ☑️ Require linear history
-
-**`release/*`:**
-- ☑️ Require pull request before merging
-- ☑️ Require status checks (`lint-and-test`)
+That’s why task branches use `task/*` or `fix/*`.
 
 ---
 
 ## Naming Conventions
 
-### Branch Names
+### Branch names
 
-```
-release/X.Y.0                           # Version branch (minor releases)
-release/X.Y.Z                           # Patch release branch (if needed)
+**No trailing slash.** Git branch names cannot end with `/`.
 
-feature/<scope>                         # Feature integration branch
-feature/<scope>/<seq>-<slug>            # Task branch
+| Issue Level | Branch Pattern | Example |
+|------------|----------------|---------|
+| VD | `release/<version>` | `release/0.6.0` |
+| WO | `feature/<work-order-slug>` | `feature/blog-upgrades` |
+| TASK | `task/<task-slug>` | `task/add-category-filtering` |
+| FIX | `fix/<task-slug>` | `fix/fix-the-fucking-blog` |
 
-hotfix/<slug>                           # Emergency fix from main
-```
+### Slug rules
 
-**Examples:**
+Use the issue title text (after the prefix like `WO:` / `TASK:` / `FIX:`) and convert it to a slug:
 
-```
-release/0.7.0
-├── feature/forms
-│   ├── feature/forms/001-definition
-│   ├── feature/forms/002-fields
-│   └── feature/forms/003-block
-├── feature/blog
-│   ├── feature/blog/001-category
-│   └── feature/blog/002-listing
-└── feature/legal
-    └── feature/legal/001-cookies
-```
+- lower-case
+- spaces → `-`
+- remove punctuation (keep letters/numbers/hyphens)
+- collapse multiple `-`
+- trim leading/trailing `-`
 
-### Commit Messages
+Examples:
 
-Use [Conventional Commits](https://www.conventionalcommits.org/):
+- `WO: Blog Upgrades` → `feature/blog-upgrades`
+- `TASK: Add category filtering` → `task/add-category-filtering`
+- `FIX: Fix the fucking blog` → `fix/fix-the-fucking-blog`
 
-```
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer: Closes #XXX]
-```
-
-| Type | When to use | Example |
-|------|-------------|---------|
-| `feat` | New feature | `feat(forms): add dynamic form block` |
-| `fix` | Bug fix | `fix(leads): correct email validation` |
-| `chore` | Maintenance | `chore(deps): update wagtail to 7.1` |
-| `docs` | Documentation | `docs: add deployment guide` |
-| `refactor` | Code restructure | `refactor(blocks): extract base class` |
-| `test` | Test changes | `test(forms): add integration tests` |
+> If you ever hit a collision (rare), append a short disambiguator: `task/<slug>-2` or `task/<slug>-gh123`.
 
 ---
 
-## Merge Strategies
+## Merge Strategy
 
 | From → To | Strategy | Rationale |
-|-----------|----------|-----------|
-| `feature/<scope>/<task>` → `feature/<scope>` | **Squash** | Clean feature history, one commit per task |
-| `feature/<scope>` → `release/X.Y.0` | **Merge `--no-ff`** | Preserve feature boundary in history |
-| `release/X.Y.0` → `develop` | **Squash** | One commit per version on develop |
-| `develop` → `main` | **Squash** | Clean release history on main |
-| `hotfix/*` → `main` | **Merge** | Preserve hotfix commit for cherry-pick |
+|----------|----------|-----------|
+| `task/*` or `fix/*` → `feature/*` | **Squash** | Clean feature history, one commit per task |
+| `feature/*` → `release/*` | **Merge `--no-ff`** | Preserve feature boundary in history |
+| `release/*` → `develop` | **Squash** | One commit per version on `develop` |
+| `develop` → `main` | **Squash** | Clean production history |
 
 ---
 
-## Workflow: Version Development
+## Workflow
 
-### 1. Start a Version
+### 1) Start a version (VD → `release/<version>`)
 
-```bash
-# From develop (must be up to date)
-git checkout develop
-git pull origin develop
-
-# Create version branch
-git checkout -b release/0.7.0
-git push -u origin release/0.7.0
-```
-
-**GitHub:** Create milestone `v0.7.0` and Version Declaration issue.
-
-### 2. Start a Feature
-
-```bash
-# From version branch
-git checkout release/0.7.0
-git pull origin release/0.7.0
-
-# Create feature branch
-git checkout -b feature/forms
-git push -u origin feature/forms
-```
-
-**GitHub:** Create Work Order issue linked to milestone.
-
-### 3. Start a Task
-
-```bash
-# From feature branch
-git checkout feature/forms
-git pull origin feature/forms
-
-# Create task branch
-git checkout -b feature/forms/001-definition
-git push -u origin feature/forms/001-definition
-```
-
-**GitHub:** Create subtask issue linked to Work Order.
-
-### 4. Complete a Task
-
-```bash
-# Ensure tests pass
-make lint
-make test
-
-# Push and create PR
-git push origin feature/forms/001-definition
-```
-
-**GitHub:** Create PR `feature/forms/001-definition` → `feature/forms` (squash merge).
-
-### 5. Complete a Feature
-
-When all tasks are merged to `feature/<scope>`:
-
-```bash
-git checkout feature/forms
-git pull origin feature/forms
-```
-
-**GitHub:** Create PR `feature/forms` → `release/0.7.0` (merge `--no-ff`).
-
-### 6. Complete a Version
-
-When all features are merged to `release/X.Y.0`:
-
-```bash
-git checkout release/0.7.0
-git pull origin release/0.7.0
-
-# Run release checks
-make release-check
-```
-
-**GitHub:** Create PR `release/0.7.0` → `develop` (squash merge).
-
-### 7. Release to Production
-
-When develop is ready for release:
+Create the Version Declaration issue first (see `VERSION_DECLARATION_TEMPLATE.md`). Then create the branch:
 
 ```bash
 git checkout develop
 git pull origin develop
+
+git checkout -b release/0.6.0
+git push -u origin release/0.6.0
 ```
 
-**GitHub:** Create PR `develop` → `main` (squash merge), then sync to public repo and tag.
+### 2) Start a work order (WO → `feature/<work-order-slug>`)
 
----
-
-## Workflow: Hotfix
-
-For emergency production fixes:
+Feature branches always come off the release branch:
 
 ```bash
-# Branch from main
-git checkout main
-git pull origin main
-git checkout -b hotfix/security-fix
+git checkout release/0.6.0
+git pull origin release/0.6.0
 
-# Fix, test, commit
-make lint && make test
-git commit -m "fix(security): patch XSS vulnerability"
-
-# PR to main
-git push -u origin hotfix/security-fix
+git checkout -b feature/blog-upgrades
+git push -u origin feature/blog-upgrades
 ```
 
-**After merge to main:**
+> If you don’t pre-create feature branches, the **first task under the WO** may create it (the GH-ISSUE prompt supports this).
+
+### 3) Start a task or fix (TASK/FIX → `task/*` or `fix/*`)
+
+Task/fix branches always come off the feature branch:
 
 ```bash
-# Backport to develop
-git checkout develop
-git cherry-pick <hotfix-commit>
-git push origin develop
+git checkout feature/blog-upgrades
+git pull origin feature/blog-upgrades
 
-# Backport to active release branch (if exists)
-git checkout release/0.7.0
-git cherry-pick <hotfix-commit>
-git push origin release/0.7.0
+git checkout -b task/fix-the-fucking-blog
+git push -u origin task/fix-the-fucking-blog
 ```
 
+### 4) PR targeting rules
+
+| Your Branch | PR Target |
+|------------|-----------|
+| `task/*` or `fix/*` | `feature/<work-order-slug>` |
+| `feature/*` | `release/<version>` |
+| `release/*` | `develop` |
+| `develop` | `main` |
+
+### 5) Finish a version
+
+When all WOs are merged into the release branch:
+
+1. Open PR `release/<version>` → `develop` (**squash**)
+2. Then PR `develop` → `main` (**squash**)
+3. Sync to `sum-core` and tag `v<version>`
+
 ---
 
-## Workflow: Patch Release
+## Commit messages
 
-For non-emergency fixes to a released version:
+Use Conventional Commits:
 
-```bash
-# Branch from the tag
-git checkout v0.7.0
-git checkout -b release/0.7.1
+```
+<type>(<optional-scope>): <description>
 
-# Fix, test, commit
-# ... work ...
-
-# PR to develop (patches go through develop first)
-# Then PR develop → main
-# Tag as v0.7.1
+Closes #<issue-number>
 ```
 
----
-
-## GitHub Issue ↔ Branch Mapping
-
-| Issue Type | Branch Pattern | PR Target |
-|------------|----------------|-----------|
-| Version Declaration | `release/X.Y.0` | `develop` |
-| Work Order (Feature) | `feature/<scope>` | `release/X.Y.0` |
-| Subtask (Task) | `feature/<scope>/<seq>-<slug>` | `feature/<scope>` |
-| Bug (standalone) | `fix/<scope>-<slug>` | `develop` or `release/X.Y.0` |
-| Hotfix | `hotfix/<slug>` | `main` |
+Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`
 
 ---
 
-## Version Tags
+## Issue ↔ Branch mapping
 
-Tags are created on `sum-core` (public repo) after syncing.
-
-### Format
-
-Semantic versioning: `vMAJOR.MINOR.PATCH`
-
-| Increment | When | Example |
-|-----------|------|---------|
-| PATCH | Bug fixes, docs | `v0.7.0` → `v0.7.1` |
-| MINOR | New features | `v0.6.0` → `v0.7.0` |
-| MAJOR | Breaking changes | `v0.9.0` → `v1.0.0` |
-
-### Rules
-
-- ✅ Tags are annotated: `git tag -a v0.7.0 -m "Release v0.7.0"`
-- ✅ Tags point to commits on `main` (in public repo)
-- ❌ Never delete or force-push tags once pushed
-- ❌ Never create tags on feature or release branches
-
----
-
-## Quick Reference
-
-| Action | Command |
-|--------|---------|
-| Start version | `git checkout develop && git checkout -b release/0.7.0` |
-| Start feature | `git checkout release/0.7.0 && git checkout -b feature/forms` |
-| Start task | `git checkout feature/forms && git checkout -b feature/forms/001-definition` |
-| Update task branch | `git fetch origin && git rebase origin/feature/forms` |
-| Push task | `git push --force-with-lease origin feature/forms/001-definition` |
-| View version tags | `git tag -l "v*" --sort=-version:refname \| head -10` |
-
----
-
-## Related Documents
-
-- [`VERSION_DECLARATION_TEMPLATE.md`](VERSION_DECLARATION_TEMPLATE.md) — Milestone-level intent declaration
-- [`PROJECT-PLANNING-GUIDELINES.md`](PROJECT-PLANNING-GUIDELINES.md) — Issue hierarchy and workflow
-- [`RELEASE_RUNBOOK.md`](RELEASE_RUNBOOK.md) — Release process
+| Issue Type | Title Prefix | Branch |
+|-----------|--------------|--------|
+| Version Declaration | `VD:` | `release/<version>` |
+| Work Order | `WO:` | `feature/<work-order-slug>` |
+| Task | `TASK:` | `task/<task-slug>` |
+| Fix | `FIX:` | `fix/<task-slug>` |
