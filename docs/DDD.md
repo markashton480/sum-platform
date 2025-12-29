@@ -1,7 +1,7 @@
 # Documentation Documentation Document (DDD)
 
-**Document Version:** 1.0  
-**Date:** December 17, 2025  
+**Document Version:** 1.1  
+**Date:** December 29, 2025  
 **Purpose:** Master index and overview of all documentation in the SUM Platform project  
 **Location:** `docs/DDD.md`
 
@@ -18,25 +18,29 @@ docs/
 ├── HANDBOOK.md                        # The master guide (Start here!)
 ├── DDD.md                              # This document
 ├── ROUTER.md                           # Quick operational links
+├── WEBHOOKS.md                         # Lead/webhook integration notes
 ├── ops-pack/                          # Operational runbooks
-│   ├── release-runbook.md             # Release process
+│   ├── RELEASE_RUNBOOK.md             # Release process
 │   ├── deploy-runbook.md              # VPS deployment
 │   ├── upgrade-runbook.md             # Site upgrades
 │   └── [other operational guides]     # Rollback, smoke tests, etc.
 ├── release/                           # Release automation
-│   ├── prompts/release-prompt.md      # AI agent instructions (moved; old agent-prompt.md archived)
-│   ├── two-repo-setup.md              # Two-repo setup guide
-│   └── [outdated: sync-to-public.py, release-sync.yml]  # Archived or moved; verify current automation
+│   ├── RELEASE_AGENT_PROMPT.md        # Release agent instructions
+│   ├── RELEASE_AUDIT_AGENT_PROMPT.md  # Release audit agent instructions
+│   ├── prompts/                       # Human-facing prompts
+│   │   ├── pre-release-prompt.md
+│   │   └── release-prompt.md
+│   └── declarations/                  # Version declaration records/templates
 └── dev/                               # All development documentation
     ├── master-docs/                   # Core strategic documents
     ├── [individual reference files]   # Implementation guides
-    ├── design/                        # Design references (archived CSS docs noted below)
+    ├── design/                        # Design references + wireframes
     ├── deploy/                        # Deployment guides
-    ├── CM/                            # Corrective Missions audit reports (archived)
+    ├── Archive/                       # Historical docs (CM, milestones, etc.)
     ├── reports/                       # Analysis & review documents
     ├── agents/reviews/                # Code review guidelines (moved; old reviews/ archived)
     ├── side_quests/                   # Experimental/task-specific docs
-    └── [excluded: M0-M6, DOC, NAV]    # Audit trail directories
+    └── [excluded: M0-M6, DOC, NAV]    # Audit trail directories (inside Archive/)
 ```
 
 ---
@@ -48,7 +52,7 @@ docs/
 - **Location:** `README.md` (repository root)
 - **Purpose:** Primary "how the repo works" guide, quick start instructions
 - **What it contains:**
-  - Current platform status (end of Milestone 5)
+  - Platform overview and current status
   - Quick start for local development
   - Overview of core features implemented
   - Prerequisites and setup instructions
@@ -123,15 +127,16 @@ docs/
 
 ### Design Directory (`docs/dev/design/`)
 
-#### Core Design System (Archived)
+#### Core Design System (Archived in `docs/dev/Archive/design/`)
 
 - **`css-architecture-and-tokens.md`** - Primary CSS architecture guide (archived in `docs/dev/Archive/design/`)
 - **`design_system.md`** - Brand-agnostic design philosophy (archived in `docs/dev/Archive/design/`)
 
+**Current theming guidance:** `docs/dev/THEME-GUIDE.md`
+
 #### Visual Design References
 
-- **`premium-trade-website-v3-final.html`** - Visual design reference
-- **Component-specific design files:**
+**Component-specific design files:**
   - `content_blocks_design.html`
   - `faq_and_process_design.html`
   - `form_design.html`
@@ -139,6 +144,12 @@ docs/
   - `portfolio_design.html`
   - `service_card_design.html`
   - `testimonials_design.html`
+
+- **Wireframes (compiled HTML):** `wireframes/sage-and-stone/compiled/`
+
+#### Archived Visual References
+
+- **`premium-trade-website-v3-final.html`** - Legacy visual reference (archived)
 
 ---
 
@@ -161,12 +172,13 @@ docs/
 - **`cli.md`** - SUM CLI documentation
   - `sum init` and `sum check` command specifications
   - Project scaffolding workflow
+- **`THEME-GUIDE.md`** - Theme development and branding integration guide
 
 ### Development Decisions
 
 - **`decisions.md`** - Architectural decisions log
   - Docker deferral decision and rationale
-- **`git_strategy.md`** - Git workflow and branching strategy
+- **`GIT_STRATEGY.md`** - Git workflow and branching strategy
 
 ---
 
@@ -176,7 +188,7 @@ docs/
 
 **Hot path operational runbooks** for day-to-day operations:
 
-- **`release-runbook.md`** - Complete release process (unified)
+- **`RELEASE_RUNBOOK.md`** - Complete release process (unified)
   - Version selection, preparation, sync to public repo
   - Tag creation and verification
   - Replaces legacy `release-checklist.md` and `release-workflow.md`
@@ -193,12 +205,13 @@ docs/
 
 ### Release Automation (`docs/release/`)
 
-Tooling and scripts for the two-repo release flow:
+Release prompts and declaration records:
 
-- **`prompts/release-prompt.md`** - AI agent instructions for releases (current)
-- **`two-repo-setup.md`** - Two-repository model documentation
-- **Legacy (archived/moved):** `agent-prompt.md`, `sync-to-public.py`, `release-sync.yml`
-- **`two-repo-setup.md`** - Two-repository model documentation
+- **`RELEASE_AGENT_PROMPT.md`** - Release agent instructions
+- **`RELEASE_AUDIT_AGENT_PROMPT.md`** - Release audit agent instructions
+- **`prompts/pre-release-prompt.md`** - Pre-release checklist prompt
+- **`prompts/release-prompt.md`** - Release execution prompt
+- **`declarations/`** - Version declaration templates and records
 
 ### Deployment Documentation (`docs/dev/deploy/`)
 
@@ -211,7 +224,7 @@ Tooling and scripts for the two-repo release flow:
 
 ## 📊 Audit Trail & Analysis
 
-### Core Monitoring (`docs/dev/CM/`)
+### Core Monitoring (`docs/dev/Archive/CM/`)
 
 Production readiness audits and corrective missions:
 
@@ -257,9 +270,9 @@ Task-specific documentation for experimental or secondary work:
 
 The following directories contain milestone transcripts and work reports that serve as audit trail but are not functional documentation:
 
-- `docs/dev/M0/` through `docs/dev/M6/` - Milestone work transcripts
-- `docs/dev/DOC/` - Documentation work sessions
-- `docs/dev/NAV/` - Navigation work sessions
+- `docs/dev/Archive/M0/` through `docs/dev/Archive/M6/` - Milestone work transcripts
+- `docs/dev/Archive/DOC/` - Documentation work sessions
+- `docs/dev/Archive/NAV/` - Navigation work sessions
 
 These are preserved for audit purposes but excluded from this functional documentation index.
 
@@ -270,42 +283,43 @@ These are preserved for audit purposes but excluded from this functional documen
 ### For New Contributors
 
 1. **Start here:** `README.md`
-2. **Understand the platform:** `AGENT-ORIENTATION.md`
-3. **Learn the architecture:** `SUM-PLATFORM-SSOT.md`
-4. **Follow standards:** `hygiene.md`
+2. **Understand the platform:** `dev/AGENT-ORIENTATION.md`
+3. **Learn the architecture:** `dev/master-docs/SUM-PLATFORM-SSOT.md`
+4. **Follow standards:** `dev/hygiene.md`
 
 ### For Implementation Work
 
-1. **Block development:** `blocks-reference.md`
-2. **Page development:** `page-types-reference.md`
-3. **CSS work:** `css-architecture-and-tokens.md`
-4. **Client integration:** `WIRING-INVENTORY.md`
+1. **Block development:** `dev/blocks-reference.md`
+2. **Page development:** `dev/page-types-reference.md`
+3. **Theme/CSS work:** `dev/THEME-GUIDE.md`
+4. **Client integration:** `dev/WIRING-INVENTORY.md`
 
 ### For Operations & Deployment
 
-1. **Release a new version:** `ops-pack/release-runbook.md`
+1. **Release a new version:** `ops-pack/RELEASE_RUNBOOK.md`
 2. **Deploy fresh site:** `ops-pack/deploy-runbook.md`
 3. **Upgrade existing site:** `ops-pack/upgrade-runbook.md`
 4. **Production setup (detailed):** `dev/deploy/vps-golden-path.md`
-5. **Git workflow:** `dev/git_strategy.md`
+5. **Git workflow:** `dev/GIT_STRATEGY.md`
 6. **CLI usage:** `dev/cli.md`
 
 ### For Strategic Planning
 
-1. **Current state:** `SUM-PLATFORM-SSOT.md`
-2. **Future roadmap:** `POST-MVP_BIG-PLAN.md`
-3. **Architecture evolution:** `THEME-ARCHITECTURE-SPECv1.md`
+1. **Current state:** `dev/master-docs/SUM-PLATFORM-SSOT.md`
+2. **Future roadmap:** `dev/master-docs/POST-MVP_BIG-PLAN.md`
+3. **Architecture evolution:** `dev/master-docs/THEME-ARCHITECTURE-SPECv1.md`
 
 ---
 
 ## 📈 Documentation Statistics
 
-- **Total documentation files:** 50+ active files
+- **Total markdown files:** 485 (including Archive/)
+- **Active markdown files:** 118 (excluding Archive/)
 - **Key strategic documents:** 6 in master-docs/
 - **Implementation references:** 8 core reference files
 - **Design system docs:** 10+ files
 - **Audit trail documents:** 30+ CM and report files
-- **Lines of documentation:** ~15,000+ lines total
+- **Lines of documentation:** ~156,000+ lines total (including Archive/)
 
 ---
 
@@ -318,4 +332,4 @@ This DDD should be updated when:
 - Documentation purposes or scopes change
 - New documentation directories are created
 
-**Last comprehensive review:** December 17, 2025
+**Last comprehensive review:** December 29, 2025

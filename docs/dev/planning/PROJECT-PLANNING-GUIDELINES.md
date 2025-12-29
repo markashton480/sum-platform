@@ -2,7 +2,7 @@
 
 > **Coordinate parallel work** across multiple agents while keeping merges, releases, and verification predictable.
 
-**Git Model:** See [`GIT_STRATEGY.md`](GIT_STRATEGY.md) for the 5-tier branch model.
+**Git Model:** See [`docs/dev/GIT_STRATEGY.md`](../GIT_STRATEGY.md) for the 5-tier branch model.
 
 ---
 
@@ -277,8 +277,8 @@ Closes #NNN
 
 ## Related Documents
 
-- [`GIT_STRATEGY.md`](GIT_STRATEGY.md) — Branch model
-- [`VERSION_DECLARATION_TEMPLATE.md`](templates/VERSION_DECLARATION_TEMPLATE.md) — Version planning
-- [`work-order-template.md`](templates/work-order-template.md) — Feature coordination
-- [`subtask-template.md`](templates/subtask-template.md) — Task specification
-- [`RELEASE_RUNBOOK.md`](RELEASE_RUNBOOK.md) — Release process
+- [`docs/dev/GIT_STRATEGY.md`](../GIT_STRATEGY.md) — Branch model
+- [`docs/release/declarations/release-decleration-template.md`](../../release/declarations/release-decleration-template.md) — Version planning
+- [`WORK-ORDER-PROMPT.md`](WORK-ORDER-PROMPT.md) — Work order template
+- [`GH-ISSUE-PROMPT.md`](GH-ISSUE-PROMPT.md) — Subtask issue template
+- [`docs/ops-pack/RELEASE_RUNBOOK.md`](../../ops-pack/RELEASE_RUNBOOK.md) — Release process

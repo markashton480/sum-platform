@@ -12,12 +12,12 @@ These are the **operational runbooks** you use weekly/monthly in production.
 
 ### Release a new version
 
-**Primary:** [`docs/ops-pack/release-runbook.md`](ops-pack/release-runbook.md)  
+**Primary:** [`docs/ops-pack/RELEASE_RUNBOOK.md`](ops-pack/RELEASE_RUNBOOK.md)  
 Complete release process from version selection to verification.
 
 **References:**
 
-- [Git strategy](dev/git_strategy.md) — branching and commit conventions
+- [Git strategy](dev/GIT_STRATEGY.md) — branching and commit conventions
 - [Hygiene standards](dev/hygiene.md) — lint/test/pre-release checks
 - [CLI usage](dev/cli.md) — `sum init` and `sum check` behavior
 
@@ -42,7 +42,7 @@ Run this when upgrading a live site to a new core version.
 **References:**
 
 - [Post-MVP Practice Loop](dev/master-docs/POST-MVP_BIG-PLAN.md) — practice cycle expectations
-- [Release runbook](ops-pack/release-runbook.md) — version pinning discipline
+- [Release runbook](ops-pack/RELEASE_RUNBOOK.md) — version pinning discipline
 
 ---
 
@@ -81,7 +81,7 @@ Update these after every deploy/upgrade cycle to maintain institutional knowledg
 
 ### Git policy (operational summary)
 
-**Primary:** [`docs/dev/git_strategy.md`](dev/git_strategy.md)  
+**Primary:** [`docs/dev/GIT_STRATEGY.md`](dev/GIT_STRATEGY.md)  
 Branching model, commit conventions, and version tagging rules.
 
 ---
@@ -121,12 +121,12 @@ When troubleshooting or researching **"why did we decide X?"** or **"what change
 
 ### Core Maintenance (CM) audits
 
-- **`docs/dev/CM/`** — production readiness audits (CM-001 through CM-008, CM-M5-N1, CM-M6-01, etc.)
+- **`docs/dev/Archive/CM/`** — production readiness audits (CM-001 through CM-008, CM-M5-N1, CM-M6-01, etc.)
 - Each CM includes `_followup.md` with implementation status
 
 ### Milestones and reports
 
-- **`docs/dev/M0/` through `docs/dev/M6/`** — milestone work transcripts (audit trail)
+- **`docs/dev/Archive/M0/` through `docs/dev/Archive/M6/`** — milestone work transcripts (audit trail)
 - **`docs/dev/reports/`** — code reviews, technical analysis, status reports
 
 ### Strategic planning
@@ -151,7 +151,7 @@ For a comprehensive inventory of every document:
 
 **I want to…**
 
-- **Ship a new version** → [`ops-pack/release-runbook.md`](ops-pack/release-runbook.md)
+- **Ship a new version** → [`ops-pack/RELEASE_RUNBOOK.md`](ops-pack/RELEASE_RUNBOOK.md)
 - **Deploy a fresh site** → [`ops-pack/deploy-runbook.md`](ops-pack/deploy-runbook.md)
 - **Upgrade a live site** → [`ops-pack/upgrade-runbook.md`](ops-pack/upgrade-runbook.md)
 - **Undo a bad deploy** → [`ops-pack/rollback-runbook.md`](ops-pack/rollback-runbook.md)

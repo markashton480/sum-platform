@@ -1,7 +1,7 @@
 # Release Runbook
 
 > **Step-by-step process** for releasing a version.
-> Assumes the 5-tier branch model from [`GIT_STRATEGY.md`](GIT_STRATEGY.md).
+> Assumes the 5-tier branch model from [`docs/dev/GIT_STRATEGY.md`](../dev/GIT_STRATEGY.md).
 
 ---
 
@@ -361,6 +361,6 @@ Do NOT delete tag. Fix issue and release as X.Y.1.
 
 ## Related Documents
 
-- [`GIT_STRATEGY.md`](GIT_STRATEGY.md) — Branch model
-- [`VERSION_DECLARATION_TEMPLATE.md`](VERSION_DECLARATION_TEMPLATE.md) — Version planning
-- [`RELEASE_AUDIT_AGENT_PROMPT.md`](prompts/RELEASE_AUDIT_AGENT_PROMPT.md) — Audit instructions
+- [`docs/dev/GIT_STRATEGY.md`](../dev/GIT_STRATEGY.md) — Branch model
+- [`docs/release/declarations/release-decleration-template.md`](../release/declarations/release-decleration-template.md) — Version planning
+- [`docs/release/RELEASE_AUDIT_AGENT_PROMPT.md`](../release/RELEASE_AUDIT_AGENT_PROMPT.md) — Audit instructions

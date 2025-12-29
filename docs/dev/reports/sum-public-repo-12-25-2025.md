@@ -162,8 +162,8 @@ However, using `/tmp` has trade-offs (cleared on reboot, may cause permission is
 ## Related Files
 
 - [scripts/sync_to_public.py](../../../scripts/sync_to_public.py) - Sync script that creates sum-core-public
-- [docs/dev/git_strategy.md](../git_strategy.md) - Branch model and conventions
-- [docs/ops-pack/release-runbook.md](../../ops-pack/release-runbook.md) - Release process
+- [docs/dev/GIT_STRATEGY.md](../GIT_STRATEGY.md) - Branch model and conventions
+- [docs/ops-pack/RELEASE_RUNBOOK.md](../../ops-pack/RELEASE_RUNBOOK.md) - Release process
 
 ---
 

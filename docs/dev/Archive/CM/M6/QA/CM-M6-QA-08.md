@@ -5,7 +5,7 @@
 **Owner:** Agent (Ops/QA)
 **Priority:** High (blocks clean QA + future CMs)
 **Status:** Ready
-**Related:** `git_strategy.md` update, branch protection rollout, CI required checks already configured on `main` (`lint-and-test`).  
+**Related:** `GIT_STRATEGY.md` update, branch protection rollout, CI required checks already configured on `main` (`lint-and-test`).  
 
 ---
 
@@ -27,7 +27,7 @@ This ticket is purely workflow + governance + documentation. No feature work.
 
 * The repo is already at the point where “ad-hoc branching off `main`” causes confusion and weakens the value of branch protection and CI gates.
 * You’ve started enforcing “Require status checks” and required check selection (`lint-and-test`) on `main`. This is good, but it needs a coherent branching model so work doesn’t pile directly onto `main`. 
-* The existing `git_strategy.md` is explicitly lightweight and now outdated vs how you’re operating. 
+* The existing `GIT_STRATEGY.md` is explicitly lightweight and now outdated vs how you’re operating. 
 
 ---
 
@@ -40,7 +40,7 @@ This ticket is purely workflow + governance + documentation. No feature work.
 
    * make `develop` the default branch
    * protect `develop` with required checks + review gates (matching `main`, unless explicitly loosened)
-3. Update `git_strategy.md` to define the new flow (develop integration model).
+3. Update `GIT_STRATEGY.md` to define the new flow (develop integration model).
 4. Add a short “How to work” snippet somewhere obvious (recommend: `README.md` or `docs/dev/README.md` if you have it).
 5. Verify the workflow works end-to-end with a tiny “no-op” change PR into `develop`.
 
@@ -66,7 +66,7 @@ If any of these are unknown during execution, the agent should **gather evidence
 
 1. Create and push `develop` from `main`.
 2. Configure GitHub: default branch = `develop`; add branch protection for `develop` (CI + approvals + conversation resolution + up-to-date requirement).
-3. Update `git_strategy.md` to the new model and commit it.
+3. Update `GIT_STRATEGY.md` to the new model and commit it.
 4. Create a small PR (from a branch off `develop`) into `develop` to validate gates behave as expected.
 5. Record what changed (docs + ops notes).
 
@@ -130,7 +130,7 @@ Optional but recommended:
 
 ---
 
-#### D) Update `git_strategy.md`
+#### D) Update `GIT_STRATEGY.md`
 
 * Replace the current lightweight contents with the new policy (develop integration model).
 * Ensure naming patterns include your CM ticket IDs (e.g. `cm/CM-M6-QA-08-...`).
@@ -141,9 +141,9 @@ Commands:
 git checkout develop
 git pull
 
-# edit git_strategy.md
+# edit GIT_STRATEGY.md
 
-git add git_strategy.md
+git add GIT_STRATEGY.md
 git commit -m "docs(git): establish develop branch workflow and protections"
 git push
 ```
@@ -205,7 +205,7 @@ git push -u origin chore/CM-M6-QA-08-validate-develop-flow
   * branch up-to-date before merge
   * conversation resolution
   * PR-only merges
-* `git_strategy.md` clearly documents:
+* `GIT_STRATEGY.md` clearly documents:
 
   * branch model (`main`, `develop`, feature/fix/chore/cm, hotfix)
   * release promotion `develop → main`
