@@ -118,10 +118,15 @@ Examples:
 
 | Your Branch | PR Target |
 |------------|-----------|
-| `task/*` or `fix/*` | `feature/<work-order-slug>` |
+| `task/*` | `feature/<work-order-slug>` |
+| `fix/*` *(in release)* | `feature/<work-order-slug>` |
+| `fix/*` *(bypass)* | `develop`, `main`, or `release/*` |
+| `docs/*` *(bypass)* | `develop`, `main`, or `release/*` |
 | `feature/*` | `release/<version>` |
 | `release/*` | `develop` |
 | `develop` | `main` |
+
+> **Bypass branches** (`docs/*`, `fix/*` targeting develop/main) require a `## Bypass Justification` section in the PR body.
 
 ---
 

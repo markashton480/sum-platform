@@ -35,6 +35,27 @@ feature/<work-order-slug>         Feature integration (maps to WO)
 task/<task-slug>   or  fix/<task-slug>   Actual implementation work (maps to TASK/FIX)
 ```
 
+### Bypass branches (`docs/*`, `fix/*`)
+
+Some branches bypass the normal hierarchy:
+
+| Branch | When to use | Allowed targets |
+|--------|-------------|-----------------|
+| `docs/<slug>` | Documentation-only changes between releases | `develop`, `main`, or `release/*` |
+| `fix/<slug>` | Hotfixes that can't wait for a release cycle | `develop`, `main`, or `release/*` |
+
+**Requirements for bypass branches:**
+- PR body must include a `## Bypass Justification` section explaining:
+  - Why this can't go through the normal `task/*` → `feature/*` → `release/*` flow
+  - Backport/forward-port plan if applicable
+
+Example:
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b docs/post-0.6.0-overhaul
+```
+
 ### Why tasks are NOT nested under `feature/<...>/...`
 
 Git **cannot** have both:
@@ -60,6 +81,7 @@ That’s why task branches use `task/*` or `fix/*`.
 | WO | `feature/<work-order-slug>` | `feature/blog-upgrades` |
 | TASK | `task/<task-slug>` | `task/add-category-filtering` |
 | FIX | `fix/<task-slug>` | `fix/fix-the-fucking-blog` |
+| *(bypass)* | `docs/<slug>` | `docs/post-0.6.0-overhaul` |
 
 ### Slug rules
 
@@ -136,7 +158,10 @@ git push -u origin task/fix-the-fucking-blog
 
 | Your Branch | PR Target |
 |------------|-----------|
-| `task/*` or `fix/*` | `feature/<work-order-slug>` |
+| `task/*` | `feature/<work-order-slug>` |
+| `fix/*` *(in release)* | `feature/<work-order-slug>` |
+| `fix/*` *(bypass)* | `develop`, `main`, or `release/*` |
+| `docs/*` *(bypass)* | `develop`, `main`, or `release/*` |
 | `feature/*` | `release/<version>` |
 | `release/*` | `develop` |
 | `develop` | `main` |
