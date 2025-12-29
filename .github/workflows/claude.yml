@@ -40,5 +40,7 @@ jobs:
           additional_permissions: |
             actions: read
 
-          # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
-          # prompt: 'Update the pull request description to include a summary of changes.'
+          # Full tool access for git operations, GitHub CLI, and task management
+          # Note: v1.0 GA changed from `allowed_tools` to `claude_args: --allowedTools`
+          claude_args: |
+            --allowedTools Bash(git:*),Bash(gh:*),Bash(make:*),Task,Edit,Read,Write,Glob,Grep,WebFetch,WebSearch
