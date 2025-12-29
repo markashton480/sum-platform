@@ -137,13 +137,24 @@
 
 **Date:** 2025-12-29  
 **Version:** N/A → v0.6.0  
-**Symptom:** Initial staging deploy failed due to missing client production deps (`gunicorn`, `redis`) and the `seed_sage_stone` command importing `HomePage` from `home.models` (breaks packaged projects where the app is `<project>.home`).  
-**Fix:** Added `gunicorn` + `redis` to client requirements and updated the seeder to use a packaged import with a fallback for file-path-loaded tests; re-deployed and re-ran seeding.  
-**Follow-up:** Ensure boilerplate requirements include production deps used by our runbooks/scripts; add a deploy preflight check that verifies `gunicorn` is present and health is checked over HTTPS.
+**Symptom:** Initial staging deploy failed due to missing client production deps (`gunicorn`, `redis`) and a seeder import bug:
+
+- systemd: `sum-sage-and-stone-gunicorn.service` failed with `status=203/EXEC` because `/srv/sum/sage-and-stone/venv/bin/gunicorn` did not exist (gunicorn not installed in venv).
+- seeder: `python manage.py seed_sage_stone ...` raised `ModuleNotFoundError: No module named 'home'` because the command imported `HomePage` from `home.models` (breaks packaged projects where the app is `<project>.home`).
+- cache: during seeding, Wagtail cache operations raised `ModuleNotFoundError: No module named 'redis'` when using `django.core.cache.backends.redis.RedisCache` without the `redis` Python client installed.
+
+**Fix:** Added `gunicorn` + `redis` to client requirements; updated `seed_sage_stone` to use a packaged import with a safe fallback for file-path-loaded tests; re-deployed, enabled gunicorn, and re-ran seeding.  
+**Follow-up:** Ensure boilerplate requirements include production deps used by our runbooks/scripts; add a deploy preflight check that verifies `gunicorn` is present and health is checked over HTTPS (and consider a quick import check for `redis` when Redis cache backend is configured).
 
 ---
 
+## Site: sage-and-stone
 
+**Date:** 2025-12-29  
+**Version:** v0.6.0 (staging)  
+**Symptom:** Admin protection smoke check looked like a failure when tested over plain HTTP (Caddy redirected `/admin/` to HTTPS with `308`), and some clients may not resolve wildcard DNS locally.  
+**Fix:** Test admin protection over HTTPS (`/admin/` should be `401`/`403`), and use `curl --resolve sage-and-stone.lintel.site:443:91.98.118.201` when local DNS is not resolving.  
+**Follow-up:** Update `docs/ops-pack/smoke-tests.md` to note the HTTPS redirect and the `--resolve` pattern for early-stage deployments.
 
 ---
 
