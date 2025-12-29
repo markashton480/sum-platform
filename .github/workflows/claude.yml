@@ -42,6 +42,3 @@ jobs:
 
           # Optional: Give a custom prompt to Claude. If this is not specified, Claude will perform the instructions specified in the comment that tagged it.
           # prompt: 'Update the pull request description to include a summary of changes.'
-
-          # Allow Claude to use git and GitHub CLI for full repository access
-          allowed_tools: "Bash(git:*),Bash(gh:*)"
