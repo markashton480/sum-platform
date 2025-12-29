@@ -276,6 +276,8 @@ The following directories contain milestone transcripts and work reports that se
 
 These are preserved for audit purposes but excluded from this functional documentation index.
 
+Note: Archive documents are historical snapshots and may contain stale paths or dead links.
+
 ---
 
 ## 🗺️ Documentation Usage Guide
