@@ -1,7 +1,7 @@
 # Release Audit Agent Prompt
 
 > **Paranoid verification** of release PRs before merge.
-> Assumes 5-tier branch model. See [`GIT_STRATEGY.md`](../GIT_STRATEGY.md).
+> Assumes 5-tier branch model. See [`docs/dev/GIT_STRATEGY.md`](../dev/GIT_STRATEGY.md).
 
 ---
 

@@ -16,14 +16,15 @@ LINK_PATTERN = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 # Files to check
 KEY_FILES = [
     ROOT_DIR / "README.md",
-    DOCS_DIR / "dev/SUM-PLATFORM-SSOT.md",
+    DOCS_DIR / "DDD.md",
+    DOCS_DIR / "HANDBOOK.md",
+    DOCS_DIR / "ROUTER.md",
+    DOCS_DIR / "dev/master-docs/SUM-PLATFORM-SSOT.md",
     DOCS_DIR / "dev/WIRING-INVENTORY.md",
     DOCS_DIR / "dev/hygiene.md",
     DOCS_DIR / "dev/navigation-tags-reference.md",
-    DOCS_DIR / "dev/NAV/navigation.md",
     DOCS_DIR / "dev/blocks-reference.md",
     DOCS_DIR / "dev/page-types-reference.md",
-    DOCS_DIR / "dev/design/css-architecture-and-tokens.md",
 ]
 
 

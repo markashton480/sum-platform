@@ -1080,10 +1080,10 @@ Closes #124
 ### Related Documentation
 
 - [CLI User Guide](./USER_GUIDE.md) - End-user command documentation
-- [Theme Guide](./THEME-GUIDE.md) - Theme system documentation
-- [Release Runbook](../ops-pack/RELEASE_RUNBOOK.md) - Release process
-- [Git Strategy](../../GIT_STRATEGY.md) - Branching model
-- [Project Planning Guidelines](./planning/PROJECT-PLANNING-GUIDELINES.md) - Issue workflow
+- [Theme Guide](../THEME-GUIDE.md) - Theme system documentation
+- [Release Runbook](../../ops-pack/RELEASE_RUNBOOK.md) - Release process
+- [Git Strategy](../GIT_STRATEGY.md) - Branching model
+- [Project Planning Guidelines](../planning/PROJECT-PLANNING-GUIDELINES.md) - Issue workflow
 
 ### External Resources
 

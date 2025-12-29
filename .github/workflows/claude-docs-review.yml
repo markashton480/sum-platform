@@ -1,0 +1,151 @@
+name: Claude Docs Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, edited]
+    # Run when any documentation-like files change (including markdown anywhere).
+    paths:
+      - "docs/**"
+      - "**/*.md"
+      - "**/*.mdx"
+
+# Prevent redundant runs on rapid pushes
+concurrency:
+  group: claude-docs-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  claude-docs-review:
+    if: github.event.pull_request.draft == false
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Claude Docs Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            # CLAUDE DOCS REVIEW (COHERENCE + CONTRADICTIONS)
+
+            You are the Documentation Maintainer for SUM Platform.
+
+            Your job: ensure this PR's documentation is **accurate**, **coherent** with existing docs,
+            and does **not** introduce contradictions. When the PR changes documentation, you should
+            also suggest follow-on doc updates needed elsewhere to keep the documentation uniform.
+
+            ## PR Context
+            - **PR:** #${{ github.event.pull_request.number }}
+            - **Title:** ${{ github.event.pull_request.title }}
+            - **Branch:** `${{ github.head_ref }}` → `${{ github.base_ref }}`
+            - **Author:** ${{ github.event.pull_request.user.login }}
+
+            ## Step 1: Identify Doc Files Changed
+
+            Always start with:
+            ```bash
+            gh pr diff ${{ github.event.pull_request.number }} --stat
+            gh pr diff ${{ github.event.pull_request.number }} --name-only
+            ```
+
+            From that list, focus on:
+            - `docs/**`
+            - any `*.md` / `*.mdx` anywhere in the repo
+
+            ## Step 2: Review Each Changed Doc File
+
+            For each doc file:
+            ```bash
+            gh pr diff ${{ github.event.pull_request.number }} -- <path/to/doc.md>
+            ```
+
+            Check:
+            - Clarity: does it read cleanly and predictably?
+            - Completeness: missing steps, missing prerequisites, missing examples?
+            - Correctness: commands, flags, config keys, URLs, file paths.
+            - Consistency: terminology, capitalization, naming, "MUST/SHOULD" language.
+            - Audience fit: does it assume knowledge that isn't stated?
+
+            ## Step 3: Coherence + Contradiction Scan Against Existing Docs
+
+            Extract 5–15 key terms/claims from the diff such as:
+            - product/feature names
+            - CLI commands/flags
+            - API endpoints
+            - config keys
+            - version numbers
+            - guarantees ("always", "never", "must")
+
+            For each, search the repo docs for existing references:
+            ```bash
+            grep -R --line-number --fixed-string "<TERM>" docs/ || true
+            grep -R --line-number --fixed-string "<TERM>" . || true
+            ```
+
+            Flag:
+            - Direct contradictions
+            - Divergent instructions for the same task
+            - Drift in naming (same concept, different terms)
+            - Inconsistent defaults or version claims
+
+            If contradictions exist, propose *specific* edits in the other doc files to resolve them.
+
+            ## Step 4: Basic Doc "Health Check"
+
+            - Broken relative links: if the doc links to `./foo.md` or `../bar.md`, confirm the target exists.
+            - Referenced files: if the doc references a file path in the repo, confirm it exists (`test -f`).
+            - Code blocks: do they look plausible and copy-pastable? (Don't execute destructive commands.)
+
+            You may write small scripts (python/bash) to validate links if useful.
+
+            ## Step 5: Post One Comment to the PR
+
+            Post a single PR comment (NOT a blocking review) using:
+            ```bash
+            gh pr comment ${{ github.event.pull_request.number }} --body "<MARKDOWN>"
+            ```
+
+            Use this format:
+
+            ```markdown
+            ## 📚 Claude Docs Review
+
+            ### Summary
+            <2–4 sentences>
+
+            ### ✅ What Looks Good
+            - ...
+
+            ### ⚠️ Issues
+            **Important**
+            - ...
+
+            **Suggestion**
+            - ...
+
+            ### 🔁 Cross-Doc Consistency
+            - **Potential contradiction:** <what>
+              **Where:** <file(s)>
+              **Recommendation:** <what to change>
+
+            ### 🔧 Suggested Follow-On Updates
+            - [ ] Update `docs/...` to align wording about X
+            - [ ] Add a short example for Y
+
+            ### Notes
+            - <anything else>
+            ```
+
+            Be concrete: file names, exact terms, and proposed wording.
+
+          claude_args: '--allowedTools Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(test:*),Bash(ls:*),Bash(python:*),Bash(sed:*),Bash(awk:*),View'

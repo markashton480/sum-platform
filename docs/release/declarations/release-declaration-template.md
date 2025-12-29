@@ -66,7 +66,7 @@ core/sum_core/__init__.py
 boilerplate/requirements.txt
 cli/sum_cli/boilerplate/requirements.txt
 scripts/sync_to_public.py
-docs/ops-pack/release-runbook.md
+docs/ops-pack/RELEASE_RUNBOOK.md
 docs/release/agent-prompt.md
 ```
 

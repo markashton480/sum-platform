@@ -173,7 +173,7 @@ Successfully reviewed all required source documents before implementation:
 ✅ **CODEBASE-STRUCTURE.md** — Confirmed docs tree conventions and structure  
 ✅ **DDD.md** — Reviewed documentation map and categories  
 ✅ **release-workflow.md** — Distilled release process into checklist  
-✅ **git_strategy.md** — Extracted operational Git policy  
+✅ **GIT_STRATEGY.md** — Extracted operational Git policy  
 ✅ **vps-golden-path.md** — Converted to deploy/upgrade runbooks  
 ✅ **POST-MVP_BIG-PLAN.md** — Reviewed practice loop requirements  
 ✅ **AGENT-ORIENTATION.md** — Understood platform vs test harness context  
@@ -381,7 +381,7 @@ All required source documents were located and reviewed:
 - ✅ CODEBASE-STRUCTURE.md
 - ✅ DDD.md
 - ✅ release-workflow.md
-- ✅ git_strategy.md
+- ✅ GIT_STRATEGY.md
 - ✅ vps-golden-path.md
 - ✅ POST-MVP_BIG-PLAN.md
 - ✅ AGENT-ORIENTATION.md
@@ -401,7 +401,7 @@ All required source documents were located and reviewed:
 
 - `release-workflow.md` → distilled into `release-checklist.md`
 - `vps-golden-path.md` → distilled into `deploy-runbook.md` + `upgrade-runbook.md`
-- `git_strategy.md` → distilled into `git-policy.md`
+- `GIT_STRATEGY.md` → distilled into `git-policy.md`
 
 **No conflict or duplication** — ops-pack summarizes and links, canonical docs remain source of truth.
 

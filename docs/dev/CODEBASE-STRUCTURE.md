@@ -27,7 +27,8 @@ sum-platform/
 ├── clients/                        # Client consumer projects
 │   ├── sum_client/                 # Canonical reference client project
 │   ├── _smoke_consumer/            # Proof-of-concept consumer
-│   └── acme-kitchens/              # Example client project
+│   ├── showroom/                   # Demo/testing client project
+│   └── client-name/                # Placeholder client scaffold
 │
 ├── themes/                         # Canonical theme source-of-truth (Theme Architecture Spec v1)
 │   └── theme_a/                    # Reference theme (Sage & Stone)
@@ -50,24 +51,18 @@ sum-platform/
 │   └── templates/                  # Template tests
 │
 ├── docs/                           # Documentation
+│   ├── ops-pack/                   # Operational runbooks
+│   ├── release/                    # Release prompts + declarations
+│   ├── user/                       # User-facing guides
 │   └── dev/                        # Development documentation
-│       ├── CM/                     # Core Maintenance tasks
-│       ├── M0/                     # Milestone 0 documentation
-│       ├── M1/                     # Milestone 1 documentation
-│       ├── M2/                     # Milestone 2 documentation
-│       ├── M3/                     # Milestone 3 documentation
-│       ├── M4/                     # Milestone 4 documentation
-│       ├── M5/                     # Milestone 5 documentation
-│       ├── M6/                     # Milestone 6 documentation
-│       ├── NAV/                    # Navigation system documentation
-│       ├── DOC/                    # Documentation tasks
+│       ├── Archive/                # Historical docs (CM, milestones, NAV, DOC)
 │       ├── deploy/                 # Deployment documentation
-│       ├── design/                 # Design system documentation
+│       ├── design/                 # Design references + wireframes
 │       ├── master-docs/            # Master documentation (SSOT, PRD, etc.)
 │       ├── reports/                # Status reports and reviews
-│       ├── reviews/                # Code review guidelines
+│       ├── agents/reviews/         # Code review guidelines
 │       ├── side_quests/            # Side quest documentation
-│       └── themes/                 # Theme documentation
+│       └── planning/               # Planning templates and work orders
 │
 ├── infrastructure/                 # Deployment infrastructure
 │   ├── caddy/                      # Caddy web server configuration
@@ -81,9 +76,6 @@ sum-platform/
 │
 ├── scripts/                        # Repository utility scripts
 │   └── set_boilerplate_core_ref.py # Script to update boilerplate references
-│
-├── design/                         # Design assets
-│   └── premium-trade-website-v3-final.html
 │
 ├── pyproject.toml                  # Root project configuration
 ├── Makefile                        # Build and development commands
@@ -107,7 +99,7 @@ The **installable `sum-core` package** (import path: `sum_core`). This is the ma
 - **`sum_core/integrations/`**: External service integrations (Zapier webhooks with retries and status tracking)
 - **`sum_core/leads/`**: Lead persistence ("no lost leads" invariant), attribution capture (UTM, referrer, landing page), Wagtail admin UI, CSV export
 - **`sum_core/navigation/`**: Navigation system (header menus 3-level deep, footer sections, mobile sticky CTA), cached output with invalidation
-- **`sum_core/ops/`**: Operations and observability (`/health/` endpoint, Sentry integration, structured JSON logging with correlation IDs). **Health endpoint semantics:** Redis is baseline-critical; failure results in `unhealthy` (503) status.
+- **`sum_core/ops/`**: Operations and observability (`/health/` endpoint, Sentry integration, structured JSON logging with correlation IDs). **Health endpoint semantics:** cache backend is baseline-critical; failure results in `unhealthy` (503) status.
 - **`sum_core/pages/`**: Page type models (`StandardPage`, `ServiceIndexPage`, `ServicePage`), SEO mixins (`SeoFieldsMixin`, `OpenGraphMixin`, `BreadcrumbMixin`)
 - **`sum_core/seo/`**: Technical SEO (`/sitemap.xml`, `/robots.txt`, SEO template tags, JSON-LD structured data)
 - **`sum_core/static/sum_core/css/`**: Design system CSS (tokens, main.css entrypoint)
@@ -137,18 +129,16 @@ Pytest test suite organized by feature area, mirroring the `sum_core` package st
 
 Comprehensive development documentation organized by:
 
-- **`CM/`**: Core Maintenance tasks and follow-ups
-- **`M0/` through `M6/`**: Milestone documentation and task tracking
-- **`NAV/`**: Navigation system deep-dive documentation
+- **`Archive/`**: Historical docs (CM, milestones, NAV, DOC)
 - **`master-docs/`**: Single source of truth documents:
   - `SUM-PLATFORM-SSOT.md` - Main architecture/product spec
   - `prd-sum-platform-v1.1.md` - Product Requirements Document
   - `POST-MVP_BIG-PLAN.md` - Post-MVP expansion plans
   - `THEME-ARCHITECTURE-SPECv1.md` - Theme architecture specification
 - **`deploy/`**: Deployment runbooks (`vps-golden-path.md`)
-- **`design/`**: Design system documentation (CSS architecture, tokens)
+- **`design/`**: Design references and wireframes
 - **`reports/`**: Status reports, release reviews, daily reports
-- **`reviews/`**: Code review guidelines
+- **`agents/reviews/`**: Code review guidelines
 - **Reference docs**: `blocks-reference.md`, `page-types-reference.md`, `navigation-tags-reference.md`, `WIRING-INVENTORY.md`
 
 ### `/infrastructure/` - Deployment Infrastructure

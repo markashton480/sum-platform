@@ -122,21 +122,28 @@ This document defines protection rules for each branch level in our 5-tier model
 
 ### `ci` (All branches)
 
-Standard CI pipeline:
+**Required check context:** `ci`
+
+This is the *single gate check* produced by `.github/workflows/ci.yml` (job name `ci`).
+
+- For code-changing PRs, the workflow runs lint + the full test suite slices.
+- For docs/CI-only PRs, the workflow **short-circuits** (skips lint/tests) but still reports `ci` as ✅ passing.
+
+**Important:** Do **not** require individual job checks like `lint`, `test-full`, etc. Those jobs are intentionally skipped on docs/CI-only PRs to avoid burning runners.
+
+Standard CI pipeline (when code changes):
 ```yaml
-- make lint      # ruff, djlint
-- make test      # pytest
-- make typecheck # mypy (if enabled)
+- make lint           # ruff, djlint
+- make test-templates # fast fail template ordering
+- make test           # pytest
+- make test-cli
+- make test-themes
 ```
 
-**Docs/CI fast path:** If a PR only touches docs or CI tooling files,
-the `ci` workflow short-circuits heavy jobs (lint/tests) while still
-reporting required checks. This keeps governance intact without running
-full suites for documentation or pipeline-only changes.
-
-**Docs/CI-only scope:**
-- `docs/`
-- `.github/`, `.agent/`, `.claude/`
+**Docs/CI-only scope (fast-path):**
+- `docs/**`
+- `**/*.md`, `**/*.mdx` (markdown anywhere in the repo)
+- `.github/**`, `.agent/**`, `.claude/**`
 - `AGENTS.md`, `CLAUDE.md`, `README.md`
 
 ### `claude-review` (Feature branches and above)
@@ -146,6 +153,19 @@ Claude's strategic review must not request changes:
 - APPROVE → check passes
 - REQUEST CHANGES → check fails (blocks merge)
 - COMMENT → check passes (advisory only)
+
+### `claude-docs-review` (Docs changes)
+
+Claude's documentation coherence review.
+
+- Triggered when a PR changes documentation files (matching the docs scope above).
+- Posts a structured comment with:
+  - contradictions/inconsistencies vs existing docs
+  - suggested follow-on doc updates to keep terminology uniform
+  - clarity/quality issues, missing steps, broken links, etc.
+
+This is **advisory by default** (not required for merge). If you later decide to require it,
+ensure the workflow always reports a status check (even when no docs changed) before adding it as a required check.
 
 ### `release-audit` (Develop and main only)
 
@@ -286,16 +306,16 @@ Add `codecov/project` and `codecov/patch` as required checks for feature branche
 
 ## Summary Matrix
 
-| Branch | Approvals | CI | Claude | Audit | CodeQL | Force Push |
-|--------|-----------|-----|--------|-------|--------|------------|
-| `main` | 2 | ✅ | — | ✅ | ✅ | ❌ |
-| `develop` | 1 | ✅ | — | ✅ | ✅ | ❌ |
-| `release/*` | 1 | ✅ | ✅ | — | ✅ | ❌ |
-| `feature/*` | 0 | ✅ | ✅ | — | — | ❌ |
-| `task/*` | 0 | ✅ | — | — | — | ✅ |
+| Branch | Approvals | CI | Claude | Docs Review | Audit | CodeQL | Force Push |
+|--------|-----------|-----|--------|------------|-------|--------|------------|
+| `main` | 2 | ✅ | — | ✅ (advisory) | ✅ | ✅ | ❌ |
+| `develop` | 1 | ✅ | — | ✅ (advisory) | ✅ | ✅ | ❌ |
+| `release/*` | 1 | ✅ | ✅ | ✅ (advisory) | — | ✅ | ❌ |
+| `feature/*` | 0 | ✅ | ✅ | ✅ (advisory) | — | — | ❌ |
+| `task/*` | 0 | ✅ | — | ✅ (advisory) | — | — | ✅ |
 
-**Docs/CI-only changes:** CI runs in fast-path mode; required checks still
-report success, but lint/test jobs are skipped.
+**Docs/CI-only changes:** CI runs in fast-path mode; `ci` still reports success,
+but lint/test jobs are skipped.
 
 ---
 
@@ -310,7 +330,7 @@ Create `.github/CODEOWNERS` for required reviews on sensitive paths:
 # Core models require explicit review
 /core/sum_core/models/ @markashton480
 
-# Migrations require explicit review  
+# Migrations require explicit review
 /core/sum_core/migrations/ @markashton480
 
 # Settings require explicit review

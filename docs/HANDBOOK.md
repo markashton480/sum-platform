@@ -21,7 +21,7 @@ The SUM Platform is a Django/Wagtail-based foundation designed for the rapid dep
 | **Framework**    | Django (LTS)                                  | 5.2.x   | Core web engine                |
 | **CMS**          | Wagtail (LTS)                                 | 7.0.x   | Content & Admin                |
 | **Database**     | PostgreSQL                                    | 17.x    | Per-client isolation           |
-| **Cache/Broker** | Redis                                         | 7.x/8.x | **Required** for health status |
+| **Cache/Broker** | Redis (recommended)                           | 7.x/8.x | Health check expects a cache backend |
 | **Task Queue**   | Celery                                        | 5.6.x   | Async leads/webhooks           |
 | **CSS**          | Tailwind v3.4.x                               | 3.4.x   | Theme-based styling system     |
 | **Themes**       | Fixed per-site (v0.6+)                        | —       | Visual systems with Tailwind   |
@@ -133,7 +133,7 @@ graph TD
 
 - **Per-client project**: Each client (slug) is a standalone Django/Wagtail project.
 - **Separate databases**: `sum_<client_slug>` per site for data isolation.
-- **Version pinning**: Clients pin `sum-core==X.Y.Z` explicitly to prevent ghost updates.
+- **Version pinning**: Clients pin to an exact git tag in `requirements.txt` (e.g., `sum_core @ git+https://github.com/ORG/REPO.git@vX.Y.Z#subdirectory=core`) to prevent ghost updates.
 
 ### Repository Structure
 
@@ -185,6 +185,7 @@ Required inclusions in `urls.py`:
 ```python
 urlpatterns = [
     path("admin/", include(wagtailadmin_urls)),
+    path("documents/", include(wagtaildocs_urls)),
     path("forms/", include("sum_core.forms.urls")), # Submissions
     path("", include("sum_core.ops.urls")),         # /health/
     path("", include("sum_core.seo.urls")),         # sitemap, robots.txt
@@ -345,11 +346,11 @@ Anchored sections for legal pages with Table of Contents support.
 
 ### Block Rendering & Themes
 
-**Important**: Block templates are provided by your active theme, not by `sum_core`.
+**Important**: `sum_core` ships default block templates, and the active theme overrides them when present.
 
-- **Core provides**: Block field definitions (`sum_core/blocks/`) defining what data can be entered.
-- **Theme provides**: Templates (`theme/active/templates/sum_core/blocks/`) defining how blocks render visually.
-- **Result**: Same block data renders differently across themes—each theme has its own visual interpretation.
+- **Core provides**: Block field definitions (`sum_core/blocks/`) and baseline templates (`sum_core/templates/sum_core/blocks/`).
+- **Theme provides**: Overrides in `theme/active/templates/sum_core/blocks/` that control visual rendering.
+- **Result**: Same block data can render differently across themes, but core templates still work as fallbacks.
 
 When developing custom blocks or modifying existing ones:
 1. Update the block definition in `sum_core/blocks/` (data structure)
@@ -496,9 +497,9 @@ git commit -m "theme: update styles"
 
 ### Migration Notes
 
-**Historical Context**: The platform originally used a vanilla CSS token-based system. As of v0.6, we've transitioned to the Tailwind-based theme architecture described above for better AI-agent ergonomics and faster theme development.
+**Historical Context**: The platform introduced a Tailwind-based theme architecture in v0.6 for faster theme development, but the core CSS token system still exists and remains the SSOT for `sum_core` default styling.
 
-If you encounter references to `tokens.css` or HSL branding in older documentation, they refer to the legacy system and should be disregarded in favor of this theme architecture.
+`tokens.css` and the HSL branding variables emitted by `{% branding_css %}` are still active; Theme A consumes those variables via Tailwind, and core CSS consumes them directly. Treat references to `tokens.css` as current unless a document explicitly calls out archived behavior.
 
 ---
 
@@ -651,7 +652,7 @@ For a full inventory of every document in this repository, see the **[Documentat
 - [Post-MVP Expansion Plan](dev/master-docs/POST-MVP_BIG-PLAN.md)
 - [Product Requirements (PRD)](dev/master-docs/prd-sum-platform-v1.1.md)
 - [Theme Architecture Spec v1](dev/master-docs/THEME-ARCHITECTURE-SPECv1.md)
-- [Release Runbook](ops-pack/release-runbook.md)
+- [Release Runbook](ops-pack/RELEASE_RUNBOOK.md)
 
 ---
 
