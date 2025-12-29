@@ -113,6 +113,29 @@ python manage.py runserver
 4. **Create content**: Add pages using the Wagtail page tree
 5. **Configure forms**: Set lead notification emails and rate limits in Django admin
 
+## Development Setup
+
+Clone the repository and install the development tooling:
+
+```bash
+make install-dev
+```
+
+Run the test project locally (applies migrations automatically):
+
+```bash
+make run
+```
+
+Common checks:
+
+```bash
+make lint       # Ruff + mypy + Black + isort
+make format     # Auto-format the codebase
+make test-fast  # Quick smoke gate for CLI + themes
+make test       # Full pytest suite
+```
+
 ## Documentation
 
 - **[Platform Handbook](docs/HANDBOOK.md)**: Complete guide to the platform
