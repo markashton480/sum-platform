@@ -358,11 +358,14 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Early exit for docs-only changes. This runs BEFORE job result checks,
+          # so we never fail on "skipped" jobs when docs_ci_only=true.
           if [[ "${{ needs.changes.outputs.docs_ci_only }}" == "true" ]]; then
             echo "Docs/CI-only change detected → heavy jobs intentionally skipped."
             exit 0
           fi
 
+          # Only reached when docs_ci_only=false (code changes present).
           echo "lint:          ${{ needs.lint.result }}"
           echo "test-templates:${{ needs.test-templates.result }}"
           echo "test-full:     ${{ needs.test-full.result }}"
