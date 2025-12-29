@@ -14,7 +14,10 @@ from typing import Any, TypedDict
 
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandParser
-from home.models import HomePage
+try:
+    from ...models import HomePage
+except ImportError:  # pragma: no cover
+    from home.models import HomePage
 from PIL import Image as PILImage
 from PIL import ImageDraw, ImageFont
 from sum_core.branding.models import SiteSettings
