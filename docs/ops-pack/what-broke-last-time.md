@@ -133,6 +133,16 @@
 **Follow-up:** Keep `project.name` PEP 508-compliant before tagging; add a quick `pip install "sum_core @ git+...@<tag>"` check when cutting releases.
 ---
 
+## Site: sage-and-stone
+
+**Date:** 2025-12-29  
+**Version:** N/A → v0.6.0  
+**Symptom:** Initial staging deploy failed due to missing client production deps (`gunicorn`, `redis`) and the `seed_sage_stone` command importing `HomePage` from `home.models` (breaks packaged projects where the app is `<project>.home`).  
+**Fix:** Added `gunicorn` + `redis` to client requirements and updated the seeder to use a packaged import with a fallback for file-path-loaded tests; re-deployed and re-ran seeding.  
+**Follow-up:** Ensure boilerplate requirements include production deps used by our runbooks/scripts; add a deploy preflight check that verifies `gunicorn` is present and health is checked over HTTPS.
+
+---
+
 
 
 ---
