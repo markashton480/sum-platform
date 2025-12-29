@@ -949,8 +949,8 @@ pip install Pillow
 
 ## See Also
 
-- [Content Mapping](../dev/planning/sage-and-stone/content-mapping.md) — Detailed wireframe mapping
-- [Work Order](../dev/planning/sage-and-stone/work-order.md) — Implementation plan
+- [Content Mapping](./content-mapping.md) — Detailed wireframe mapping
+- [Work Order](./WO-Sage-and-Stone.md) — Implementation plan
 \`\`\`
 ```
 
@@ -1066,6 +1066,6 @@ See #210 for CLI v2 architecture.
 
 ## Related Documentation
 
-- [Work Order](./work-order.md) — Overall project plan
+- [Work Order](./WO-Sage-and-Stone.md) — Overall project plan
 - [Subtask 1-7](./subtask-001-site-setup.md) — Implementation details
 - [Content Mapping](./content-mapping.md) — Wireframe content

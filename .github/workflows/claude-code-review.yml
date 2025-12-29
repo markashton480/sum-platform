@@ -2,7 +2,7 @@ name: Claude Code Review
 
 on:
   pull_request:
-    types: [opened, synchronize, ready_for_review]
+    types: [opened, synchronize, ready_for_review, edited]
 
 # Prevent redundant runs on rapid pushes
 concurrency:
@@ -11,11 +11,17 @@ concurrency:
 
 jobs:
   claude-review:
-    # Skip draft PRs and release PRs (those get audit instead)
+    # Skip draft PRs and release/develop source branches (those get audit instead).
     if: |
       github.event.pull_request.draft == false &&
+      github.head_ref != 'develop' &&
       !startsWith(github.head_ref, 'release/') &&
-      github.head_ref != 'develop'
+      (
+        startsWith(github.head_ref, 'task/') ||
+        startsWith(github.head_ref, 'fix/') ||
+        startsWith(github.head_ref, 'docs/') ||
+        startsWith(github.head_ref, 'feature/')
+      )
 
     runs-on: ubuntu-latest
     permissions:
@@ -56,10 +62,10 @@ jobs:
             ISSUE=$(gh pr view ${{ github.event.pull_request.number }} --json closingIssuesReferences --jq '.closingIssuesReferences[0].number // empty')
             ```
 
-            **Option B: Parse from branch name (task/*/issue-NNN-*)**
+            **Option B: Parse from PR title (e.g., `GH-123: ...` or `#123 ...`)**
             ```bash
             if [ -z "$ISSUE" ]; then
-              ISSUE=$(echo "${{ github.head_ref }}" | grep -oE 'issue-[0-9]+' | grep -oE '[0-9]+' || true)
+              ISSUE=$(echo "${{ github.event.pull_request.title }}" | grep -oE '(GH-|#)[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
             fi
             ```
 
@@ -106,18 +112,41 @@ jobs:
             ## Step 4: Run Strategic Checks
 
             **CHECK 0: PR Targeting Compliance**
-            Verify the PR targets the correct base branch per our workflow:
+            Verify the PR targets an allowed base branch per our workflow:
 
-            | Branch Pattern | Expected Target |
-            |----------------|-----------------|
-            | `task/<scope>/issue-*` | `feature/<scope>` |
-            | `feature/<scope>` | `release/*` |
-            | `fix/<scope>-issue-*` | `develop` |
-            | `feat/<scope>-issue-*` | `develop` |
+            | Head Branch Pattern | Allowed / Expected PR Target (base) |
+            |---------------------|-------------------------------------|
+            | `task/*` | `feature/*` |
+            | `feature/*` | `release/*` |
+            | `fix/*` | `main` OR `develop` OR `release/*` |
+            | `docs/*` | `main` OR `develop` OR `release/*` |
 
             Current: `${{ github.head_ref }}` → `${{ github.base_ref }}`
 
-            Flag if targeting is wrong (e.g., task branch → develop instead of feature branch).
+            **Rules:**
+            - If a `task/*` PR targets anything other than `feature/*` → **🚫 Blocker**
+            - If a `feature/*` PR targets anything other than `release/*` → **🚫 Blocker**
+            - If a `fix/*` or `docs/*` PR targets something other than `main`, `develop`, or `release/*` → **🚫 Blocker**
+
+            **CHECK 0.1: Bypass Justification (required for `fix/*` and `docs/*`)**
+            Because `fix/*` and `docs/*` are allowed to bypass the normal task → feature → release flow,
+            the PR description MUST justify why, and state the propagation plan.
+
+            To check the PR body:
+            ```bash
+            gh pr view ${{ github.event.pull_request.number }} --json body --jq '.body'
+            ```
+
+            Required in PR body (one of these headings):
+            - `## Bypass Justification`
+            - `## Direct-to-<target> Justification` (e.g., `## Direct-to-main Justification`)
+
+            That section must answer:
+            - Why this cannot / should not go through `task/*` → `feature/*` → `release/*`
+            - What target is chosen and why (`main` vs `develop` vs `release/*`)
+            - Backport / forward-port plan (e.g., "After merge to main, cherry-pick to develop and release/0.6.1")
+
+            Missing or hand-wavy justification → **🚫 Blocker**
 
             **CHECK 1: Scope Alignment**
             - Does the PR address the acceptance criteria?
@@ -240,6 +269,7 @@ jobs:
 
             **🚫 Blocker:**
             - PR targets wrong branch
+            - Missing bypass justification for `fix/*` or `docs/*`
             - Violates explicit "Do NOT" boundary
             - Includes undeclared features
             - Hallucinated imports/APIs
@@ -257,4 +287,4 @@ jobs:
 
             If no issues found, keep review brief: checks passed, approved.
 
-          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(echo:*),View"'
+          claude_args: '--allowedTools Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(echo:*),View'

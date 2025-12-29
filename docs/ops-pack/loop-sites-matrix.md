@@ -10,6 +10,7 @@
 | Site Name | Environment | Slug      | Current Version | Last Deploy Date | Last Upgrade Outcome | Notes          |
 | --------- | ----------- | --------- | --------------- | ---------------- | -------------------- | -------------- |
 | (example) | staging     | acme-test | v0.6.0          | 2025-12-10       | Success              | Initial deploy |
+| Sage & Stone | staging | sage-and-stone | v0.6.0 | 2025-12-29 | Initial deploy | Admin protected (basic auth) |
 |           |             |           |                 |                  |                      |                |
 |           |             |           |                 |                  |                      |                |
 |           |             |           |                 |                  |                      |                |

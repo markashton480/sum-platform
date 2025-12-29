@@ -585,10 +585,10 @@ Fast setup without interactive steps or unnecessary content.
 After initializing your project:
 
 1. **Review settings** - Check `project_name/settings/` files
-2. **Configure theme** - See [THEME-GUIDE.md](./THEME-GUIDE.md)
+2. **Configure theme** - See [THEME-GUIDE.md](../THEME-GUIDE.md)
 3. **Add content** - Use Wagtail admin at `/admin`
-4. **Customize blocks** - See [StreamField blocks documentation](./blocks.md)
-5. **Deploy** - See [deployment guide](../ops-pack/deployment.md)
+4. **Customize blocks** - See [StreamField blocks documentation](../blocks-reference.md)
+5. **Deploy** - See [deployment guide](../../ops-pack/deploy-runbook.md)
 
 ---
 
