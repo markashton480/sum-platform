@@ -14,9 +14,9 @@ projects: ["markashton480/12"]
 
 ## Branch
 
-| Branch | Base | Target |
-|---|---|---|
-| `feature/<work-order-slug>` | `release/<version>` | `release/<version>` |
+| Branch | Created From & PR Target |
+|---|---|
+| `feature/<work-order-slug>` | `release/<version>` |
 
 > **Branch name rule:** slugify the WO title (after `WO:`).
 >

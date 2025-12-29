@@ -8,6 +8,8 @@ projects: ["markashton480/12"]
 
 # Ticket: <title>
 
+**Task ID:** GH-<!-- This will be the issue number once created -->
+
 > Use **TASK** for feature work / chores.
 > Use **FIX** for bugs/regressions.
 >
@@ -21,9 +23,9 @@ projects: ["markashton480/12"]
 
 ## Branch
 
-| Branch | Base | PR Target |
-|---|---|---|
-| `task/<task-slug>` **or** `fix/<task-slug>` | `feature/<work-order-slug>` | `feature/<work-order-slug>` |
+| Branch | Created From & PR Target |
+|---|---|
+| `task/<task-slug>` **or** `fix/<task-slug>` | `feature/<work-order-slug>` |
 
 > **Branch name rule:** slugify the ticket title (after `TASK:`/`FIX:`).
 >

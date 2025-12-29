@@ -8,13 +8,13 @@ allowed-tools: "Bash(gh:*),Bash(git:*),Bash(make:*),Bash(grep:*),Bash(cat:*)"
 
 Execute issue #$1 end-to-end.
 
-Please note: $2
+Additional context (if provided): $2
 
 ---
 
 ## 0) This prompt is for TASK/FIX tickets
 
-This workflow assumes the issue you are executing is a **Task Ticket**:
+This workflow assumes the issue you are executing is a **TASK or FIX ticket**:
 
 - `TASK: ...`
 - `FIX: ...`
@@ -36,7 +36,7 @@ Extract from the issue:
 
 - acceptance criteria
 - boundaries (Do / Do NOT)
-- parent reference (look for `Work Order: #NNN` or `Part of: #NNN`)
+- parent reference (look for `Part of: #NNN (WO: ...)` or `Work Order: #NNN`)
 
 ### 1.2 Resolve the parent Work Order (WO)
 
@@ -129,7 +129,7 @@ git checkout "$FEATURE_BRANCH"
 git pull origin "$FEATURE_BRANCH"
 ```
 
-### 2.3 Create your task/fix branch from the feature branch
+### 2.3 Create your task or fix branch from the feature branch
 
 ```bash
 # Choose ONE based on the issue title prefix

@@ -87,7 +87,7 @@ Examples:
 |----------|----------|-----------|
 | `task/*` or `fix/*` → `feature/*` | **Squash** | Clean feature history, one commit per task |
 | `feature/*` → `release/*` | **Merge `--no-ff`** | Preserve feature boundary in history |
-| `release/*` → `develop` | **Squash** | One commit per version on `develop` |
+| `release/*` → `develop` | **Squash** | One commit per version on `develop`. |
 | `develop` → `main` | **Squash** | Clean production history |
 
 ---

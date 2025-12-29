@@ -129,10 +129,10 @@ Examples:
 
 | From → To | Strategy | Why |
 |-----------|----------|-----|
-| `task/*` / `fix/*` → `feature/*` | Squash | One clean commit per task |
-| `feature/*` → `release/*` | Merge `--no-ff` | Preserve feature boundary |
-| `release/*` → `develop` | Squash | One commit per version |
-| `develop` → `main` | Squash | Clean prod history |
+| `task/*` / `fix/*` → `feature/*` | Squash | One clean commit per task. |
+| `feature/*` → `release/*` | Merge `--no-ff` | Preserve feature boundary. |
+| `release/*` → `develop` | Squash | One commit per version. |
+| `develop` → `main` | Squash | Clean prod history. |
 
 ---
 

@@ -21,8 +21,6 @@ projects: ["markashton480/12"]
 | **Started** | YYYY-MM-DD |
 | **Target Release** | YYYY-MM-DD |
 
----
-
 ## Statement of Intent
 
 ### What this version IS
@@ -33,16 +31,12 @@ projects: ["markashton480/12"]
 
 -
 
----
-
 ## Work Orders (WOs)
 
 List the Work Orders planned for this version.
 
 - [ ] WO: <feature 1>
 - [ ] WO: <feature 2>
-
----
 
 ## Scope Boundaries
 
@@ -54,14 +48,10 @@ List the Work Orders planned for this version.
 
 -
 
----
-
 ## Success Criteria
 
 - [ ]
 - [ ]
-
----
 
 ## Notes / Risks
 

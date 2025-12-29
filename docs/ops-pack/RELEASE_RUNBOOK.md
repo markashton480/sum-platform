@@ -362,5 +362,5 @@ Do NOT delete tag. Fix issue and release as X.Y.1.
 ## Related Documents
 
 - [`docs/dev/GIT_STRATEGY.md`](../dev/GIT_STRATEGY.md) — Branch model
-- [`docs/release/declarations/release-decleration-template.md`](../release/declarations/release-decleration-template.md) — Version planning
+- [`docs/release/declarations/release-declaration-template.md`](../release/declarations/release-declaration-template.md) — Version planning
 - [`docs/release/RELEASE_AUDIT_AGENT_PROMPT.md`](../release/RELEASE_AUDIT_AGENT_PROMPT.md) — Audit instructions

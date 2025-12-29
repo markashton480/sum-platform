@@ -278,7 +278,7 @@ Closes #NNN
 ## Related Documents
 
 - [`docs/dev/GIT_STRATEGY.md`](../GIT_STRATEGY.md) — Branch model
-- [`docs/release/declarations/release-decleration-template.md`](../../release/declarations/release-decleration-template.md) — Version planning
+- [`docs/release/declarations/release-declaration-template.md`](../../release/declarations/release-declaration-template.md) — Version planning
 - [`WORK-ORDER-PROMPT.md`](WORK-ORDER-PROMPT.md) — Work order template
 - [`GH-ISSUE-PROMPT.md`](GH-ISSUE-PROMPT.md) — Subtask issue template
 - [`docs/ops-pack/RELEASE_RUNBOOK.md`](../../ops-pack/RELEASE_RUNBOOK.md) — Release process
