@@ -6,8 +6,8 @@
 - **Component:** pages
 - **Priority:** P1 (If Time Permits)
 - **Branch:** `feature/page-types`
-- **Parent VD:** #TBD
-- **Issue:** #TBD
+- **Parent VD:** #363
+- **Issue:** #367
 
 ---
 

@@ -49,16 +49,16 @@ v0.7.0 is a **MINOR feature release** that establishes multi-theme capability as
 
 | #   | Work Order                         | Issue   | Branch                       | Status  |
 | --- | ---------------------------------- | ------- | ---------------------------- | ------- |
-| 1   | Multi-theme Validation             | #TBD    | `feature/multi-theme`        | Planned |
-| 2   | Lead Management v1                 | #TBD    | `feature/leads-v1`           | Planned |
-| 3   | Internal Linking & CTAs            | #TBD    | `feature/internal-linking`   | Planned |
+| 1   | Multi-theme Validation             | #364    | `feature/multi-theme`        | Planned |
+| 2   | Lead Management v1                 | #365    | `feature/leads-v1`           | Planned |
+| 3   | Internal Linking & CTAs            | #366    | `feature/internal-linking`   | Planned |
 
 ### P1 - If Time Permits (Optional)
 
 | #   | Work Order                         | Issue   | Branch                       | Status  |
 | --- | ---------------------------------- | ------- | ---------------------------- | ------- |
-| 4   | New Page Types                     | #TBD    | `feature/page-types`         | Planned |
-| 5   | Link Health Tooling                | #TBD    | `feature/link-health`        | Planned |
+| 4   | New Page Types                     | #367    | `feature/page-types`         | Planned |
+| 5   | Link Health Tooling                | #368    | `feature/link-health`        | Planned |
 
 **Status Legend:** Planned | In Progress | Done | Deferred
 

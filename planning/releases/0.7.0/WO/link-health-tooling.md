@@ -6,8 +6,8 @@
 - **Component:** core
 - **Priority:** P1 (If Time Permits)
 - **Branch:** `feature/link-health`
-- **Parent VD:** #TBD
-- **Issue:** #TBD
+- **Parent VD:** #363
+- **Issue:** #368
 
 ---
 
