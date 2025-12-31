@@ -125,6 +125,6 @@ Subtask is Done when:
 
 ## Key Docs
 
-- `docs/GIT_STRATEGY.md` — Branch model
-- `docs/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
-- `docs/dev/HANDBOOK.md` — Platform guide
+- `docs/dev/GIT_STRATEGY.md` — Branch model
+- `docs/dev/planning/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
+- `docs/HANDBOOK.md` — Platform guide

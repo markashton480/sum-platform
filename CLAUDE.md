@@ -143,7 +143,7 @@ Don't complain about missing features unless explicitly required AND not planned
 
 ## Key Docs
 
-- `docs/GIT_STRATEGY.md` — Branch model
-- `docs/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
-- `docs/RELEASE_RUNBOOK.md` — Release process
-- `docs/dev/HANDBOOK.md` — Platform guide
+- `docs/dev/GIT_STRATEGY.md` — Branch model
+- `docs/dev/planning/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
+- `docs/ops-pack/RELEASE_RUNBOOK.md` — Release process
+- `docs/HANDBOOK.md` — Platform guide
