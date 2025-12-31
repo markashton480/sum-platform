@@ -32,6 +32,38 @@ make test-fast      # Quick gate
 python -m pytest tests/path/to/test.py::test_method -v
 ```
 
+## PostgreSQL for Testing
+
+By default, tests use SQLite for speed. Some tests (e.g., Wagtail search) require PostgreSQL.
+
+### Start PostgreSQL (Docker)
+
+```bash
+make db-up          # Start PostgreSQL container on port 5432
+make db-info        # Check database status
+```
+
+### Run Tests with PostgreSQL
+
+```bash
+DJANGO_DB_NAME=sum_db \
+DJANGO_DB_USER=sum_user \
+DJANGO_DB_PASSWORD=sum_password \
+DJANGO_DB_HOST=localhost \
+SUM_TEST_DB=postgres \
+make test
+```
+
+### Key Settings
+
+| Setting | Purpose |
+|---------|---------|
+| `SUM_TEST_DB=postgres` | Forces PostgreSQL for pytest |
+| `django.contrib.postgres` | Enables full-text search |
+| `TASKS.ENQUEUE_ON_COMMIT=False` | Ensures search indexing runs immediately in tests |
+
+Tests that require PostgreSQL are marked with `wagtail_search_required` and auto-skip on SQLite.
+
 ## Git Model
 
 ```
