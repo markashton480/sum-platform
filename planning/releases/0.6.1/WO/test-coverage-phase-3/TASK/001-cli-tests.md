@@ -7,7 +7,7 @@
 ## Parent
 
 **Work Order:** WO: Test Coverage Improvements Phase 3 (v0.6.1)
-**Tracking Issue:** #262
+**Tracking Issue:** #458
 
 ---
 
@@ -147,7 +147,7 @@ test(cli): add unit tests for scaffold_project functionality
 - Add tests for error handling scenarios
 - Achieve ≥80% coverage for scaffold module
 
-Closes #262
+Closes #458
 ```
 
 ---

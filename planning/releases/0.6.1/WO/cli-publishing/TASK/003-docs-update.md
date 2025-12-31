@@ -7,7 +7,7 @@
 ## Parent
 
 **Work Order:** WO: CLI v2 Publishing & Distribution (v0.6.1)
-**Tracking Issue:** #279
+**Tracking Issue:** #457
 
 ---
 

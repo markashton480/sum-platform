@@ -167,7 +167,7 @@ Closes #TBD
 
 ## Improvements Made
 
-### CLI Tests (#262)
+### CLI Tests (#458)
 - Added scaffold_project tests
 - Coverage: XX%
 

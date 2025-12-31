@@ -16,7 +16,7 @@
 | **Branch**         | `release/0.6.1`                                         |
 | **Target**         | `develop` → `main`                                      |
 | **Started**        | 2025-12-29                                              |
-| **Target Release** | 2026-01-03                                              |
+| **Target Release** | 2026-01-17                                              |
 
 ---
 
@@ -26,7 +26,7 @@
 
 v0.6.1 is a focused PATCH release that stabilizes v0.6.0 by addressing critical Theme A issues, publishing CLI v2, improving test coverage, enhancing CI workflows, filling documentation gaps, and reviewing the initial Sage & Stone deployment. This release contains **no new features** - only fixes, improvements, and technical debt reduction.
 
-The release is composed of five Work Orders: **Theme A Critical Fixes** (tracking #292), **CLI v2 Publishing & Distribution** (tracking #279), **Test Coverage Improvements** (tracking #262, #187, #173), **CI & Documentation Enhancements** (tracking #229, #225, #186), and **Sage & Stone Deployment Review** (identifying follow-up work from v0.6.0 deployment).
+The release is composed of five Work Orders: **Theme A Critical Fixes** (tracking #292), **CLI v2 Publishing & Distribution** (tracking #457), **Test Coverage Improvements** (tracking #458, #187, #173), **CI & Documentation Enhancements** (tracking #229, #225, #186), and **Sage & Stone Deployment Review** (tracking #459).
 
 ### What This Version IS NOT
 
@@ -87,7 +87,8 @@ List all features planned for this version. Each becomes a Work Order issue.
 
 ### At Version Completion (release/0.6.1 → develop)
 
-| Metric                             | Expected                   | Tolerance |\n| ---------------------------------- | -------------------------- | --------- |
+| Metric                             | Expected                   | Tolerance |
+| ---------------------------------- | -------------------------- | --------- |
 | Work Orders                        | 5                          | ±0        |
 | Total PRs merged to release branch | 4-6                        | ±2        |
 | Lines changed                      | <1000                      | ±500      |
@@ -158,7 +159,7 @@ List all features planned for this version. Each becomes a Work Order issue.
 | ------------------------------------ | ----------- | ------------------------------------------------- |
 | All WOs created                      | 2025-12-29  | 5 Work Order issues exist and scoped              |
 | Sage & Stone review complete         | 2025-12-30  | Review completed, issues created and triaged      |
-| Feature branches created             | 2025-12-30  | All 4 feature branches created from develop       |
+| Feature branches created             | 2025-12-30  | All 5 feature branches created from develop       |
 | Theme A fixes complete               | 2025-12-31  | PR merged, visual QA passed                       |
 | CLI publishing complete              | 2025-12-31  | CLI v2.0.0 published to PyPI                      |
 | Test coverage improvements complete  | 2026-01-01  | Coverage ≥85%, all new tests passing              |
@@ -190,7 +191,7 @@ List all features planned for this version. Each becomes a Work Order issue.
 
 ### WO 2: CLI v2 Publishing & Distribution (v0.6.1)
 
-**Issue:** #279
+**Issue:** #457
 **Branch:** `feature/cli-publishing`
 **Scope:**
 - Package CLI v2 for PyPI distribution
@@ -208,10 +209,10 @@ List all features planned for this version. Each becomes a Work Order issue.
 
 ### WO 3: Test Coverage Improvements (v0.6.1)
 
-**Issues:** #262, #187, #173
+**Issues:** #458, #187, #173
 **Branch:** `test/coverage-phase-3`
 **Scope:**
-- Add unit tests for CLI scaffold_project (#262)
+- Add unit tests for CLI scaffold_project (#458)
 - Complete deferred BLOG-016 test improvements (#187)
 - Add coverage for seed_showroom profiles and --clear behavior (#173)
 - Target ≥85% overall test coverage
@@ -245,6 +246,7 @@ List all features planned for this version. Each becomes a Work Order issue.
 
 ### WO 5: Sage & Stone Deployment Review (v0.6.1)
 
+**Issue:** #459
 **Branch:** `fix/sage-stone-review`
 **Scope:**
 - Conduct comprehensive review of Sage & Stone staging deployment
@@ -287,7 +289,7 @@ List all features planned for this version. Each becomes a Work Order issue.
 │  PARALLEL TRACK B: CLI Publishing                                   │
 │  ┌──────────────────┐                                              │
 │  │ Package CLI      │ ──► PyPI test                                │
-│  │ (#279)           │                                               │
+│  │ (#457)           │                                               │
 │  └────────┬─────────┘                                              │
 │           │                                                         │
 │           ▼                                                         │
@@ -297,7 +299,7 @@ List all features planned for this version. Each becomes a Work Order issue.
 │                                                                     │
 │  PARALLEL TRACK C: Test Coverage                                    │
 │  ┌──────────────────┐     ┌──────────────────┐                     │
-│  │ CLI Tests (#262) │     │ Blog Tests (#187)│                     │
+│  │ CLI Tests (#458) │     │ Blog Tests (#187)│                     │
 │  └────────┬─────────┘     └────────┬─────────┘                     │
 │           │                        │                                │
 │           └────────┬───────────────┘                                │

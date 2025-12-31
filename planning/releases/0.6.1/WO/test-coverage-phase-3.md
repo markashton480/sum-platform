@@ -7,7 +7,7 @@
 ## Parent
 
 **Version Declaration:** VD-0.6.1
-**Tracking Issues:** #262, #187, #173
+**Tracking Issues:** #458, #187, #173
 
 ---
 
@@ -27,7 +27,7 @@ git push -u origin test/coverage-phase-3
 
 ## Objective
 
-- [ ] Add unit tests for CLI scaffold_project functionality (#262)
+- [ ] Add unit tests for CLI scaffold_project functionality (#458)
 - [ ] Complete deferred BLOG-016 test improvements (#187)
 - [ ] Add test coverage for seed_showroom profiles and --clear behavior (#173)
 - [ ] Achieve overall test coverage ≥85%
