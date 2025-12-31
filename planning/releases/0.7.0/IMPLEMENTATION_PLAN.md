@@ -287,7 +287,7 @@ The SUM Platform has proven itself with Theme A and a successful Sage & Stone de
 | Document | Updates Needed |
 | -------- | -------------- |
 | `docs/dev/THEME-GUIDE.md` | Theme contract specification |
-| `docs/dev/HANDBOOK.md` | Lead management guide, link health usage |
+| `docs/HANDBOOK.md` | Lead management guide, link health usage |
 | `docs/dev/blocks-reference.md` | CTABlock documentation |
 | `docs/dev/page-types-reference.md` | AboutPage, LandingPage (if P1 lands) |
 
