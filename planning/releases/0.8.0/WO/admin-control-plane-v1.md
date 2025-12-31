@@ -361,12 +361,12 @@ Add typography control fields to SiteSettings.
 
 ---
 
-### TASK-006: Add Spacing Controls
+### TASK-006: Typography CSS Integration
 
 **Estimate:** 2-3 hours
 **Risk:** Medium
 
-Implement CSS variable generation and theme integration for typography.
+Implement CSS variable generation and theme integration for typography controls.
 
 **Acceptance Criteria:**
 - [ ] Template tag generates CSS variables
@@ -380,7 +380,7 @@ Implement CSS variable generation and theme integration for typography.
 - Ensure themes reference the variables
 - Test on all themes
 
-**Branch:** `feature/admin-control-plane/006-spacing-controls`
+**Branch:** `feature/admin-control-plane/006-typography-css`
 
 ---
 

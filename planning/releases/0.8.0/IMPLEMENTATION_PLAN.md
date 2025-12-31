@@ -129,7 +129,7 @@ The SUM Platform has established multi-theme capability and lead management in v
 | WO4-003 | Implement Leads Feature Toggle | 2-3h | Med | `feature/admin-control-plane/003-leads-toggle` |
 | WO4-004 | Implement Jobs Feature Toggle (Placeholder) | 1-2h | Low | `feature/admin-control-plane/004-jobs-toggle` |
 | WO4-005 | Add Typography Controls | 2-3h | Med | `feature/admin-control-plane/005-typography-controls` |
-| WO4-006 | Add Spacing Controls | 2-3h | Med | `feature/admin-control-plane/006-spacing-controls` |
+| WO4-006 | Typography CSS Integration | 2-3h | Med | `feature/admin-control-plane/006-typography-css` |
 | WO4-007 | Control Plane Tests | 2-3h | Low | `feature/admin-control-plane/007-tests` |
 
 ### WO5: Elysian Consumer Site Validation (6 tasks)
