@@ -12,6 +12,7 @@ Note: Tests that require Wagtail search functionality are marked with
 
 from __future__ import annotations
 
+import os
 from uuid import uuid4
 
 import pytest
@@ -24,11 +25,13 @@ from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
 
 pytestmark = pytest.mark.django_db
 
-# Mark for tests that depend on Wagtail search functionality
-# These may fail with SQLite's limited search capabilities
+# Detect if PostgreSQL is being used for tests
+# Wagtail search requires PostgreSQL for reliable full-text search
+_using_postgres = os.getenv("SUM_TEST_DB", "sqlite").lower() == "postgres"
+
 wagtail_search_required = pytest.mark.skipif(
-    True,  # Skip in standard test runs; remove to enable with PostgreSQL
-    reason="Wagtail search requires PostgreSQL full-text search for reliable results",
+    not _using_postgres,
+    reason="Wagtail search requires PostgreSQL full-text search (set SUM_TEST_DB=postgres)",
 )
 
 
@@ -361,7 +364,7 @@ class TestBlogSearchPagination:
         response = client.get("/blog/search/", {"q": "kitchen"})
 
         assert len(list(response.context["results"])) == 10
-        assert response.context["results"].has_next is True
+        assert response.context["results"].has_next() is True
 
     @wagtail_search_required
     def test_search_page_parameter_works(
@@ -384,8 +387,8 @@ class TestBlogSearchPagination:
         response = client.get("/blog/search/", {"q": "kitchen", "page": "2"})
 
         assert len(list(response.context["results"])) == 5
-        assert response.context["results"].has_previous is True
-        assert response.context["results"].has_next is False
+        assert response.context["results"].has_previous() is True
+        assert response.context["results"].has_next() is False
 
     def test_search_invalid_page_defaults_to_first(
         self,

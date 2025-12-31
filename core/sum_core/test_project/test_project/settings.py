@@ -68,6 +68,8 @@ INSTALLED_APPS: list[str] = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Required for PostgreSQL full-text search (Wagtail search backend)
+    "django.contrib.postgres",
     # Wagtail core and contrib apps
     "wagtail",
     "wagtail.admin",
@@ -268,6 +270,17 @@ CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", "memory://")
 CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", "cache+memory://")
 CELERY_TASK_ALWAYS_EAGER: bool = True  # Run tasks synchronously
 CELERY_TASK_EAGER_PROPAGATES: bool = True  # Propagate exceptions in eager mode
+
+# Django Tasks Configuration (used by Wagtail search indexing)
+# ImmediateBackend runs tasks synchronously. ENQUEUE_ON_COMMIT=False ensures
+# tasks run immediately rather than waiting for transaction commit - critical
+# for tests where transactions may not commit until after assertions.
+TASKS: dict = {
+    "default": {
+        "BACKEND": "django_tasks.backends.immediate.ImmediateBackend",
+        "ENQUEUE_ON_COMMIT": False,
+    }
+}
 
 # Email Configuration
 EMAIL_BACKEND: str = os.getenv(
