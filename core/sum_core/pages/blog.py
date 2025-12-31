@@ -31,6 +31,7 @@ from wagtail.admin.panels import (
 )
 from wagtail.fields import RichTextField, StreamField
 from wagtail.models import Page
+from wagtail.search import index
 from wagtail.snippets.models import register_snippet
 from wagtail.snippets.views.snippets import SnippetViewSet
 
@@ -271,6 +272,15 @@ class BlogPostPage(SeoFieldsMixin, OpenGraphMixin, BreadcrumbMixin, Page):
         default=1,
         help_text="Estimated reading time in minutes (auto-calculated)",
     )
+
+    # Search configuration for Wagtail search backend
+    search_fields = Page.search_fields + [
+        index.SearchField("title", boost=2),
+        index.SearchField("body"),
+        index.SearchField("excerpt"),
+        index.FilterField("category"),
+        index.FilterField("published_date"),
+    ]
 
     content_panels = Page.content_panels + [
         FieldPanel("category"),
