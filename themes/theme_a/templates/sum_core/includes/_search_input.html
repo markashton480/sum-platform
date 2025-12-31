@@ -1,0 +1,29 @@
+{% comment %}
+Name: Blog Search Input
+Path: themes/theme_a/templates/sum_core/includes/_search_input.html
+Purpose: Search input component for blog search functionality
+{% endcomment %}
+<form action="{% url 'blog_search' %}" method="get" class="relative mt-8 max-w-md">
+  <label for="blog-search-input" class="sr-only">Search blog posts</label>
+  <div class="relative">
+    <input
+      type="search"
+      id="blog-search-input"
+      name="q"
+      value="{{ query|default:'' }}"
+      placeholder="Search articles..."
+      class="w-full pl-12 pr-4 py-3 rounded-full border border-sage-black/20 bg-white/80 backdrop-blur-sm text-sage-black placeholder:text-sage-black/50 focus:outline-none focus:ring-2 focus:ring-sage-moss focus:border-transparent transition"
+    >
+    <div class="absolute left-4 top-1/2 -translate-y-1/2 text-sage-moss">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </div>
+    <button
+      type="submit"
+      class="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 rounded-full bg-sage-moss text-sage-linen text-sm font-medium hover:bg-sage-moss/90 transition"
+    >
+      Search
+    </button>
+  </div>
+</form>
