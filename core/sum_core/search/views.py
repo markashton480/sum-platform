@@ -34,14 +34,16 @@ def blog_search(request: HttpRequest) -> HttpResponse:
 
     if query:
         # Search only live, published blog posts
-        results = (
-            BlogPostPage.objects.live()
-            .public()
-            .filter(published_date__lte=timezone.now())
-            .search(query)
-        )
+        # Note: Apply search first, then filter results to handle
+        # Wagtail search backend limitations with complex filters
+        search_results = BlogPostPage.objects.live().public().search(query)
+
+        # Convert to list and filter by published_date
+        # This is acceptable for blog search with reasonable result sets
+        now = timezone.now()
+        results = [post for post in search_results if post.published_date <= now]
     else:
-        results = BlogPostPage.objects.none()
+        results = []
 
     # Paginate results
     paginator = Paginator(results, 10)
