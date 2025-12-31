@@ -124,7 +124,7 @@ Then visit:
 - Wagtail admin: `http://localhost:8001/admin/`
 - Health check: `http://localhost:8001/health/`
 
-## Database (Postgres fallback to Sqlite)
+## Database (Postgres fallback to SQLite)
 
 `core/sum_core/test_project/test_project/settings.py` uses SQLite unless a complete Postgres config is supplied via environment variables (it also auto-loads the first `.env` it finds while walking up the tree).
 
@@ -142,6 +142,14 @@ DJANGO_DB_USER=sum_user
 DJANGO_DB_PASSWORD=sum_password
 DJANGO_DB_HOST=localhost
 DJANGO_DB_PORT=5432
+```
+
+### Running Tests with PostgreSQL
+
+By default, pytest uses SQLite. To force PostgreSQL for tests:
+
+```bash
+SUM_TEST_DB=postgres make test
 ```
 
 Stop Postgres:
@@ -215,7 +223,7 @@ From repo root (with `.venv` active):
 - `make format`: black + isort (write)
 - `make test`: pytest
 - `make run`: migrate + runserver for the test project
-- `make db-up` / `make db-down` / `make db-logs`: local Postgres via Docker Compose
+- `make db-up` / `make db-down` / `make db-info` / `make db-logs`: local Postgres via Docker Compose
 
 ## License
 

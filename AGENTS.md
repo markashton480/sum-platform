@@ -24,7 +24,25 @@ make lint          # Ruff + mypy + Black + isort
 make format        # Auto-format
 make test          # Full pytest suite
 make test-fast     # Quick gate (CLI + themes)
+make db-up         # Start PostgreSQL (Docker)
+make db-info       # Check database status
 ```
+
+## PostgreSQL Testing
+
+Some tests require PostgreSQL. By default, tests use SQLite.
+
+```bash
+# Run full test suite with PostgreSQL
+DJANGO_DB_NAME=sum_db \
+DJANGO_DB_USER=sum_user \
+DJANGO_DB_PASSWORD=sum_password \
+DJANGO_DB_HOST=localhost \
+SUM_TEST_DB=postgres \
+make test
+```
+
+- `SUM_TEST_DB=postgres` — Forces PostgreSQL for pytest
 
 ## Git Model (5-Tier)
 
@@ -105,6 +123,6 @@ Subtask is Done when:
 
 ## Key Docs
 
-- `docs/GIT_STRATEGY.md` — Branch model
-- `docs/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
+- `docs/dev/GIT_STRATEGY.md` — Branch model
+- `docs/dev/planning/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
 - `docs/HANDBOOK.md` — Platform guide
