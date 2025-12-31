@@ -32,6 +32,34 @@ make test-fast      # Quick gate
 python -m pytest tests/path/to/test.py::test_method -v
 ```
 
+## PostgreSQL for Testing
+
+By default, tests use SQLite for speed. Some tests (e.g., Wagtail search) require PostgreSQL.
+
+### Start PostgreSQL (Docker)
+
+```bash
+make db-up          # Start PostgreSQL container on port 5432
+make db-info        # Check database status
+```
+
+### Run Tests with PostgreSQL
+
+```bash
+DJANGO_DB_NAME=sum_db \
+DJANGO_DB_USER=sum_user \
+DJANGO_DB_PASSWORD=sum_password \
+DJANGO_DB_HOST=localhost \
+SUM_TEST_DB=postgres \
+make test
+```
+
+### Key Settings
+
+| Setting | Purpose |
+|---------|---------|
+| `SUM_TEST_DB=postgres` | Forces PostgreSQL for pytest |
+
 ## Git Model
 
 ```
@@ -111,7 +139,7 @@ Don't complain about missing features unless explicitly required AND not planned
 
 ## Key Docs
 
-- `docs/GIT_STRATEGY.md` — Branch model
-- `docs/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
-- `docs/RELEASE_RUNBOOK.md` — Release process
+- `docs/dev/GIT_STRATEGY.md` — Branch model
+- `docs/dev/planning/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
+- `docs/ops-pack/RELEASE_RUNBOOK.md` — Release process
 - `docs/HANDBOOK.md` — Platform guide
