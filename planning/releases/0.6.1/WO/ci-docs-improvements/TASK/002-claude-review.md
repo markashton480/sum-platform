@@ -40,7 +40,7 @@ This task will deliver:
 
 ### Do
 
-- Configure `.github/workflows/claude-review.yml` with correct permissions
+- Configure `.github/workflows/claude-code-review.yml` with correct permissions
 - Add `pull-requests: write` permission
 - Test that workflow can submit reviews
 - Document the workflow trigger and behavior
@@ -71,7 +71,7 @@ make lint
 make test
 
 # Verify workflow syntax
-# actionlint .github/workflows/claude-review.yml
+# actionlint .github/workflows/claude-code-review.yml
 
 # Test: Open a test PR and verify review is submitted
 ```
@@ -83,7 +83,7 @@ make test
 ```
 .github/
 └── workflows/
-    └── claude-review.yml       # Modified: permissions
+    └── claude-code-review.yml       # Modified: permissions
 ```
 
 ---

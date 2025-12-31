@@ -71,7 +71,7 @@ git push -u origin chore/ci-docs-improvements
 .github/
 ├── workflows/
 │   ├── ci.yml                  # Modified: fast-path logic
-│   └── claude-review.yml       # Modified: permissions
+│   └── claude-code-review.yml       # Modified: permissions
 └── CODEOWNERS                  # Modified if needed
 
 docs/

@@ -16,7 +16,7 @@
 | **Branch**         | `release/0.6.1`                                         |
 | **Target**         | `develop` → `main`                                      |
 | **Started**        | 2025-12-29                                              |
-| **Target Release** | 2026-01-03                                              |
+| **Target Release** | 2026-01-17                                              |
 
 ---
 
@@ -87,7 +87,8 @@ List all features planned for this version. Each becomes a Work Order issue.
 
 ### At Version Completion (release/0.6.1 → develop)
 
-| Metric                             | Expected                   | Tolerance |\n| ---------------------------------- | -------------------------- | --------- |
+| Metric                             | Expected                   | Tolerance |
+| ---------------------------------- | -------------------------- | --------- |
 | Work Orders                        | 5                          | ±0        |
 | Total PRs merged to release branch | 4-6                        | ±2        |
 | Lines changed                      | <1000                      | ±500      |

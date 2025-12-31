@@ -152,13 +152,15 @@ Closes #186
 
 ## Documentation Template
 
-```markdown
-## Lead.form_data Structure
+The following content should be added to `docs/api/lead-form-data.md`:
+
+### Lead.form_data Structure
 
 The `Lead.form_data` field is a JSONField that stores the raw form submission data.
 
-### Structure
+#### Structure
 
+Example JSON structure:
 ```json
 {
   "name": "John Smith",
@@ -171,7 +173,7 @@ The `Lead.form_data` field is a JSONField that stores the raw form submission da
 }
 ```
 
-### Common Fields
+#### Common Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -183,7 +185,7 @@ The `Lead.form_data` field is a JSONField that stores the raw form submission da
 | `submitted_at` | ISO datetime | Submission timestamp |
 | `form_id` | string | Identifier of the form used |
 
-### Accessing form_data
+#### Accessing form_data
 
 ```python
 from sum_core.leads.models import Lead
@@ -202,10 +204,9 @@ if phone:
     pass
 ```
 
-### Best Practices
+#### Best Practices
 
 1. Always use `.get()` with defaults for optional fields
 2. Validate field types before processing
 3. Don't assume all fields exist in every submission
 4. Store additional metadata in form_data, not as model fields
-```
