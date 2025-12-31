@@ -24,7 +24,27 @@ make lint          # Ruff + mypy + Black + isort
 make format        # Auto-format
 make test          # Full pytest suite
 make test-fast     # Quick gate (CLI + themes)
+make db-up         # Start PostgreSQL (Docker)
+make db-info       # Check database status
 ```
+
+## PostgreSQL Testing
+
+Some tests (Wagtail search, full-text) require PostgreSQL. By default, tests use SQLite.
+
+```bash
+# Run full test suite with PostgreSQL
+DJANGO_DB_NAME=sum_db \
+DJANGO_DB_USER=sum_user \
+DJANGO_DB_PASSWORD=sum_password \
+DJANGO_DB_HOST=localhost \
+SUM_TEST_DB=postgres \
+make test
+```
+
+- `SUM_TEST_DB=postgres` — Forces PostgreSQL for pytest
+- Tests requiring PostgreSQL use `wagtail_search_required` marker (auto-skip on SQLite)
+- `TASKS.ENQUEUE_ON_COMMIT=False` in settings ensures search indexing runs immediately in tests
 
 ## Git Model (5-Tier)
 
