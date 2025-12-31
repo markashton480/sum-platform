@@ -6,8 +6,8 @@
 - **Component:** blocks
 - **Priority:** P0 (Must Land)
 - **Branch:** `feature/internal-linking`
-- **Parent VD:** #TBD
-- **Issue:** #TBD
+- **Parent VD:** #363
+- **Issue:** #366
 
 ---
 
@@ -76,6 +76,25 @@ LINK_TYPE_CHOICES = [
     ("anchor", "Anchor"),
 ]
 ```
+
+**Existing HeroCTABlock** (`core/sum_core/blocks/hero.py:13`):
+```python
+class HeroCTABlock(blocks.StructBlock):
+    label = blocks.CharBlock(required=True, max_length=100)
+    url = blocks.URLBlock(required=True)  # <-- Uses URLBlock, not UniversalLinkBlock!
+    style = blocks.ChoiceBlock(...)
+```
+
+**HeroCTABlock vs new CTABlock:**
+| Aspect | HeroCTABlock (existing) | CTABlock (new) |
+|--------|------------------------|----------------|
+| Location | `blocks/hero.py` | `blocks/cta.py` (new file) |
+| Usage | Child block within HeroImageBlock/HeroGradientBlock only | Standalone, usable in PageStreamBlock |
+| Link type | URLBlock (external URLs only) | UniversalLinkBlock (internal pages + all types) |
+| Structure | Single button | Primary + optional secondary button |
+| Variants | None (hero-context styling) | inline, card, banner |
+
+**Decision:** Create new `CTABlock` as a separate, more flexible block. Do NOT modify `HeroCTABlock` in this WO to avoid breaking existing hero content. A future WO may migrate HeroCTABlock to use UniversalLinkBlock, but that requires migration planning.
 
 **Problem:** `ServiceCardItemBlock` and potentially other blocks use `URLBlock` instead:
 

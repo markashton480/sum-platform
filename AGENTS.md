@@ -107,4 +107,4 @@ Subtask is Done when:
 
 - `docs/GIT_STRATEGY.md` — Branch model
 - `docs/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
-- `docs/dev/HANDBOOK.md` — Platform guide
+- `docs/HANDBOOK.md` — Platform guide

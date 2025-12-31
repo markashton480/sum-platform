@@ -6,8 +6,8 @@
 - **Component:** leads
 - **Priority:** P0 (Must Land)
 - **Branch:** `feature/leads-v1`
-- **Parent VD:** #TBD
-- **Issue:** #TBD
+- **Parent VD:** #363
+- **Issue:** #365
 
 ---
 
