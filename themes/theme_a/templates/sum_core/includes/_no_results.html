@@ -1,0 +1,25 @@
+{% comment %}
+Name: No Results Message
+Path: themes/theme_a/templates/sum_core/includes/_no_results.html
+Purpose: Display friendly message when blog search returns no results
+{% endcomment %}
+<div class="py-16 text-center">
+  <div class="max-w-md mx-auto">
+    <svg class="w-16 h-16 mx-auto text-sage-moss/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+    <h2 class="mt-6 text-xl font-medium text-sage-black">No posts found</h2>
+    <p class="mt-2 text-sage-black/60">
+      No blog posts matched "{{ query }}". Try different keywords or browse all posts.
+    </p>
+    <a
+      href="{% url 'wagtail_serve' 'blog/' %}"
+      class="inline-flex items-center mt-6 text-sage-moss hover:text-sage-moss/80 font-medium transition"
+    >
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Browse all posts
+    </a>
+  </div>
+</div>
