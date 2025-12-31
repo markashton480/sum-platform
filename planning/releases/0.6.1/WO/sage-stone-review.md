@@ -6,7 +6,7 @@
 
 ## Parent
 
-**Version Declaration:** VD-0.6.1
+**Version Declaration:** #460 (VD-0.6.1)
 **Tracking Issue:** #459
 
 ---
@@ -72,12 +72,12 @@ git push -u origin fix/sage-stone-review
 
 ## Subtasks
 
-| # | Task | Branch | Status |
-|---|------|--------|--------|
-| 1 | WO-SS-001: Complete staging site review | `fix/sage-stone-review/001-site-review` | 🔲 |
-| 2 | WO-SS-002: Fix footer duplication bug | `fix/sage-stone-review/002-footer-fix` | 🔲 |
-| 3 | WO-SS-003: Document findings and create issues | `fix/sage-stone-review/003-document-findings` | 🔲 |
-| 4 | WO-SS-004: Triage and prioritize issues | `fix/sage-stone-review/004-triage-issues` | 🔲 |
+| # | Task | Issue | Branch | Status |
+|---|------|-------|--------|--------|
+| 1 | WO-SS-001: Complete staging site review | #479 | `fix/sage-stone-review/001-site-review` | 🔲 |
+| 2 | WO-SS-002: Fix footer duplication bug | #480 | `fix/sage-stone-review/002-footer-fix` | 🔲 |
+| 3 | WO-SS-003: Document findings and create issues | #481 | `fix/sage-stone-review/003-document-findings` | 🔲 |
+| 4 | WO-SS-004: Triage and prioritize issues | #482 | `fix/sage-stone-review/004-triage-issues` | 🔲 |
 
 **Status:** 🔲 Todo | 🔄 In Progress | ✅ Done
 

@@ -6,8 +6,8 @@
 
 ## Parent
 
-**Work Order:** WO: Theme A Critical Fixes (v0.6.1)
-**Tracking Issue:** #292
+**Work Order:** #461 (WO: Theme A Critical Fixes)
+**Tracking Issue:** #465
 
 ---
 

@@ -6,7 +6,8 @@
 
 ## Parent
 
-**Work Order:** WO: Sage & Stone Deployment Review (v0.6.1)
+**Work Order:** #459 (WO: Sage & Stone Review)
+**Tracking Issue:** #481
 
 ---
 

@@ -6,8 +6,9 @@
 
 ## Parent
 
-**Version Declaration:** VD-0.6.1
-**Tracking Issue:** #292
+**Version Declaration:** #460 (VD-0.6.1)
+**Tracking Issue:** #461
+**Related Issue:** #292 (original Theme A task)
 
 ---
 
@@ -56,12 +57,12 @@ git push -u origin fix/theme-a-critical-issues
 
 ## Subtasks
 
-| # | Task | Branch | Status |
-|---|------|--------|--------|
-| 1 | WO-THEME-001: Audit and document all critical CSS issues | `fix/theme-a-critical-issues/001-audit-issues` | 🔲 |
-| 2 | WO-THEME-002: Fix layout and spacing bugs | `fix/theme-a-critical-issues/002-layout-fixes` | 🔲 |
-| 3 | WO-THEME-003: Fix responsive breakpoint issues | `fix/theme-a-critical-issues/003-responsive-fixes` | 🔲 |
-| 4 | WO-THEME-004: Visual regression testing and QA | `fix/theme-a-critical-issues/004-visual-qa` | 🔲 |
+| # | Task | Issue | Branch | Status |
+|---|------|-------|--------|--------|
+| 1 | WO-THEME-001: Audit and document all critical CSS issues | #463 | `fix/theme-a-critical-issues/001-audit-issues` | 🔲 |
+| 2 | WO-THEME-002: Fix layout and spacing bugs | #464 | `fix/theme-a-critical-issues/002-layout-fixes` | 🔲 |
+| 3 | WO-THEME-003: Fix responsive breakpoint issues | #465 | `fix/theme-a-critical-issues/003-responsive-fixes` | 🔲 |
+| 4 | WO-THEME-004: Visual regression testing and QA | #466 | `fix/theme-a-critical-issues/004-visual-qa` | 🔲 |
 
 **Status:** 🔲 Todo | 🔄 In Progress | ✅ Done
 

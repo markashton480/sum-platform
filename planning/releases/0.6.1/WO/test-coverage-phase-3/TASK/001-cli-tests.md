@@ -6,8 +6,8 @@
 
 ## Parent
 
-**Work Order:** WO: Test Coverage Improvements Phase 3 (v0.6.1)
-**Tracking Issue:** #458
+**Work Order:** #458 (WO: Test Coverage Phase 3)
+**Tracking Issue:** #471
 
 ---
 
