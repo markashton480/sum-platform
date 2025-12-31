@@ -1,0 +1,41 @@
+{% extends "theme/base.html" %}
+{% load wagtailcore_tags %}
+
+{% block content %}
+  <section class="section section--hero relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-b from-sage-linen via-sage-oat/50 to-transparent"></div>
+    <div class="container mx-auto px-6 relative z-10">
+      <div class="max-w-3xl">
+        <h1 class="heading-xl">Search Results</h1>
+        {% if query %}
+          <p class="mt-6 text-body text-sage-black/70">
+            {{ result_count }} result{{ result_count|pluralize }} for "{{ query }}"
+          </p>
+        {% else %}
+          <p class="mt-6 text-body text-sage-black/70">
+            Enter a search term to find blog posts.
+          </p>
+        {% endif %}
+        {% include "sum_core/includes/_search_input.html" %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container mx-auto px-6">
+      {% if results %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {% for post in results %}
+            {% include "sum_core/includes/_post_card.html" with post=post %}
+          {% endfor %}
+        </div>
+      {% elif query %}
+        {% include "sum_core/includes/_no_results.html" %}
+      {% endif %}
+
+      {% if results.has_other_pages %}
+        {% include "sum_core/includes/_pagination.html" with page_obj=results %}
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}
