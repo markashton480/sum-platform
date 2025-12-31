@@ -283,7 +283,7 @@ WO1, WO2, WO3, and WO4 can all proceed in parallel. They have no inter-dependenc
 
 | Document | Updates Needed |
 | -------- | -------------- |
-| `docs/dev/HANDBOOK.md` | Blog search usage, visual regression workflow |
+| `docs/HANDBOOK.md` | Blog search usage, visual regression workflow |
 | `docs/dev/ADMIN-GUIDE.md` | Feature toggles, typography controls |
 | `docs/dev/TESTING.md` | Visual regression testing guide |
 | `docs/dev/LEAD-GUIDE.md` | Lead scoring explanation, dashboard usage |
