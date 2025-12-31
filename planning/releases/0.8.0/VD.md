@@ -66,11 +66,11 @@ Elysian will be used to:
 
 | #   | Work Order                         | Issue   | Branch                           | Status  |
 | --- | ---------------------------------- | ------- | -------------------------------- | ------- |
-| 1   | Blog Search v1                     | #TBD    | `feature/blog-search`            | Planned |
-| 2   | Visual Regression Testing v1       | #TBD    | `feature/visual-regression`      | Planned |
-| 3   | Lead Scoring/Analytics Dashboard   | #TBD    | `feature/lead-analytics`         | Planned |
-| 4   | Admin Control Plane v1             | #TBD    | `feature/admin-control-plane`    | Planned |
-| 5   | Elysian Consumer Site Validation   | #TBD    | `feature/elysian-validation`     | Planned |
+| 1   | Blog Search v1                     | #409    | `feature/blog-search`            | Planned |
+| 2   | Visual Regression Testing v1       | #410    | `feature/visual-regression`      | Planned |
+| 3   | Lead Scoring/Analytics Dashboard   | #411    | `feature/lead-analytics`         | Planned |
+| 4   | Admin Control Plane v1             | #412    | `feature/admin-control-plane`    | Planned |
+| 5   | Elysian Consumer Site Validation   | #413    | `feature/elysian-validation`     | Planned |
 
 ### P1 - If Time Permits (Optional)
 

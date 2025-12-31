@@ -6,8 +6,8 @@
 - **Component:** blocks
 - **Priority:** P0 (Must Land)
 - **Branch:** `feature/internal-linking`
-- **Parent VD:** #TBD
-- **Issue:** #TBD
+- **Parent VD:** #363
+- **Issue:** #366
 
 ---
 
