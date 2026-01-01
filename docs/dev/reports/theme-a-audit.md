@@ -284,8 +284,10 @@ class="... peer-placeholder-shown:text-sage-linen/70 ..."
 
 **Fix**: Use Django template tag:
 ```html
-<form action="{% url 'sum_core:form_submit' %}" method="post" ...>
+<form action="{% url 'form_submit' %}" method="post" ...>
 ```
+
+**Note**: The URL name is `form_submit` (defined in `sum_core/forms/urls.py`), included at `/forms/` without namespace.
 
 **Severity**: P0 (Potential broken functionality)
 
@@ -457,6 +459,8 @@ if (heroImage) {
 
 **Fix**: Migrate all colors to HSL format with branding override variables.
 
+**Architecture Note**: `THEME-ARCHITECTURE-SPECv1.md` Section 5.2 currently documents RGB format. If HSL is adopted as the preferred approach, update the architecture spec to reflect this and document the rationale (HSL is better for theming/branding overrides as H/S/L components can be adjusted independently).
+
 **Severity**: P1 (Branding system consistency)
 
 ---
@@ -623,9 +627,9 @@ Est. {{ site_settings.established_year|default:"2025" }}
 </a>
 ```
 
-**Check Required**: Verify this exists in `base.html` and works correctly.
+**Status**: Skip link EXISTS in `base.html` (lines 42-44). Verify focus styles match wireframe specification.
 
-**Severity**: P2 (Accessibility)
+**Severity**: P2 (Accessibility - verify styling matches)
 
 ---
 
@@ -687,7 +691,9 @@ Est. {{ site_settings.established_year|default:"2025" }}
 **Type**: Compliance
 **Description**: No GDPR cookie consent implementation visible.
 
-**Severity**: P3 (Should be P1 for EU deployment)
+**Severity**: P3 (P1 for EU deployment - see Deployment Notes below)
+
+**Deployment Note**: For EU-targeted deployments, this becomes a legal requirement. Reassess priority based on target market before production launch.
 
 ---
 
@@ -746,11 +752,13 @@ Based on severity and dependencies:
 
 ## Related Documentation
 
-- **Previous Audit**: `docs/dev/reports/FUCKED-THEME.md` (Block template path issue)
+- **Previous Audit**: `docs/dev/reports/FUCKED-THEME.md` (Block template path issue - December 2025)
 - **Theme Architecture**: `docs/dev/master-docs/THEME-ARCHITECTURE-SPECv1.md`
 - **Wireframe Source**: `docs/dev/design/wireframes/sage-and-stone/compiled/`
 - **Issue #292**: Original Theme A fixes task
 - **Work Order #461**: WO: Theme A Critical Fixes
+
+**Terminology Note**: "Theme A" and "Sage & Stone" refer to the same theme implementation. Theme A is the technical identifier; Sage & Stone is the brand/design name used in wireframes and demo content.
 
 ---
 
