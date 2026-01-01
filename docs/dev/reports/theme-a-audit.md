@@ -13,14 +13,102 @@
 
 This audit reviews all Theme A CSS and layout issues to provide a comprehensive fix plan. Issues are categorized by severity (P0-Critical, P1-High, P2-Medium, P3-Low) and type (Layout, Accessibility, Responsive, Typography, Missing Features).
 
-**Total Issues Found**: 22
+**Total Issues Found**: 24 (22 CSS/Layout + 2 Missing Blocks)
 
 | Severity | Count | Description |
 |----------|-------|-------------|
 | P0 - Critical | 3 | Accessibility violations, broken functionality |
-| P1 - High | 5 | Major UX issues, missing core features |
+| P1 - High | 7 | Major UX issues, missing core features, missing blocks |
 | P2 - Medium | 8 | Visual discrepancies, non-critical improvements |
 | P3 - Low | 6 | Minor polish, nice-to-haves |
+
+---
+
+## Missing Wagtail Blocks
+
+The following wireframe sections have no corresponding core block definitions or theme templates:
+
+### Block #1: Provenance Block (P1 - High)
+
+**Wireframe Location**: `index.html` lines 465-524 (`id="provenance"`)
+**Description**: "The Provenance Plate" - A signature experience section showing:
+- Interactive brass plate graphic with maker info
+- GPS coordinates of timber source
+- Completion date
+- Modal popup with detailed artifact dossier
+
+**Current State**:
+- No core block definition exists
+- No theme template exists
+- Wireframe uses inline HTML with hardcoded demo data
+
+**Required Implementation**:
+1. Create `ProvenancePlateBlock` in `core/sum_core/blocks/`
+2. Fields needed:
+   - `eyebrow` (CharBlock)
+   - `heading` (CharBlock)
+   - `intro` (RichTextBlock)
+   - `maker_name` (CharBlock)
+   - `source_location` (CharBlock)
+   - `source_coordinates` (CharBlock)
+   - `completion_date` (DateBlock)
+   - `modal_details` (StructBlock with additional fields)
+3. Create theme template at `themes/theme_a/templates/sum_core/blocks/provenance_plate.html`
+
+**Priority**: P1 (Signature differentiator for Sage & Stone brand)
+
+---
+
+### Block #2: Feature Comparison Block (P2 - Medium)
+
+**Wireframe Implication**: Referenced in core blocks (`ComparisonBlock`) but no theme template.
+
+**Current State**:
+- Core block exists: `ComparisonBlock` in `core/sum_core/blocks/content.py`
+- Theme template missing: No `comparison.html` in Theme A templates
+
+**Required Implementation**:
+1. Create `themes/theme_a/templates/sum_core/blocks/comparison.html`
+2. Style to match Sage & Stone aesthetic
+
+**Priority**: P2 (Core block exists but theme template missing)
+
+---
+
+### Block Coverage Analysis
+
+| Core Block | Theme Template | Status |
+|------------|---------------|--------|
+| `HeroImageBlock` | `hero_image.html` | ✅ Present |
+| `HeroGradientBlock` | `hero_gradient.html` | ✅ Present |
+| `ManifestoBlock` | `manifesto.html` | ✅ Present |
+| `ServiceCardsBlock` | `service_cards.html` | ✅ Present |
+| `ServiceDetailBlock` | `service_detail.html` | ✅ Present |
+| `PortfolioBlock` | `portfolio.html` | ✅ Present |
+| `FeaturedCaseStudyBlock` | `featured_case_study.html` | ✅ Present |
+| `TestimonialsBlock` | `testimonials.html` | ✅ Present |
+| `FAQBlock` | `faq.html` | ✅ Present |
+| `ProcessStepsBlock` | `process_steps.html` | ✅ Present |
+| `StatsBlock` | `stats.html` | ✅ Present |
+| `ContactFormBlock` | `contact_form.html` | ✅ Present |
+| `DynamicFormBlock` | `dynamic_form_block.html` | ✅ Present |
+| `GalleryBlock` | `gallery.html` | ✅ Present |
+| `TimelineBlock` | `timeline.html` | ✅ Present |
+| `TrustStripBlock` | `trust_strip_logos.html` | ✅ Present |
+| `QuoteBlock` | `content_quote.html` | ✅ Present |
+| `SocialProofQuoteBlock` | `content_social_proof_quote.html` | ✅ Present |
+| `RichTextContentBlock` | `content_richtext.html` | ✅ Present |
+| `ImageBlock` | `content_image.html` | ✅ Present |
+| `ButtonGroupBlock` | `content_buttons.html` | ✅ Present |
+| `SpacerBlock` | `content_spacer.html` | ✅ Present |
+| `DividerBlock` | `content_divider.html` | ✅ Present |
+| `PageHeaderBlock` | `page_header.html` | ✅ Present |
+| `EditorialHeaderBlock` | `content_editorial_header.html` | ✅ Present |
+| `TableOfContentsBlock` | `table_of_contents.html` | ✅ Present |
+| `LegalSectionBlock` | `legal_section.html` | ✅ Present |
+| `ComparisonBlock` | ❌ Missing | ⚠️ Need template |
+| `FeaturesListBlock` | ❌ Missing | ⚠️ Need template |
+| N/A (Provenance) | N/A | ❌ Block + template needed |
 
 ---
 
@@ -548,7 +636,28 @@ Based on severity and dependencies:
 | P1 | `themes/theme_a/static/theme_a/css/input.css` | Print styles, form messages |
 | P1 | `themes/theme_a/tailwind/tailwind.config.js` | HSL migration |
 | P1 | `themes/theme_a/templates/theme/includes/header.html` | Mega menu |
+| P1 | `core/sum_core/blocks/` | Create `ProvenancePlateBlock` |
+| P1 | `themes/theme_a/templates/sum_core/blocks/provenance_plate.html` | Create template |
+| P2 | `themes/theme_a/templates/sum_core/blocks/comparison.html` | Create template |
+| P2 | `themes/theme_a/templates/sum_core/blocks/features_list.html` | Create template |
 | P2 | Multiple | Various polish |
+
+---
+
+## Appendix B: Missing Block Templates Summary
+
+Core blocks that exist but lack Theme A templates:
+
+| Block | Core Definition | Required Template |
+|-------|----------------|-------------------|
+| `ComparisonBlock` | `core/sum_core/blocks/content.py` | `comparison.html` |
+| `FeaturesListBlock` | `core/sum_core/blocks/content.py` | `features_list.html` |
+
+Wireframe sections that need new core blocks:
+
+| Section | Wireframe Location | Required Block |
+|---------|-------------------|----------------|
+| Provenance Plate | `index.html#provenance` | `ProvenancePlateBlock` |
 
 ---
 
