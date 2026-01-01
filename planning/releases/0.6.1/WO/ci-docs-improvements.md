@@ -6,8 +6,9 @@
 
 ## Parent
 
-**Version Declaration:** VD-0.6.1
-**Tracking Issues:** #229, #225, #186
+**Version Declaration:** #460 (VD-0.6.1)
+**Tracking Issue:** #462
+**Related Issues:** #229, #225, #186
 
 ---
 
@@ -54,12 +55,12 @@ git push -u origin chore/ci-docs-improvements
 
 ## Subtasks
 
-| # | Task | Branch | Status |
-|---|------|--------|--------|
-| 1 | WO-CI-001: Implement docs-only CI fast-path | `chore/ci-docs-improvements/001-ci-fastpath` | 🔲 |
-| 2 | WO-CI-002: Configure Claude review permissions | `chore/ci-docs-improvements/002-claude-review` | 🔲 |
-| 3 | WO-CI-003: Document Lead.form_data structure | `chore/ci-docs-improvements/003-form-data-docs` | 🔲 |
-| 4 | WO-CI-004: Update developer handbook | `chore/ci-docs-improvements/004-handbook-update` | 🔲 |
+| # | Task | Issue | Branch | Status |
+|---|------|-------|--------|--------|
+| 1 | WO-CI-001: Implement docs-only CI fast-path | #477 | `chore/ci-docs-improvements/001-ci-fastpath` | 🔲 |
+| 2 | WO-CI-002: Configure Claude review permissions | #478 | `chore/ci-docs-improvements/002-claude-review` | 🔲 |
+| 3 | WO-CI-003: Document Lead.form_data structure | #475 | `chore/ci-docs-improvements/003-form-data-docs` | 🔲 |
+| 4 | WO-CI-004: Update developer handbook | #476 | `chore/ci-docs-improvements/004-handbook-update` | 🔲 |
 
 **Status:** 🔲 Todo | 🔄 In Progress | ✅ Done
 

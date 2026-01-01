@@ -6,7 +6,7 @@
 
 ## Parent
 
-**Version Declaration:** VD-0.6.1
+**Version Declaration:** #460 (VD-0.6.1)
 **Tracking Issue:** #457
 
 ---
@@ -55,12 +55,12 @@ git push -u origin feature/cli-publishing
 
 ## Subtasks
 
-| # | Task | Branch | Status |
-|---|------|--------|--------|
-| 1 | WO-CLI-001: Configure PyPI packaging | `feature/cli-publishing/001-pypi-config` | 🔲 |
-| 2 | WO-CLI-002: Test on PyPI Test instance | `feature/cli-publishing/002-pypi-test` | 🔲 |
-| 3 | WO-CLI-003: Update installation documentation | `feature/cli-publishing/003-docs-update` | 🔲 |
-| 4 | WO-CLI-004: Publish to PyPI production | `feature/cli-publishing/004-pypi-publish` | 🔲 |
+| # | Task | Issue | Branch | Status |
+|---|------|-------|--------|--------|
+| 1 | WO-CLI-001: Configure PyPI packaging | #467 | `feature/cli-publishing/001-pypi-config` | 🔲 |
+| 2 | WO-CLI-002: Test on PyPI Test instance | #468 | `feature/cli-publishing/002-pypi-test` | 🔲 |
+| 3 | WO-CLI-003: Update installation documentation | #469 | `feature/cli-publishing/003-docs-update` | 🔲 |
+| 4 | WO-CLI-004: Publish to PyPI production | #470 | `feature/cli-publishing/004-pypi-publish` | 🔲 |
 
 **Status:** 🔲 Todo | 🔄 In Progress | ✅ Done
 

@@ -6,8 +6,9 @@
 
 ## Parent
 
-**Version Declaration:** VD-0.6.1
-**Tracking Issues:** #458, #187, #173
+**Version Declaration:** #460 (VD-0.6.1)
+**Tracking Issue:** #458
+**Related Issues:** #187, #173
 
 ---
 
@@ -54,12 +55,12 @@ git push -u origin test/coverage-phase-3
 
 ## Subtasks
 
-| # | Task | Branch | Status |
-|---|------|--------|--------|
-| 1 | WO-TEST-001: CLI scaffold_project unit tests | `test/coverage-phase-3/001-cli-tests` | 🔲 |
-| 2 | WO-TEST-002: Complete BLOG-016 test improvements | `test/coverage-phase-3/002-blog-tests` | 🔲 |
-| 3 | WO-TEST-003: Seeder profile and --clear tests | `test/coverage-phase-3/003-seeder-tests` | 🔲 |
-| 4 | WO-TEST-004: Coverage verification and reporting | `test/coverage-phase-3/004-coverage-report` | 🔲 |
+| # | Task | Issue | Branch | Status |
+|---|------|-------|--------|--------|
+| 1 | WO-TEST-001: CLI scaffold_project unit tests | #471 | `test/coverage-phase-3/001-cli-tests` | 🔲 |
+| 2 | WO-TEST-002: Complete BLOG-016 test improvements | #472 | `test/coverage-phase-3/002-blog-tests` | 🔲 |
+| 3 | WO-TEST-003: Seeder profile and --clear tests | #473 | `test/coverage-phase-3/003-seeder-tests` | 🔲 |
+| 4 | WO-TEST-004: Coverage verification and reporting | #474 | `test/coverage-phase-3/004-coverage-report` | 🔲 |
 
 **Status:** 🔲 Todo | 🔄 In Progress | ✅ Done
 
