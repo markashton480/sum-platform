@@ -254,10 +254,11 @@ class="... text-sage-linen/40 ..."
 class="... peer-placeholder-shown:text-sage-linen/50 ..."
 ```
 
-**Contrast Check**:
+**Contrast Check** (WCAG 2.1 Level AA):
 - Background: `#1A2F23` (sage-black)
-- Label color at 40% opacity: Fails 4.5:1 minimum
-- Label color at 50% opacity: Fails 4.5:1 minimum
+- Label color at 40% opacity: Fails 4.5:1 minimum for normal text
+- Label color at 50% opacity: Fails 4.5:1 minimum for normal text
+- Note: Form labels are normal text size, requiring 4.5:1 ratio (3:1 only applies to large text ≥18pt or bold ≥14pt)
 
 **Fix**: Increase opacity to 60% or higher:
 ```html
@@ -304,7 +305,7 @@ class="... peer-placeholder-shown:text-sage-linen/70 ..."
 const heroImage = document.getElementById('hero-image');
 if (heroImage) {
     window.addEventListener('scroll', () => {
-        const scrollPosition = window.pageYOffset;
+        const scrollPosition = window.scrollY; // Note: pageYOffset is deprecated
         if (scrollPosition < 1200) {
             heroImage.style.transform = `translateY(${scrollPosition * 0.4}px)`;
         }
@@ -404,8 +405,9 @@ if (heroImage) {
 
 **Description**: No `@media print` styles defined. Legal pages and content should print cleanly without interactive elements.
 
-**Required**:
+**Required** (add to `input.css` after `@tailwind utilities`):
 ```css
+/* Print styles - place after @tailwind directives in input.css */
 @media print {
   #main-header,
   footer,
@@ -580,19 +582,21 @@ Est. {{ site_settings.established_year|default:"2025" }}
 
 **Missing CSS**: No `.form-messages--success`, `.form-messages--error`, `.form-success-msg`, `.form-error-msg` styles defined.
 
-**Fix**: Add to `input.css`:
+**Fix**: Add to `input.css` within `@layer components`:
 ```css
-.form-messages--success {
-  @apply p-4 bg-sage-moss/20 border border-sage-moss/40 rounded-sm mt-4;
-}
-.form-messages--error {
-  @apply p-4 bg-sage-terra/20 border border-sage-terra/40 rounded-sm mt-4;
-}
-.form-success-msg {
-  @apply text-sage-moss font-mono text-sm uppercase tracking-widest;
-}
-.form-error-msg {
-  @apply text-sage-terra font-mono text-sm uppercase tracking-widest;
+@layer components {
+  .form-messages--success {
+    @apply p-4 bg-sage-moss/20 border border-sage-moss/40 rounded-sm mt-4;
+  }
+  .form-messages--error {
+    @apply p-4 bg-sage-terra/20 border border-sage-terra/40 rounded-sm mt-4;
+  }
+  .form-success-msg {
+    @apply text-sage-moss font-mono text-sm uppercase tracking-widest;
+  }
+  .form-error-msg {
+    @apply text-sage-terra font-mono text-sm uppercase tracking-widest;
+  }
 }
 ```
 
