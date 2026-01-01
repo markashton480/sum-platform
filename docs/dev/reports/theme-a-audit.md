@@ -13,14 +13,142 @@
 
 This audit reviews all Theme A CSS and layout issues to provide a comprehensive fix plan. Issues are categorized by severity (P0-Critical, P1-High, P2-Medium, P3-Low) and type (Layout, Accessibility, Responsive, Typography, Missing Features).
 
-**Total Issues Found**: 24 (22 CSS/Layout + 2 Missing Blocks)
+**Total Issues Found**: 28
 
 | Severity | Count | Description |
 |----------|-------|-------------|
 | P0 - Critical | 3 | Accessibility violations, broken functionality |
-| P1 - High | 7 | Major UX issues, missing core features, missing blocks |
-| P2 - Medium | 8 | Visual discrepancies, non-critical improvements |
+| P1 - High | 10 | Block violations, missing blocks, major UX issues |
+| P2 - Medium | 9 | Visual discrepancies, template mismatches |
 | P3 - Low | 6 | Minor polish, nice-to-haves |
+
+**Key Categories**:
+- Block Usage Violations: 4 issues (blocks used incorrectly vs wireframe)
+- Missing Wagtail Blocks: 3 issues (blocks/templates not created)
+- CSS/Layout Issues: 22 issues (styling, accessibility, responsive)
+
+---
+
+## Block Usage Violations
+
+The live site uses blocks in ways that **do not match the wireframe**. This creates visual inconsistency and content duplication.
+
+### Wireframe Home Page Block Structure
+
+The wireframe (`index.html`) defines this exact block sequence:
+
+| Order | Section | Block Type | Count |
+|-------|---------|------------|-------|
+| 1 | Hero | HeroImageBlock | 1 |
+| 2 | Operational Proof Strip | StatsBlock | 1 |
+| 3 | Manifesto | ManifestoBlock | 1 |
+| 4 | Services | ServiceCardsBlock | 1 |
+| 5 | Provenance | ProvenancePlateBlock (missing) | 1 |
+| 6 | Portfolio | PortfolioBlock | 1 |
+| 7 | Featured Story | FeaturedCaseStudyBlock | 1 |
+| 8 | FAQ | FAQBlock | 1 |
+| 9 | Contact | ContactFormBlock | 1 |
+
+### Violation #1: StatsBlock Used Multiple Times (P1)
+
+**Wireframe**: ONE stats strip ("Operational Proof Strip") with 4 items:
+- Capacity: 12 Commissions/Year
+- Timeline: 12-16 Week Build
+- Origin: Workshop: Herefordshire
+- Promise: Lifetime Joinery Guarantee
+
+**Live Site**: Appears to have TWO stats sections:
+1. Stats strip after hero (correct)
+2. "247 Kitchens completed" social proof (NOT in wireframe)
+
+**Issue**: StatsBlock being used twice when wireframe only has one.
+
+**Fix**: Remove the second stats block OR convert to a different block type that matches wireframe intent.
+
+---
+
+### Violation #2: TestimonialsBlock on Home Page (P1)
+
+**Wireframe**: NO dedicated testimonials block on home page. The only quote appears INSIDE the Featured Case Study section ("Sage & Stone didn't just build a kitchen...").
+
+**Live Site**: Appears to have a separate "Testimonial" section with "Sarah M."
+
+**Issue**: TestimonialsBlock being used on home page when wireframe doesn't include it. The wireframe integrates testimonial content into the FeaturedCaseStudyBlock.
+
+**Fix**: Remove TestimonialsBlock from home page. Testimonial-style quote should be part of FeaturedCaseStudyBlock only.
+
+---
+
+### Violation #3: FeaturedCaseStudyBlock Template Mismatch (P1)
+
+**Wireframe Structure** (`index.html` lines 593-651):
+```
+- Quote icon (SVG)
+- Large blockquote: "Sage & Stone didn't just build a kitchen..."
+- Challenge section (border-left, terra accent)
+- Outcome section (border-left, terra accent)
+- Client attribution: "Eleanor & James, Haslemere, UK"
+- "View Full Case Study" CTA
+```
+
+**Current Template** (`featured_case_study.html`):
+```
+- Stats card overlay (stats_label, stats_value)
+- Eyebrow text
+- Heading (richtext)
+- Intro (richtext)
+- Points list (ordered list)
+- CTA link
+```
+
+**Missing Elements**:
+- Large blockquote quote
+- Challenge/Outcome structure with border-left styling
+- Quote icon SVG
+- Client name with location (cite element)
+
+**Current Template Has Elements NOT in Wireframe**:
+- Stats card overlay
+- Points list (ordered list)
+
+**Fix**: Redesign FeaturedCaseStudyBlock to match wireframe. Add:
+- `quote` (TextBlock)
+- `challenge` (TextBlock)
+- `outcome` (TextBlock)
+- `client_name` (CharBlock)
+- `client_location` (CharBlock)
+
+---
+
+### Violation #4: SocialProofQuoteBlock Placement (P2)
+
+**Wireframe**: No standalone quote block on home page.
+
+**Current Template**: `content_social_proof_quote.html` renders a prominent quote with author/company/logo.
+
+**Issue**: If this block is used on home page, it duplicates content that should be in FeaturedCaseStudyBlock.
+
+**Fix**: Reserve SocialProofQuoteBlock for inner pages only (Services, About).
+
+---
+
+### Block Placement Rules (Derived from Wireframe)
+
+| Block | Home Page | Services | About | Portfolio |
+|-------|-----------|----------|-------|-----------|
+| HeroImageBlock | ✅ 1x | ✅ 1x | ✅ 1x | ✅ 1x |
+| StatsBlock | ✅ 1x | ✅ 1x | ❌ | ❌ |
+| ManifestoBlock | ✅ 1x | ❌ | ❌ | ❌ |
+| ServiceCardsBlock | ✅ 1x | ✅ detailed | ❌ | ❌ |
+| ProvenancePlateBlock | ✅ 1x | ❌ | ❌ | ❌ |
+| PortfolioBlock | ✅ 1x | ❌ | ❌ | ✅ full list |
+| FeaturedCaseStudyBlock | ✅ 1x | ❌ | ❌ | ❌ |
+| TestimonialsBlock | ❌ | ❌ | ❌ | ❌ |
+| FAQBlock | ✅ 1x | ✅ 1x | ❌ | ❌ |
+| ContactFormBlock | ✅ 1x | ✅ 1x | ✅ 1x | ❌ |
+| SocialProofQuoteBlock | ❌ | ✅ | ✅ | ❌ |
+| ProcessStepsBlock | ❌ | ✅ 1x | ❌ | ❌ |
+| TeamMembersBlock | ❌ | ❌ | ✅ 1x | ❌ |
 
 ---
 
