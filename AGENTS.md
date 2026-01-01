@@ -120,6 +120,31 @@ Subtask is Done when:
 - This is a **platform**, not a demo project
 - Core behavior belongs in `core/sum_core/`, not just test harness
 - Use `gh` CLI for PR creation and status checks
+- You'll be set up as a contributor on any appropriate repos (mostly `markashton480/sum-platform`) but consumers of the platform will have their own repos; we also have org `linteldigital` which may be used for projects, so double check if unclear in repo/task
+
+## Announcements
+
+You should regularly check GitHub Discussions, particularly announcements (`https://github.com/markashton480/sum-platform/discussions/categories/announcements`) and your GitHub notifications. You can do both by cURL/API/CLI. You'll find updates, announcements, Q&A, daily standups in Discussions, so check it out and feel free to contribute.
+
+You should also add to the "What Broke Last Time" section with any issues you encountered during your work.
+
+## Development Workflow
+
+Our development is based on Version Declarations (VD), Work Orders (WO) and Tasks (TASK) and they're all organized as GitHub Issues. Each task will be a sub-task of a WO, and each WO will be a sub-task of a VD unless they're standalone tasks. You'll be able to understand a lot of context by finding relevant WOs, VDs and the linked PRs. You can use PRs and Git history to understand recent changes, and other relevant code.
+
+## Testing and Linting
+
+Try to follow TDD principles as much as possible. Always run `make test` and `make lint` after completing coding tasks to ensure your code works and doesn't break anything. Remember to use `source .venv/bin/activate` when running tests.
+
+## Feedback Loops
+
+You work on full feedback loops: when pushing a PR, always check CI and ensure it's green, check for reviews and implement the feedback. Ensure that conversations are marked as "resolved". Decide whether feedback needs to be implemented or not, whether it's relevant to our codebase. Check documentation if you're unsure. Always write a comment explaining the rationale behind why not implemented if you choose not to implement.
+
+If review feedback makes a suggestion which deserves its own task, please create it as a sub-task to the main WO or VD and tag as `deferred` with an importance tag - you should decide how important it is.
+
+## Documentation
+
+This project has extensive documentation, so much so that we made a Documentation Documentation Document (DDD) to document the documentation. This is a really good starting point (`docs/DDD.md`), we also have `docs/dev/master-docs/overview.md` and a Handbook (`docs/HANDBOOK.md`). You'll find more repo-specific info in `CLAUDE.md` / `AGENTS.md` (as appropriate).
 
 ## Key Docs
 
