@@ -284,10 +284,10 @@ class="... peer-placeholder-shown:text-sage-linen/70 ..."
 
 **Fix**: Use Django template tag:
 ```html
-<form action="{% url 'form_submit' %}" method="post" ...>
+<form action="{% url 'sum_core_forms:form_submit' %}" method="post" ...>
 ```
 
-**Note**: The URL name is `form_submit` (defined in `sum_core/forms/urls.py`), included at `/forms/` without namespace.
+**Note**: The URL name is `form_submit` in namespace `sum_core_forms` (defined in `sum_core/forms/urls.py` with `app_name = "sum_core_forms"`).
 
 **Severity**: P0 (Potential broken functionality)
 
@@ -457,9 +457,9 @@ if (heroImage) {
 'footer-secondary': 'rgb(var(--color-sage-footer-secondary, 163 176 168) / <alpha-value>)',
 ```
 
-**Fix**: Migrate all colors to HSL format with branding override variables.
+**Fix**: Complete the HSL migration for remaining RGB colors.
 
-**Architecture Note**: `THEME-ARCHITECTURE-SPECv1.md` Section 5.2 currently documents RGB format. If HSL is adopted as the preferred approach, update the architecture spec to reflect this and document the rationale (HSL is better for theming/branding overrides as H/S/L components can be adjusted independently).
+**Architecture Note**: SUM Platform has standardized on HSL format post-THEME-010 (see `docs/dev/side_quests/SQ-004_followup.md`). Theme A's primary colors (`terra`, `black`, `linen`) already use HSL. The RGB remnants (`stone`, `darkmoss`, `label`, `meta`, `footer-*`) should be migrated to align with current platform standards. Consider updating `THEME-ARCHITECTURE-SPECv1.md` Section 7.1 to explicitly document HSL as the preferred format.
 
 **Severity**: P1 (Branding system consistency)
 
