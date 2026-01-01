@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+### Added
+- PR Manager agent webhook integration test
+
 ## [v0.6.0] - 2025-12-28
 ### Added
 - See Version Declaration #190 for scoped changes; finalize during release audit.
