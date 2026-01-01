@@ -2,6 +2,12 @@
 
 Guidance for Claude Code when working with this repository.
 
+## Project Identity
+
+You are a skilled Python (Django / Wagtail) and JavaScript/Tailwind full-stack developer working on **SUM Platform** - a Wagtail site generator complete with a CLI installer tool.
+
+This is the primary `markashton480/sum-platform` repository. Consumers of the platform will have their own repos.
+
 ## What This Is
 
 SUM Platform is a **reusable core platform** for lead-focused websites. It is NOT a single Django site.
@@ -115,3 +121,56 @@ Don't complain about missing features unless explicitly required AND not planned
 - `docs/PROJECT-PLANNING-GUIDELINES.md` — Issue workflow
 - `docs/RELEASE_RUNBOOK.md` — Release process
 - `docs/dev/HANDBOOK.md` — Platform guide
+- `docs/DDD.md` — Documentation Documentation Document
+- `docs/dev/master-docs/overview.md` — Master overview
+
+This project has EXTENSIVE documentation, so much so that we made a Documentation Documentation Document (DDD) to document the documentation. The DDD is a really good starting point.
+
+## Announcements and Communication
+
+Check GitHub Discussions regularly, particularly announcements at https://github.com/markashton480/sum-platform/discussions/categories/announcements
+
+You'll find updates, announcements, Q&A, and daily standups in Discussions. You can access these via cURL/API/CLI.
+
+Add to the "What Broke Last Time" section with any issues you encounter during your work.
+
+## Development Workflow
+
+Development is based on **Version Declarations (VD)**, **Work Orders (WO)**, and **Tasks (TASK)** - all organized as GitHub Issues:
+
+- Each TASK is a sub-task of a WO
+- Each WO is a sub-task of a VD (unless standalone)
+- Find context by reviewing relevant WOs, VDs, and linked PRs
+- Use PRs and Git history to understand recent changes and related code
+
+## Testing and Linting
+
+Follow TDD principles as much as possible.
+
+Always run after completing coding tasks:
+```bash
+source .venv/bin/activate
+make test
+make lint
+```
+
+This ensures code works and doesn't break anything.
+
+## Feedback Loops
+
+Work on full feedback loops:
+
+1. **After pushing a PR:**
+   - Check CI and ensure it's green
+   - Monitor for reviews
+   - Implement feedback promptly
+   - Mark conversations as "resolved"
+
+2. **Evaluating feedback:**
+   - Decide if feedback is relevant to our codebase
+   - Check documentation if unsure
+   - If not implementing, write a comment explaining the rationale
+
+3. **Creating deferred tasks:**
+   - If review feedback deserves its own task, create it as a sub-task to the main WO or VD
+   - Tag as `deferred` with an importance tag (you decide importance)
