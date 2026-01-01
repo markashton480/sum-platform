@@ -26,7 +26,7 @@
 
 v0.6.1 is a focused PATCH release that stabilizes v0.6.0 by addressing critical Theme A issues, publishing CLI v2, improving test coverage, enhancing CI workflows, filling documentation gaps, and reviewing the initial Sage & Stone deployment. This release contains **no new features** - only fixes, improvements, and technical debt reduction.
 
-The release is composed of five Work Orders: **Theme A Critical Fixes** (tracking #292), **CLI v2 Publishing & Distribution** (tracking #457), **Test Coverage Improvements** (tracking #458, #187, #173), **CI & Documentation Enhancements** (tracking #229, #225, #186), and **Sage & Stone Deployment Review** (tracking #459).
+The release is composed of five Work Orders: **Theme A Critical Fixes** (WO #461, related: #292), **CLI v2 Publishing & Distribution** (WO #457), **Test Coverage Improvements** (WO #458, related: #187, #173), **CI & Documentation Enhancements** (WO #462, related: #229, #225, #186), and **Sage & Stone Deployment Review** (WO #459).
 
 ### What This Version IS NOT
 
