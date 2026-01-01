@@ -6,7 +6,7 @@
 
 ## Parent
 
-**Work Order:** #462 (WO: CI & Documentation Enhancements)
+**Work Order:** #462 (WO: CI & Docs Improvements)
 **Tracking Issue:** #477
 **Related Issue:** #229
 

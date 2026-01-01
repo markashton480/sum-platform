@@ -50,7 +50,7 @@ List all features planned for this version. Each becomes a Work Order issue.
 | 1   | Theme A Critical Fixes               | #461: WO: Theme A Critical Fixes (v0.6.1)       | `fix/theme-a-critical-issues`   | 🔲 Todo |
 | 2   | CLI v2 Publishing & Distribution     | #457: WO: CLI v2 Publishing (v0.6.1)            | `feature/cli-publishing`        | 🔲 Todo |
 | 3   | Test Coverage Improvements           | #458: WO: Test Coverage Phase 3 (v0.6.1)        | `test/coverage-phase-3`         | 🔲 Todo |
-| 4   | CI & Documentation Enhancements      | #462: WO: CI & Documentation Enhancements (v0.6.1) | `chore/ci-docs-improvements`    | 🔲 Todo |
+| 4   | CI & Documentation Enhancements      | #462: WO: CI & Docs Improvements (v0.6.1)       | `chore/ci-docs-improvements`    | 🔲 Todo |
 | 5   | Sage & Stone Deployment Review       | #459: WO: Sage & Stone Review (v0.6.1)          | `fix/sage-stone-review`         | 🔲 Todo |
 
 **Status Legend:** 🔲 Todo | 🔄 In Progress | ✅ Done | ⏸️ Deferred
