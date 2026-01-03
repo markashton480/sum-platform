@@ -171,9 +171,9 @@ def test_seed_sage_stone_clear_rebuilds_site(
 @pytest.mark.django_db
 def test_placeholder_image_generation(wagtail_default_site: Site) -> None:
     module = _load_seed_module()
-    generator = module.PlaceholderImageGenerator()
+    manager = module.ImageManager(prefix=module.IMAGE_PREFIX)
 
-    img = generator.generate_image("TEST", 800, 600)
+    img = manager.generate("TEST", 800, 600)
 
     assert img.title == f"{module.IMAGE_PREFIX}_TEST"
     assert img.width == 800
@@ -183,10 +183,10 @@ def test_placeholder_image_generation(wagtail_default_site: Site) -> None:
 @pytest.mark.django_db
 def test_placeholder_image_generation_idempotent(wagtail_default_site: Site) -> None:
     module = _load_seed_module()
-    generator = module.PlaceholderImageGenerator()
+    manager = module.ImageManager(prefix=module.IMAGE_PREFIX)
 
-    first = generator.generate_image("TEST", 800, 600)
-    second = generator.generate_image("TEST", 800, 600)
+    first = manager.generate("TEST", 800, 600)
+    second = manager.generate("TEST", 800, 600)
 
     assert first.pk == second.pk
 

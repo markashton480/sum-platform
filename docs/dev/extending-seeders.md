@@ -130,21 +130,21 @@ def _configure_navigation(self, site: Site, home_page: Page) -> None:
 
 ## Image Generation
 
-### Placeholder Image Generator
+### Image Manager
 
 Use Pillow to generate branded placeholder images:
 
 ```python
-class PlaceholderImageGenerator:
+class ImageManager:
     def __init__(self, prefix: str = IMAGE_PREFIX) -> None:
         self.prefix = prefix
-        self.colors = {
+        self.palette = {
             "primary": "#1A2F23",
             "secondary": "#4A6350",
             "accent": "#A0563B",
         }
 
-    def generate_image(
+    def generate(
         self,
         key: str,
         width: int,
@@ -160,7 +160,7 @@ class PlaceholderImageGenerator:
             return existing
 
         # Create with Pillow
-        bg = self.colors.get(bg_color, bg_color)
+        bg = self.palette.get(bg_color, bg_color)
         img = PILImage.new("RGB", (width, height), bg)
 
         # Add label text if provided
@@ -191,10 +191,8 @@ IMAGE_MANIFEST = [
 ]
 
 def create_images(self) -> dict[str, Image]:
-    images = {}
-    for spec in IMAGE_MANIFEST:
-        images[spec["key"]] = self.generator.generate_image(**spec)
-    return images
+    manager = ImageManager(prefix=IMAGE_PREFIX)
+    return manager.generate_manifest(IMAGE_MANIFEST)
 ```
 
 ## Content Configuration
