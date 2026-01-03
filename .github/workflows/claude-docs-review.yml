@@ -108,14 +108,50 @@ jobs:
 
             You may write small scripts (python/bash) to validate links if useful.
 
-            ## Step 5: Post One Comment to the PR
+            ## Step 5: Submit Review
 
-            Post a single PR comment (NOT a blocking review) using:
+            Based on your findings, determine the appropriate verdict:
+
+            - **APPROVE:** Documentation is accurate, coherent, no contradictions
+            - **REQUEST_CHANGES:** Has contradictions, broken links, or significant inaccuracies
+            - **COMMENT:** Minor suggestions only, doesn't block merge
+
+            **IMPORTANT:** Do NOT approve with caveats. Either it's clean (APPROVE) or it needs work (REQUEST_CHANGES).
+
+            ### Option A: Simple review (no inline comments needed)
+
             ```bash
-            gh pr comment ${{ github.event.pull_request.number }} --body "<MARKDOWN>"
+            # For APPROVE:
+            gh pr review ${{ github.event.pull_request.number }} --approve --body "$REVIEW"
+
+            # For REQUEST_CHANGES:
+            gh pr review ${{ github.event.pull_request.number }} --request-changes --body "$REVIEW"
+
+            # For COMMENT (suggestions only):
+            gh pr review ${{ github.event.pull_request.number }} --comment --body "$REVIEW"
             ```
 
-            Use this format:
+            ### Option B: Review with inline comments (when specific lines need feedback)
+
+            ```bash
+            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+              --method POST \
+              -f body="$REVIEW_SUMMARY" \
+              -f event="APPROVE|REQUEST_CHANGES|COMMENT" \
+              -f comments="$INLINE_COMMENTS_JSON"
+            ```
+
+            Where `INLINE_COMMENTS_JSON` is:
+            ```json
+            [
+              {"path": "docs/file.md", "position": 15, "body": "This contradicts docs/other.md line 42"},
+              {"path": "docs/file.md", "position": 30, "body": "Broken link: ./missing.md doesn't exist"}
+            ]
+            ```
+
+            Use inline comments when pointing to specific contradictions or broken links.
+
+            ### Review Format
 
             ```markdown
             ## 📚 Claude Docs Review
@@ -127,10 +163,13 @@ jobs:
             - ...
 
             ### ⚠️ Issues
-            **Important**
+            **🚫 Blocker** (must fix before merge)
             - ...
 
-            **Suggestion**
+            **⚠️ Important** (should fix)
+            - ...
+
+            **📝 Suggestion** (consider)
             - ...
 
             ### 🔁 Cross-Doc Consistency
@@ -142,10 +181,11 @@ jobs:
             - [ ] Update `docs/...` to align wording about X
             - [ ] Add a short example for Y
 
-            ### Notes
-            - <anything else>
+            ---
+
+            **Verdict:** APPROVE ✅ / REQUEST CHANGES ❌ / COMMENT 💬
             ```
 
             Be concrete: file names, exact terms, and proposed wording.
 
-          claude_args: '--allowedTools Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(test:*),Bash(ls:*),Bash(python:*),Bash(sed:*),Bash(awk:*),View'
+          claude_args: '--allowedTools Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(gh api:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(test:*),Bash(ls:*),Bash(python:*),Bash(sed:*),Bash(awk:*),View'
