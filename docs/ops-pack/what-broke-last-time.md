@@ -46,6 +46,16 @@
 
 ## Site: sum-platform (Core)
 
+**Date:** 2026-01-03  
+**Version:** v0.7.1-dev  
+**Symptom:** `make lint` failed locally with `make: mypy: No such file or directory`, and `make test` failed with `/usr/bin/python: No module named pytest`.  
+**Fix:** Install dev dependencies (e.g., `make install-dev`) and ensure the `.venv` is active before running lint/tests.  
+**Follow-up:** Add a quick environment check in onboarding docs or Make targets to confirm `mypy`/`pytest` are installed.
+
+---
+
+## Site: sum-platform (Core)
+
 **Date:** 2025-12-25
 **Version:** v0.7.1-dev
 **Symptom:** `make format` rewrote files inside `.venv/`. This started after `fix(THEME-016-A)` (commit `8bc2a00b`) changed `format` to `black --exclude '(?:^|/)(boilerplate|clients)/' .` + `isort .`. Passing `--exclude` overrides Black's default excludes (including `.venv`), so running at repo root started touching dot-directories.
