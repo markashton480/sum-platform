@@ -1,6 +1,65 @@
-.PHONY: help lint test test-integration test-full test-e2e test-cli test-themes test-templates test-fast verify-source-intact format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref preflight
+.PHONY: help lint typecheck test test-integration test-full test-e2e test-cli test-themes test-templates test-fast verify-source-intact format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref preflight
 
 MANAGE = python core/sum_core/test_project/manage.py
+PYREFLY_REPLACE_IMPORTS = \
+	--replace-imports-with-any django \
+	--replace-imports-with-any django.apps \
+	--replace-imports-with-any django.conf \
+	--replace-imports-with-any django.contrib \
+	--replace-imports-with-any django.contrib.admin.utils \
+	--replace-imports-with-any django.contrib.auth.models \
+	--replace-imports-with-any django.contrib.contenttypes.models \
+	--replace-imports-with-any django.core \
+	--replace-imports-with-any django.core.cache \
+	--replace-imports-with-any django.core.exceptions \
+	--replace-imports-with-any django.core.files.storage \
+	--replace-imports-with-any django.core.files.uploadedfile \
+	--replace-imports-with-any django.core.mail \
+	--replace-imports-with-any django.core.validators \
+	--replace-imports-with-any django.db \
+	--replace-imports-with-any django.db.models \
+	--replace-imports-with-any django.db.models.functions \
+	--replace-imports-with-any django.db.models.signals \
+	--replace-imports-with-any django.dispatch \
+	--replace-imports-with-any django.http \
+	--replace-imports-with-any django.shortcuts \
+	--replace-imports-with-any django.template \
+	--replace-imports-with-any django.template.loader \
+	--replace-imports-with-any django.urls \
+	--replace-imports-with-any django.utils \
+	--replace-imports-with-any django.utils.decorators \
+	--replace-imports-with-any django.utils.functional \
+	--replace-imports-with-any django.utils.html \
+	--replace-imports-with-any django.utils.safestring \
+	--replace-imports-with-any django.utils.text \
+	--replace-imports-with-any django.views \
+	--replace-imports-with-any django.views.decorators.csrf \
+	--replace-imports-with-any django.views.decorators.http \
+	--replace-imports-with-any wagtail \
+	--replace-imports-with-any wagtail.admin.forms.models \
+	--replace-imports-with-any wagtail.admin.panels \
+	--replace-imports-with-any wagtail.admin.ui.tables \
+	--replace-imports-with-any wagtail.admin.views \
+	--replace-imports-with-any wagtail.admin.viewsets.model \
+	--replace-imports-with-any wagtail.blocks \
+	--replace-imports-with-any wagtail.blocks.stream_block \
+	--replace-imports-with-any wagtail.contrib.settings.models \
+	--replace-imports-with-any wagtail.fields \
+	--replace-imports-with-any wagtail.images.blocks \
+	--replace-imports-with-any wagtail.images.widgets \
+	--replace-imports-with-any wagtail.models \
+	--replace-imports-with-any wagtail.permissions \
+	--replace-imports-with-any wagtail.signals \
+	--replace-imports-with-any wagtail.snippets.action_menu \
+	--replace-imports-with-any wagtail.snippets.blocks \
+	--replace-imports-with-any wagtail.snippets.models \
+	--replace-imports-with-any wagtail.snippets.permissions \
+	--replace-imports-with-any wagtail.snippets.views.chooser \
+	--replace-imports-with-any wagtail.snippets.views.snippets
+PYREFLY_IGNORES = \
+	--ignore missing-attribute \
+	--ignore bad-override \
+	--ignore not-callable
 
 help: ## Show this help message
 	@echo "Available targets:"
@@ -17,9 +76,25 @@ install-dev:
 
 lint: ## Run all linting and typechecking (strict)
 	ruff check . --config pyproject.toml
-	mypy core cli tests
+	$(MAKE) typecheck
 	black --check --config pyproject.toml core cli tests
 	isort --settings-path pyproject.toml --check-only core cli tests
+
+typecheck: ## Run targeted Pyrefly type checking
+	pyrefly check \
+		--search-path core \
+		--search-path cli \
+		$(PYREFLY_REPLACE_IMPORTS) \
+		$(PYREFLY_IGNORES) \
+		seeders/ \
+		core/sum_core/blocks/ \
+		core/sum_core/forms/ \
+		core/sum_core/leads/ \
+		core/sum_core/navigation/ \
+		core/sum_core/branding/ \
+		cli/sum_cli/commands/ \
+		--project-excludes '**/migrations/*' \
+		--project-excludes '**/test_project/*'
 
 lint-strict: lint
 
