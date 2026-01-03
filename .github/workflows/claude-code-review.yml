@@ -41,6 +41,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
             # STRATEGIC CODE REVIEW
 
@@ -217,21 +218,13 @@ jobs:
 
             ### Using Inline Comments (Optional)
 
-            When a specific finding needs to be tied to a specific line of code for clarity,
-            use the GitHub API to submit inline comments:
+            When a specific finding needs to be tied to a specific line of code, use the MCP inline comment tool:
 
-            ```bash
-            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
-              --method POST \
-              -f body="$REVIEW_SUMMARY" \
-              -f event="$EVENT" \
-              -f comments="$INLINE_COMMENTS_JSON"
+            ```
+            mcp__github_inline_comment__create_inline_comment
             ```
 
-            Where `INLINE_COMMENTS_JSON` is an array like:
-            ```json
-            [{"path": "path/to/file.py", "position": 10, "body": "This import doesn't exist"}]
-            ```
+            This creates comments directly on the relevant lines in the PR diff.
 
             **Use inline comments when:**
             - Pointing out a specific hallucinated import/API
@@ -315,4 +308,4 @@ jobs:
 
             If no issues found, keep review brief: checks passed, approved.
 
-          claude_args: '--allowedTools Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(gh api:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(echo:*),View'
+          claude_args: '--allowedTools mcp__github_inline_comment__create_inline_comment,Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(grep:*),Bash(cat:*),Bash(find:*),View'
