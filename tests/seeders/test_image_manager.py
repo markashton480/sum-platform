@@ -10,7 +10,7 @@ import pytest
 from wagtail.images.models import Image
 from wagtail.models import Site
 
-from seeders.images import ImageManager
+from seeders.images import ImageManager, ImageSpec
 
 
 @pytest.mark.django_db
@@ -39,7 +39,7 @@ def test_image_manager_idempotent(wagtail_default_site: Site) -> None:
 def test_image_manager_manifest_generation(wagtail_default_site: Site) -> None:
     manager = ImageManager(prefix="TEST")
 
-    manifest = [
+    manifest: list[ImageSpec] = [
         {"key": "ONE", "width": 120, "height": 90, "bg": "sage_black"},
         {"key": "TWO", "width": 140, "height": 100, "label": "Second"},
     ]

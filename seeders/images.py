@@ -439,7 +439,11 @@ class ImageManager:
         trimmed = value.lstrip("#")
         if len(trimmed) == 3:
             trimmed = "".join(ch * 2 for ch in trimmed)
-        return tuple(int(trimmed[i : i + 2], 16) for i in (0, 2, 4))
+        return (
+            int(trimmed[0:2], 16),
+            int(trimmed[2:4], 16),
+            int(trimmed[4:6], 16),
+        )
 
     def _get_placeholder_font(
         self, size: int
