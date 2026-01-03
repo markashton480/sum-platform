@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "sum-core"
-version = "0.6.0"
-description = "SUM core package and tooling (platform monorepo)"
+name = "sum-platform"
+version = "0.7.1-dev"
+description = "SUM Platform development monorepo"
 requires-python = ">=3.12"
 dependencies = []
 
@@ -100,6 +100,8 @@ python_functions = ["test_*"]
 addopts = [
     "--strict-markers",
     "--strict-config",
+    "-m",
+    "not slow and not integration",
     "--verbose",
     "--cov=.",
     "--cov-report=term-missing",

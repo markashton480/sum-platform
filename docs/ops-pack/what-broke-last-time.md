@@ -46,6 +46,26 @@
 
 ## Site: sum-platform (Core)
 
+**Date:** 2026-01-03  
+**Version:** v0.7.1-dev  
+**Symptom:** `gh pr create` failed with `No commits between feature/test-tiering and task/ci-tiering` when the draft PR was opened before any commits.  
+**Fix:** Create at least one commit before running `gh pr create`.  
+**Follow-up:** Add a quick PR checklist note to commit before opening draft PRs.
+
+---
+
+## Site: sum-platform (Core)
+
+**Date:** 2026-01-03  
+**Version:** v0.7.1-dev  
+**Symptom:** `make lint` failed locally with `make: mypy: No such file or directory`, and `make test` failed with `/usr/bin/python: No module named pytest`.  
+**Fix:** Install dev dependencies (e.g., `make install-dev`) and ensure the `.venv` is active before running lint/tests.  
+**Follow-up:** Add a quick environment check in onboarding docs or Make targets to confirm `mypy`/`pytest` are installed.
+
+---
+
+## Site: sum-platform (Core)
+
 **Date:** 2025-12-25
 **Version:** v0.7.1-dev
 **Symptom:** `make format` rewrote files inside `.venv/`. This started after `fix(THEME-016-A)` (commit `8bc2a00b`) changed `format` to `black --exclude '(?:^|/)(boilerplate|clients)/' .` + `isort .`. Passing `--exclude` overrides Black's default excludes (including `.venv`), so running at repo root started touching dot-directories.
@@ -155,6 +175,26 @@
 **Symptom:** Admin protection smoke check looked like a failure when tested over plain HTTP (Caddy redirected `/admin/` to HTTPS with `308`), and some clients may not resolve wildcard DNS locally.  
 **Fix:** Test admin protection over HTTPS (`/admin/` should be `401`/`403`), and use `curl --resolve sage-and-stone.lintel.site:443:91.98.118.201` when local DNS is not resolving.  
 **Follow-up:** Update `docs/ops-pack/smoke-tests.md` to note the HTTPS redirect and the `--resolve` pattern for early-stage deployments.
+
+---
+
+## Site: sum-platform (Core)
+
+**Date:** 2026-01-03  
+**Version:** N/A (tooling)  
+**Symptom:** `gh pr edit` failed with `GraphQL: Projects (classic) is being deprecated ... (repository.pullRequest.projectCards)` and `gh issue view` returned `HTTP 401: Bad credentials` until authentication was refreshed.  
+**Fix:** Refresh GitHub App auth via `~/.codex/bin/gh-app-auth --org markashton480 --configure-gh`, and update PR bodies via REST (`gh api --method PATCH repos/{owner}/{repo}/pulls/<n> -F body=@-`) when `gh pr edit` fails.  
+**Follow-up:** Document the REST-based PR edit workaround (or bump `gh` CLI) to avoid GraphQL breakages when Projects (classic) fields are removed.
+
+---
+
+## Site: sum-platform (Core)
+
+**Date:** 2026-01-03  
+**Version:** v0.7.1-dev  
+**Symptom:** `make test` failed once with `tests/pages/test_blog_templates.py::TestBlogIndexPageTemplateRendering::test_blog_index_displays_featured_images`, then passed on rerun.  
+**Fix:** Re-ran `make test`; the specific test passed when executed alone.  
+**Follow-up:** Investigate potential flake in blog template rendering test (e.g., test data ordering or shared state) if this recurs.
 
 ---
 

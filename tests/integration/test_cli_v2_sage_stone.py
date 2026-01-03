@@ -16,6 +16,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.integration
+
 
 def cli_v2_installed() -> bool:
     """Check if CLI v2 (sum command) is installed and available.
