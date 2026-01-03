@@ -41,7 +41,8 @@ python -m pytest tests/path/to/test.py::test_method -v
 ## Git Model
 
 ```
-main ← develop ← release/X.Y.0 ← feature/<scope> ← feature/<scope>/<task>
+main ← develop ← release/X.Y.0 ← feature/<scope> ← task/<slug>
+                 infra/<initiative> ← feature/<scope> ← task/<slug>
 ```
 
 ### Your Branch
@@ -56,7 +57,7 @@ git checkout -b feature/<scope>/<seq>-<slug>
 ### Your PR Target
 
 - Task → `feature/<scope>` (squash)
-- Feature → `release/X.Y.0` (merge --no-ff)
+- Feature → `release/X.Y.0` or `infra/<initiative>` (merge --no-ff)
 
 ### Commits
 
@@ -71,7 +72,7 @@ Closes #101
 
 ### Rules
 
-- ❌ Never push directly to `main`, `develop`, or `release/*`
+- ❌ Never push directly to `main`, `develop`, `release/*`, or `infra/*`
 - ❌ Never skip `make lint && make test`
 - ✅ Always include `Closes #NNN` in commits/PRs
 

@@ -8,7 +8,7 @@ This document explains the complete development workflow for SUM Platform: **iss
 
 We use a **three-level issue hierarchy** and a matching **three-level branch hierarchy**:
 
-- **Version Declaration (VD)** → version boundary + release branch
+- **Version Declaration (VD)** → version boundary + `release/*` or `infra/*` branch
 - **Work Order (WO)** → feature boundary + feature branch
 - **Task Ticket (TASK/FIX)** → atomic work + task/fix branch
 
@@ -30,15 +30,19 @@ Version Declaration (VD)
 
 ### Level 1: Version Declaration (VD)
 
-**Purpose:** Declares what a version contains and its boundaries.
+**Purpose:** Declares what a version or initiative contains and its boundaries.
 
 **Title format:**
-- `VD: <version> - <title>`
+- `VD: <version> - <title>` (product releases)
+- `VD: <initiative-title>` (infrastructure work)
 
-Example:
-- `VD: 0.6.0 - Blog Upgrades`
+Examples:
+- `VD: v0.7.0 - Lead Management` → `release/0.7.0`
+- `VD: Scale Infrastructure` → `infra/scale-infrastructure`
 
-**Maps to branch:** `release/<version>` (e.g. `release/0.6.0`)
+**Maps to branch:**
+- `release/<version>` for product work that bumps sum-core
+- `infra/<initiative-slug>` for tooling, themes, CI/CD (no version bump)
 
 ---
 
@@ -89,12 +93,17 @@ main                           Production, tagged releases
   ↑ PR (squash)
 develop                        Stable integration, always deployable
   ↑ PR (squash)
-release/<version>              Version integration (maps to VD)
+release/<version>              Product releases (maps to VD, bumps sum-core)
+infra/<initiative>             Infrastructure work (maps to VD, no version bump)
   ↑ PR (merge --no-ff)
 feature/<work-order-slug>      Feature integration (maps to WO)
   ↑ PR (squash)
 task/<task-slug>  OR  fix/<task-slug>   Task work (maps to TASK/FIX)
 ```
+
+**When to use `release/*` vs `infra/*`:**
+- Use `release/*` for features that ship in sum-core (requires version tag)
+- Use `infra/*` for tooling, themes, seeders, CI/CD, boilerplate (no tag)
 
 ### Naming Rules
 
@@ -119,11 +128,12 @@ Examples:
 | Your Branch | PR Target |
 |------------|-----------|
 | `task/*` | `feature/<work-order-slug>` |
-| `fix/*` *(in release)* | `feature/<work-order-slug>` |
-| `fix/*` *(bypass)* | `develop`, `main`, or `release/*` |
-| `docs/*` *(bypass)* | `develop`, `main`, or `release/*` |
-| `feature/*` | `release/<version>` |
+| `fix/*` *(in VD)* | `feature/<work-order-slug>` |
+| `fix/*` *(bypass)* | `develop`, `main`, `release/*`, or `infra/*` |
+| `docs/*` *(bypass)* | `develop`, `main`, `release/*`, or `infra/*` |
+| `feature/*` | `release/<version>` or `infra/<initiative>` |
 | `release/*` | `develop` |
+| `infra/*` | `develop` |
 | `develop` | `main` |
 
 > **Bypass branches** (`docs/*`, `fix/*` targeting develop/main) require a `## Bypass Justification` section in the PR body.
@@ -135,8 +145,9 @@ Examples:
 | From → To | Strategy | Why |
 |-----------|----------|-----|
 | `task/*` / `fix/*` → `feature/*` | Squash | One clean commit per task. |
-| `feature/*` → `release/*` | Merge `--no-ff` | Preserve feature boundary. |
+| `feature/*` → `release/*` or `infra/*` | Merge `--no-ff` | Preserve feature boundary. |
 | `release/*` → `develop` | Squash | One commit per version. |
+| `infra/*` → `develop` | Squash | One commit per initiative. |
 | `develop` → `main` | Squash | Clean prod history. |
 
 ---
@@ -145,8 +156,10 @@ Examples:
 
 ### Phase 1: Planning (human)
 
-1. Create a **Version Declaration** issue (`VD: <version> - <title>`)
-2. Create the **release branch** from `develop`: `release/<version>`
+1. Create a **Version Declaration** issue:
+   - Product: `VD: v<version> - <title>` → branch `release/<version>`
+   - Infrastructure: `VD: <initiative-title>` → branch `infra/<initiative-slug>`
+2. Create the VD branch from `develop`
 3. Create **Work Order** issues under the VD
 4. Create **Task/Fix** issues under each WO
 
@@ -177,9 +190,10 @@ Agents are invoked via the GH Issue prompt (e.g. `/gh-issue 123`).
 ### Phase 3: Review & Integration (human)
 
 - TASK/FIX PRs are **squash merged** into the feature branch
-- When a WO is complete, the feature branch is merged into the release branch with **`--no-ff`**
-- When a version is complete, the release branch is **squash merged** into `develop`
-- When ready to ship, `develop` is **squash merged** into `main`
+- When a WO is complete, the feature branch is merged into the VD branch (`release/*` or `infra/*`) with **`--no-ff`**
+- When the VD is complete:
+  - **Product (`release/*`):** Squash merge to `develop`, then to `main`, sync to sum-core, tag
+  - **Infrastructure (`infra/*`):** Squash merge to `develop`, then to `main` (no tag)
 
 ---
 
