@@ -1,4 +1,4 @@
-.PHONY: help lint test test-cli test-themes test-templates test-fast verify-source-intact format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref preflight
+.PHONY: help lint test test-seeder test-cli test-themes test-templates test-fast verify-source-intact format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref preflight
 
 MANAGE = python core/sum_core/test_project/manage.py
 
@@ -29,7 +29,10 @@ format: ## Auto-format code
 
 
 test: ## Run tests with pytest
-	python -m pytest
+	python -m pytest -m "not seeder"
+
+test-seeder: ## Run seeder tests (slow; separate from main test run)
+	python -m pytest -m seeder --no-cov
 
 test-cli: ## Run CLI test slice only
 	python -m pytest cli/tests -q

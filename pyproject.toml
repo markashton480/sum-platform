@@ -114,6 +114,7 @@ markers = [
     "integration: Integration tests",
     "regression: Regression tests",
     "slow: Slow running tests",
+    "seeder: Tests that run site seeders (run separately)",
     "django_db: Tests that require database access",
     "requires_themes: Tests that require sum_core 0.6+ theme support",
     "legacy_only: Tests intended to run on sum_core 0.5.x",

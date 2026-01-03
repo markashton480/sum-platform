@@ -20,6 +20,8 @@ from wagtail.models import Page, Site
 
 from tests.utils import REPO_ROOT
 
+pytestmark = pytest.mark.seeder
+
 
 def _load_seed_command():
     path = (
