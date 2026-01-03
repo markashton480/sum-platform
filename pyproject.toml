@@ -103,10 +103,6 @@ addopts = [
     "-m",
     "not slow and not integration",
     "--verbose",
-    "--cov=.",
-    "--cov-report=term-missing",
-    "--cov-report=term-missing",
-    "--cov-report=html",
     "--ignore=tests/e2e",
 ]
 pythonpath = ["core", "core/sum_core/test_project", "cli"]
