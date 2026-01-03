@@ -35,6 +35,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           prompt: |
             # CLAUDE DOCS REVIEW (COHERENCE + CONTRADICTIONS)
 
@@ -118,7 +119,25 @@ jobs:
 
             **IMPORTANT:** Do NOT approve with caveats. Either it's clean (APPROVE) or it needs work (REQUEST_CHANGES).
 
-            ### Option A: Simple review (no inline comments needed)
+            ### Inline Comments (for specific line issues)
+
+            For issues tied to specific lines (broken links, contradictions, typos), use the MCP inline comment tool:
+
+            ```
+            mcp__github_inline_comment__create_inline_comment
+            ```
+
+            This creates comments directly on the relevant lines in the PR diff, making feedback actionable.
+
+            **Use inline comments for:**
+            - Broken relative links (`./missing.md` doesn't exist)
+            - Contradictions with other docs (cite the other file and line)
+            - Incorrect file paths or commands
+            - Typos or unclear wording
+
+            ### Summary Review (for overall assessment)
+
+            After leaving inline comments, submit a summary review:
 
             ```bash
             # For APPROVE:
@@ -130,26 +149,6 @@ jobs:
             # For COMMENT (suggestions only):
             gh pr review ${{ github.event.pull_request.number }} --comment --body "$REVIEW"
             ```
-
-            ### Option B: Review with inline comments (when specific lines need feedback)
-
-            ```bash
-            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
-              --method POST \
-              -f body="$REVIEW_SUMMARY" \
-              -f event="APPROVE|REQUEST_CHANGES|COMMENT" \
-              -f comments="$INLINE_COMMENTS_JSON"
-            ```
-
-            Where `INLINE_COMMENTS_JSON` is:
-            ```json
-            [
-              {"path": "docs/file.md", "position": 15, "body": "This contradicts docs/other.md line 42"},
-              {"path": "docs/file.md", "position": 30, "body": "Broken link: ./missing.md doesn't exist"}
-            ]
-            ```
-
-            Use inline comments when pointing to specific contradictions or broken links.
 
             ### Review Format
 
@@ -163,14 +162,11 @@ jobs:
             - ...
 
             ### ⚠️ Issues
-            **🚫 Blocker** (must fix before merge)
-            - ...
+            See inline comments for specific issues.
 
-            **⚠️ Important** (should fix)
-            - ...
-
-            **📝 Suggestion** (consider)
-            - ...
+            **🚫 Blockers:** <count> (must fix)
+            **⚠️ Important:** <count> (should fix)
+            **📝 Suggestions:** <count> (consider)
 
             ### 🔁 Cross-Doc Consistency
             - **Potential contradiction:** <what>
@@ -188,4 +184,4 @@ jobs:
 
             Be concrete: file names, exact terms, and proposed wording.
 
-          claude_args: '--allowedTools Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(gh api:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(test:*),Bash(ls:*),Bash(python:*),Bash(sed:*),Bash(awk:*),View'
+          claude_args: '--allowedTools mcp__github_inline_comment__create_inline_comment,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr review:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(test:*),Bash(ls:*),View'
