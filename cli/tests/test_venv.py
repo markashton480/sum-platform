@@ -93,6 +93,7 @@ def test_exists_returns_true_when_directory_present(tmp_path: Path) -> None:
     assert manager.exists(tmp_path) is True
 
 
+@pytest.mark.slow
 def test_create_integration_creates_real_venv(tmp_path: Path) -> None:
     project_path = tmp_path / "project"
     project_path.mkdir()

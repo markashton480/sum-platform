@@ -18,6 +18,8 @@ from wagtail.models import Site
 
 User = get_user_model()
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.mark.django_db
 class TestEndToEndFormSubmissionFlow:

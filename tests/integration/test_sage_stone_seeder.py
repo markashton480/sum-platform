@@ -25,6 +25,8 @@ from tests.utils import REPO_ROOT
 
 MODULE_NAME = "seed_sage_stone_command_integration"
 
+pytestmark = pytest.mark.integration
+
 
 def _load_seed_module():
     """Load the seed_sage_stone module from the boilerplate."""
