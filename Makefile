@@ -17,7 +17,7 @@ install-dev:
 
 lint: ## Run all linting and typechecking (strict)
 	ruff check . --config pyproject.toml
-	mypy core cli tests
+	pyrefly check core/ cli/
 	black --check --config pyproject.toml core cli tests
 	isort --settings-path pyproject.toml --check-only core cli tests
 

@@ -24,7 +24,7 @@ dev = [
   "pytest-django",
   "pytest-cov",
   "responses>=0.25.0",
-  "mypy",
+  "pyrefly>=0.46.0",
   "types-requests>=2.31,<3.0",
   "ruff>=0.1.0",
   "black",
