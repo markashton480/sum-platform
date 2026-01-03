@@ -4,7 +4,7 @@
 
 This strategy is intentionally simple:
 
-- **1 Version Declaration (VD) → 1 `release/<version>` branch**
+- **1 Version Declaration (VD) → 1 `release/<version>` or `infra/<initiative>` branch**
 - **1 Work Order (WO) → 1 `feature/<work-order-slug>` branch**
 - **1 Task Ticket (TASK/FIX) → 1 `task/*` or `fix/*` branch**
 
@@ -28,12 +28,33 @@ main                              Production, tagged releases
   ↑ PR (squash)
 develop                           Stable integration, always deployable
   ↑ PR (squash)
-release/<version>                 Version integration (maps to VD)
+release/<version>                 Product releases (maps to VD, bumps sum-core)
+infra/<initiative>                Infrastructure work (maps to VD, no version bump)
   ↑ PR (merge --no-ff)
 feature/<work-order-slug>         Feature integration (maps to WO)
   ↑ PR (squash)
 task/<task-slug>   or  fix/<task-slug>   Actual implementation work (maps to TASK/FIX)
 ```
+
+### `release/*` vs `infra/*`
+
+Both are top-level VD branches. The difference:
+
+| Branch Type | When to Use | Version Bump? | Example |
+|-------------|-------------|---------------|---------|
+| `release/<version>` | Product features that ship in sum-core | Yes | `release/0.7.0` |
+| `infra/<initiative>` | Tooling, themes, CI/CD, test harnesses | No | `infra/scale-infrastructure` |
+
+**Use `release/*`** for work that:
+- Adds features to sum-core
+- Requires a new sum-core tag
+- Is consumed by client projects via `pip install`
+
+**Use `infra/*`** for work that:
+- Improves development tooling (seeders, CLI)
+- Updates themes or boilerplate
+- Adds CI/CD or deployment infrastructure
+- Doesn't change sum-core's public API
 
 ### Bypass branches (`docs/*`, `fix/*`)
 
@@ -77,7 +98,8 @@ That’s why task branches use `task/*` or `fix/*`.
 
 | Issue Level | Branch Pattern | Example |
 |------------|----------------|---------|
-| VD | `release/<version>` | `release/0.6.0` |
+| VD (product) | `release/<version>` | `release/0.6.0` |
+| VD (infra) | `infra/<initiative-slug>` | `infra/scale-infrastructure` |
 | WO | `feature/<work-order-slug>` | `feature/blog-upgrades` |
 | TASK | `task/<task-slug>` | `task/add-category-filtering` |
 | FIX | `fix/<task-slug>` | `fix/fix-the-fucking-blog` |
@@ -108,15 +130,16 @@ Examples:
 | From → To | Strategy | Rationale |
 |----------|----------|-----------|
 | `task/*` or `fix/*` → `feature/*` | **Squash** | Clean feature history, one commit per task |
-| `feature/*` → `release/*` | **Merge `--no-ff`** | Preserve feature boundary in history |
-| `release/*` → `develop` | **Squash** | One commit per version on `develop`. |
+| `feature/*` → `release/*` or `infra/*` | **Merge `--no-ff`** | Preserve feature boundary in history |
+| `release/*` → `develop` | **Squash** | One commit per version on `develop` |
+| `infra/*` → `develop` | **Squash** | One commit per initiative on `develop` |
 | `develop` → `main` | **Squash** | Clean production history |
 
 ---
 
 ## Workflow
 
-### 1) Start a version (VD → `release/<version>`)
+### 1a) Start a product version (VD → `release/<version>`)
 
 Create the Version Declaration issue first (see `VERSION_DECLARATION_TEMPLATE.md`). Then create the branch:
 
@@ -124,17 +147,29 @@ Create the Version Declaration issue first (see `VERSION_DECLARATION_TEMPLATE.md
 git checkout develop
 git pull origin develop
 
-git checkout -b release/0.6.0
-git push -u origin release/0.6.0
+git checkout -b release/0.7.0
+git push -u origin release/0.7.0
+```
+
+### 1b) Start an infrastructure initiative (VD → `infra/<initiative>`)
+
+For tooling, themes, CI/CD, or other non-product work:
+
+```bash
+git checkout develop
+git pull origin develop
+
+git checkout -b infra/scale-infrastructure
+git push -u origin infra/scale-infrastructure
 ```
 
 ### 2) Start a work order (WO → `feature/<work-order-slug>`)
 
-Feature branches always come off the release branch:
+Feature branches come off the parent VD branch (`release/*` or `infra/*`):
 
 ```bash
-git checkout release/0.6.0
-git pull origin release/0.6.0
+git checkout release/0.7.0           # or infra/scale-infrastructure
+git pull origin release/0.7.0
 
 git checkout -b feature/blog-upgrades
 git push -u origin feature/blog-upgrades
@@ -159,20 +194,27 @@ git push -u origin task/fix-the-fucking-blog
 | Your Branch | PR Target |
 |------------|-----------|
 | `task/*` | `feature/<work-order-slug>` |
-| `fix/*` *(in release)* | `feature/<work-order-slug>` |
-| `fix/*` *(bypass)* | `develop`, `main`, or `release/*` |
-| `docs/*` *(bypass)* | `develop`, `main`, or `release/*` |
-| `feature/*` | `release/<version>` |
+| `fix/*` *(in VD)* | `feature/<work-order-slug>` |
+| `fix/*` *(bypass)* | `develop`, `main`, `release/*`, or `infra/*` |
+| `docs/*` *(bypass)* | `develop`, `main`, `release/*`, or `infra/*` |
+| `feature/*` | `release/<version>` or `infra/<initiative>` |
 | `release/*` | `develop` |
+| `infra/*` | `develop` |
 | `develop` | `main` |
 
-### 5) Finish a version
+### 5) Finish a VD
 
-When all WOs are merged into the release branch:
+**For product releases (`release/*`):**
 
 1. Open PR `release/<version>` → `develop` (**squash**)
 2. Then PR `develop` → `main` (**squash**)
 3. Sync to `sum-core` and tag `v<version>`
+
+**For infrastructure initiatives (`infra/*`):**
+
+1. Open PR `infra/<initiative>` → `develop` (**squash**)
+2. Then PR `develop` → `main` (**squash**)
+3. No sum-core sync or tag (infra doesn't bump versions)
 
 ---
 
@@ -194,7 +236,10 @@ Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`
 
 | Issue Type | Title Prefix | Branch |
 |-----------|--------------|--------|
-| Version Declaration | `VD:` | `release/<version>` |
+| Version Declaration (product) | `VD:` | `release/<version>` |
+| Version Declaration (infra) | `VD:` | `infra/<initiative-slug>` |
 | Work Order | `WO:` | `feature/<work-order-slug>` |
 | Task | `TASK:` | `task/<task-slug>` |
 | Fix | `FIX:` | `fix/<task-slug>` |
+
+> **How to tell `release/*` vs `infra/*`:** The VD title indicates which. Product VDs use version numbers (e.g., `VD: v0.7.0 - Feature Name`). Infrastructure VDs use initiative names (e.g., `VD: Scale Infrastructure`).
