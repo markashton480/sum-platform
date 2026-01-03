@@ -20,7 +20,8 @@ jobs:
         startsWith(github.head_ref, 'task/') ||
         startsWith(github.head_ref, 'fix/') ||
         startsWith(github.head_ref, 'docs/') ||
-        startsWith(github.head_ref, 'feature/')
+        startsWith(github.head_ref, 'feature/') ||
+        startsWith(github.head_ref, 'infra/')
       )
 
     runs-on: ubuntu-latest
@@ -117,16 +118,18 @@ jobs:
             | Head Branch Pattern | Allowed / Expected PR Target (base) |
             |---------------------|-------------------------------------|
             | `task/*` | `feature/*` |
-            | `feature/*` | `release/*` |
-            | `fix/*` | `main` OR `develop` OR `release/*` |
-            | `docs/*` | `main` OR `develop` OR `release/*` |
+            | `feature/*` | `release/*` OR `infra/*` |
+            | `fix/*` | `main` OR `develop` OR `release/*` OR `infra/*` |
+            | `docs/*` | `main` OR `develop` OR `release/*` OR `infra/*` |
+            | `infra/*` | `develop` |
 
             Current: `${{ github.head_ref }}` → `${{ github.base_ref }}`
 
             **Rules:**
             - If a `task/*` PR targets anything other than `feature/*` → **🚫 Blocker**
-            - If a `feature/*` PR targets anything other than `release/*` → **🚫 Blocker**
-            - If a `fix/*` or `docs/*` PR targets something other than `main`, `develop`, or `release/*` → **🚫 Blocker**
+            - If a `feature/*` PR targets anything other than `release/*` or `infra/*` → **🚫 Blocker**
+            - If a `fix/*` or `docs/*` PR targets something other than `main`, `develop`, `release/*`, or `infra/*` → **🚫 Blocker**
+            - If an `infra/*` PR targets anything other than `develop` → **🚫 Blocker**
 
             **CHECK 0.1: Bypass Justification (required for `fix/*` and `docs/*`)**
             Because `fix/*` and `docs/*` are allowed to bypass the normal task → feature → release flow,
@@ -212,6 +215,31 @@ jobs:
 
             This makes Claude's review a proper GitHub review that can be required for merge.
 
+            ### Using Inline Comments (Optional)
+
+            When a specific finding needs to be tied to a specific line of code for clarity,
+            use the GitHub API to submit inline comments:
+
+            ```bash
+            gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+              --method POST \
+              -f body="$REVIEW_SUMMARY" \
+              -f event="$EVENT" \
+              -f comments="$INLINE_COMMENTS_JSON"
+            ```
+
+            Where `INLINE_COMMENTS_JSON` is an array like:
+            ```json
+            [{"path": "path/to/file.py", "position": 10, "body": "This import doesn't exist"}]
+            ```
+
+            **Use inline comments when:**
+            - Pointing out a specific hallucinated import/API
+            - Flagging a specific boundary violation line
+            - Clarifying a specific scope issue
+
+            **Don't force inline comments** for strategic/high-level findings - the summary body is fine.
+
             ## Review Format
 
             Keep it actionable. Max 10 findings. Classify severity.
@@ -287,4 +315,4 @@ jobs:
 
             If no issues found, keep review brief: checks passed, approved.
 
-          claude_args: '--allowedTools Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(echo:*),View'
+          claude_args: '--allowedTools Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr comment:*),Bash(gh pr review:*),Bash(gh api:*),Bash(grep:*),Bash(cat:*),Bash(find:*),Bash(echo:*),View'
