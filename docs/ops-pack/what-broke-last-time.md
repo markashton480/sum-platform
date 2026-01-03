@@ -48,6 +48,16 @@
 
 **Date:** 2026-01-03  
 **Version:** v0.7.1-dev  
+**Symptom:** `make test` timed out locally after 300 seconds while running the full suite.  
+**Fix:** None yet; rerun with a longer timeout or a focused test selection.  
+**Follow-up:** Consider documenting expected runtime or adding a `make test-long` target for full suite runs.
+
+---
+
+## Site: sum-platform (Core)
+
+**Date:** 2026-01-03  
+**Version:** v0.7.1-dev  
 **Symptom:** `gh pr create` failed with `No commits between feature/test-tiering and task/ci-tiering` when the draft PR was opened before any commits.  
 **Fix:** Create at least one commit before running `gh pr create`.  
 **Follow-up:** Add a quick PR checklist note to commit before opening draft PRs.
