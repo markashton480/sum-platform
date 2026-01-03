@@ -48,6 +48,16 @@
 
 **Date:** 2026-01-03  
 **Version:** v0.7.1-dev  
+**Symptom:** `gh pr create` failed with `No commits between feature/test-tiering and task/ci-tiering` when the draft PR was opened before any commits.  
+**Fix:** Create at least one commit before running `gh pr create`.  
+**Follow-up:** Add a quick PR checklist note to commit before opening draft PRs.
+
+---
+
+## Site: sum-platform (Core)
+
+**Date:** 2026-01-03  
+**Version:** v0.7.1-dev  
 **Symptom:** `make lint` failed locally with `make: mypy: No such file or directory`, and `make test` failed with `/usr/bin/python: No module named pytest`.  
 **Fix:** Install dev dependencies (e.g., `make install-dev`) and ensure the `.venv` is active before running lint/tests.  
 **Follow-up:** Add a quick environment check in onboarding docs or Make targets to confirm `mypy`/`pytest` are installed.
