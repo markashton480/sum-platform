@@ -211,7 +211,7 @@ See [../../.env.example](../../.env.example) for all available environment varia
 From repo root (with `.venv` active):
 
 - `make help`: list targets
-- `make lint`: ruff + mypy + black + isort (check-only)
+- `make lint`: ruff + pyrefly + black + isort (check-only)
 - `make format`: black + isort (write)
 - `make test`: pytest
 - `make run`: migrate + runserver for the test project
