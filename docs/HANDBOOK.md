@@ -633,7 +633,7 @@ To cut a release properly, follow these steps exactly:
 
 | Domain      | Command                            | Purpose                                       |
 | ----------- | ---------------------------------- | --------------------------------------------- |
-| **Dev**     | `make lint`                        | Ruff, Mypy, Black, and Isort checks           |
+| **Dev**     | `make lint`                        | Ruff, Pyrefly, Black, and Isort checks        |
 | **Dev**     | `make test`                        | Run fast tests (default tier)                 |
 | **Release** | `make release-check`               | Pre-flight checks before tagging              |
 | **CLI**     | `sum init <slug> --theme <theme>`  | Scaffold a new client project with theme      |

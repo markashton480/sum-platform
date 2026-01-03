@@ -311,6 +311,10 @@ class UniversalLinkBlock(blocks.StructBlock):
         }
 
         required_field = field_map.get(link_type)
+        if required_field is None:
+            raise blocks.StructBlockValidationError(
+                {"link_type": ValidationError("Invalid link type.")}
+            )
         field_value = cleaned.get(required_field)
 
         # Check that the required field is populated

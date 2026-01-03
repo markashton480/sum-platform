@@ -219,7 +219,7 @@ Client projects consume `sum_core` as an installed package and:
 1. **Local Development**: Use `core/sum_core/test_project/` (run via `make run`)
 2. **Client Reference**: Use `clients/sum_client/` to see canonical consumption patterns
 3. **Testing**: Run `make test` from repo root
-4. **Linting**: Run `make lint` (ruff, mypy, black, isort)
+4. **Linting**: Run `make lint` (ruff, pyrefly, black, isort)
 5. **Documentation**: See `docs/dev/` for all development docs
 
 ## See Also
