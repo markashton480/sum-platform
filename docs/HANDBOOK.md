@@ -360,9 +360,71 @@ When developing custom blocks or modifying existing ones:
 ### Development Guidelines
 
 - Follow the [Hygiene Standards](dev/hygiene.md).
+- Review the [Testing Guide](dev/TESTING.md) for test strategy and best practices.
 - Reference the [Navigation tags reference](dev/navigation-tags-reference.md).
 - Review your theme's README for styling conventions.
 - For Theme A, see [Theme A Documentation](../themes/theme_a/README.md).
+
+---
+
+## 🧪 Testing
+
+The SUM Platform uses a **tiered test strategy** to optimize CI/CD performance while maintaining comprehensive coverage.
+
+### Quick Start
+
+**CRITICAL**: Tests require an activated virtual environment.
+
+```bash
+# ALWAYS activate .venv first
+source .venv/bin/activate
+
+# Run fast tests (default)
+make test
+
+# Run integration tests
+make test-integration
+
+# Run all tests except E2E
+make test-full
+```
+
+### Test Tiers
+
+| Tier | Command | When | Duration |
+|------|---------|------|----------|
+| **Fast** | `make test` | Every commit | < 5 min |
+| **Integration** | `make test-integration` | Feature PRs | 10-15 min |
+| **Full** | `make test-full` | Release PRs | 15-20 min |
+| **E2E** | `make test-e2e` | Nightly/manual | Variable |
+
+### Writing Tests
+
+```python
+import pytest
+
+@pytest.mark.django_db
+def test_home_page_renders(client):
+    """Test home page renders successfully."""
+    response = client.get('/')
+    assert response.status_code == 200
+
+@pytest.mark.slow
+@pytest.mark.integration
+def test_seeder_creates_blog():
+    """Test seeder creates blog structure."""
+    # Integration test logic
+    pass
+```
+
+### Complete Documentation
+
+See **[Testing Guide](dev/TESTING.md)** for:
+- Test isolation patterns
+- Pytest markers
+- Coverage reports
+- Theme testing
+- Debugging techniques
 
 ---
 
