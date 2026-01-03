@@ -168,6 +168,16 @@
 
 ---
 
+## Site: sum-platform (Core)
+
+**Date:** 2026-01-03  
+**Version:** v0.7.1-dev  
+**Symptom:** `make test` failed once with `tests/pages/test_blog_templates.py::TestBlogIndexPageTemplateRendering::test_blog_index_displays_featured_images`, then passed on rerun.  
+**Fix:** Re-ran `make test`; the specific test passed when executed alone.  
+**Follow-up:** Investigate potential flake in blog template rendering test (e.g., test data ordering or shared state) if this recurs.
+
+---
+
 ## Follow-Up Tracking
 
 **Automation ideas from this log:**
