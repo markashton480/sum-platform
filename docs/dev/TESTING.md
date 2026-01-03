@@ -196,27 +196,14 @@ CI automatically selects the appropriate test tier based on branch patterns.
 
 ### CI Workflow Configuration
 
-From `.github/workflows/ci.yml`:
+The CI workflow automatically selects the appropriate test tier based on branch patterns. The tier selection logic uses:
 
-```yaml
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Determine test tier
-        id: tier
-        run: |
-          if [[ "${{ github.ref }}" == refs/heads/task/* ]] || [[ "${{ github.ref }}" == refs/heads/fix/* ]]; then
-            echo "target=test" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref }}" == refs/heads/feature/* ]]; then
-            echo "target=test test-integration" >> $GITHUB_OUTPUT
-          else
-            echo "target=test-full" >> $GITHUB_OUTPUT
-          fi
+- **`fast` tier**: For `task/*` and `fix/*` branches
+- **`feature` tier**: For `feature/*` and `feat/*` branches (runs both fast and integration tests)
+- **`full` tier**: For `release/*`, `infra/*`, `develop`, and `main` branches
+- **Special case**: PRs from `develop` → `main` always run the full tier
 
-      - name: Run tests
-        run: make ${{ steps.tier.outputs.target }}
-```
+See `.github/workflows/ci.yml` (lines 164-229) for the complete tier selection implementation.
 
 ---
 
