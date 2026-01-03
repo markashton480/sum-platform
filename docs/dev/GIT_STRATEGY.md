@@ -141,7 +141,7 @@ Examples:
 
 ### 1a) Start a product version (VD → `release/<version>`)
 
-Create the Version Declaration issue first (see `VERSION_DECLARATION_TEMPLATE.md`). Then create the branch:
+Create the Version Declaration issue first (see `docs/release/declarations/release-declaration-template.md`). Then create the branch:
 
 ```bash
 git checkout develop

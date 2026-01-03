@@ -50,7 +50,8 @@ Claude handles **scope alignment** at the project level:
 #### 0. PR Targeting Compliance (NEW)
 - Does the PR target the correct branch per workflow rules?
 - `task/*` → `feature/*`, not `develop`
-- `feature/*` → `release/*`, not `develop`
+- `feature/*` → `release/*` or `infra/*`, not `develop`
+- `infra/*` → `develop`
 - Catches workflow violations early
 
 #### 1. Scope Alignment
