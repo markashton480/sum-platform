@@ -15,6 +15,29 @@
 @tailwind utilities;
 
 /* =============================================================
+   PRINT STYLES
+   ============================================================= */
+@media print {
+  #top-stack,
+  #mobile-menu,
+  .sticky-cta,
+  #banner-wrapper {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+}
+
+/* =============================================================
    SECTION 1: CSS VARIABLE DEFAULTS (Branding Override Points)
    These are the default values; SiteSettings branding overrides
    can change these at runtime WITHOUT requiring a CSS rebuild.
@@ -425,9 +448,23 @@
     @apply text-xs text-sage-footer-secondary;
   }
 
+  /* Contact form messages (async JS) */
+  .form-messages--success {
+    @apply p-4 bg-sage-moss/20 border border-sage-moss/40 rounded-sm mt-4;
+  }
+  .form-messages--error {
+    @apply p-4 bg-sage-terra/20 border border-sage-terra/40 rounded-sm mt-4;
+  }
+  .form-success-msg {
+    @apply text-sage-moss font-mono text-sm uppercase tracking-widest;
+  }
+  .form-error-msg {
+    @apply text-sage-terra font-mono text-sm uppercase tracking-widest;
+  }
+
   /* Sticky CTA */
   .sticky-cta {
-    @apply fixed bottom-8 right-8 z-50 flex items-stretch;
+    @apply fixed bottom-8 right-8 z-40 flex items-stretch;
     @apply rounded-sm overflow-hidden;
     @apply bg-sage-linen border border-sage-black/5 shadow-2xl;
     @apply transition-transform duration-500 ease-expo-out;

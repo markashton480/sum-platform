@@ -15,13 +15,13 @@
 
 | Branch | Target |
 |--------|--------|
-| `fix/theme-a-critical-issues/002-layout-fixes` | `fix/theme-a-critical-issues` |
+| `task/theme-a-critical-issues/002-layout-fixes` | `fix/theme-a-critical-issues` |
 
 ```bash
 git checkout fix/theme-a-critical-issues
 git pull origin fix/theme-a-critical-issues
-git checkout -b fix/theme-a-critical-issues/002-layout-fixes
-git push -u origin fix/theme-a-critical-issues/002-layout-fixes
+git checkout -b task/theme-a-critical-issues/002-layout-fixes
+git push -u origin task/theme-a-critical-issues/002-layout-fixes
 ```
 
 ---

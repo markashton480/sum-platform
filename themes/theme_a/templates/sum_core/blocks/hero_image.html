@@ -6,9 +6,14 @@
     {# Background Container #}
     <div class="absolute inset-0 z-0 select-none">
         {% image self.image original as hero_img %}
-        <img src="{{ hero_img.url }}"
-             alt="{{ self.image_alt }}"
-             class="w-full h-[120%] object-cover object-center -translate-y-10" />
+        <div class="w-full h-[120%] -translate-y-10">
+            <img
+                id="hero-image"
+                src="{{ hero_img.url }}"
+                alt="{{ self.image_alt }}"
+                class="w-full h-full object-cover object-center"
+            />
+        </div>
 
         {# Overlay Mapping: none/light/medium/strong #}
         {% if self.overlay_opacity == 'none' %}
