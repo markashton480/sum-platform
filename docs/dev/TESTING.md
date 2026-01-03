@@ -302,7 +302,7 @@ def test_theme_template_takes_precedence_over_core():
 
 ### Configuration
 
-From `test_project/settings.py`:
+From `core/sum_core/test_project/test_project/settings.py`:
 
 ```python
 TEMPLATES = [

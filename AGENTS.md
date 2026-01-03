@@ -22,7 +22,7 @@ make install-dev   # Editable install of core + dev tooling
 make run           # Migrate and run test project
 make lint          # Ruff + mypy + Black + isort
 make format        # Auto-format
-make test          # Full pytest suite
+make test          # Fast tests (default)
 make test-fast     # Quick gate (CLI + themes)
 ```
 
