@@ -58,6 +58,10 @@ SUM Platform themes are **structure-first**. The premium feel comes from archite
 └─────────────────────────────────────────────────────────────┘
 ```
 
+### Theme Distribution Repository
+
+Theme sources are published to `markashton480/sum-themes` for versioned distribution and client consumption. Treat `sum-platform/themes/` as the source of truth during development, and only sync to the distribution repo when the publishing workflow says so.
+
 ### Key Files You'll Create
 
 | File | Purpose |
