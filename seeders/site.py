@@ -92,6 +92,19 @@ class SiteSeeder(BaseSeeder):
         image_manager: ImageManager | None = None,
         image_prefix: str = "SEED",
     ) -> None:
+        """Initialize the site seeder.
+
+        Args:
+            hostname: Hostname for the Wagtail Site.
+            port: Port for the Wagtail Site.
+            is_default_site: Whether the site should be marked as default.
+            site_name: Optional override for the site display name.
+            root_page: Root page (or page id) to attach the site to.
+            pages: Optional mapping of page slugs to page objects.
+            content_loader: Loader for YAML content profiles.
+            image_manager: Image manager for branding assets.
+            image_prefix: Prefix for generated images when no manager is provided.
+        """
         self.hostname = hostname
         self.port = port
         self.is_default_site = is_default_site
@@ -108,6 +121,13 @@ class SiteSeeder(BaseSeeder):
         pages: Mapping[str, Any] | None = None,
         clear: bool = False,
     ) -> None:
+        """Load a content profile and seed site data.
+
+        Args:
+            profile: Content profile name to load from the content directory.
+            pages: Optional page mapping for resolving navigation links.
+            clear: When True, clear existing seeded data before seeding.
+        """
         data = self.content_loader.load_profile(profile)
         content: dict[str, Any] = {"site": data.site, "navigation": data.navigation}
         if pages is not None:
@@ -115,6 +135,12 @@ class SiteSeeder(BaseSeeder):
         self.seed(content, clear=clear)
 
     def seed(self, content: dict[str, Any], clear: bool = False) -> None:
+        """Seed site settings, branding, and navigation from content.
+
+        Args:
+            content: Mapping containing site, navigation, and optional pages data.
+            clear: When True, clear existing seeded data before seeding.
+        """
         if clear:
             self.clear()
 
@@ -128,6 +154,7 @@ class SiteSeeder(BaseSeeder):
         self._configure_navigation(site, navigation, pages)
 
     def clear(self) -> None:
+        """Remove seeded site settings, navigation, and generated images."""
         site = Site.objects.filter(hostname=self.hostname, port=self.port).first()
         if site is None:
             return
@@ -224,10 +251,9 @@ class SiteSeeder(BaseSeeder):
     def _resolve_page_id(self, page: Any) -> int | None:
         if isinstance(page, int):
             return page
-        if hasattr(page, "id"):
-            page_id = getattr(page, "id", None)
-            if isinstance(page_id, int):
-                return page_id
+        page_id = getattr(page, "id", None)
+        if isinstance(page_id, int):
+            return page_id
         return None
 
     def _configure_branding(
@@ -364,17 +390,14 @@ class SiteSeeder(BaseSeeder):
             self._resolve_page_links(value, pages)
 
     def _resolve_page_reference(self, value: Any, pages: Mapping[str, Any]) -> int:
-        if isinstance(value, int):
-            return value
-        if hasattr(value, "id"):
-            page_id = getattr(value, "id", None)
-            if isinstance(page_id, int):
-                return page_id
+        page_id = self._resolve_page_id(value)
+        if page_id is not None:
+            return page_id
         if isinstance(value, str):
             page = pages.get(value)
             if page is None:
                 raise SeederContentError(f"Page not found for slug: {value}")
-            page_id = self._resolve_page_id(page)
-            if page_id is not None:
-                return page_id
+            resolved_id = self._resolve_page_id(page)
+            if resolved_id is not None:
+                return resolved_id
         raise SeederContentError("Page reference must be a slug or page id.")

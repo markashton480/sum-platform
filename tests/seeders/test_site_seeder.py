@@ -16,11 +16,13 @@ from wagtail.images.models import Image
 from wagtail.models import Page, Site
 
 from seeders.content import ContentLoader
+from seeders.exceptions import SeederContentError, SeederPageError
 from seeders.images import ImageManager
 from seeders.site import SiteSeeder
 
 
 def _create_standard_page(parent: Page, slug: str, title: str) -> StandardPage:
+    """Create and publish a StandardPage under the given parent."""
     page = StandardPage(title=title, slug=slug)
     parent.add_child(instance=page)
     page.save_revision().publish()
@@ -273,3 +275,115 @@ def test_site_seeder_clear_removes_seeded_state(
     assert HeaderNavigation.objects.filter(site=site).exists() is False
     assert FooterNavigation.objects.filter(site=site).exists() is False
     assert Image.objects.filter(title__startswith="TESTCLEAR_").exists() is False
+
+
+@pytest.mark.django_db
+def test_site_seeder_rejects_non_mapping_site_content(
+    wagtail_default_site: Site,
+) -> None:
+    root = Page.get_first_root_node()
+    seeder = SiteSeeder(root_page=root)
+
+    with pytest.raises(SeederContentError):
+        seeder.seed({"site": "invalid"})
+
+
+@pytest.mark.django_db
+def test_site_seeder_rejects_non_mapping_navigation_content(
+    wagtail_default_site: Site,
+) -> None:
+    root = Page.get_first_root_node()
+    seeder = SiteSeeder(root_page=root)
+
+    content = {
+        "site": {"company_name": "Test Co"},
+        "navigation": ["invalid"],
+    }
+
+    with pytest.raises(SeederContentError):
+        seeder.seed(content)
+
+
+@pytest.mark.django_db
+def test_site_seeder_rejects_non_mapping_pages(
+    wagtail_default_site: Site,
+) -> None:
+    root = Page.get_first_root_node()
+    seeder = SiteSeeder(root_page=root)
+
+    content = {
+        "site": {"company_name": "Test Co"},
+        "navigation": {},
+        "pages": ["invalid"],
+    }
+
+    with pytest.raises(SeederContentError):
+        seeder.seed(content)
+
+
+@pytest.mark.django_db
+def test_site_seeder_requires_root_page(
+    wagtail_default_site: Site,
+) -> None:
+    seeder = SiteSeeder()
+
+    content = {
+        "site": {"company_name": "Test Co"},
+        "navigation": {},
+    }
+
+    with pytest.raises(SeederPageError):
+        seeder.seed(content)
+
+
+@pytest.mark.django_db
+def test_site_seeder_raises_for_missing_page_setting(
+    wagtail_default_site: Site,
+) -> None:
+    root = Page.get_first_root_node()
+    seeder = SiteSeeder(root_page=root)
+
+    content = {
+        "site": {
+            "company_name": "Test Co",
+            "privacy_policy_page": "missing",
+        },
+        "navigation": {},
+    }
+
+    with pytest.raises(SeederContentError):
+        seeder.seed(content)
+
+
+@pytest.mark.django_db
+def test_site_seeder_raises_for_invalid_navigation_page_reference(
+    wagtail_default_site: Site,
+) -> None:
+    root = Page.get_first_root_node()
+    seeder = SiteSeeder(root_page=root)
+
+    content = {
+        "site": {"company_name": "Test Co"},
+        "navigation": {
+            "header": {
+                "menu_items": [
+                    {
+                        "type": "item",
+                        "value": {
+                            "label": "Broken",
+                            "link": {
+                                "link_type": "page",
+                                "page": object(),
+                                "link_text": "Broken",
+                            },
+                            "children": [],
+                        },
+                    }
+                ],
+            },
+            "footer": {},
+        },
+    }
+
+    with pytest.raises(SeederContentError):
+        seeder.seed(content)
