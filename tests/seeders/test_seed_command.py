@@ -1,8 +1,8 @@
 """
 Name: Seed Management Command Tests
-Path: tests/sum_core/test_seed_command.py
+Path: tests/seeders/test_seed_command.py
 Purpose: Verify the test-project `seed` management command behaviour.
-Family: sum_core management command tests.
+Family: Seeder architecture tests.
 Dependencies: pytest, Django call_command.
 """
 
@@ -15,6 +15,8 @@ import home.management.commands.seed as seed_command_module
 import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
+
+pytestmark = pytest.mark.integration
 
 
 class DummyOrchestrator:
