@@ -108,7 +108,56 @@ Subtask is Done when:
 
 You should regularly check GitHub Discussions, particularly announcements (`https://github.com/markashton480/sum-platform/discussions/categories/announcements`) and your GitHub notifications. You can do both by cURL/API/CLI. You'll find updates, announcements, Q&A, daily standups in Discussions, so check it out and feel free to contribute.
 
-You should also add to the "What Broke Last Time" section with any issues you encountered during your work.
+You should also add to the "What Broke Last Time" discussion category with any issues you encountered during your work.
+
+## GitHub Discussions API
+
+To post to GitHub Discussions, use the GraphQL API:
+
+**Repository ID:** `R_kgDOQk0iAw`
+
+| Category | ID | Use For |
+|----------|-----|---------|
+| What Broke Last Time? | `DIC_kwDOQk0iA84C0X11` | Log issues/incidents encountered during work |
+| General | `DIC_kwDOQk0iA84C0Xuy` | General discussion topics |
+
+**Command to create a discussion:**
+
+```bash
+gh api graphql -f query='
+mutation($title: String!, $body: String!) {
+  createDiscussion(input: {
+    repositoryId: "R_kgDOQk0iAw",
+    categoryId: "<CATEGORY_ID>",
+    title: $title,
+    body: $body
+  }) {
+    discussion { url }
+  }
+}' -f title="<TITLE>" -f body="<BODY>"
+```
+
+**Example - posting to What Broke Last Time:**
+
+```bash
+gh api graphql -f query='
+mutation($title: String!, $body: String!) {
+  createDiscussion(input: {
+    repositoryId: "R_kgDOQk0iAw",
+    categoryId: "DIC_kwDOQk0iA84C0X11",
+    title: $title,
+    body: $body
+  }) {
+    discussion { url }
+  }
+}' \
+  -f title="make test timeout with default harness settings" \
+  -f body="**Date:** 2026-01-04
+**Version:** v0.7.1-dev
+**Symptom:** Description of what went wrong.
+**Fix:** What you did to resolve it.
+**Follow-up:** Suggested improvements."
+```
 
 ## Development Workflow
 
