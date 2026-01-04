@@ -15,7 +15,9 @@ import pytest
 import seeders.orchestrator as orchestrator_module
 from seeders.base import BaseSeeder
 from seeders.exceptions import SeederNotFoundError
-from seeders.orchestrator import SeedOrchestrator, SeedPlan
+
+SeedOrchestrator = orchestrator_module.SeedOrchestrator
+SeedPlan = orchestrator_module.SeedPlan
 
 
 class DummyImageManager:
@@ -33,7 +35,7 @@ class HomeSeeder(BaseSeeder):
         self.pages = {"home": "home"}
 
     def clear(self) -> None:
-        return None
+        pass
 
 
 class AboutSeeder(BaseSeeder):
@@ -41,7 +43,7 @@ class AboutSeeder(BaseSeeder):
         self.pages = {"about": "about"}
 
     def clear(self) -> None:
-        return None
+        pass
 
 
 def _write_profile(content_dir: Path, profile: str = "demo") -> None:
@@ -72,7 +74,7 @@ def _write_profile(content_dir: Path, profile: str = "demo") -> None:
     )
 
 
-def test_seed_orchestrator_plan_orders_seeders(tmp_path) -> None:
+def test_seed_orchestrator_plan_orders_seeders(tmp_path: Path) -> None:
     content_dir = tmp_path / "content"
     _write_profile(content_dir)
 
@@ -89,7 +91,7 @@ def test_seed_orchestrator_plan_orders_seeders(tmp_path) -> None:
     assert plan.pages == ["home", "about"]
 
 
-def test_seed_orchestrator_dry_run_returns_plan(tmp_path) -> None:
+def test_seed_orchestrator_dry_run_returns_plan(tmp_path: Path) -> None:
     content_dir = tmp_path / "content"
     _write_profile(content_dir)
 
@@ -105,7 +107,7 @@ def test_seed_orchestrator_dry_run_returns_plan(tmp_path) -> None:
     assert isinstance(plan, SeedPlan)
 
 
-def test_seed_orchestrator_list_profiles(tmp_path) -> None:
+def test_seed_orchestrator_list_profiles(tmp_path: Path) -> None:
     content_dir = tmp_path / "content"
     _write_profile(content_dir, profile="alpha")
     _write_profile(content_dir, profile="beta")
@@ -120,7 +122,9 @@ def test_seed_orchestrator_list_profiles(tmp_path) -> None:
     assert orchestrator.list_profiles() == ["alpha", "beta"]
 
 
-def test_seed_orchestrator_plan_raises_when_no_seeders_registered(tmp_path) -> None:
+def test_seed_orchestrator_plan_raises_when_no_seeders_registered(
+    tmp_path: Path,
+) -> None:
     content_dir = tmp_path / "content"
     _write_profile(content_dir)
 
@@ -136,11 +140,15 @@ def test_seed_orchestrator_plan_raises_when_no_seeders_registered(tmp_path) -> N
 
 
 def test_seed_orchestrator_seed_calls_clear_then_seeds_pages_and_site(
-    tmp_path, monkeypatch
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     content_dir = tmp_path / "content"
     _write_profile(content_dir)
 
+    # This is a unit test for orchestration flow. We stub out `transaction.atomic`
+    # to avoid requiring a configured database/transaction backend here; rollback
+    # behaviour is not exercised by this test.
     monkeypatch.setattr(
         orchestrator_module.transaction,
         "atomic",
