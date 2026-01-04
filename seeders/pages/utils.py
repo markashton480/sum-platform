@@ -53,7 +53,10 @@ def parse_datetime(value: Any, *, field: str) -> datetime:
         return _ensure_aware(value)
     if isinstance(value, str):
         try:
+            parsed = datetime.fromisoformat(value)
+        except ValueError:
             parsed = datetime.strptime(value, "%Y-%m-%d")
+        try:
             return _ensure_aware(parsed)
         except ValueError as exc:
             raise SeederContentError(f"Invalid datetime for {field}: {value}") from exc
@@ -82,12 +85,7 @@ def get_or_create_child_page[
         publish_page(existing)
         return existing, False
 
-    conflict = parent.get_children().filter(slug=slug).first()
-    if conflict is not None and not isinstance(conflict.specific, page_class):
-        conflict_page = conflict.specific
-        conflict_page.slug = f"{slug}-legacy-{conflict_page.id}"
-        conflict_page.title = f"{conflict_page.title} (Legacy)"
-        publish_page(conflict_page)
+    rename_conflicting_page(parent, slug=slug, expected_class=page_class)
 
     page = page_class(slug=slug, **defaults)
     return create_child_page(parent, page), True
@@ -110,3 +108,44 @@ def _ensure_aware(value: datetime) -> datetime:
     if timezone.is_naive(value):
         return timezone.make_aware(value, timezone.get_current_timezone())
     return value
+
+
+def rename_conflicting_page(
+    parent: Page,
+    *,
+    slug: str,
+    expected_class: type[Any],
+    ignore_page_id: int | None = None,
+) -> None:
+    """Rename a conflicting child page to a unique legacy slug."""
+
+    if not hasattr(parent, "get_children"):
+        raise SeederPageError("Parent page must provide get_children()")
+
+    conflict = parent.get_children().filter(slug=slug).first()
+    if conflict is None:
+        return
+    if ignore_page_id is not None and conflict.pk == ignore_page_id:
+        return
+
+    conflict_page = conflict.specific
+    if isinstance(conflict_page, expected_class):
+        return
+
+    legacy_slug = _build_legacy_slug(parent, slug, conflict_page.id)
+    conflict_page.slug = legacy_slug
+    if not str(conflict_page.title).endswith(" (Legacy)"):
+        conflict_page.title = f"{conflict_page.title} (Legacy)"
+    publish_page(conflict_page)
+
+
+def _build_legacy_slug(parent: Page, slug: str, page_id: int) -> str:
+    base_slug = f"{slug}-legacy-{page_id}"
+    if not parent.get_children().filter(slug=base_slug).exists():
+        return base_slug
+    counter = 2
+    candidate = f"{base_slug}-{counter}"
+    while parent.get_children().filter(slug=candidate).exists():
+        counter += 1
+        candidate = f"{base_slug}-{counter}"
+    return candidate

@@ -30,7 +30,7 @@ from seeders.pages.services import ServicesPageSeeder
 pytestmark = pytest.mark.django_db
 
 
-def _collect_image_keys(data: Any, keys: set[str]) -> None:
+def _add_image_keys_to_set(data: Any, keys: set[str]) -> None:
     if isinstance(data, dict):
         for key, value in data.items():
             if key in {"image", "photo", "logo", "image_key"} and isinstance(
@@ -38,10 +38,10 @@ def _collect_image_keys(data: Any, keys: set[str]) -> None:
             ):
                 keys.add(value)
             else:
-                _collect_image_keys(value, keys)
+                _add_image_keys_to_set(value, keys)
     elif isinstance(data, list):
         for item in data:
-            _collect_image_keys(item, keys)
+            _add_image_keys_to_set(item, keys)
 
 
 @pytest.fixture(scope="session")
@@ -54,7 +54,7 @@ def sage_stone_profile(repo_root) -> Any:
 def seeder_images(db, sage_stone_profile) -> dict[str, Any]:
     keys: set[str] = set()
     for page_content in sage_stone_profile.pages.values():
-        _collect_image_keys(page_content, keys)
+        _add_image_keys_to_set(page_content, keys)
 
     manifest = [spec for spec in IMAGE_MANIFEST if spec["key"] in keys]
     missing = keys - {spec["key"] for spec in manifest}
@@ -178,6 +178,7 @@ def test_blog_seeder_creates_blog_index_categories_posts(
 
     post = BlogPostPage.objects.child_of(blog_index).get(slug="art-of-seasoning-timber")
     assert post.featured_image is not None
+    assert post.featured_image.pk == seeder_images["BLOG_TIMBER_IMAGE"].pk
 
     image_block = next(
         block for block in post.body if block.block_type == "image_block"

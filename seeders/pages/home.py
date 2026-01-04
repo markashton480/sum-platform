@@ -10,7 +10,7 @@ from wagtail.models import Page
 
 from seeders.base import BaseSeeder, SeederRegistry, publish_page
 from seeders.exceptions import SeederContentError, SeederPageError
-from seeders.pages.utils import resolve_streamfield_images
+from seeders.pages.utils import rename_conflicting_page, resolve_streamfield_images
 
 
 @SeederRegistry.register("home")
@@ -44,12 +44,12 @@ class HomePageSeeder(BaseSeeder):
 
         existing = home_model.objects.first()
         if existing is not None:
-            conflict = self.root_page.get_children().filter(slug=slug).first()
-            if conflict is not None and conflict.pk != existing.pk:
-                conflict_page = conflict.specific
-                conflict_page.slug = f"{slug}-legacy-{conflict_page.id}"
-                conflict_page.title = f"{conflict_page.title} (Legacy)"
-                publish_page(conflict_page)
+            rename_conflicting_page(
+                self.root_page,
+                slug=slug,
+                expected_class=home_model,
+                ignore_page_id=existing.pk,
+            )
             existing.slug = slug
             for key, value in defaults.items():
                 if hasattr(existing, key):
@@ -57,12 +57,11 @@ class HomePageSeeder(BaseSeeder):
             publish_page(existing)
             return
 
-        conflict = self.root_page.get_children().filter(slug=slug).first()
-        if conflict is not None and not isinstance(conflict.specific, home_model):
-            conflict_page = conflict.specific
-            conflict_page.slug = f"{slug}-legacy-{conflict_page.id}"
-            conflict_page.title = f"{conflict_page.title} (Legacy)"
-            publish_page(conflict_page)
+        rename_conflicting_page(
+            self.root_page,
+            slug=slug,
+            expected_class=home_model,
+        )
 
         page = home_model(slug=slug, **defaults)
         self.root_page.add_child(instance=page)

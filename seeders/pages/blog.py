@@ -75,8 +75,9 @@ class BlogSeeder(BaseSeeder):
             .first()
         )
         if blog_index is not None:
-            blog_index.get_descendants().delete()
-            blog_index.delete()
+            BlogPostPage.objects.descendant_of(blog_index).delete()
+            if not blog_index.get_descendants().exists():
+                blog_index.delete()
 
         if self.category_slugs:
             Category.objects.filter(slug__in=self.category_slugs).delete()
@@ -132,7 +133,10 @@ class BlogSeeder(BaseSeeder):
         )
         excerpt = post_data.get("excerpt", "")
         blog_title = blog_index.title or "Blog"
-        seo_title = f"{title} | {blog_title} | Sage & Stone"
+        site_name = self._resolve_site_name(blog_index)
+        seo_title = f"{title} | {blog_title}"
+        if site_name:
+            seo_title = f"{seo_title} | {site_name}"
 
         defaults: dict[str, Any] = {
             "title": title,
@@ -176,6 +180,14 @@ class BlogSeeder(BaseSeeder):
             value = block.get("value") or {}
             if not isinstance(value, dict):
                 continue
-            if value.get("image") is None and image_key:
+            if "image" not in value and image_key:
                 value["image"] = image_key
         return resolve_streamfield_images(body, self.images)
+
+    def _resolve_site_name(self, blog_index: BlogIndexPage) -> str:
+        site = (
+            blog_index.get_site() or getattr(self.home_page, "get_site", lambda: None)()
+        )
+        if site is None:
+            return ""
+        return str(getattr(site, "site_name", "")).strip()

@@ -7,6 +7,7 @@ from .home import HomePageSeeder
 from .legal import LegalPageSeeder
 from .portfolio import PortfolioPageSeeder
 from .services import ServicesPageSeeder
+from .standard import StandardPageSeeder
 
 __all__ = [
     "AboutPageSeeder",
@@ -15,5 +16,6 @@ __all__ = [
     "HomePageSeeder",
     "LegalPageSeeder",
     "PortfolioPageSeeder",
+    "StandardPageSeeder",
     "ServicesPageSeeder",
 ]
