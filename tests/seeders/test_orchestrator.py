@@ -46,7 +46,12 @@ class AboutSeeder(BaseSeeder):
         pass
 
 
-def _write_profile(content_dir: Path, profile: str = "demo") -> None:
+def _write_profile(
+    content_dir: Path,
+    *,
+    profile: str = "demo",
+    pages: tuple[str, ...] = ("home", "about"),
+) -> None:
     """Write a minimal profile directory to support seeding tests.
 
     Creates the expected profile structure:
@@ -66,12 +71,12 @@ def _write_profile(content_dir: Path, profile: str = "demo") -> None:
         "footer:\n  tagline: Test\n",
         encoding="utf-8",
     )
-    (pages_dir / "home.yaml").write_text(
-        'title: "Home"\nslug: "home"\n', encoding="utf-8"
-    )
-    (pages_dir / "about.yaml").write_text(
-        'title: "About"\nslug: "about"\n', encoding="utf-8"
-    )
+    for page in pages:
+        title = page.replace("-", " ").title()
+        (pages_dir / f"{page}.yaml").write_text(
+            f'title: "{title}"\nslug: "{page}"\n',
+            encoding="utf-8",
+        )
 
 
 def test_seed_orchestrator_plan_orders_seeders(tmp_path: Path) -> None:
@@ -93,7 +98,7 @@ def test_seed_orchestrator_plan_orders_seeders(tmp_path: Path) -> None:
 
 def test_seed_orchestrator_dry_run_returns_plan(tmp_path: Path) -> None:
     content_dir = tmp_path / "content"
-    _write_profile(content_dir)
+    _write_profile(content_dir, pages=("home",))
 
     orchestrator = SeedOrchestrator(
         content_dir=content_dir,

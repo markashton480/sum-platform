@@ -53,8 +53,7 @@ class Command(BaseCommand):
             profiles = orchestrator.list_profiles()
             if profiles:
                 raise CommandError(
-                    "Missing profile. Available profiles: "
-                    + ", ".join(sorted(profiles))
+                    "Missing profile. Available profiles: " + ", ".join(profiles)
                 )
             raise CommandError("Missing profile and no content profiles were found.")
 

@@ -153,6 +153,17 @@ class SeedOrchestrator:
         if not seeders:
             raise SeederNotFoundError("No page seeders registered.")
 
+        profile_pages = set(data.pages)
+        missing = sorted(profile_pages - set(seeders))
+        if missing:
+            raise SeederNotFoundError(
+                "No page seeders registered for: " + ", ".join(missing)
+            )
+
+        seeders = {name: cls for name, cls in seeders.items() if name in profile_pages}
+        if not seeders:
+            raise SeederNotFoundError("No page seeders registered for this profile.")
+
         ordered: list[tuple[str, type[BaseSeeder]]] = []
         remaining = dict(seeders)
         for name in self.page_order:
