@@ -196,8 +196,6 @@
 **Fix:** Refresh GitHub App auth via `~/.codex/bin/gh-app-auth --org markashton480 --configure-gh`, and update PR bodies via REST (`gh api --method PATCH repos/{owner}/{repo}/pulls/<n> -F body=@-`) when `gh pr edit` fails.  
 **Follow-up:** Document the REST-based PR edit workaround (or bump `gh` CLI) to avoid GraphQL breakages when Projects (classic) fields are removed.
 
----
-
 ## Site: sum-platform (Core)
 
 **Date:** 2026-01-03  
