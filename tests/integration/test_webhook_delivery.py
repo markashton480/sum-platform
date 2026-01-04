@@ -15,6 +15,8 @@ from sum_core.forms.tasks import send_webhook
 from sum_core.leads.models import Lead, WebhookStatus
 from wagtail.models import Site
 
+pytestmark = pytest.mark.integration
+
 
 def _load_payload(call_index: int | None = None) -> dict[str, Any]:
     assert responses.calls, "No HTTP calls captured by responses."
