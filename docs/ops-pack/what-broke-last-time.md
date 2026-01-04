@@ -46,6 +46,16 @@
 
 ## Site: sum-platform (Core)
 
+**Date:** 2026-01-04  
+**Version:** v0.7.1-dev  
+**Symptom:** `make lint` failed locally with `pyrefly: No such file or directory` during typecheck.  
+**Fix:** Install dev dependencies (`pip install -e ./core[dev]`) and ensure `.venv` is activated before linting.  
+**Follow-up:** Add a preflight check in `make lint` to surface missing `pyrefly` more clearly.
+
+---
+
+## Site: sum-platform (Core)
+
 **Date:** 2026-01-03  
 **Version:** v0.7.1-dev  
 **Symptom:** `gh pr create` failed with `No commits between feature/test-tiering and task/ci-tiering` when the draft PR was opened before any commits.  
