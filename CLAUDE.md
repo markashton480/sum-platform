@@ -31,7 +31,7 @@ make install-dev    # Install core + dev deps
 make run            # Migrate and start server
 make lint           # Ruff, Pyrefly, Black, isort
 make format         # Auto-format
-make test           # Fast tests (default)
+make test           # Full pytest suite
 make test-fast      # Quick gate
 
 # Single test
@@ -133,7 +133,56 @@ Check GitHub Discussions regularly, particularly announcements at https://github
 
 You'll find updates, announcements, Q&A, and daily standups in Discussions. You can access these via cURL/API/CLI.
 
-Add to the "What Broke Last Time" section with any issues you encounter during your work.
+Add to the "What Broke Last Time" discussion category with any issues you encounter during your work.
+
+## GitHub Discussions API
+
+To post to GitHub Discussions, use the GraphQL API:
+
+**Repository ID:** `R_kgDOQk0iAw`
+
+| Category | ID | Use For |
+|----------|-----|---------|
+| What Broke Last Time? | `DIC_kwDOQk0iA84C0X11` | Log issues/incidents encountered during work |
+| General | `DIC_kwDOQk0iA84C0Xuy` | General discussion topics |
+
+**Command to create a discussion:**
+
+```bash
+gh api graphql -f query='
+mutation($title: String!, $body: String!) {
+  createDiscussion(input: {
+    repositoryId: "R_kgDOQk0iAw",
+    categoryId: "<CATEGORY_ID>",
+    title: $title,
+    body: $body
+  }) {
+    discussion { url }
+  }
+}' -f title="<TITLE>" -f body="<BODY>"
+```
+
+**Example - posting to What Broke Last Time:**
+
+```bash
+gh api graphql -f query='
+mutation($title: String!, $body: String!) {
+  createDiscussion(input: {
+    repositoryId: "R_kgDOQk0iAw",
+    categoryId: "DIC_kwDOQk0iA84C0X11",
+    title: $title,
+    body: $body
+  }) {
+    discussion { url }
+  }
+}' \
+  -f title="make test timeout with default harness settings" \
+  -f body="**Date:** 2026-01-04
+**Version:** v0.7.1-dev
+**Symptom:** Description of what went wrong.
+**Fix:** What you did to resolve it.
+**Follow-up:** Suggested improvements."
+```
 
 ## Development Workflow
 
@@ -148,28 +197,14 @@ Development is based on **Version Declarations (VD)**, **Work Orders (WO)**, and
 
 Follow TDD principles as much as possible.
 
-**CRITICAL**: Tests require an activated virtual environment. They will NOT run without it.
-
 Always run after completing coding tasks:
 ```bash
-# REQUIRED: Activate .venv first
 source .venv/bin/activate
-
-# Then run tests and linting
 make test
 make lint
 ```
 
 This ensures code works and doesn't break anything.
-
-### Test Tiers
-
-- `make test` — Fast tests (default, every push)
-- `make test-integration` — Integration tests (seeders, webhooks)
-- `make test-full` — All tests except E2E
-- `make test-e2e` — Playwright browser tests
-
-See `docs/dev/TESTING.md` for complete testing documentation.
 
 ## Feedback Loops
 

@@ -22,7 +22,7 @@ make install-dev   # Editable install of core + dev tooling
 make run           # Migrate and run test project
 make lint          # Ruff + Pyrefly + Black + isort
 make format        # Auto-format
-make test          # Fast tests (default)
+make test          # Full pytest suite
 make test-fast     # Quick gate (CLI + themes)
 ```
 
@@ -108,7 +108,56 @@ Subtask is Done when:
 
 You should regularly check GitHub Discussions, particularly announcements (`https://github.com/markashton480/sum-platform/discussions/categories/announcements`) and your GitHub notifications. You can do both by cURL/API/CLI. You'll find updates, announcements, Q&A, daily standups in Discussions, so check it out and feel free to contribute.
 
-You should also add to the "What Broke Last Time" section with any issues you encountered during your work.
+You should also add to the "What Broke Last Time" discussion category with any issues you encountered during your work.
+
+## GitHub Discussions API
+
+To post to GitHub Discussions, use the GraphQL API:
+
+**Repository ID:** `R_kgDOQk0iAw`
+
+| Category | ID | Use For |
+|----------|-----|---------|
+| What Broke Last Time? | `DIC_kwDOQk0iA84C0X11` | Log issues/incidents encountered during work |
+| General | `DIC_kwDOQk0iA84C0Xuy` | General discussion topics |
+
+**Command to create a discussion:**
+
+```bash
+gh api graphql -f query='
+mutation($title: String!, $body: String!) {
+  createDiscussion(input: {
+    repositoryId: "R_kgDOQk0iAw",
+    categoryId: "<CATEGORY_ID>",
+    title: $title,
+    body: $body
+  }) {
+    discussion { url }
+  }
+}' -f title="<TITLE>" -f body="<BODY>"
+```
+
+**Example - posting to What Broke Last Time:**
+
+```bash
+gh api graphql -f query='
+mutation($title: String!, $body: String!) {
+  createDiscussion(input: {
+    repositoryId: "R_kgDOQk0iAw",
+    categoryId: "DIC_kwDOQk0iA84C0X11",
+    title: $title,
+    body: $body
+  }) {
+    discussion { url }
+  }
+}' \
+  -f title="make test timeout with default harness settings" \
+  -f body="**Date:** 2026-01-04
+**Version:** v0.7.1-dev
+**Symptom:** Description of what went wrong.
+**Fix:** What you did to resolve it.
+**Follow-up:** Suggested improvements."
+```
 
 ## Development Workflow
 
@@ -116,30 +165,7 @@ Our development is based on Version Declarations (VD), Work Orders (WO) and Task
 
 ## Testing and Linting
 
-Try to follow TDD principles as much as possible.
-
-**CRITICAL**: Tests require an activated virtual environment. They will NOT run without it.
-
-Always run after completing coding tasks:
-```bash
-# REQUIRED: Activate .venv first
-source .venv/bin/activate
-
-# Then run tests and linting
-make test
-make lint
-```
-
-**For Agents**: Use the existing `.venv/` - no installation needed, just activation.
-
-### Test Tiers
-
-- `make test` — Fast tests (default, every push)
-- `make test-integration` — Integration tests (seeders, webhooks)
-- `make test-full` — All tests except E2E
-- `make test-e2e` — Playwright browser tests
-
-See `docs/dev/TESTING.md` for complete testing documentation.
+Try to follow TDD principles as much as possible. Always run `make test` and `make lint` after completing coding tasks to ensure your code works and doesn't break anything. Remember to use `source .venv/bin/activate` when running tests.
 
 ## Feedback Loops
 

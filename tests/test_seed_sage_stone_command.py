@@ -29,8 +29,6 @@ from tests.utils import REPO_ROOT
 
 MODULE_NAME = "seed_sage_stone_command"
 
-pytestmark = pytest.mark.slow
-
 
 def _load_seed_module():
     if MODULE_NAME in sys.modules:
