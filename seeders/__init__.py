@@ -20,6 +20,7 @@ from .exceptions import (
     SeederRegistryError,
     SeederSlugError,
 )
+from .site import SiteSeeder
 
 __all__ = [
     "BaseSeeder",
@@ -35,6 +36,7 @@ __all__ = [
     "SeederRegistryError",
     "SeederRegistrationError",
     "SeederSlugError",
+    "SiteSeeder",
     "create_child_page",
     "generate_slug",
     "get_or_create_page",
