@@ -50,6 +50,8 @@ def parse_datetime(value: Any, *, field: str) -> datetime:
     """Parse an ISO date string into a datetime object."""
 
     if isinstance(value, datetime):
+        if timezone.is_aware(value):
+            return value
         return _ensure_aware(value)
     if isinstance(value, str):
         try:
@@ -79,15 +81,17 @@ def get_or_create_child_page[
 
     existing = page_class.objects.child_of(parent).filter(slug=slug).first()
     if existing is not None:
-        for key, value in defaults.items():
+        page_defaults = dict(defaults)
+        for key, value in page_defaults.items():
             if hasattr(existing, key):
                 setattr(existing, key, value)
         publish_page(existing)
         return existing, False
 
+    page_defaults = dict(defaults)
     rename_conflicting_page(parent, slug=slug, expected_class=page_class)
 
-    page = page_class(slug=slug, **defaults)
+    page = page_class(slug=slug, **page_defaults)
     return create_child_page(parent, page), True
 
 
@@ -100,7 +104,7 @@ def _resolve_image_value(value: Any, images: Mapping[str, Any], *, field: str) -
             raise SeederContentError(f"Unknown image key for {field}: {value}")
         return getattr(image, "pk", image)
     if hasattr(value, "pk"):
-        return getattr(value, "pk")
+        return getattr(value, "pk", value)
     return value
 
 
@@ -143,9 +147,9 @@ def _build_legacy_slug(parent: Page, slug: str, page_id: int) -> str:
     base_slug = f"{slug}-legacy-{page_id}"
     if not parent.get_children().filter(slug=base_slug).exists():
         return base_slug
-    counter = 2
-    candidate = f"{base_slug}-{counter}"
+    counter = 1
+    candidate = f"{base_slug}-conflict-{counter}"
     while parent.get_children().filter(slug=candidate).exists():
         counter += 1
-        candidate = f"{base_slug}-{counter}"
+        candidate = f"{base_slug}-conflict-{counter}"
     return candidate

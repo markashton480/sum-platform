@@ -204,7 +204,7 @@
 **Version:** v0.7.1-dev  
 **Symptom:** `gh notification list` failed with `unknown command "notification"` because the gh CLI doesn't ship a notifications subcommand by default.  
 **Fix:** Use `gh api notifications` instead to list GitHub notifications.  
-**Follow-up:** Add a short note in tooling docs about using `gh api notifications` or installing a notifications extension if desired.
+**Follow-up:** Add a short note in `docs/dev/AGENT-ORIENTATION.md` about using `gh api notifications` or installing a notifications extension if desired.
 
 ---
 

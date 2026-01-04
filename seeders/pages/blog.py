@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from copy import deepcopy
 from typing import Any
 
 from sum_core.pages.blog import BlogIndexPage, BlogPostPage, Category
@@ -35,9 +34,10 @@ class BlogSeeder(BaseSeeder):
         categories_data = content.get("categories", [])
         if isinstance(categories_data, list):
             self.category_slugs = [
-                category.get("slug", "")
+                slug
                 for category in categories_data
                 if isinstance(category, dict)
+                if isinstance(slug := category.get("slug"), str) and slug
             ]
         if clear:
             self.clear()
@@ -167,9 +167,12 @@ class BlogSeeder(BaseSeeder):
         return image
 
     def _prepare_body(self, post_data: Mapping[str, Any]) -> list[dict[str, Any]]:
-        body = deepcopy(post_data.get("body", []))
-        if not isinstance(body, list):
+        raw_body = post_data.get("body", [])
+        if not isinstance(raw_body, list):
             raise SeederContentError("Blog post body must be a list")
+        body = [
+            block.copy() if isinstance(block, dict) else block for block in raw_body
+        ]
 
         image_key = post_data.get("image_key")
         for block in body:
@@ -181,13 +184,18 @@ class BlogSeeder(BaseSeeder):
             if not isinstance(value, dict):
                 continue
             if "image" not in value and image_key:
-                value["image"] = image_key
+                updated_value = value.copy()
+                updated_value["image"] = image_key
+                block["value"] = updated_value
         return resolve_streamfield_images(body, self.images)
 
     def _resolve_site_name(self, blog_index: BlogIndexPage) -> str:
-        site = (
-            blog_index.get_site() or getattr(self.home_page, "get_site", lambda: None)()
-        )
+        site = blog_index.get_site()
+        if site is None and hasattr(self.home_page, "get_site"):
+            site = self.home_page.get_site()
         if site is None:
             return ""
-        return str(getattr(site, "site_name", "")).strip()
+        site_name = getattr(site, "site_name", "")
+        if site_name is None:
+            return ""
+        return str(site_name).strip()
