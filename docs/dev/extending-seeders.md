@@ -2,6 +2,12 @@
 
 Guide for creating additional site seeders based on the Sage & Stone patterns.
 
+> **Note**: This document covers the legacy monolithic seeder pattern. For the new modular seeder architecture with YAML content profiles, see:
+> - [Seeder Architecture](SEEDER-ARCHITECTURE.md) — Technical overview of the modular system
+> - [Creating Content Profiles](CREATING-CONTENT-PROFILES.md) — Guide to creating YAML content profiles
+>
+> The new `python manage.py seed <profile>` command uses `SeedOrchestrator` and registered page seeders. The patterns below remain valid for creating custom standalone seeder commands.
+
 ## Overview
 
 Seeders are Django management commands that populate a Wagtail site with demo content. They follow consistent patterns for idempotency, configurability, and content structure.
@@ -427,5 +433,7 @@ def test_full_seed_workflow(wagtail_default_site):
 
 ## See Also
 
+- [Seeder Architecture](SEEDER-ARCHITECTURE.md) — Modular seeder system documentation
+- [Creating Content Profiles](CREATING-CONTENT-PROFILES.md) — YAML content profile guide
 - [Sage & Stone Seeder](../user/seed-sage-stone.md) — Reference implementation
 - [Theme Guide](THEME-GUIDE.md) — Block types and templates
