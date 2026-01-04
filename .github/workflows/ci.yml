@@ -6,7 +6,6 @@ on:
       - main
       - develop
       - release/*
-      - infra/*
       - feature/*
       - task/*
       - fix/*
@@ -16,7 +15,6 @@ on:
       - main
       - develop
       - release/*
-      - infra/*
       - feature/*
       - task/*
       - fix/*
@@ -146,91 +144,6 @@ jobs:
         run: make lint
 
   # ---------------------------------------------------------------------------
-  # TIER: Decide which test tier to run based on branch patterns
-  # ---------------------------------------------------------------------------
-  tier:
-    runs-on: ubuntu-latest
-    outputs:
-      tier: ${{ steps.select.outputs.tier }}
-      run_fast: ${{ steps.select.outputs.run_fast }}
-      run_integration: ${{ steps.select.outputs.run_integration }}
-      run_full: ${{ steps.select.outputs.run_full }}
-      run_slices: ${{ steps.select.outputs.run_slices }}
-
-    steps:
-      - name: Select test tier
-        id: select
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          event="${{ github.event_name }}"
-          head_ref=""
-          base_ref=""
-
-          if [[ "$event" == "pull_request" ]]; then
-            head_ref="${{ github.event.pull_request.head.ref }}"
-            base_ref="${{ github.event.pull_request.base.ref }}"
-          else
-            head_ref="${{ github.ref_name }}"
-          fi
-
-          tier="fast"
-
-          if [[ "$event" == "pull_request" && "$base_ref" == "main" && "$head_ref" == "develop" ]]; then
-            tier="full"
-          else
-            case "$head_ref" in
-              task/*|fix/*)
-                tier="fast"
-                ;;
-              feature/*|feat/*)
-                tier="feature"
-                ;;
-              release/*|infra/*)
-                tier="full"
-                ;;
-              develop|main)
-                tier="full"
-                ;;
-              *)
-                tier="fast"
-                ;;
-            esac
-          fi
-
-          run_fast="true"
-          run_integration="false"
-          run_full="false"
-          run_slices="false"
-
-          case "$tier" in
-            fast)
-              run_fast="true"
-              run_slices="false"
-              ;;
-            feature)
-              run_fast="true"
-              run_integration="true"
-              run_slices="true"
-              ;;
-            full)
-              run_full="true"
-              run_slices="true"
-              ;;
-          esac
-
-          {
-            echo "tier=$tier"
-            echo "run_fast=$run_fast"
-            echo "run_integration=$run_integration"
-            echo "run_full=$run_full"
-            echo "run_slices=$run_slices"
-          } >> "$GITHUB_OUTPUT"
-
-          echo "Selected tier: $tier (event=$event head=$head_ref base=$base_ref)"
-
-  # ---------------------------------------------------------------------------
   # TEST-TEMPLATES: Template loading order gate (fast fail)
   # ---------------------------------------------------------------------------
   test-templates:
@@ -273,13 +186,12 @@ jobs:
         run: make verify-source-intact
 
   # ---------------------------------------------------------------------------
-  # TEST-SUITE: Run the tiered test suite
+  # TEST-FULL: Run the full test suite
   # ---------------------------------------------------------------------------
   test-full:
-    name: test-suite
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [lint, changes, tier]
+    needs: [lint, changes]
     if: needs.changes.outputs.docs_ci_only != 'true'
 
     steps:
@@ -315,17 +227,8 @@ jobs:
           rm -rf .pytest_cache
           rm -rf clients/cli-check-* clients/cli-theme-*
 
-      - name: Run fast tests
-        if: needs.tier.outputs.run_fast == 'true'
+      - name: Run tests
         run: make test
-
-      - name: Run integration tests
-        if: needs.tier.outputs.run_integration == 'true'
-        run: make test-integration
-
-      - name: Run full test suite
-        if: needs.tier.outputs.run_full == 'true'
-        run: make test-full
 
       - name: Verify source integrity
         run: make verify-source-intact
@@ -336,8 +239,8 @@ jobs:
   test-cli:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [lint, changes, tier]
-    if: needs.changes.outputs.docs_ci_only != 'true' && needs.tier.outputs.run_slices == 'true'
+    needs: [lint, changes]
+    if: needs.changes.outputs.docs_ci_only != 'true'
 
     steps:
       - name: Checkout repository
@@ -384,8 +287,8 @@ jobs:
   test-themes:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    needs: [lint, changes, tier]
-    if: needs.changes.outputs.docs_ci_only != 'true' && needs.tier.outputs.run_slices == 'true'
+    needs: [lint, changes]
+    if: needs.changes.outputs.docs_ci_only != 'true'
 
     steps:
       - name: Checkout repository
@@ -434,7 +337,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - changes
-      - tier
       - lint
       - test-templates
       - test-full
@@ -447,7 +349,6 @@ jobs:
         shell: bash
         run: |
           echo "docs_ci_only=${{ needs.changes.outputs.docs_ci_only }}"
-          echo "tier=${{ needs.tier.outputs.tier }}"
           echo ""
           echo "Changed files:"
           printf '%s\n' "${{ needs.changes.outputs.changed_files }}"
@@ -484,17 +385,13 @@ jobs:
             echo "::error::test-full did not succeed: ${{ needs.test-full.result }}"
             exit 1
           fi
-          if [[ "${{ needs.tier.outputs.run_slices }}" == "true" ]]; then
-            if [[ "${{ needs.test-cli.result }}" != "success" ]]; then
-              echo "::error::test-cli did not succeed: ${{ needs.test-cli.result }}"
-              exit 1
-            fi
-            if [[ "${{ needs.test-themes.result }}" != "success" ]]; then
-              echo "::error::test-themes did not succeed: ${{ needs.test-themes.result }}"
-              exit 1
-            fi
-          else
-            echo "Test slices skipped for tier: ${{ needs.tier.outputs.tier }}"
+          if [[ "${{ needs.test-cli.result }}" != "success" ]]; then
+            echo "::error::test-cli did not succeed: ${{ needs.test-cli.result }}"
+            exit 1
+          fi
+          if [[ "${{ needs.test-themes.result }}" != "success" ]]; then
+            echo "::error::test-themes did not succeed: ${{ needs.test-themes.result }}"
+            exit 1
           fi
 
           echo "All CI jobs succeeded."
