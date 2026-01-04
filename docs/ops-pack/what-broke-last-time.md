@@ -196,18 +196,6 @@
 **Fix:** Refresh GitHub App auth via `~/.codex/bin/gh-app-auth --org markashton480 --configure-gh`, and update PR bodies via REST (`gh api --method PATCH repos/{owner}/{repo}/pulls/<n> -F body=@-`) when `gh pr edit` fails.  
 **Follow-up:** Document the REST-based PR edit workaround (or bump `gh` CLI) to avoid GraphQL breakages when Projects (classic) fields are removed.
 
----
-
-## Site: sum-platform (Core)
-
-**Date:** 2026-01-04  
-**Version:** v0.7.1-dev  
-**Symptom:** `gh notification list` failed with `unknown command "notification"` because the gh CLI doesn't ship a notifications subcommand by default.  
-**Fix:** Use `gh api notifications` instead to list GitHub notifications.  
-**Follow-up:** Add a short note in `docs/dev/AGENT-ORIENTATION.md` about using `gh api notifications` or installing a notifications extension if desired.
-
----
-
 ## Site: sum-platform (Core)
 
 **Date:** 2026-01-03  
