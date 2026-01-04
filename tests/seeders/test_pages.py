@@ -1,6 +1,6 @@
 """
 Name: Page Seeder Tests
-Path: tests/seeders/test_page_seeders.py
+Path: tests/seeders/test_pages.py
 Purpose: Verify page seeders create/update pages from YAML content.
 Family: Seeder architecture tests.
 Dependencies: pytest, Wagtail models, seeders modules.
@@ -27,7 +27,7 @@ from seeders.pages.legal import LegalPageSeeder
 from seeders.pages.portfolio import PortfolioPageSeeder
 from seeders.pages.services import ServicesPageSeeder
 
-pytestmark = pytest.mark.django_db
+pytestmark = [pytest.mark.django_db, pytest.mark.integration, pytest.mark.slow]
 
 
 def _add_image_keys_to_set(data: Any, keys: set[str]) -> None:

@@ -1,6 +1,6 @@
 """
 Name: Content Loader Tests
-Path: tests/seeders/test_content_loader.py
+Path: tests/seeders/test_content.py
 Purpose: Verify YAML content loading, validation, and interpolation.
 """
 

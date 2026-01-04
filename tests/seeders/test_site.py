@@ -1,6 +1,6 @@
 """
 Name: Site Seeder Tests
-Path: tests/seeders/test_site_seeder.py
+Path: tests/seeders/test_site.py
 Purpose: Verify site seeding for branding, navigation, and clear behavior.
 """
 
@@ -19,6 +19,8 @@ from seeders.content import ContentLoader
 from seeders.exceptions import SeederContentError, SeederPageError
 from seeders.images import ImageManager
 from seeders.site import SiteSeeder
+
+pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 
 def _create_standard_page(parent: Page, slug: str, title: str) -> StandardPage:

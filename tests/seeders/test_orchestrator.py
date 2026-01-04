@@ -19,6 +19,8 @@ from seeders.exceptions import SeederNotFoundError
 SeedOrchestrator = orchestrator_module.SeedOrchestrator
 SeedPlan = orchestrator_module.SeedPlan
 
+pytestmark = pytest.mark.integration
+
 
 class DummyImageManager:
     def __init__(self, events: list[str] | None = None) -> None:

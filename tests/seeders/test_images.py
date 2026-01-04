@@ -1,6 +1,6 @@
 """
 Name: Image Manager Tests
-Path: tests/seeders/test_image_manager.py
+Path: tests/seeders/test_images.py
 Purpose: Verify placeholder image generation utilities.
 """
 
