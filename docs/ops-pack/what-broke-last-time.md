@@ -48,6 +48,16 @@
 
 **Date:** 2026-01-04  
 **Version:** v0.7.1-dev  
+**Symptom:** `gh pr view --comments` failed with a GraphQL deprecation error for `repository.pullRequest.projectCards`; local `make lint` failed because `pyrefly` and the `magic` module were missing from the active `.venv`.  
+**Fix:** Use `gh api repos/<owner>/<repo>/pulls/<num>/comments` or a GraphQL `reviewThreads` query for PR review threads; install the missing tools (`pip install pyrefly python-magic`) or re-run `make install-dev`.  
+**Follow-up:** Add a short note in contributor docs about the `gh pr view --comments` limitation and ensure `make install-dev` consistently provisions `pyrefly` + any required runtime deps like `python-magic`.
+
+---
+
+## Site: sum-platform (Core)
+
+**Date:** 2026-01-04  
+**Version:** v0.7.1-dev  
 **Symptom:** `make lint` failed in pyrefly with `seeders/base.py:94` unreachable return, plus redundant-cast warnings in `core/sum_core/forms/services.py` and `core/sum_core/leads/services.py`.  
 **Fix:** None in this task; failures appear pre-existing on `feature/seeder-architecture`.  
 **Follow-up:** Open a cleanup task to resolve the pyrefly error and remove redundant casts.
