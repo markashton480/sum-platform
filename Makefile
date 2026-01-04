@@ -1,4 +1,4 @@
-.PHONY: help lint test test-integration test-full test-e2e test-cli test-themes test-templates test-fast verify-source-intact format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref preflight
+.PHONY: help lint test test-cli test-themes test-templates test-fast verify-source-intact format run migrate makemigrations install install-dev clean db-up db-down db-logs sync-cli-boilerplate check-cli-boilerplate release-check release-set-core-ref preflight
 
 MANAGE = python core/sum_core/test_project/manage.py
 
@@ -28,17 +28,8 @@ format: ## Auto-format code
 	isort --settings-path pyproject.toml core cli tests
 
 
-test: ## Run fast tests (default, excludes slow/integration)
+test: ## Run tests with pytest
 	python -m pytest
-
-test-integration: ## Run integration/slow tests only
-	python -m pytest -m "slow or integration"
-
-test-full: ## Run all tests except E2E
-	python -m pytest -m "" --ignore=tests/e2e
-
-test-e2e: ## Run Playwright E2E tests
-	python -m pytest tests/e2e
 
 test-cli: ## Run CLI test slice only
 	python -m pytest cli/tests -q

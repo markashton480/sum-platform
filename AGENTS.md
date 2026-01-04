@@ -22,7 +22,7 @@ make install-dev   # Editable install of core + dev tooling
 make run           # Migrate and run test project
 make lint          # Ruff + mypy + Black + isort
 make format        # Auto-format
-make test          # Fast tests (default)
+make test          # Full pytest suite
 make test-fast     # Quick gate (CLI + themes)
 ```
 
@@ -116,30 +116,7 @@ Our development is based on Version Declarations (VD), Work Orders (WO) and Task
 
 ## Testing and Linting
 
-Try to follow TDD principles as much as possible.
-
-**CRITICAL**: Tests require an activated virtual environment. They will NOT run without it.
-
-Always run after completing coding tasks:
-```bash
-# REQUIRED: Activate .venv first
-source .venv/bin/activate
-
-# Then run tests and linting
-make test
-make lint
-```
-
-**For Agents**: Use the existing `.venv/` - no installation needed, just activation.
-
-### Test Tiers
-
-- `make test` — Fast tests (default, every push)
-- `make test-integration` — Integration tests (seeders, webhooks)
-- `make test-full` — All tests except E2E
-- `make test-e2e` — Playwright browser tests
-
-See `docs/dev/TESTING.md` for complete testing documentation.
+Try to follow TDD principles as much as possible. Always run `make test` and `make lint` after completing coding tasks to ensure your code works and doesn't break anything. Remember to use `source .venv/bin/activate` when running tests.
 
 ## Feedback Loops
 

@@ -32,7 +32,3 @@ dist/
 # Development Docs
 
 sum-core-public/
-coverage.json
-
-## Worktrees
-.worktrees

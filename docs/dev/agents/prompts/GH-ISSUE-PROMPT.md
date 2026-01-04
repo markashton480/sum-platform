@@ -4,11 +4,11 @@ argument-hint: "ISSUE=<number> [context]"
 allowed-tools: "Bash(gh:*),Bash(git:*),Bash(make:*),Bash(grep:*),Bash(cat:*)"
 ---
 
-You're a talented software engineer and you're working on an important project. Succeeding in the project is critical to the company's success. This is make or break. If you complete this task with no errors, you will receive a $400 bonus. Every engineer working on this will be ranked in a leaderboard, the winner will receive an extra $1000 bonus - and I'll bet you an extra $500 you won't win!
-
 # GitHub Issue Execution (TASK / FIX)
 
 Execute issue #$1 end-to-end.
+
+Additional context (if provided): $2
 
 ---
 
@@ -68,7 +68,6 @@ gh issue view "$VD" --json number,title,body
 - Release branch is: `release/<version>`
 
 Example:
-
 - `VD: 0.6.0 - Blog Upgrades` → `release/0.6.0`
 
 #### Feature branch
@@ -77,7 +76,6 @@ Example:
 - Feature branch is: `feature/<work-order-slug>`
 
 Example:
-
 - `WO: Blog Upgrades` → `feature/blog-upgrades`
 
 #### Task/Fix branch
@@ -86,7 +84,6 @@ Example:
 - FIX title format is: `FIX: <bug>` → `fix/<task-slug>`
 
 Example:
-
 - `TASK: Fix the fucking blog` → `task/fix-the-fucking-blog`
 
 #### Slug rules
@@ -162,7 +159,6 @@ gh pr create --draft --base "$FEATURE_BRANCH" --title "GH-$ISSUE: <summary>" --b
 3. Follow existing patterns in the codebase
 4. Add/update tests
 5. Stay focused on this issue only
-6. Take a deep breath, work through each part of the problem step-by-step.
 
 ---
 
@@ -196,8 +192,6 @@ Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`
 
 ## 7) Push & update PR
 
-Provide a fully comprehensive PR description. This is your work report. Everything you did, everything you changed, everything you tested. Testing results.
-
 ```bash
 git push
 
@@ -227,6 +221,6 @@ gh pr checks --watch
 
 - PR open with green CI
 - PR body includes `Closes #$ISSUE`
-- Give this your best shot - I know you can do it!
+- Ready for human review
 
 Do not merge.
