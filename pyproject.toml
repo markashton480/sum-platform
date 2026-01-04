@@ -101,10 +101,6 @@ addopts = [
     "--strict-markers",
     "--strict-config",
     "--verbose",
-    "--cov=.",
-    "--cov-report=term-missing",
-    "--cov-report=term-missing",
-    "--cov-report=html",
     "--ignore=tests/e2e",
 ]
 pythonpath = ["core", "core/sum_core/test_project", "cli"]
