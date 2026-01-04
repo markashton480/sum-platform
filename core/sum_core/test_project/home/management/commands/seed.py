@@ -1,5 +1,5 @@
 """
-Seed the SUM test project using YAML content profiles.
+Seed the test project using YAML content profiles.
 
 Usage:
     python manage.py seed sage-stone
@@ -19,7 +19,7 @@ from seeders.exceptions import SeederError
 
 
 class Command(BaseCommand):
-    help = "Seed the SUM test project from YAML content profiles."
+    help = "Seed the test project from YAML content profiles."
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
@@ -70,6 +70,12 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"Seeded profile '{profile}'."))
 
     def _default_profile(self, orchestrator: SeedOrchestrator) -> str | None:
+        """Return a sensible default profile, if one can be inferred.
+
+        The test project ships with a sample profile called ``sage-stone``. When
+        present, it's used as a convenient default to keep the command terse for
+        local development and CI.
+        """
         profiles = orchestrator.list_profiles()
         if "sage-stone" in profiles:
             return "sage-stone"
@@ -78,10 +84,14 @@ class Command(BaseCommand):
         return None
 
     def _print_plan(self, plan: SeedPlan) -> None:
-        self.stdout.write("Seed plan")
-        self.stdout.write(f"Profile: {plan.profile}")
-        self.stdout.write(f"Content dir: {plan.content_dir}")
+        self.stdout.write(self.style.MIGRATE_HEADING("Seed plan"))
+        self.stdout.write(self.style.NOTICE(f"  Profile: {plan.profile}"))
+        self.stdout.write(self.style.NOTICE(f"  Content dir: {plan.content_dir}"))
         if plan.pages:
-            self.stdout.write(f"Pages: {', '.join(plan.pages)}")
+            self.stdout.write(self.style.SUCCESS("  Pages:"))
+            for page in plan.pages:
+                self.stdout.write(f"    - {page}")
         if plan.seeders:
-            self.stdout.write(f"Seeders: {', '.join(plan.seeders)}")
+            self.stdout.write(self.style.SUCCESS("  Seeders:"))
+            for seeder in plan.seeders:
+                self.stdout.write(f"    - {seeder}")

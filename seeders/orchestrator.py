@@ -48,7 +48,12 @@ class SeedResult:
 
 
 class SeedOrchestrator:
-    """Coordinate the seeding flow for content profiles."""
+    """Coordinate the seeding flow for content profiles.
+
+    Seeder classes can optionally declare ``content_loader`` and/or ``image_manager``
+    keyword arguments in their constructor. When present, the orchestrator will
+    inject its configured dependencies when instantiating the seeder.
+    """
 
     def __init__(
         self,
@@ -93,15 +98,11 @@ class SeedOrchestrator:
         clear: bool = False,
         dry_run: bool = False,
     ) -> SeedPlan | SeedResult:
+        if dry_run:
+            return self.plan(profile)
+
         data = self.content_loader.load_profile(profile)
         page_seeders = self._resolve_page_seeders(data)
-        if dry_run:
-            return SeedPlan(
-                profile=profile,
-                content_dir=self.content_loader.content_dir,
-                pages=self._order_page_names(data.pages),
-                seeders=[name for name, _ in page_seeders],
-            )
 
         with transaction.atomic():
             images = self._generate_images()
@@ -173,6 +174,12 @@ class SeedOrchestrator:
         return ordered
 
     def _init_seeder(self, seeder_class: type[BaseSeeder]) -> BaseSeeder:
+        """Instantiate a seeder, injecting optional dependencies.
+
+        Seeders may declare ``content_loader`` and/or ``image_manager`` keyword
+        arguments in their constructor; when present, those objects are passed in
+        automatically.
+        """
         signature = inspect.signature(seeder_class)
         kwargs: dict[str, Any] = {}
         if "content_loader" in signature.parameters:
@@ -209,6 +216,9 @@ class SeedOrchestrator:
                 "pages": pages,
                 "images": images,
             }
+            # Clearing is coordinated by `_clear_seeders` before this runs. We
+            # always pass `clear=False` to avoid double-clearing within a single
+            # orchestrated run.
             result = seeder.seed(content, clear=False)
             self._collect_pages(name=name, seeder=seeder, result=result, pages=pages)
         return pages
@@ -246,4 +256,6 @@ class SeedOrchestrator:
             "pages": pages,
             "images": images,
         }
+        # Clearing is coordinated by `_clear_seeders` before this runs. We always
+        # pass `clear=False` to avoid double-clearing within a single run.
         site_seeder.seed(content, clear=False)
