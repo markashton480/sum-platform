@@ -200,6 +200,16 @@
 
 ## Site: sum-platform (Core)
 
+**Date:** 2026-01-04  
+**Version:** v0.7.1-dev  
+**Symptom:** `gh notification list` failed with `unknown command "notification"` because the gh CLI doesn't ship a notifications subcommand by default.  
+**Fix:** Use `gh api notifications` instead to list GitHub notifications.  
+**Follow-up:** Add a short note in tooling docs about using `gh api notifications` or installing a notifications extension if desired.
+
+---
+
+## Site: sum-platform (Core)
+
 **Date:** 2026-01-03  
 **Version:** v0.7.1-dev  
 **Symptom:** `make test` failed once with `tests/pages/test_blog_templates.py::TestBlogIndexPageTemplateRendering::test_blog_index_displays_featured_images`, then passed on rerun.  
