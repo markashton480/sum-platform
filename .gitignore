@@ -33,3 +33,6 @@ dist/
 
 sum-core-public/
 coverage.json
+
+## Worktrees
+.worktrees
