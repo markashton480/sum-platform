@@ -48,6 +48,16 @@
 
 **Date:** 2026-01-04  
 **Version:** v0.7.1-dev  
+**Symptom:** `make test` timed out in the harness when run with the default 10s command timeout.  
+**Fix:** Re-ran `make test` with a longer timeout; suite completed successfully.  
+**Follow-up:** Consider documenting expected test runtime or adjusting harness defaults for `make test`.
+
+---
+
+## Site: sum-platform (Core)
+
+**Date:** 2026-01-04  
+**Version:** v0.7.1-dev  
 **Symptom:** `make lint` failed in pyrefly with `seeders/base.py:94` unreachable return, plus redundant-cast warnings in `core/sum_core/forms/services.py` and `core/sum_core/leads/services.py`.  
 **Fix:** None in this task; failures appear pre-existing on `feature/seeder-architecture`.  
 **Follow-up:** Open a cleanup task to resolve the pyrefly error and remove redundant casts.

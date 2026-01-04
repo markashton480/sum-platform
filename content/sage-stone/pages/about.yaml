@@ -1,0 +1,99 @@
+title: "About Us"
+slug: "about"
+seo_title: "About Sage & Stone | Our Story & Craftsmen"
+search_description: "Meet the makers behind Sage & Stone. 28 years of master joinery experience. Herefordshire workshop, lifetime guarantee."
+show_in_menus: true
+body:
+  - type: "hero_gradient"
+    value:
+      headline: "Craftsmanship built on <em>obsession</em>"
+      subheadline: "Three decades of refining our craft. One mission: kitchens that outlast trends."
+      ctas: []
+      status: ""
+      gradient_style: "primary"
+  - type: "featured_case_study"
+    value:
+      eyebrow: "A Letter from the Founder"
+      heading: "Thomas J. Wright"
+      intro: "<p>I started Sage & Stone because I was tired of watching beautiful timber turned into forgettable furniture.</p><p>Every kitchen we build is an argument against disposability--a physical reminder that permanence is possible.</p><p>We don't chase trends. We don't cut corners. We build rooms that your grandchildren will cook Sunday lunch in.</p>"
+      points: []
+      cta_text: ""
+      cta_url: ""
+      image: FOUNDER_IMAGE
+      image_alt: "Thomas J. Wright, Master Joiner and Founder"
+      stats_label: "Years of experience"
+      stats_value: "28"
+  - type: "service_cards"
+    value:
+      eyebrow: "Our Standards"
+      heading: "The Sage & Stone Etiquette"
+      intro: "Three non-negotiable principles that guide every commission."
+      view_all_link: ""
+      view_all_label: ""
+      cards:
+        - icon: ""
+          image: null
+          title: "Invisible Tradesmen"
+          description: "<p>You'll never know we were there. Sites are left cleaner than we found them. No radio, no mess, no drama.</p>"
+          link_url: ""
+          link_label: ""
+        - icon: ""
+          image: null
+          title: "Obsessive Cleanliness"
+          description: "<p>Daily dust extraction, floor protection, and sealed work areas. We treat your home like our workshop.</p>"
+          link_url: ""
+          link_label: ""
+        - icon: ""
+          image: null
+          title: "Vetted & Permanent"
+          description: "<p>Every team member has been with us for 5+ years. No subcontractors, no strangers in your home.</p>"
+          link_url: ""
+          link_label: ""
+      layout_style: "tight"
+  - type: "team_members"
+    value:
+      eyebrow: "Meet the Makers"
+      heading: "The people behind every commission"
+      members:
+        - name: "James E."
+          role: "Head of Installation"
+          bio: "15 years precision fitting"
+          photo: TEAM_JAMES
+          alt_text: "Portrait of James E., Head of Installation"
+        - name: "Sarah M."
+          role: "Finishing Specialist"
+          bio: "Traditional hand-finishing techniques"
+          photo: TEAM_SARAH
+          alt_text: "Portrait of Sarah M., Finishing Specialist"
+        - name: "David R."
+          role: "Master Joiner"
+          bio: "Third-generation craftsman"
+          photo: TEAM_DAVID
+          alt_text: "Portrait of David R., Master Joiner"
+        - name: "Marcus T."
+          role: "Project Director"
+          bio: "Your single point of contact"
+          photo: TEAM_MARCUS
+          alt_text: "Portrait of Marcus T., Project Director"
+  - type: "featured_case_study"
+    value:
+      eyebrow: "The Workshop"
+      heading: "Herefordshire, Est. 2005"
+      intro: "<p>Our solar-powered facility in the Herefordshire countryside is where every Sage & Stone piece comes to life.</p><p>We maintain an open workshop policy--clients are welcome to visit and witness their kitchen taking shape.</p>"
+      points:
+        - "4,000 sq ft purpose-built facility"
+        - "Solar-powered operations"
+        - "Open workshop visits available"
+      cta_text: "Schedule a workshop visit"
+      cta_url: "/contact/"
+      image: WORKSHOP_IMAGE
+      image_alt: "Sage & Stone workshop interior"
+      stats_label: "Years at this location"
+      stats_value: "20"
+  - type: "buttons"
+    value:
+      alignment: "center"
+      buttons:
+        - label: "Request a Site Visit"
+          url: "/contact/"
+          style: "primary"
