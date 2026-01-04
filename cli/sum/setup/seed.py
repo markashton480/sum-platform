@@ -49,8 +49,11 @@ class ContentSeeder:
 
         return SeedResult(success=True, page_id=self._extract_page_id(result.stdout))
 
-    def seed_sage_stone(self) -> SeedResult:
-        """Run the Sage & Stone site seeder.
+    def seed_profile(self, profile: str) -> SeedResult:
+        """Run the profile-based site seeder.
+
+        Args:
+            profile: The content profile name to seed (e.g. "sage-stone").
 
         Raises:
             SeedError: If seeding fails.
@@ -58,7 +61,7 @@ class ContentSeeder:
         Returns:
             SeedResult with success=True.
         """
-        result = self.django.run_command(["seed_sage_stone"], check=False)
+        result = self.django.run_command(["seed", profile], check=False)
 
         if result.returncode != 0:
             details = result.stderr or result.stdout

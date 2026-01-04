@@ -204,7 +204,7 @@ class TestCLIv2SeedCommand:
         not cli_v2_supports_sage_stone(),
         reason="CLI v2 does not support sage-and-stone seeder yet",
     )
-    def test_sum_seed_sage_stone(self) -> None:
+    def test_sum_seed_profile_sage_stone(self) -> None:
         """sum seed sage-stone should run the seeder."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             # This assumes a project already exists
