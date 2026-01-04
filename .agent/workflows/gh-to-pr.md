@@ -119,7 +119,11 @@ BODY
 ## 8) Address reviews + resolve conversations
 
 1. Pull feedback:
-   - `gh pr view --comments`
+   - `gh pr view --comments` (may fail due to GitHub GraphQL deprecations)
+   - Fallback (PR review comments via REST):
+     - `OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)`
+     - `PR_NUMBER=$(gh pr view --json number --jq .number)`
+     - `gh api "repos/${OWNER_REPO}/pulls/${PR_NUMBER}/comments"`
    - `gh pr view --json reviews,reviewRequests --jq '.'`
 2. Apply requested changes, commit, push, re-check CI (`gh pr checks --watch`).
 3. Resolve review threads where possible (GraphQL mutation exists: resolveReviewThread). :contentReference[oaicite:9]{index=9}

@@ -122,23 +122,25 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Cache pip dependencies
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Cache uv
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install system dependencies
         run: |
+          sudo rm -f /etc/apt/sources.list.d/azure-cli.list
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
           sudo apt-get update
           sudo apt-get install -y libmagic1
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ./core[dev]
+          uv pip install -e ./core[dev] --system
 
       - name: Run lint checks
         run: make lint
@@ -161,23 +163,25 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Cache pip dependencies
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Cache uv
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install system dependencies
         run: |
+          sudo rm -f /etc/apt/sources.list.d/azure-cli.list
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
           sudo apt-get update
           sudo apt-get install -y libmagic1
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ./core[dev]
+          uv pip install -e ./core[dev] --system
 
       - name: Run template loading tests
         run: make test-templates
@@ -203,23 +207,25 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Cache pip dependencies
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Cache uv
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install system dependencies
         run: |
+          sudo rm -f /etc/apt/sources.list.d/azure-cli.list
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
           sudo apt-get update
           sudo apt-get install -y libmagic1
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ./core[dev]
+          uv pip install -e ./core[dev] --system
 
       - name: Clean stale artifacts
         run: |
@@ -251,23 +257,25 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Cache pip dependencies
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Cache uv
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install system dependencies
         run: |
+          sudo rm -f /etc/apt/sources.list.d/azure-cli.list
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
           sudo apt-get update
           sudo apt-get install -y libmagic1
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ./core[dev]
+          uv pip install -e ./core[dev] --system
 
       - name: Clean stale artifacts
         run: |
@@ -299,23 +307,25 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Cache pip dependencies
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Cache uv
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('core/pyproject.toml', 'pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install system dependencies
         run: |
+          sudo rm -f /etc/apt/sources.list.d/azure-cli.list
+          sudo rm -f /etc/apt/sources.list.d/microsoft-prod.list
           sudo apt-get update
           sudo apt-get install -y libmagic1
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e ./core[dev]
+          uv pip install -e ./core[dev] --system
 
       - name: Clean stale artifacts
         run: |

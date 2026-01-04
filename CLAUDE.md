@@ -29,7 +29,7 @@ source .venv/bin/activate
 
 make install-dev    # Install core + dev deps
 make run            # Migrate and start server
-make lint           # Ruff, mypy, Black, isort
+make lint           # Ruff, Pyrefly, Black, isort
 make format         # Auto-format
 make test           # Full pytest suite
 make test-fast      # Quick gate

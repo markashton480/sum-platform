@@ -20,7 +20,7 @@ docs/, scripts/          # Documentation, helpers
 ```bash
 make install-dev   # Editable install of core + dev tooling
 make run           # Migrate and run test project
-make lint          # Ruff + mypy + Black + isort
+make lint          # Ruff + Pyrefly + Black + isort
 make format        # Auto-format
 make test          # Full pytest suite
 make test-fast     # Quick gate (CLI + themes)
@@ -94,7 +94,7 @@ Subtask is Done when:
 ## Code Style
 
 - Python 3.12+, Black line length 88
-- Linting: Ruff, type-checking: mypy
+- Linting: Ruff, type-checking: pyrefly
 - Tests: `test_*.py`, classes `Test*`, functions `test_*`
 
 ## Agent Notes

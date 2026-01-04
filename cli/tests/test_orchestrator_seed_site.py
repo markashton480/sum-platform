@@ -19,13 +19,13 @@ def _make_orchestrator(tmp_path: Path) -> SetupOrchestrator:
     return SetupOrchestrator(project_path, ExecutionMode.STANDALONE)
 
 
-@patch("cli.sum.setup.orchestrator.ContentSeeder.seed_sage_stone")
+@patch("cli.sum.setup.orchestrator.ContentSeeder.seed_profile")
 @patch("cli.sum.setup.orchestrator.ContentSeeder.seed_homepage")
 @patch("cli.sum.setup.orchestrator.DjangoCommandExecutor")
 def test_seed_content_routes_sage_and_stone(
     mock_executor_class: MagicMock,
     mock_seed_homepage: MagicMock,
-    mock_seed_sage_stone: MagicMock,
+    mock_seed_profile: MagicMock,
     tmp_path: Path,
 ) -> None:
     config = SetupConfig(seed_site="sage-and-stone")
@@ -36,17 +36,17 @@ def test_seed_content_routes_sage_and_stone(
     mock_executor_class.assert_called_once_with(
         orchestrator.project_path, ExecutionMode.STANDALONE
     )
-    mock_seed_sage_stone.assert_called_once_with()
+    mock_seed_profile.assert_called_once_with("sage-stone")
     mock_seed_homepage.assert_not_called()
 
 
-@patch("cli.sum.setup.orchestrator.ContentSeeder.seed_sage_stone")
+@patch("cli.sum.setup.orchestrator.ContentSeeder.seed_profile")
 @patch("cli.sum.setup.orchestrator.ContentSeeder.seed_homepage")
 @patch("cli.sum.setup.orchestrator.DjangoCommandExecutor")
 def test_seed_content_defaults_to_homepage(
     mock_executor_class: MagicMock,
     mock_seed_homepage: MagicMock,
-    mock_seed_sage_stone: MagicMock,
+    mock_seed_profile: MagicMock,
     tmp_path: Path,
 ) -> None:
     config = SetupConfig(seed_preset="theme-x")
@@ -58,7 +58,7 @@ def test_seed_content_defaults_to_homepage(
         orchestrator.project_path, ExecutionMode.STANDALONE
     )
     mock_seed_homepage.assert_called_once_with(preset="theme-x")
-    mock_seed_sage_stone.assert_not_called()
+    mock_seed_profile.assert_not_called()
 
 
 @patch("cli.sum.setup.orchestrator.ContentSeeder.seed_homepage")
