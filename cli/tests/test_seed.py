@@ -112,28 +112,30 @@ def test_seed_homepage_no_page_id_in_output(mock_executor: MagicMock) -> None:
     assert result.page_id is None
 
 
-def test_seed_sage_stone_success(mock_executor: MagicMock) -> None:
-    """Test successful Sage & Stone seeding."""
+def test_seed_profile_success(mock_executor: MagicMock) -> None:
+    """Test successful profile seeding."""
     mock_executor.run_command.return_value = subprocess.CompletedProcess(
-        args=["python", "manage.py", "seed_sage_stone"],
+        args=["python", "manage.py", "seed", "sage-stone"],
         returncode=0,
         stdout="Seeded Sage & Stone site",
         stderr="",
     )
 
     seeder = ContentSeeder(mock_executor)
-    result = seeder.seed_sage_stone()
+    result = seeder.seed_profile("sage-stone")
 
     assert isinstance(result, SeedResult)
     assert result.success is True
     assert result.page_id is None
-    mock_executor.run_command.assert_called_once_with(["seed_sage_stone"], check=False)
+    mock_executor.run_command.assert_called_once_with(
+        ["seed", "sage-stone"], check=False
+    )
 
 
-def test_seed_sage_stone_failure(mock_executor: MagicMock) -> None:
-    """Test Sage & Stone seeding failure raises SeedError."""
+def test_seed_profile_failure(mock_executor: MagicMock) -> None:
+    """Test profile seeding failure raises SeedError."""
     mock_executor.run_command.return_value = subprocess.CompletedProcess(
-        args=["python", "manage.py", "seed_sage_stone"],
+        args=["python", "manage.py", "seed", "sage-stone"],
         returncode=1,
         stdout="",
         stderr="Error: missing migrations",
@@ -142,7 +144,7 @@ def test_seed_sage_stone_failure(mock_executor: MagicMock) -> None:
     seeder = ContentSeeder(mock_executor)
 
     with pytest.raises(SeedError, match="Seeding failed"):
-        seeder.seed_sage_stone()
+        seeder.seed_profile("sage-stone")
 
 
 def test_check_homepage_exists_true(mock_executor: MagicMock) -> None:

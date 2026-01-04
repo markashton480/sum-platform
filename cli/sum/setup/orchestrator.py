@@ -199,7 +199,7 @@ class SetupOrchestrator:
         if config.seed_site:
             seed_site = config.seed_site.lower()
             if seed_site == "sage-and-stone":
-                seeder.seed_sage_stone()
+                seeder.seed_profile("sage-stone")
                 return
             raise SetupError(f"Unknown seed site: {config.seed_site}")
         seeder.seed_homepage(preset=config.seed_preset)
