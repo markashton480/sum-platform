@@ -635,6 +635,9 @@ To cut a release properly, follow these steps exactly:
 | ----------- | ---------------------------------- | --------------------------------------------- |
 | **Dev**     | `make lint`                        | Ruff, Pyrefly, Black, and Isort checks        |
 | **Dev**     | `make test`                        | Run fast tests (default tier)                 |
+| **Seeder**  | `python manage.py seed <profile>`  | Seed site from YAML content profile           |
+| **Seeder**  | `python manage.py seed <profile> --clear` | Clear existing content and re-seed     |
+| **Seeder**  | `python manage.py seed <profile> --dry-run` | Validate and preview without writing |
 | **Release** | `make release-check`               | Pre-flight checks before tagging              |
 | **CLI**     | `sum init <slug> --theme <theme>`  | Scaffold a new client project with theme      |
 | **CLI**     | `sum check`                        | Verify environment and core wiring            |
