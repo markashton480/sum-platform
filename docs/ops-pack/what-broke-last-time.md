@@ -46,6 +46,16 @@
 
 ## Site: sum-platform (Core)
 
+**Date:** 2026-01-04  
+**Version:** v0.7.1-dev  
+**Symptom:** `make lint` failed in pyrefly with `seeders/base.py:94` unreachable return, plus redundant-cast warnings in `core/sum_core/forms/services.py` and `core/sum_core/leads/services.py`.  
+**Fix:** None in this task; failures appear pre-existing on `feature/seeder-architecture`.  
+**Follow-up:** Open a cleanup task to resolve the pyrefly error and remove redundant casts.
+
+---
+
+## Site: sum-platform (Core)
+
 **Date:** 2026-01-03  
 **Version:** v0.7.1-dev  
 **Symptom:** `gh pr create` failed with `No commits between feature/test-tiering and task/ci-tiering` when the draft PR was opened before any commits.  
