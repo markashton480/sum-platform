@@ -1,0 +1,185 @@
+header:
+  show_phone_in_header: true
+  header_cta_enabled: true
+  header_cta_text: "Enquire"
+  header_cta_link:
+    - type: "link"
+      value:
+        link_type: "page"
+        page: "contact"
+        link_text: "Enquire"
+  mobile_cta_enabled: true
+  mobile_cta_phone_enabled: true
+  mobile_cta_button_enabled: true
+  mobile_cta_button_text: "Enquire"
+  mobile_cta_button_link:
+    - type: "link"
+      value:
+        link_type: "page"
+        page: "contact"
+        link_text: "Enquire"
+  menu_items:
+    - type: "item"
+      value:
+        label: "Kitchens"
+        link:
+          link_type: "page"
+          page: "portfolio"
+          link_text: "Kitchens"
+        children:
+          - label: "Collections"
+            link:
+              link_type: "anchor"
+              anchor: "collections"
+              link_text: "Collections"
+            children:
+              - label: "The Heritage"
+                link:
+                  link_type: "url"
+                  url: "/portfolio/?collection=heritage"
+                  link_text: "The Heritage"
+              - label: "The Modernist"
+                link:
+                  link_type: "url"
+                  url: "/portfolio/?collection=modernist"
+                  link_text: "The Modernist"
+              - label: "The Utility"
+                link:
+                  link_type: "url"
+                  url: "/portfolio/?collection=utility"
+                  link_text: "The Utility"
+          - label: "Fitted Joinery"
+            link:
+              link_type: "anchor"
+              anchor: "fitted-joinery"
+              link_text: "Fitted Joinery"
+            children:
+              - label: "Larder Cupboards"
+                link:
+                  link_type: "url"
+                  url: "/portfolio/?type=larder"
+                  link_text: "Larder Cupboards"
+              - label: "Island Units"
+                link:
+                  link_type: "url"
+                  url: "/portfolio/?type=island"
+                  link_text: "Island Units"
+              - label: "Wall Cabinetry"
+                link:
+                  link_type: "url"
+                  url: "/portfolio/?type=wall"
+                  link_text: "Wall Cabinetry"
+              - label: "Boot Room Storage"
+                link:
+                  link_type: "url"
+                  url: "/portfolio/?type=bootroom"
+                  link_text: "Boot Room Storage"
+          - label: "Freestanding"
+            link:
+              link_type: "anchor"
+              anchor: "freestanding"
+              link_text: "Freestanding"
+            children:
+              - label: "Prep Tables"
+                link:
+                  link_type: "url"
+                  url: "/portfolio/?type=prep-table"
+                  link_text: "Prep Tables"
+              - label: "Butcher Blocks"
+                link:
+                  link_type: "url"
+                  url: "/portfolio/?type=butcher-block"
+                  link_text: "Butcher Blocks"
+              - label: "Dressers"
+                link:
+                  link_type: "url"
+                  url: "/portfolio/?type=dresser"
+                  link_text: "Dressers"
+    - type: "item"
+      value:
+        label: "What We Do"
+        link:
+          link_type: "page"
+          page: "services"
+          link_text: "What We Do"
+        children: []
+    - type: "item"
+      value:
+        label: "Who We Are"
+        link:
+          link_type: "page"
+          page: "about"
+          link_text: "Who We Are"
+        children: []
+    - type: "item"
+      value:
+        label: "Portfolio"
+        link:
+          link_type: "page"
+          page: "portfolio"
+          link_text: "Portfolio"
+        children: []
+    - type: "item"
+      value:
+        label: "Journal"
+        link:
+          link_type: "page"
+          page: "journal"
+          link_text: "Journal"
+        children: []
+
+footer:
+  tagline: "Rooms that remember."
+  auto_service_areas: false
+  social_instagram: "https://instagram.com/sageandstone"
+  social_facebook: ""
+  social_linkedin: ""
+  social_youtube: ""
+  social_x: ""
+  copyright_text: "\u00A9 {year} Sage & Stone Ltd. All rights reserved."
+  link_sections:
+    - type: "section"
+      value:
+        title: "Explore"
+        links:
+          - link_type: "page"
+            page: "about"
+            link_text: "Who We Are"
+          - link_type: "page"
+            page: "services"
+            link_text: "What We Do"
+          - link_type: "page"
+            page: "journal"
+            link_text: "Journal"
+          - link_type: "page"
+            page: "portfolio"
+            link_text: "Our Portfolio"
+    - type: "section"
+      value:
+        title: "Legal"
+        links:
+          - link_type: "url"
+            url: "/privacy/"
+            link_text: "Privacy Policy"
+          - link_type: "page"
+            page: "terms"
+            link_text: "Terms of Service"
+          - link_type: "url"
+            url: "/accessibility/"
+            link_text: "Accessibility"
+    - type: "section"
+      value:
+        title: "Studio"
+        links:
+          - link_type: "anchor"
+            anchor: "studio-address"
+            link_text: "The Old Joinery, Unit 4"
+          - link_type: "anchor"
+            anchor: "studio-postcode"
+            link_text: "Herefordshire HR4 9AB"
+          - link_type: "email"
+            email: "hello@sageandstone.com"
+            link_text: "hello@sageandstone.com"
+          - link_type: "phone"
+            phone: "+44 (0) 20 1234 5678"
+            link_text: "+44 (0) 20 1234 5678"

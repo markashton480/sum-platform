@@ -2,6 +2,12 @@
 
 Guide for creating additional site seeders based on the Sage & Stone patterns.
 
+> **Note**: This document covers the legacy monolithic seeder pattern. For the new modular seeder architecture with YAML content profiles, see:
+> - [Seeder Architecture](SEEDER-ARCHITECTURE.md) — Technical overview of the modular system
+> - [Creating Content Profiles](CREATING-CONTENT-PROFILES.md) — Guide to creating YAML content profiles
+>
+> The new `python manage.py seed <profile>` command uses `SeedOrchestrator` and registered page seeders. The patterns below remain valid for creating custom standalone seeder commands.
+
 ## Overview
 
 Seeders are Django management commands that populate a Wagtail site with demo content. They follow consistent patterns for idempotency, configurability, and content structure.
@@ -130,21 +136,21 @@ def _configure_navigation(self, site: Site, home_page: Page) -> None:
 
 ## Image Generation
 
-### Placeholder Image Generator
+### Image Manager
 
 Use Pillow to generate branded placeholder images:
 
 ```python
-class PlaceholderImageGenerator:
+class ImageManager:
     def __init__(self, prefix: str = IMAGE_PREFIX) -> None:
         self.prefix = prefix
-        self.colors = {
+        self.palette = {
             "primary": "#1A2F23",
             "secondary": "#4A6350",
             "accent": "#A0563B",
         }
 
-    def generate_image(
+    def generate(
         self,
         key: str,
         width: int,
@@ -160,7 +166,7 @@ class PlaceholderImageGenerator:
             return existing
 
         # Create with Pillow
-        bg = self.colors.get(bg_color, bg_color)
+        bg = self.palette.get(bg_color, bg_color)
         img = PILImage.new("RGB", (width, height), bg)
 
         # Add label text if provided
@@ -191,10 +197,8 @@ IMAGE_MANIFEST = [
 ]
 
 def create_images(self) -> dict[str, Image]:
-    images = {}
-    for spec in IMAGE_MANIFEST:
-        images[spec["key"]] = self.generator.generate_image(**spec)
-    return images
+    manager = ImageManager(prefix=IMAGE_PREFIX)
+    return manager.generate_manifest(IMAGE_MANIFEST)
 ```
 
 ## Content Configuration
@@ -429,5 +433,7 @@ def test_full_seed_workflow(wagtail_default_site):
 
 ## See Also
 
+- [Seeder Architecture](SEEDER-ARCHITECTURE.md) — Modular seeder system documentation
+- [Creating Content Profiles](CREATING-CONTENT-PROFILES.md) — YAML content profile guide
 - [Sage & Stone Seeder](../user/seed-sage-stone.md) — Reference implementation
 - [Theme Guide](THEME-GUIDE.md) — Block types and templates

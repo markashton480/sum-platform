@@ -6,7 +6,7 @@ not just that database records exist.
 
 E2E tests require:
 1. A running Django server (python manage.py runserver)
-2. A seeded database (python manage.py seed_sage_stone)
+2. A seeded database (python manage.py seed sage-stone)
 
 Run with:
     pytest tests/e2e/ -p no:django --base-url http://localhost:8000
@@ -73,7 +73,7 @@ def seeded_database():
     Setup before running E2E tests:
     1. cd core/sum_core/test_project
     2. python manage.py migrate
-    3. python manage.py seed_sage_stone
+    3. python manage.py seed sage-stone
     4. python manage.py runserver 8765 &
     5. cd ../../..
     6. pytest tests/e2e/ -p no:django --base-url http://localhost:8765

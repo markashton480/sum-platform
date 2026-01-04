@@ -7,10 +7,11 @@ Generate a complete demonstration website for "Sage & Stone," a fictional bespok
 ### Via Management Command
 
 ```bash
-python manage.py seed_sage_stone
+python manage.py seed sage-stone
 ```
 
 This creates a fully populated Wagtail site with pages, navigation, branding, blog content, and placeholder images.
+The legacy `seed_sage_stone` command has been replaced by `seed` with the `sage-stone` profile.
 
 ## What Gets Created
 
@@ -28,17 +29,17 @@ This creates a fully populated Wagtail site with pages, navigation, branding, bl
 ## Command Options
 
 ```bash
-# Full site seed (default)
-python manage.py seed_sage_stone
+# Full site seed (default profile)
+python manage.py seed sage-stone
 
 # Clear existing content and rebuild
-python manage.py seed_sage_stone --clear
+python manage.py seed sage-stone --clear
 
-# Generate images only (no pages/navigation)
-python manage.py seed_sage_stone --images-only
+# Override the content directory
+python manage.py seed sage-stone --content-path ./content
 
-# Custom hostname and port
-python manage.py seed_sage_stone --hostname example.com --port 80
+# Validate content and print the plan without writing
+python manage.py seed sage-stone --dry-run
 ```
 
 ### Option Reference
@@ -46,9 +47,8 @@ python manage.py seed_sage_stone --hostname example.com --port 80
 | Option | Description |
 |--------|-------------|
 | `--clear` | Delete existing Sage & Stone content before re-seeding |
-| `--images-only` | Generate placeholder images only (skip pages/navigation) |
-| `--hostname` | Site hostname (default: `localhost`) |
-| `--port` | Site port (default: `8000`) |
+| `--content-path` | Override the content directory (defaults to `./content`) |
+| `--dry-run` | Print the seed plan without writing data |
 
 ## Idempotency
 
@@ -124,7 +124,7 @@ To replace with real images:
 The default Wagtail site may conflict. Clear and rebuild:
 
 ```bash
-python manage.py seed_sage_stone --clear
+python manage.py seed sage-stone --clear
 ```
 
 ### Missing blocks error
@@ -144,7 +144,7 @@ pip install Pillow
 Check that pages are published (live). Run the seeder again to ensure all pages are created:
 
 ```bash
-python manage.py seed_sage_stone
+python manage.py seed sage-stone
 ```
 
 ## Integration with Theme A
