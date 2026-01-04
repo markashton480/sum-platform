@@ -13,8 +13,6 @@ from sum_core.forms.tasks import send_auto_reply, send_form_notification
 from sum_core.leads.models import EmailStatus, Lead
 from wagtail.models import Site
 
-pytestmark = pytest.mark.integration
-
 
 @pytest.mark.django_db
 class TestAdminNotificationEmails:
