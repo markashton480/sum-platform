@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 
 from seeders.content import ContentLoader
-from seeders.exceptions import ContentSchemaError
+from seeders.exceptions import ContentProfileError, ContentSchemaError
 
 
 def test_content_loader_lists_profiles(tmp_path) -> None:
@@ -50,6 +50,21 @@ def test_content_loader_loads_and_interpolates(tmp_path) -> None:
     assert data.pages["home"]["title"] == "Welcome to Sage & Stone"
 
 
+def test_content_loader_missing_required_files_raises(tmp_path) -> None:
+    content_dir = tmp_path / "content"
+    profile_dir = content_dir / "missing-files"
+    pages_dir = profile_dir / "pages"
+    pages_dir.mkdir(parents=True)
+
+    (profile_dir / "site.yaml").write_text("brand:\n  company_name: Test\n")
+    (pages_dir / "home.yaml").write_text('title: "Home"\nslug: "home"\n')
+
+    loader = ContentLoader(content_dir=content_dir)
+
+    with pytest.raises(ContentProfileError):
+        loader.load_profile("missing-files")
+
+
 def test_content_loader_validates_page_schema(tmp_path) -> None:
     content_dir = tmp_path / "content"
     profile_dir = content_dir / "invalid"
@@ -64,3 +79,58 @@ def test_content_loader_validates_page_schema(tmp_path) -> None:
 
     with pytest.raises(ContentSchemaError):
         loader.load_profile("invalid")
+
+
+def test_content_loader_duplicate_page_stems_raises(tmp_path) -> None:
+    content_dir = tmp_path / "content"
+    profile_dir = content_dir / "duplicate"
+    pages_dir = profile_dir / "pages"
+    pages_dir.mkdir(parents=True)
+
+    (profile_dir / "site.yaml").write_text("brand:\n  company_name: Test\n")
+    (profile_dir / "navigation.yaml").write_text("footer:\n  tagline: Test\n")
+    (pages_dir / "home.yaml").write_text('title: "Home"\nslug: "home"\n')
+    (pages_dir / "home.yml").write_text('title: "Home 2"\nslug: "home"\n')
+
+    loader = ContentLoader(content_dir=content_dir)
+
+    with pytest.raises(ContentProfileError):
+        loader.load_profile("duplicate")
+
+
+def test_content_loader_missing_interpolation_path_raises(tmp_path) -> None:
+    content_dir = tmp_path / "content"
+    profile_dir = content_dir / "interpolation"
+    pages_dir = profile_dir / "pages"
+    pages_dir.mkdir(parents=True)
+
+    (profile_dir / "site.yaml").write_text(
+        "brand:\n  company_name: Test\n",
+        encoding="utf-8",
+    )
+    (profile_dir / "navigation.yaml").write_text(
+        "footer:\n  tagline: ${brand.missing}\n",
+        encoding="utf-8",
+    )
+    (pages_dir / "home.yaml").write_text('title: "Home"\nslug: "home"\n')
+
+    loader = ContentLoader(content_dir=content_dir)
+
+    with pytest.raises(ContentSchemaError):
+        loader.load_profile("interpolation")
+
+
+def test_content_loader_supports_yml_pages(tmp_path) -> None:
+    content_dir = tmp_path / "content"
+    profile_dir = content_dir / "yml-pages"
+    pages_dir = profile_dir / "pages"
+    pages_dir.mkdir(parents=True)
+
+    (profile_dir / "site.yaml").write_text("brand:\n  company_name: Test\n")
+    (profile_dir / "navigation.yaml").write_text("footer:\n  tagline: Test\n")
+    (pages_dir / "about.yml").write_text('title: "About"\nslug: "about"\n')
+
+    loader = ContentLoader(content_dir=content_dir)
+    data = loader.load_profile("yml-pages")
+
+    assert data.pages["about"]["slug"] == "about"

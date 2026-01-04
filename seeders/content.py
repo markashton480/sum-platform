@@ -77,8 +77,16 @@ class ContentLoader:
 
         page_files = sorted(pages_dir.glob("*.yaml")) + sorted(pages_dir.glob("*.yml"))
         pages: dict[str, dict[str, Any]] = {}
+        seen_stems: dict[str, Path] = {}
         for page_file in page_files:
-            pages[page_file.stem] = self._load_yaml(page_file)
+            stem = page_file.stem
+            if stem in seen_stems:
+                first = seen_stems[stem]
+                raise ContentProfileError(
+                    f"Duplicate page definition for '{stem}': {first} and {page_file}"
+                )
+            seen_stems[stem] = page_file
+            pages[stem] = self._load_yaml(page_file)
         return pages
 
     def _load_yaml(self, path: Path) -> dict[str, Any]:
@@ -99,10 +107,14 @@ class ContentLoader:
     def _validate_site(self, site: dict[str, Any]) -> None:
         if not isinstance(site, dict):
             raise ContentSchemaError("Site content must be a mapping")
+        if not site:
+            raise ContentSchemaError("Site content cannot be empty")
 
     def _validate_navigation(self, navigation: dict[str, Any]) -> None:
         if not isinstance(navigation, dict):
             raise ContentSchemaError("Navigation content must be a mapping")
+        if not navigation:
+            raise ContentSchemaError("Navigation content cannot be empty")
 
     def _validate_pages(self, pages: dict[str, dict[str, Any]]) -> None:
         for name, page in pages.items():
@@ -127,7 +139,9 @@ class ContentLoader:
             "navigation": navigation,
             "pages": pages,
         }
-        context.update(site)
+        for key, value in site.items():
+            if key not in context:
+                context[key] = value
         return context
 
     def _interpolate(self, data: Any, context: Mapping[str, Any]) -> Any:
