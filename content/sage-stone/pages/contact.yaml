@@ -1,0 +1,19 @@
+title: "Contact"
+slug: "contact"
+seo_title: "Contact Us | Begin Your Commission | Sage & Stone"
+search_description: "Ready to begin your bespoke kitchen journey? Contact Sage & Stone for a consultation."
+show_in_menus: false
+body:
+  - type: "hero_gradient"
+    value:
+      headline: "Begin Your <em>Commission</em>"
+      subheadline: "Tell us about your project and we'll be in touch within 48 hours."
+      ctas: []
+      gradient_style: "primary"
+  - type: "contact_form"
+    value:
+      eyebrow: ""
+      heading: "Request a Consultation"
+      intro: "<p>Whether you're ready to begin or simply exploring possibilities, we'd love to hear from you.</p>"
+      success_message: "Thank you for your enquiry. We'll be in touch within 48 hours."
+      submit_label: "Send Enquiry"

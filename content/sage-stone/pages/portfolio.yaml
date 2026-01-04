@@ -1,0 +1,70 @@
+title: "Portfolio"
+slug: "portfolio"
+seo_title: "Our Portfolio | Bespoke Kitchen Projects | Sage & Stone"
+search_description: "Explore our collection of bespoke kitchen commissions. Heritage, modernist, and utility designs crafted in Herefordshire."
+show_in_menus: true
+body:
+  - type: "editorial_header"
+    value:
+      align: "center"
+      eyebrow: "Our Work"
+      heading: "The Portfolio"
+  - type: "featured_case_study"
+    value:
+      eyebrow: "Featured"
+      heading: "The Highland Commission"
+      intro: "<p>A complete kitchen and utility suite for a Scottish estate, featuring locally-sourced larch and hand-forged ironmongery.</p>"
+      points: []
+      cta_text: "View project"
+      cta_url: "#highland"
+      image: PORTFOLIO_HIGHLAND
+      image_alt: "Highland Commission kitchen interior"
+      stats_label: ""
+      stats_value: ""
+  - type: "portfolio"
+    value:
+      eyebrow: ""
+      heading: "Selected Works"
+      intro: ""
+      view_all_link: ""
+      view_all_label: ""
+      items:
+        - title: "The Pantry Larder"
+          category: "furniture"
+          image: PORTFOLIO_LARDER
+          alt_text: "Pantry larder in English oak"
+          services: "Freestanding larder unit in English oak"
+          link_url: "#pantry-larder"
+        - title: "The Georgian Restoration"
+          category: "restoration"
+          image: PORTFOLIO_GEORGIAN_REST
+          alt_text: "Georgian restoration kitchen"
+          services: "Period-sympathetic kitchen for a 1780s townhouse"
+          link_url: "#georgian-restoration"
+        - title: "The Brutalist Barn"
+          category: "kitchen"
+          image: PORTFOLIO_BRUTALIST
+          alt_text: "Brutalist barn kitchen interior"
+          services: "Contemporary design meets agricultural character"
+          link_url: "#brutalist-barn"
+        - title: "The Utility Room"
+          category: "furniture"
+          image: PORTFOLIO_UTILITY
+          alt_text: "Utility room storage and boot room"
+          services: "Boot room and utility suite"
+          link_url: "#utility-room"
+  - type: "quote"
+    value:
+      quote: "We don't build against nature. We negotiate with it."
+      author: "Thomas J. Wright"
+      role: "Founder"
+  - type: "buttons"
+    value:
+      alignment: "center"
+      buttons:
+        - label: "Enquire for 2026"
+          url: "/contact/"
+          style: "primary"
+        - label: "Read about our process"
+          url: "/services/"
+          style: "secondary"
