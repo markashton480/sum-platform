@@ -1,0 +1,160 @@
+title: "Sage & Stone"
+slug: "home"
+seo_title: "Sage & Stone | Bespoke Kitchens, Herefordshire"
+search_description: "Heirloom-quality kitchens, handcrafted in Herefordshire. 12 commissions per year. Lifetime guarantee."
+show_in_menus: false
+body:
+  - type: "hero_image"
+    value:
+      headline: "<em>Rooms that remember</em>"
+      subheadline: "Heirloom-quality kitchens, handcrafted in Herefordshire. 12 commissions per year. Lifetime guarantee."
+      ctas:
+        - label: "Begin Your Commission"
+          url: "/contact/"
+          style: "primary"
+          open_in_new_tab: false
+        - label: "Our Philosophy"
+          url: "/about/"
+          style: "outline"
+          open_in_new_tab: false
+      status: ""
+      image: HERO_IMAGE
+      image_alt: "Bespoke kitchen interior with dark wood cabinetry"
+      overlay_opacity: "medium"
+      layout: "full"
+      floating_card_label: ""
+      floating_card_value: ""
+  - type: "stats"
+    value:
+      eyebrow: ""
+      intro: ""
+      items:
+        - value: "12"
+          label: "Commissions per year"
+          prefix: ""
+          suffix: ""
+        - value: "12-16"
+          label: "Week build time"
+          prefix: ""
+          suffix: ""
+        - value: "Herefordshire"
+          label: "Workshop location"
+          prefix: ""
+          suffix: ""
+        - value: "Lifetime"
+          label: "Joinery guarantee"
+          prefix: ""
+          suffix: ""
+  - type: "manifesto"
+    value:
+      eyebrow: "The Sage & Stone Philosophy"
+      heading: "Good kitchens don't age. They <em>season</em>."
+      body: "<p>We curate the room your great-grandchildren will fight over.</p><p>In a world of disposable design, we build against the grain--literally and figuratively. Every joint is cut by hand. Every surface is finished to last decades, not seasons.</p>"
+      quote: "Speed is the enemy of legacy"
+  - type: "service_cards"
+    value:
+      eyebrow: "Our Services"
+      heading: "What We Create"
+      intro: "Three ways to begin your Sage & Stone journey."
+      view_all_link: "/services/"
+      view_all_label: "View all services"
+      cards:
+        - icon: ""
+          image: SERVICE_COMMISSION
+          title: "The Commission"
+          description: "<p>A fully bespoke kitchen, designed and built from first principles. Your space, your needs, your legacy.</p>"
+          link_url: "/services/#commission"
+          link_label: "Learn more"
+        - icon: ""
+          image: SERVICE_RESTORATION
+          title: "The Restoration"
+          description: "<p>Breathing new life into antique furniture and period kitchens. Respect for heritage, executed with precision.</p>"
+          link_url: "/services/#restoration"
+          link_label: "Learn more"
+        - icon: ""
+          image: SERVICE_LARDER
+          title: "The Larder"
+          description: "<p>Standalone pantry units and storage solutions. The perfect introduction to Sage & Stone craftsmanship.</p>"
+          link_url: "/services/#larder"
+          link_label: "Learn more"
+      layout_style: "default"
+  - type: "featured_case_study"
+    value:
+      eyebrow: "Provenance Signature"
+      heading: "Every piece tells a story"
+      intro: "<p>Each Sage & Stone kitchen carries a hand-engraved brass plate documenting its maker, timber source, and completion date.</p>"
+      points:
+        - "Hand-engraved by our master craftsmen"
+        - "GPS coordinates of timber source"
+        - "Unique serial number for lifetime support"
+      cta_text: "Learn about our materials"
+      cta_url: "/about/#materials"
+      image: PROVENANCE_IMAGE
+      image_alt: "Brass maker's plate with engraved details"
+      stats_label: "Kitchens completed"
+      stats_value: "247"
+  - type: "portfolio"
+    value:
+      eyebrow: "Case Files"
+      heading: "Recent Commissions"
+      intro: ""
+      view_all_link: "/portfolio/"
+      view_all_label: "View all projects"
+      items:
+        - title: "The Kensington Commission"
+          category: "kitchen"
+          image: PORTFOLIO_KENSINGTON
+          alt_text: "Kensington commission kitchen interior"
+          link_url: "/portfolio/#kensington"
+        - title: "The Cotswold Barn"
+          category: "kitchen"
+          image: PORTFOLIO_COTSWOLD
+          alt_text: "Cotswold barn kitchen interior"
+          link_url: "/portfolio/#cotswold"
+        - title: "The Georgian Townhouse"
+          category: "kitchen"
+          image: PORTFOLIO_GEORGIAN
+          alt_text: "Georgian townhouse kitchen interior"
+          link_url: "/portfolio/#georgian"
+  - type: "featured_case_study"
+    value:
+      eyebrow: "Featured Commission"
+      heading: "The Surrey Commission"
+      intro: "<p>A complete kitchen transformation for a Grade II listed property in the Surrey Hills.</p>"
+      points:
+        - "English oak from managed woodland"
+        - "Hand-cut dovetail joints throughout"
+        - "Integrated appliances from Gaggenau"
+      cta_text: "Read the full case study"
+      cta_url: "/portfolio/#surrey"
+      image: SURREY_IMAGE
+      image_alt: "Surrey kitchen with oak cabinetry"
+      stats_label: "Project duration"
+      stats_value: "14 weeks"
+  - type: "social_proof_quote"
+    value:
+      quote: "The attention to detail is extraordinary. Every drawer, every hinge--it's like working with artisans from another era."
+      author: "Sarah M."
+      role: "Homeowner"
+      company: "Surrey Hills"
+      logo: null
+  - type: "faq"
+    value:
+      eyebrow: "Commission Protocols"
+      heading: "How It Works"
+      intro: ""
+      items:
+        - question: "Timeline & Pacing"
+          answer: "<p>Every commission begins with a site visit and design consultation. From approval to installation typically takes 12-16 weeks. We limit ourselves to 12 commissions per year to ensure every project receives our full attention.</p>"
+        - question: "Material Provenance"
+          answer: "<p>We source timber exclusively from managed British woodlands. Each piece is tracked from tree to kitchen, with full documentation of origin, seasoning time, and milling date.</p>"
+        - question: "International Works"
+          answer: "<p>We undertake select international commissions in Europe and North America. International projects require a minimum engagement and extended lead times. Contact us to discuss feasibility.</p>"
+      allow_multiple_open: false
+  - type: "contact_form"
+    value:
+      eyebrow: "Begin the Conversation"
+      heading: "Request a Consultation"
+      intro: "<p>Tell us about your project and we'll be in touch within 48 hours.</p>"
+      success_message: "Thank you for your enquiry. We'll be in touch shortly."
+      submit_label: "Send Enquiry"

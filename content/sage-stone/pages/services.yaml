@@ -1,0 +1,145 @@
+title: "Services"
+slug: "services"
+seo_title: "Our Services | Bespoke Kitchen Installation | Sage & Stone"
+search_description: "Total project management from first measurement to final polish. Precision installation, white glove service."
+show_in_menus: true
+body:
+  - type: "hero_gradient"
+    value:
+      headline: "Precision <em>Installation</em>"
+      subheadline: "Total project management from first measurement to final polish."
+      ctas: []
+      gradient_style: "primary"
+  - type: "manifesto"
+    value:
+      eyebrow: "The White Glove Standard"
+      heading: "Installation is not an afterthought"
+      body: "<p>Too many beautiful kitchens are ruined by poor installation. At Sage & Stone, installation is where our obsession with detail truly shows. Every gap, every alignment, every finish--measured to the millimetre.</p>"
+      quote: "Millimetre-perfect is not a goal. It is the baseline."
+  - type: "process"
+    value:
+      eyebrow: "The Process"
+      heading: "Five Phases to Completion"
+      intro: "Every installation follows our proven methodology."
+      steps:
+        - number: 1
+          title: "Consultation"
+          description: "<p>Site survey, design brief, and feasibility assessment.</p>"
+        - number: 2
+          title: "Strip-Out"
+          description: "<p>Careful removal of existing fixtures with full site protection.</p>"
+        - number: 3
+          title: "Installation"
+          description: "<p>Precision fitting of cabinetry, worktops, and integrated appliances.</p>"
+        - number: 4
+          title: "Calibration"
+          description: "<p>Fine-tuning of doors, drawers, and hardware for perfect operation.</p>"
+        - number: 5
+          title: "Handover"
+          description: "<p>Full demonstration, documentation, and aftercare guidance.</p>"
+  - type: "service_cards"
+    value:
+      eyebrow: "What We Handle"
+      heading: "Complete Project Management"
+      intro: ""
+      cards:
+        - icon: ""
+          image: SERVICE_APPLIANCE
+          title: "Appliance Integration"
+          description: "<p>Seamless fitting of all integrated appliances, from refrigeration to extraction.</p>"
+          link_url: ""
+          link_label: ""
+        - icon: ""
+          image: SERVICE_JOINERY
+          title: "Bespoke Joinery"
+          description: "<p>On-site adjustments and custom fitting to accommodate period properties.</p>"
+          link_url: ""
+          link_label: ""
+        - icon: ""
+          image: SERVICE_TECHNICAL
+          title: "Technical Integration"
+          description: "<p>Plumbing, electrical, and gas connections by certified specialists.</p>"
+          link_url: ""
+          link_label: ""
+        - icon: ""
+          image: SERVICE_STONE
+          title: "Stone & Surfaces"
+          description: "<p>Precision templating and installation of worktops and splashbacks.</p>"
+          link_url: ""
+          link_label: ""
+      layout_style: "default"
+  - type: "service_cards"
+    value:
+      eyebrow: "The Cleanliness Pledge"
+      heading: "Four Guarantees"
+      intro: "Your home deserves the same respect as our workshop."
+      cards:
+        - icon: ""
+          image: null
+          title: "Daily Clean"
+          description: "<p>Work areas cleaned and vacuumed at the end of every day.</p>"
+          link_url: ""
+          link_label: ""
+        - icon: ""
+          image: null
+          title: "Floor Protection"
+          description: "<p>Heavy-duty floor coverings throughout the project duration.</p>"
+          link_url: ""
+          link_label: ""
+        - icon: ""
+          image: null
+          title: "Dust Extraction"
+          description: "<p>Industrial extraction at source for all cutting and sanding.</p>"
+          link_url: ""
+          link_label: ""
+        - icon: ""
+          image: null
+          title: "Sealed Zones"
+          description: "<p>Work areas sealed from living spaces with temporary partitions.</p>"
+          link_url: ""
+          link_label: ""
+      layout_style: "tight"
+  - type: "gallery"
+    value:
+      eyebrow: "The Details"
+      heading: "Obsession in every joint"
+      intro: ""
+      images:
+        - image: DETAIL_1
+          alt_text: "Hand-cut dovetail joint detail"
+          caption: ""
+        - image: DETAIL_2
+          alt_text: "Precision hinge alignment"
+          caption: ""
+        - image: DETAIL_3
+          alt_text: "Hand-finished oak surface"
+          caption: ""
+  - type: "trust_strip_logos"
+    value:
+      eyebrow: "Certifications & Memberships"
+      items:
+        - logo: LOGO_GASSAFE
+          alt_text: "Gas Safe Registered"
+          url: ""
+        - logo: LOGO_NICEIC
+          alt_text: "NICEIC Approved"
+          url: ""
+        - logo: LOGO_BIKBBI
+          alt_text: "BiKBBI Member"
+          url: ""
+        - logo: LOGO_GUILD
+          alt_text: "Guild of Master Craftsmen"
+          url: ""
+  - type: "faq"
+    value:
+      eyebrow: "Common Questions"
+      heading: "Installation FAQs"
+      intro: ""
+      items:
+        - question: "What is the typical lead time for installation?"
+          answer: "<p>Installation typically begins 10-12 weeks after design approval, allowing time for material sourcing and workshop production. The installation phase itself takes 2-3 weeks depending on project scope.</p>"
+        - question: "Do you install flat-pack kitchens?"
+          answer: "<p>No. We only install kitchens built in our Herefordshire workshop. Every piece is crafted specifically for your space--flat-pack has no place in our process.</p>"
+        - question: "How do you manage other trades?"
+          answer: "<p>We coordinate all required trades including plumbing, electrical, and plastering. Our project director serves as your single point of contact, managing the entire installation timeline.</p>"
+      allow_multiple_open: false
