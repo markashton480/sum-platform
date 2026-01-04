@@ -23,3 +23,15 @@ class SeederPageError(SeederError):
 
 class SeederSlugError(SeederError):
     """Raised when slug generation fails."""
+
+
+class SeederContentError(SeederError):
+    """Raised when content loading or validation fails."""
+
+
+class ContentProfileError(SeederContentError):
+    """Raised when a content profile is missing or invalid."""
+
+
+class ContentSchemaError(SeederContentError):
+    """Raised when content does not match expected structure."""

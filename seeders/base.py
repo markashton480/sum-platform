@@ -89,9 +89,7 @@ def find_child_by_slug(parent: Any, slug: str) -> Any | None:
         filtered = children.filter(slug=slug)
         if hasattr(filtered, "first"):
             return filtered.first()
-        for child in filtered:
-            return child
-        return None
+        return next(iter(filtered), None)
     for child in _iter_children(children):
         if getattr(child, "slug", None) == slug:
             return child
