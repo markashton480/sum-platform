@@ -20,6 +20,7 @@ from .exceptions import (
     SeederRegistryError,
     SeederSlugError,
 )
+from .orchestrator import SeedOrchestrator, SeedPlan, SeedResult
 from .site import SiteSeeder
 
 __all__ = [
@@ -36,6 +37,9 @@ __all__ = [
     "SeederRegistryError",
     "SeederRegistrationError",
     "SeederSlugError",
+    "SeedOrchestrator",
+    "SeedPlan",
+    "SeedResult",
     "SiteSeeder",
     "create_child_page",
     "generate_slug",
